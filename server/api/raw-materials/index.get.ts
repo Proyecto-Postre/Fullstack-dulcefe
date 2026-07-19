@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Enriquecemos los datos calculando el costo unitario exacto (S/ por gramo/ml/und)
+  // Dividimos el precio total entre la cantidad del paquete para obtener el costo exacto por gramo/ml/und
   const enrichedData = rawMaterials?.map(item => {
     const costPerUnit = item.purchase_quantity > 0 
       ? Number(item.purchase_price) / Number(item.purchase_quantity) 
@@ -23,7 +23,7 @@ export default defineEventHandler(async (event) => {
 
     return {
       ...item,
-      cost_per_unit: Number(costPerUnit.toFixed(6)) // 6 decimales para precisión en micro-gramos
+      cost_per_unit: Number(costPerUnit.toFixed(6))
     }
   })
 

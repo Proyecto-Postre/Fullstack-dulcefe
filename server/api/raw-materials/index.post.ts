@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
   if (!name || !unit || !purchase_price || !purchase_quantity) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'Nombre, unidad, precio de compra y cantidad del paquete son obligatorios.'
+      statusMessage: 'Todos los campos de costo son obligatorios.'
     })
   }
 
@@ -35,7 +35,6 @@ export default defineEventHandler(async (event) => {
 
   return {
     success: true,
-    message: 'Insumo registrado correctamente en el almacén.',
     data: data
   }
 })
