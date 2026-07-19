@@ -5,7 +5,8 @@ export default defineNuxtConfig({
   // AGREGA '@nuxtjs/tailwindcss' EXACTAMENTE AQUÍ:
   modules: [
     '@nuxtjs/supabase',
-    '@nuxtjs/tailwindcss'
+    '@nuxtjs/tailwindcss',
+    '@nuxt/icon'
   ],
   
   supabase: {
