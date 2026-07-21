@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, watch } from 'vue'
 
 const props = defineProps<{
   catalog: any
@@ -11,10 +11,55 @@ const emit = defineEmits<{
   (e: 'view-recipe', product: any): void
 }>()
 
-const newProduct = ref({ name: '', price: '', stock: '' })
+const newProduct = ref({ name: '', price: '', stock: '', image_url: '' })
 const editingProductId = ref<string | null>(null)
 const isSubmitting = ref(false)
 const errorMessage = ref('')
+const selectedFile = ref<File | null>(null)
+const previewUrl = ref<string | null>(null)
+
+function handleFileChange(event: any) {
+  const file = event.target.files?.[0]
+  if (file) {
+    selectedFile.value = file
+    previewUrl.value = URL.createObjectURL(file)
+  } else {
+    selectedFile.value = null
+    previewUrl.value = null
+  }
+}
+
+function triggerFileInput() {
+  document.getElementById('productImageInput')?.click()
+}
+
+// Pagination
+const currentPage = ref(1)
+const itemsPerPage = 6
+
+const paginatedCatalog = computed(() => {
+  if (!props.catalog?.data) return []
+  const start = (currentPage.value - 1) * itemsPerPage
+  const end = start + itemsPerPage
+  return props.catalog.data.slice(start, end)
+})
+
+const totalPages = computed(() => {
+  if (!props.catalog?.data) return 1
+  return Math.ceil(props.catalog.data.length / itemsPerPage)
+})
+
+function nextPage() {
+  if (currentPage.value < totalPages.value) currentPage.value++
+}
+
+function prevPage() {
+  if (currentPage.value > 1) currentPage.value--
+}
+
+watch(() => props.catalog?.data?.length, () => {
+  currentPage.value = 1
+})
 
 async function handleCreateProduct() {
   if (!newProduct.value.name || !newProduct.value.price) {
@@ -24,6 +69,22 @@ async function handleCreateProduct() {
   isSubmitting.value = true
   errorMessage.value = ''
   try {
+    // 1. Si hay una imagen seleccionada, la subimos primero a Cloudinary
+    let uploadedImageUrl = newProduct.value.image_url
+    if (selectedFile.value) {
+      const formData = new FormData()
+      formData.append('file', selectedFile.value)
+      
+      const uploadRes: any = await $fetch('/api/products/upload', {
+        method: 'POST',
+        body: formData
+      })
+      if (uploadRes.success && uploadRes.url) {
+        uploadedImageUrl = uploadRes.url
+      }
+    }
+
+    // 2. Guardamos el producto en Supabase
     const method = editingProductId.value ? 'PUT' : 'POST'
     const endpoint = editingProductId.value ? `/api/products/${editingProductId.value}` : '/api/products'
     
@@ -32,7 +93,8 @@ async function handleCreateProduct() {
       body: {
         name: newProduct.value.name,
         price: Number(newProduct.value.price),
-        stock: Number(newProduct.value.stock || 0)
+        stock: Number(newProduct.value.stock || 0),
+        image_url: uploadedImageUrl
       }
     })
     
@@ -51,15 +113,20 @@ function handleEditProduct(item: any) {
   newProduct.value = { 
     name: item.name, 
     price: item.price, 
-    stock: item.stock 
+    stock: item.stock,
+    image_url: item.image_url || ''
   }
+  selectedFile.value = null
+  previewUrl.value = item.image_url || null
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 function cancelEditProduct() {
   editingProductId.value = null
-  newProduct.value = { name: '', price: '', stock: '' }
+  newProduct.value = { name: '', price: '', stock: '', image_url: '' }
   errorMessage.value = ''
+  selectedFile.value = null
+  previewUrl.value = null
 }
 
 async function handleDeleteProduct(id: string, name: string) {
@@ -70,6 +137,17 @@ async function handleDeleteProduct(id: string, name: string) {
   } catch (err: any) {
     alert('Error al eliminar: ' + (err.data?.statusMessage || err.message))
   }
+}
+
+function getProductIcon(name: string): string {
+  const n = name.toLowerCase()
+  if (n.includes('brownie') || n.includes('box') || n.includes('caja')) return 'lucide:package'
+  if (n.includes('alfajor') || n.includes('galleta') || n.includes('cookie')) return 'lucide:cookie'
+  if (n.includes('torta') || n.includes('pastel') || n.includes('cake') || n.includes('keke') || n.includes('queque')) return 'lucide:cake-slice'
+  if (n.includes('pie') || n.includes('tart') || n.includes('kuchen')) return 'lucide:pie-chart'
+  if (n.includes('cafe') || n.includes('café') || n.includes('coffee')) return 'lucide:coffee'
+  if (n.includes('helado') || n.includes('ice cream')) return 'lucide:ice-cream'
+  return 'lucide:croissant'
 }
 </script>
 
@@ -95,6 +173,37 @@ async function handleDeleteProduct(id: string, name: string) {
       </div>
 
       <form @submit.prevent="handleCreateProduct" class="space-y-5">
+        
+        <!-- Zona de subida de imagen -->
+        <div>
+          <label class="block text-[11px] font-bold text-[#4A5D23] uppercase tracking-widest mb-2">Fotografía (Opcional)</label>
+          <div 
+            @click="triggerFileInput"
+            class="w-full h-32 border-2 border-dashed border-[#4A5D23]/30 rounded-xl bg-[#F4F1E1]/30 hover:bg-[#F4F1E1] transition-colors cursor-pointer flex flex-col items-center justify-center overflow-hidden relative group"
+          >
+            <input 
+              type="file" 
+              id="productImageInput" 
+              accept="image/*" 
+              class="hidden" 
+              @change="handleFileChange" 
+            />
+            
+            <template v-if="previewUrl">
+              <img :src="previewUrl" class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" />
+              <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                <span class="text-white text-xs font-bold bg-[#2A321B]/80 px-3 py-1.5 rounded-lg border border-white/20">Cambiar Foto</span>
+              </div>
+            </template>
+            <template v-else>
+              <div class="w-10 h-10 rounded-full bg-white border border-[#4A5D23]/20 flex items-center justify-center text-[#4A5D23]/50 mb-2 shadow-sm group-hover:scale-110 transition-transform">
+                <Icon name="lucide:camera" class="w-5 h-5" />
+              </div>
+              <span class="text-xs font-medium text-[#4A5D23]/60 group-hover:text-[#4A5D23] transition-colors">Haz clic para subir una foto</span>
+            </template>
+          </div>
+        </div>
+
         <div>
           <label class="block text-[11px] font-bold text-[#4A5D23] uppercase tracking-widest mb-2">Nombre del postre</label>
           <input 
@@ -158,7 +267,7 @@ async function handleDeleteProduct(id: string, name: string) {
     </section>
 
     <!-- COLUMNA DERECHA: Tabla de Inventario -->
-    <section class="lg:col-span-2 bg-white p-8 rounded-[2rem] border-2 border-[#4A5D23] shadow-[6px_6px_0px_#4A5D23] transition-all duration-300">
+    <section class="lg:col-span-2 bg-white p-8 pb-5 rounded-[2rem] border-2 border-[#4A5D23] shadow-[6px_6px_0px_#4A5D23] transition-all duration-300 flex flex-col">
       <div class="flex items-center justify-between mb-6 pb-4 border-b border-dashed border-[#4A5D23]/30">
         <div class="flex items-center gap-3">
           <Icon name="lucide:library" class="w-5 h-5 text-[#4A5D23]" />
@@ -188,7 +297,7 @@ async function handleDeleteProduct(id: string, name: string) {
       </div>
 
       <!-- State: Table Grid -->
-      <div v-else class="overflow-x-auto">
+      <div v-else class="flex-1 flex flex-col overflow-x-auto">
         <table class="w-full text-left border-collapse whitespace-nowrap">
           <thead>
             <tr class="border-b-2 border-[#4A5D23]/20 text-[10px] uppercase tracking-widest text-[#4A5D23]/80 font-bold">
@@ -199,12 +308,15 @@ async function handleDeleteProduct(id: string, name: string) {
             </tr>
           </thead>
           <tbody class="divide-y divide-[#4A5D23]/10 text-sm">
-            <tr v-for="item in catalog.data" :key="item.id" class="group hover:bg-[#F4F1E1]/50 transition-colors duration-200">
+            <tr v-for="item in paginatedCatalog" :key="item.id" class="group hover:bg-[#F4F1E1]/50 transition-colors duration-200">
               <td class="py-4 px-4 font-medium text-[#2A321B] flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full bg-white border border-[#4A5D23]/20 flex items-center justify-center text-[#4A5D23] group-hover:border-[#4A5D23] transition-all">
-                  <Icon name="lucide:croissant" class="w-3.5 h-3.5" />
+                <div v-if="item.image_url" class="w-8 h-8 rounded-full border-2 border-[#4A5D23] overflow-hidden shadow-[2px_2px_0px_#4A5D23] shrink-0">
+                  <img :src="item.image_url" :alt="item.name" class="w-full h-full object-cover" />
                 </div>
-                {{ item.name }}
+                <div v-else class="w-8 h-8 rounded-full bg-white border border-[#4A5D23]/20 flex items-center justify-center text-[#4A5D23] group-hover:border-[#4A5D23] transition-all shrink-0">
+                  <Icon :name="getProductIcon(item.name)" class="w-3.5 h-3.5" />
+                </div>
+                <span class="truncate max-w-[150px]">{{ item.name }}</span>
               </td>
               <td class="py-4 px-4 text-right font-inter">
                 <span class="text-[#4A5D23]/60 text-xs mr-0.5">S/</span>
@@ -250,19 +362,32 @@ async function handleDeleteProduct(id: string, name: string) {
             </tr>
           </tbody>
         </table>
+
+        <!-- Pagination Controls -->
+        <div v-if="totalPages > 1" class="flex items-center justify-between mt-auto pt-6 px-4 py-3 bg-[#F4F1E1]/50 rounded-2xl border-2 border-[#4A5D23]/20">
+          <p class="text-xs font-bold text-[#4A5D23]/80 uppercase tracking-widest">
+            Página {{ currentPage }} de {{ totalPages }}
+          </p>
+          <div class="flex items-center gap-3">
+            <button 
+              @click="prevPage" 
+              :disabled="currentPage === 1"
+              class="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all duration-300 border-2 shadow-[2px_2px_0px_rgba(74,93,35,1)] text-[#2A321B] bg-white border-[#2A321B] hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed active:translate-y-0.5 active:shadow-none"
+            >
+              <Icon name="lucide:chevron-left" class="w-4 h-4" />
+              Atrás
+            </button>
+            <button 
+              @click="nextPage" 
+              :disabled="currentPage === totalPages"
+              class="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all duration-300 border-2 shadow-[2px_2px_0px_rgba(74,93,35,1)] text-[#2A321B] bg-white border-[#2A321B] hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed active:translate-y-0.5 active:shadow-none"
+            >
+              Siguiente
+              <Icon name="lucide:chevron-right" class="w-4 h-4" />
+            </button>
+          </div>
+        </div>
       </div>
     </section>
   </div>
 </template>
-
-<style scoped>
-/* Quitar flechas de incremento/decremento en inputs numéricos */
-input[type=number]::-webkit-inner-spin-button, 
-input[type=number]::-webkit-outer-spin-button { 
-  -webkit-appearance: none; 
-  margin: 0; 
-}
-input[type=number] {
-  -moz-appearance: textfield;
-}
-</style>
