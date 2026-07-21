@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, watch } from 'vue'
 
 const props = defineProps<{
   materials: any
@@ -14,6 +14,34 @@ const newMaterial = ref({ name: '', unit: 'g', purchase_price: '', purchase_quan
 const editingMaterialId = ref<string | null>(null)
 const isSubmitting = ref(false)
 const errorMessage = ref('')
+
+// Pagination
+const currentPage = ref(1)
+const itemsPerPage = 6
+
+const paginatedMaterials = computed(() => {
+  if (!props.materials?.data) return []
+  const start = (currentPage.value - 1) * itemsPerPage
+  const end = start + itemsPerPage
+  return props.materials.data.slice(start, end)
+})
+
+const totalPages = computed(() => {
+  if (!props.materials?.data) return 1
+  return Math.ceil(props.materials.data.length / itemsPerPage)
+})
+
+function nextPage() {
+  if (currentPage.value < totalPages.value) currentPage.value++
+}
+
+function prevPage() {
+  if (currentPage.value > 1) currentPage.value--
+}
+
+watch(() => props.materials?.data?.length, () => {
+  currentPage.value = 1
+})
 
 async function handleCreateMaterial() {
   if (!newMaterial.value.name || !newMaterial.value.purchase_price || !newMaterial.value.purchase_quantity) {
@@ -199,7 +227,7 @@ async function handleDeleteMaterial(id: string, name: string) {
     </section>
 
     <!-- COLUMNA DERECHA: Tabla de Insumos -->
-    <section class="lg:col-span-2 bg-white p-8 rounded-[2rem] border-2 border-[#4A5D23] shadow-[6px_6px_0px_#4A5D23] transition-all duration-300">
+    <section class="lg:col-span-2 bg-white p-8 pb-5 rounded-[2rem] border-2 border-[#4A5D23] shadow-[6px_6px_0px_#4A5D23] transition-all duration-300 flex flex-col">
       <div class="flex items-center justify-between mb-6 pb-4 border-b border-dashed border-[#4A5D23]/30">
         <div class="flex items-center gap-3">
           <Icon name="lucide:calculator" class="w-5 h-5 text-[#4A5D23]" />
@@ -229,7 +257,7 @@ async function handleDeleteMaterial(id: string, name: string) {
       </div>
 
       <!-- State: Table Grid -->
-      <div v-else class="overflow-x-auto pb-4">
+      <div v-else class="flex-1 flex flex-col overflow-x-auto">
         <table class="w-full text-left border-collapse whitespace-nowrap">
           <thead>
             <tr class="border-b-2 border-[#4A5D23]/20 text-[10px] uppercase tracking-widest text-[#4A5D23]/80 font-bold">
@@ -241,7 +269,7 @@ async function handleDeleteMaterial(id: string, name: string) {
             </tr>
           </thead>
           <tbody class="divide-y divide-[#4A5D23]/10 text-sm">
-            <tr v-for="mat in materials.data" :key="mat.id" class="group hover:bg-[#F4F1E1]/50 transition-colors duration-200">
+            <tr v-for="mat in paginatedMaterials" :key="mat.id" class="group hover:bg-[#F4F1E1]/50 transition-colors duration-200">
               <td class="py-4 px-4 font-medium text-[#2A321B] flex items-center gap-3">
                 <div class="w-8 h-8 rounded-full bg-white border border-[#4A5D23]/20 flex items-center justify-center text-[#4A5D23] group-hover:border-[#4A5D23] transition-all">
                   <Icon name="lucide:box" class="w-3.5 h-3.5" />
@@ -284,19 +312,32 @@ async function handleDeleteMaterial(id: string, name: string) {
             </tr>
           </tbody>
         </table>
+
+        <!-- Pagination Controls -->
+        <div v-if="totalPages > 1" class="flex items-center justify-between mt-auto pt-6 px-4 py-3 bg-[#F4F1E1]/50 rounded-2xl border-2 border-[#4A5D23]/20">
+          <p class="text-xs font-bold text-[#4A5D23]/80 uppercase tracking-widest">
+            Página {{ currentPage }} de {{ totalPages }}
+          </p>
+          <div class="flex items-center gap-3">
+            <button 
+              @click="prevPage" 
+              :disabled="currentPage === 1"
+              class="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all duration-300 border-2 shadow-[2px_2px_0px_rgba(74,93,35,1)] text-[#2A321B] bg-white border-[#2A321B] hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed active:translate-y-0.5 active:shadow-none"
+            >
+              <Icon name="lucide:chevron-left" class="w-4 h-4" />
+              Atrás
+            </button>
+            <button 
+              @click="nextPage" 
+              :disabled="currentPage === totalPages"
+              class="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all duration-300 border-2 shadow-[2px_2px_0px_rgba(74,93,35,1)] text-[#2A321B] bg-white border-[#2A321B] hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed active:translate-y-0.5 active:shadow-none"
+            >
+              Siguiente
+              <Icon name="lucide:chevron-right" class="w-4 h-4" />
+            </button>
+          </div>
+        </div>
       </div>
     </section>
   </div>
 </template>
-
-<style scoped>
-/* Quitar flechas de incremento/decremento en inputs numéricos */
-input[type=number]::-webkit-inner-spin-button, 
-input[type=number]::-webkit-outer-spin-button { 
-  -webkit-appearance: none; 
-  margin: 0; 
-}
-input[type=number] {
-  -moz-appearance: textfield;
-}
-</style>

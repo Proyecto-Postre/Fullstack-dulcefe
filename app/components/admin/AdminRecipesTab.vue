@@ -282,8 +282,8 @@ watch(() => props.modelValue, (newVal) => {
         </section>
 
         <!-- Tabla de Insumos -->
-        <section class="bg-white p-8 rounded-[2rem] border-2 border-[#4A5D23] shadow-[6px_6px_0px_#4A5D23] transition-all duration-300 flex flex-col min-h-[400px] max-h-[600px]">
-          <div class="flex items-center justify-between mb-6 pb-4 border-b border-dashed border-[#4A5D23]/30 shrink-0">
+        <section class="bg-white p-8 rounded-[2rem] border-2 border-[#4A5D23] shadow-[6px_6px_0px_#4A5D23] transition-all duration-300 flex flex-col min-h-[400px] max-h-[400px]">
+          <div class="flex items-center justify-between mb-4 pb-4 border-b border-dashed border-[#4A5D23]/30 shrink-0">
             <div class="flex items-center gap-3">
               <Icon name="lucide:list-checks" class="w-5 h-5 text-[#4A5D23]" />
               <h2 class="text-xl font-playfair font-bold text-[#2A321B] tracking-tight">Ficha Técnica</h2>
@@ -335,26 +335,28 @@ watch(() => props.modelValue, (newVal) => {
               </thead>
               <tbody class="divide-y divide-[#4A5D23]/10 text-sm">
                 <tr v-for="item in recipeItems" :key="item.id" class="group hover:bg-[#F4F1E1]/50 transition-colors">
-                  <td class="py-4 px-3 font-medium text-[#2A321B]">
-                    {{ item.name }}
-                    <div class="text-[10px] text-[#4A5D23]/60 font-bold mt-1">S/ {{ item.cost_per_unit?.toFixed(2) }} x {{ item.unit }}</div>
+                  <td class="py-2.5 px-3">
+                    <div class="flex items-center gap-2">
+                      <span class="font-bold text-[#2A321B]">{{ item.name }}</span>
+                      <span class="text-[9px] text-[#4A5D23]/60 font-black uppercase tracking-widest bg-[#4A5D23]/5 px-1.5 py-0.5 rounded">S/ {{ item.cost_per_unit?.toFixed(2) }} x {{ item.unit }}</span>
+                    </div>
                   </td>
-                  <td class="py-4 px-3 text-center">
-                    <span class="inline-flex items-center justify-center px-3 py-1.5 rounded-md text-xs font-bold border-2 bg-white text-[#4A5D23] border-[#4A5D23]/30 shadow-[2px_2px_0px_rgba(74,93,35,0.2)]">
+                  <td class="py-2.5 px-3 text-center">
+                    <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-md text-[11px] font-bold border-2 bg-white text-[#4A5D23] border-[#4A5D23]/30 shadow-[1px_1px_0px_rgba(74,93,35,0.2)]">
                       {{ item.quantity_used }} {{ item.unit }}
                     </span>
                   </td>
-                  <td class="py-4 px-3 text-right font-black text-[#2A321B] font-inter text-base">
+                  <td class="py-2.5 px-3 text-right font-black text-[#2A321B] font-inter text-base">
                     <span class="text-[#4A5D23]/50 text-xs mr-0.5">S/</span>{{ item.item_total_cost?.toFixed(2) }}
                   </td>
-                  <td class="py-4 px-3">
+                  <td class="py-2.5 px-3">
                     <div class="flex items-center justify-end">
                       <button 
                         @click="handleDeleteRecipeItem(item.id, item.name)"
-                        class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-red-700 hover:text-white hover:bg-red-800 hover:shadow-[2px_2px_0px_#991B1B] hover:border border-transparent hover:border-[#4A0000] transition-all duration-300 focus:outline-none"
+                        class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-red-700 hover:text-white hover:bg-red-800 hover:shadow-[2px_2px_0px_#991B1B] hover:border border-transparent hover:border-[#4A0000] transition-all duration-300 focus:outline-none"
                         title="Quitar de la receta"
                       >
-                        <Icon name="lucide:x" class="w-4 h-4" />
+                        <Icon name="lucide:x" class="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </td>
@@ -367,15 +369,3 @@ watch(() => props.modelValue, (newVal) => {
     </div>
   </div>
 </template>
-
-<style scoped>
-/* Quitar flechas de incremento/decremento en inputs numéricos */
-input[type=number]::-webkit-inner-spin-button, 
-input[type=number]::-webkit-outer-spin-button { 
-  -webkit-appearance: none; 
-  margin: 0; 
-}
-input[type=number] {
-  -moz-appearance: textfield;
-}
-</style>
