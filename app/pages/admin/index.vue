@@ -1,14 +1,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
-// 1. Protección de ruta por sesión
-const user = useSupabaseUser()
-if (!user.value) {
-  navigateTo('/login')
-}
+// Protección via middleware (admin-only.ts)
+definePageMeta({ middleware: 'admin-only' })
 
-// 2. Control de pestañas del panel ('products' | 'materials' | 'recipes')
-const currentTab = ref<'products' | 'materials' | 'recipes'>('products')
+// Control de pestañas del panel
+const currentTab = ref<'products' | 'materials' | 'recipes' | 'orders'>('products')
 
 // 3. Consultas globales a Supabase (Productos e Insumos)
 const { data: catalog, refresh: refreshCatalog, pending: pendingCatalog } = await useFetch('/api/products')
@@ -112,6 +109,18 @@ async function handleLogout() {
           <Icon name="lucide:calculator" class="w-4 h-4" />
           Escandallo y Rentabilidad
         </button>
+        <button 
+          @click="currentTab = 'orders'"
+          :class="[
+            'flex items-center gap-2 py-3 px-6 font-bold text-sm rounded-t-[1.5rem] transition-all duration-300 border-2 border-b-0',
+            currentTab === 'orders' 
+              ? 'bg-white border-[#4A5D23] text-[#2A321B] shadow-[6px_0px_0px_#4A5D23] relative translate-y-[2px]' 
+              : 'bg-transparent border-transparent text-[#4A5D23]/60 hover:text-[#4A5D23] hover:bg-white/30'
+          ]"
+        >
+          <Icon name="lucide:clipboard-list" class="w-4 h-4" />
+          Gestión de Pedidos
+        </button>
       </div>
     </div>
 
@@ -138,6 +147,10 @@ async function handleLogout() {
         :catalog="catalog"
         :materials="materials"
         v-model="activeProductForRecipe"
+      />
+
+      <AdminOrdersTab 
+        v-if="currentTab === 'orders'"
       />
 
     </main>
