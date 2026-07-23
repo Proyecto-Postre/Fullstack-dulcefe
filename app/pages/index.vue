@@ -7,6 +7,7 @@ interface Product {
   name: string;
   price: number | string;
   stock: number;
+  image_url?: string;
 }
 
 interface ApiResponse {
@@ -15,14 +16,20 @@ interface ApiResponse {
   data: Product[];
 }
 
+import { useCartStore } from '~/stores/cart'
+
 // Ahora TypeScript sabe exactamente qué estructura tiene 'catalog'
 const { data: catalog, pending, error } = await useFetch("/api/products", {
   transform: (res: any) => res as ApiResponse
 });
+
+const cartStore = useCartStore()
 </script>
 
 <template>
   <div class="min-h-screen bg-[#F4F1E1] font-inter text-[#2A321B] selection:bg-[#4A5D23] selection:text-[#F4F1E1] relative overflow-hidden">
+    
+    <CartDrawer />
     
     <!-- Ambient Botanical Background Elements -->
     <div class="fixed top-0 left-0 w-full h-full pointer-events-none overflow-hidden z-0">
@@ -37,7 +44,7 @@ const { data: catalog, pending, error } = await useFetch("/api/products", {
     </div>
 
     <!-- Header -->
-    <header class="relative z-50 sticky top-0 bg-[#F4F1E1]/95 backdrop-blur-sm border-b border-[#4A5D23]/20 transition-all duration-300">
+    <header class="z-50 sticky top-0 bg-[#F4F1E1]/95 backdrop-blur-sm border-b border-[#4A5D23]/20 transition-all duration-300">
       <div class="max-w-7xl mx-auto px-6 lg:px-12 py-5 flex justify-between items-center">
         <div class="flex items-center gap-4">
           <div class="w-10 h-10 border border-[#4A5D23] bg-white rounded-full flex items-center justify-center text-[#4A5D23] shadow-[2px_2px_0px_#4A5D23]">
@@ -49,15 +56,37 @@ const { data: catalog, pending, error } = await useFetch("/api/products", {
           </div>
         </div>
         
-        <NuxtLink
-          to="/login"
-          class="group relative inline-flex items-center justify-center px-6 py-2.5 text-[13px] font-semibold text-[#F4F1E1] bg-[#4A5D23] hover:bg-[#3C4A1C] border border-[#2A321B] rounded-full overflow-hidden transition-colors duration-300 shadow-[3px_3px_0px_#2A321B] active:translate-y-1 active:shadow-none"
-        >
-          <span class="relative z-10 flex items-center gap-2">
-             Administración
-             <Icon name="lucide:arrow-right" class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
-          </span>
-        </NuxtLink>
+        <div class="flex items-center gap-4">
+          <NuxtLink 
+            to="/cuenta"
+            class="relative w-10 h-10 flex items-center justify-center rounded-full border-2 border-[#2A321B] bg-white text-[#2A321B] hover:bg-[#F4F1E1] transition-colors shadow-[2px_2px_0px_#2A321B] active:translate-y-0.5 active:shadow-none"
+          >
+            <Icon name="lucide:user" class="w-5 h-5" />
+          </NuxtLink>
+
+          <button 
+            @click="cartStore.toggleDrawer()"
+            class="relative w-10 h-10 flex items-center justify-center rounded-full border-2 border-[#2A321B] bg-white text-[#2A321B] hover:bg-[#F4F1E1] transition-colors shadow-[2px_2px_0px_#2A321B] active:translate-y-0.5 active:shadow-none"
+          >
+            <Icon name="lucide:shopping-bag" class="w-5 h-5" />
+            <span 
+              v-if="cartStore.cartItemCount > 0"
+              class="absolute -top-2 -right-2 bg-[#991B1B] text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border border-[#4A0000]"
+            >
+              {{ cartStore.cartItemCount }}
+            </span>
+          </button>
+          
+          <NuxtLink
+            to="/login"
+            class="group relative inline-flex items-center justify-center px-6 py-2.5 text-[13px] font-semibold text-[#F4F1E1] bg-[#4A5D23] hover:bg-[#3C4A1C] border border-[#2A321B] rounded-full overflow-hidden transition-colors duration-300 shadow-[3px_3px_0px_#2A321B] active:translate-y-1 active:shadow-none"
+          >
+            <span class="relative z-10 flex items-center gap-2">
+               Administración
+               <Icon name="lucide:arrow-right" class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
+            </span>
+          </NuxtLink>
+        </div>
       </div>
     </header>
 
@@ -118,11 +147,16 @@ const { data: catalog, pending, error } = await useFetch("/api/products", {
           <Icon name="lucide:leaf" class="w-4 h-4 text-[#4A5D23] mx-auto mt-3" />
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+        <TransitionGroup 
+          name="list" 
+          tag="div" 
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
+        >
           <article
-            v-for="product in catalog?.data"
+            v-for="(product, index) in catalog?.data"
             :key="product.id"
-            class="group relative flex flex-col bg-white border-2 border-[#4A5D23]/20 shadow-[4px_4px_0px_#4A5D23]/20 hover:border-[#4A5D23] hover:shadow-[6px_6px_0px_#4A5D23] transition-all duration-300 rounded-[2rem] p-4 cursor-pointer"
+            class="group bg-white rounded-[2rem] border-2 border-[#2A321B] overflow-hidden shadow-[4px_4px_0px_#2A321B] hover:shadow-[8px_8px_0px_#2A321B] hover:-translate-y-2 hover:rotate-1 transition-all duration-300 flex flex-col animate-pop cursor-pointer"
+            :style="{ animationDelay: `${index * 100}ms` }"
           >
             <!-- Image/Icon Container -->
             <div class="h-56 w-full relative overflow-hidden bg-[#F4F1E1] rounded-[1.5rem] p-6 flex items-center justify-center mb-5 transition-colors duration-300 group-hover:bg-[#EAE6D3]">
@@ -142,8 +176,11 @@ const { data: catalog, pending, error } = await useFetch("/api/products", {
                 Agotado
               </div>
 
-              <!-- Product Placeholder Icon -->
-              <div class="w-24 h-24 rounded-full border border-[#4A5D23]/30 flex items-center justify-center group-hover:border-[#4A5D23] transition-colors duration-500">
+              <!-- Product Image or Placeholder -->
+              <div v-if="product.image_url" class="absolute inset-0 w-full h-full">
+                <img :src="product.image_url" :alt="product.name" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500" />
+              </div>
+              <div v-else class="w-24 h-24 rounded-full border border-[#4A5D23]/30 flex items-center justify-center group-hover:border-[#4A5D23] transition-colors duration-500">
                 <Icon name="lucide:croissant" class="w-10 h-10 text-[#4A5D23] transform group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-500 ease-out z-10" />
               </div>
             </div>
@@ -164,6 +201,7 @@ const { data: catalog, pending, error } = await useFetch("/api/products", {
                 </div>
                 
                 <button
+                  @click="cartStore.addToCart(product)"
                   :disabled="product.stock === 0"
                   :class="[
                     'w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 border border-[#2A321B]',
@@ -179,7 +217,7 @@ const { data: catalog, pending, error } = await useFetch("/api/products", {
               </div>
             </div>
           </article>
-        </div>
+        </TransitionGroup>
         
         <div class="mt-16 text-center text-[10px] font-bold text-[#4A5D23] uppercase tracking-[0.3em] flex items-center justify-center gap-3 opacity-60">
           <Icon name="lucide:flower" class="w-3 h-3" />
