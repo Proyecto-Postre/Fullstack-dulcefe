@@ -11,6 +11,7 @@ const password = ref('')
 const fullName = ref('')
 const isLoading = ref(false)
 const errorMessage = ref('')
+const showPassword = ref(false)
 
 // Si ya está logueado, redirigir al perfil
 if (import.meta.client && authStore.isLoggedIn) {
@@ -49,8 +50,16 @@ const handleSubmit = async () => {
       if (error) throw error
       authStore.setUser(data.user)
     }
-    
-    navigateTo('/perfil')
+
+    // Esperar a que el perfil se cargue para saber si es admin
+    await authStore.fetchProfile()
+
+    // Redirigir según el rol
+    if (authStore.profile?.is_admin) {
+      navigateTo('/admin')
+    } else {
+      navigateTo('/')
+    }
   } catch (error: any) {
     errorMessage.value = error.message || 'Ocurrió un error inesperado.'
   } finally {
@@ -107,14 +116,23 @@ const handleSubmit = async () => {
           <!-- Contraseña -->
           <div class="space-y-2">
             <label for="password" class="block text-sm font-bold text-[#2A321B] uppercase tracking-wider">Contraseña</label>
-            <input 
-              id="password"
-              v-model="password"
-              type="password" 
-              required
-              placeholder="••••••••"
-              class="w-full bg-[#F4F1E1] border-2 border-[#2A321B] rounded-xl px-4 py-3 text-[#2A321B] font-medium focus:outline-none focus:ring-2 focus:ring-[#4A5D23] focus:border-transparent transition-all placeholder:text-[#4A5D23]/40"
-            >
+            <div class="relative">
+              <input 
+                id="password"
+                v-model="password"
+                :type="showPassword ? 'text' : 'password'" 
+                required
+                placeholder="••••••••"
+                class="w-full bg-[#F4F1E1] border-2 border-[#2A321B] rounded-xl px-4 py-3 pr-12 text-[#2A321B] font-medium focus:outline-none focus:ring-2 focus:ring-[#4A5D23] focus:border-transparent transition-all placeholder:text-[#4A5D23]/40"
+              >
+              <button
+                type="button"
+                @click="showPassword = !showPassword"
+                class="absolute right-4 top-1/2 -translate-y-1/2 text-[#4A5D23]/50 hover:text-[#2A321B] transition-colors"
+              >
+                <Icon :name="showPassword ? 'lucide:eye-off' : 'lucide:eye'" class="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           <!-- Mensaje de Error -->
