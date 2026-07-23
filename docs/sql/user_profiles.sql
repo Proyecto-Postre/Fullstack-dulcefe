@@ -9,6 +9,7 @@ CREATE TABLE public.profiles (
     phone TEXT,
     birth_date DATE,
     points INTEGER DEFAULT 0,
+    is_admin BOOLEAN DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
@@ -70,7 +71,7 @@ CREATE TABLE public.orders (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     profile_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL, -- Si borra la cuenta, conservamos el pedido para analíticas
     total_amount DECIMAL(10,2) NOT NULL,
-    status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'completed', 'cancelled')),
+    status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'ready', 'completed', 'cancelled')),
     delivery_date TEXT,
     delivery_time TEXT,
     notes TEXT,

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { useSupabaseClient } from '#imports'
 
 export interface UserProfile {
   id: string
@@ -7,6 +8,7 @@ export interface UserProfile {
   phone: string | null
   birth_date: string | null
   points: number
+  is_admin: boolean
 }
 
 export interface UserAddress {
@@ -24,9 +26,24 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isLoggedIn = computed(() => !!user.value)
 
-  // TODO: Implement Supabase calls to fetch profile and addresses
   async function fetchProfile() {
-    // Placeholder
+    if (!user.value) return
+    isLoading.value = true
+    try {
+      const supabase = useSupabaseClient()
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.value.id)
+        .single()
+        
+      if (error) throw error
+      profile.value = data
+    } catch (err) {
+      console.error('Error fetching profile:', err)
+    } finally {
+      isLoading.value = false
+    }
   }
 
   async function fetchAddresses() {
