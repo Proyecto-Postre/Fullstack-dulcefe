@@ -6,7 +6,7 @@ export default defineEventHandler(async (event) => {
   const { name, price, stock, image_url } = body
 
   // 2. Validación básica: no podemos crear un pastel sin nombre ni precio
-  if (!name || !price) {
+  if (!name || price === undefined || price === null) {
     throw createError({
       statusCode: 400,
       statusMessage: 'El nombre y el precio del producto son obligatorios.'

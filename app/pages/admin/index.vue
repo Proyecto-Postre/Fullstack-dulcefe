@@ -5,7 +5,7 @@ import { ref } from 'vue'
 definePageMeta({ middleware: 'admin-only' })
 
 // Control de pestañas del panel
-const currentTab = ref<'products' | 'materials' | 'recipes' | 'orders'>('products')
+const currentTab = ref<'dashboard' | 'products' | 'materials' | 'recipes' | 'orders'>('dashboard')
 
 // 3. Consultas globales a Supabase (Productos e Insumos)
 const { data: catalog, refresh: refreshCatalog, pending: pendingCatalog } = await useFetch('/api/products')
@@ -42,10 +42,10 @@ async function handleLogout() {
     </div>
 
     <!-- Header -->
-    <header class="relative z-50 sticky top-0 bg-[#F4F1E1]/95 backdrop-blur-sm border-b border-[#4A5D23]/30 transition-all duration-300">
+    <header class="relative z-50 sticky top-0 bg-white/90 backdrop-blur-md border-b border-[#4A5D23]/10 transition-all duration-300 shadow-sm">
       <div class="max-w-7xl mx-auto flex justify-between items-center py-4 px-6 lg:px-12">
         <div class="flex items-center space-x-4">
-          <div class="w-10 h-10 border border-[#4A5D23] bg-white rounded-full flex items-center justify-center text-[#4A5D23] shadow-[2px_2px_0px_#4A5D23]">
+          <div class="w-10 h-10 border border-[#4A5D23]/20 bg-[#F4F1E1] rounded-full flex items-center justify-center text-[#4A5D23] shadow-sm">
             <Icon name="lucide:wheat" class="w-5 h-5" />
           </div>
           <div>
@@ -61,7 +61,7 @@ async function handleLogout() {
           </NuxtLink>
           <button 
             @click="handleLogout"
-            class="group flex items-center gap-2 bg-white hover:bg-red-50 text-red-700 text-[13px] px-4 py-2 rounded-xl font-bold transition-all duration-300 border-2 border-red-800 shadow-[3px_3px_0px_#991B1B] active:translate-y-1 active:shadow-none"
+            class="group flex items-center gap-2 bg-white hover:bg-red-50 text-red-700 text-[13px] px-4 py-2 rounded-xl font-bold transition-all duration-300 border border-red-200 shadow-sm hover:shadow-md"
           >
             <Icon name="lucide:log-out" class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
             Salir
@@ -72,14 +72,26 @@ async function handleLogout() {
 
     <!-- Navegación por Pestañas -->
     <div class="relative z-10 max-w-7xl mx-auto pt-8 px-6 lg:px-12">
-      <div class="flex space-x-4 border-b-2 border-[#4A5D23]/20 pb-0">
+      <div class="flex space-x-2 border-b border-[#4A5D23]/10 pb-0 overflow-x-auto hide-scrollbar">
+        <button 
+          @click="currentTab = 'dashboard'"
+          :class="[
+            'flex items-center gap-2 py-3 px-6 font-bold text-sm rounded-t-[1.5rem] transition-all duration-300 border border-b-0 whitespace-nowrap',
+            currentTab === 'dashboard' 
+              ? 'bg-white border-[#4A5D23]/20 text-[#2A321B] shadow-sm relative translate-y-[1px]' 
+              : 'bg-transparent border-transparent text-[#4A5D23]/60 hover:text-[#4A5D23] hover:bg-white/50'
+          ]"
+        >
+          <Icon name="lucide:layout-dashboard" class="w-4 h-4" />
+          Dashboard
+        </button>
         <button 
           @click="currentTab = 'products'"
           :class="[
-            'flex items-center gap-2 py-3 px-6 font-bold text-sm rounded-t-[1.5rem] transition-all duration-300 border-2 border-b-0',
+            'flex items-center gap-2 py-3 px-6 font-bold text-sm rounded-t-[1.5rem] transition-all duration-300 border border-b-0 whitespace-nowrap',
             currentTab === 'products' 
-              ? 'bg-white border-[#4A5D23] text-[#2A321B] shadow-[6px_0px_0px_#4A5D23] relative translate-y-[2px]' 
-              : 'bg-transparent border-transparent text-[#4A5D23]/60 hover:text-[#4A5D23] hover:bg-white/30'
+              ? 'bg-white border-[#4A5D23]/20 text-[#2A321B] shadow-sm relative translate-y-[1px]' 
+              : 'bg-transparent border-transparent text-[#4A5D23]/60 hover:text-[#4A5D23] hover:bg-white/50'
           ]"
         >
           <Icon name="lucide:cake-slice" class="w-4 h-4" />
@@ -88,10 +100,10 @@ async function handleLogout() {
         <button 
           @click="currentTab = 'materials'"
           :class="[
-            'flex items-center gap-2 py-3 px-6 font-bold text-sm rounded-t-[1.5rem] transition-all duration-300 border-2 border-b-0',
+            'flex items-center gap-2 py-3 px-6 font-bold text-sm rounded-t-[1.5rem] transition-all duration-300 border border-b-0 whitespace-nowrap',
             currentTab === 'materials' 
-              ? 'bg-white border-[#4A5D23] text-[#2A321B] shadow-[6px_0px_0px_#4A5D23] relative translate-y-[2px]' 
-              : 'bg-transparent border-transparent text-[#4A5D23]/60 hover:text-[#4A5D23] hover:bg-white/30'
+              ? 'bg-white border-[#4A5D23]/20 text-[#2A321B] shadow-sm relative translate-y-[1px]' 
+              : 'bg-transparent border-transparent text-[#4A5D23]/60 hover:text-[#4A5D23] hover:bg-white/50'
           ]"
         >
           <Icon name="lucide:scale" class="w-4 h-4" />
@@ -100,10 +112,10 @@ async function handleLogout() {
         <button 
           @click="currentTab = 'recipes'"
           :class="[
-            'flex items-center gap-2 py-3 px-6 font-bold text-sm rounded-t-[1.5rem] transition-all duration-300 border-2 border-b-0',
+            'flex items-center gap-2 py-3 px-6 font-bold text-sm rounded-t-[1.5rem] transition-all duration-300 border border-b-0 whitespace-nowrap',
             currentTab === 'recipes' 
-              ? 'bg-white border-[#4A5D23] text-[#2A321B] shadow-[6px_0px_0px_#4A5D23] relative translate-y-[2px]' 
-              : 'bg-transparent border-transparent text-[#4A5D23]/60 hover:text-[#4A5D23] hover:bg-white/30'
+              ? 'bg-white border-[#4A5D23]/20 text-[#2A321B] shadow-sm relative translate-y-[1px]' 
+              : 'bg-transparent border-transparent text-[#4A5D23]/60 hover:text-[#4A5D23] hover:bg-white/50'
           ]"
         >
           <Icon name="lucide:calculator" class="w-4 h-4" />
@@ -112,10 +124,10 @@ async function handleLogout() {
         <button 
           @click="currentTab = 'orders'"
           :class="[
-            'flex items-center gap-2 py-3 px-6 font-bold text-sm rounded-t-[1.5rem] transition-all duration-300 border-2 border-b-0',
+            'flex items-center gap-2 py-3 px-6 font-bold text-sm rounded-t-[1.5rem] transition-all duration-300 border border-b-0 whitespace-nowrap',
             currentTab === 'orders' 
-              ? 'bg-white border-[#4A5D23] text-[#2A321B] shadow-[6px_0px_0px_#4A5D23] relative translate-y-[2px]' 
-              : 'bg-transparent border-transparent text-[#4A5D23]/60 hover:text-[#4A5D23] hover:bg-white/30'
+              ? 'bg-white border-[#4A5D23]/20 text-[#2A321B] shadow-sm relative translate-y-[1px]' 
+              : 'bg-transparent border-transparent text-[#4A5D23]/60 hover:text-[#4A5D23] hover:bg-white/50'
           ]"
         >
           <Icon name="lucide:clipboard-list" class="w-4 h-4" />
@@ -127,6 +139,12 @@ async function handleLogout() {
     <main class="relative z-10 max-w-7xl mx-auto py-8 px-6 lg:px-12">
       
       <!-- Componentes de Pestaña -->
+      <AdminDashboardTab 
+        v-if="currentTab === 'dashboard'" 
+        :catalog="catalog"
+        :materials="materials"
+      />
+
       <AdminProductsTab 
         v-if="currentTab === 'products'" 
         :catalog="catalog" 
@@ -147,6 +165,7 @@ async function handleLogout() {
         :catalog="catalog"
         :materials="materials"
         v-model="activeProductForRecipe"
+        @refresh-catalog="refreshCatalog"
       />
 
       <AdminOrdersTab 
@@ -165,5 +184,15 @@ async function handleLogout() {
 }
 .font-playfair {
   font-family: 'Playfair Display', serif;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+/* Hide scrollbar for IE, Edge and Firefox */
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }
 </style>

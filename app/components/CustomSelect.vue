@@ -45,13 +45,13 @@ function isSelected(val: any) {
       type="button"
       @click="isOpen = !isOpen" 
       :class="[
-        'w-full pl-4 pr-10 py-3 rounded-xl border-2 transition-all flex items-center justify-between text-left focus:outline-none focus:border-[#4A5D23] focus:ring-4 focus:ring-[#4A5D23]/10',
-        bgClass || 'bg-[#F4F1E1]',
+        'w-full pl-4 pr-10 py-3 rounded-xl border transition-all flex items-center justify-between text-left focus:outline-none focus:border-[#4A5D23] focus:ring-2 focus:ring-[#4A5D23]/10 shadow-sm',
+        bgClass || 'bg-white',
         isOpen ? 'border-[#4A5D23]' : 'border-[#4A5D23]/20 hover:border-[#4A5D23]/50'
       ]"
     >
-      <span v-if="selectedLabel" class="text-sm font-bold text-[#2A321B] truncate">{{ selectedLabel }}</span>
-      <span v-else class="text-sm font-bold text-[#4A5D23]/50 truncate">{{ placeholder || 'Seleccionar...' }}</span>
+      <span v-if="selectedLabel" class="flex-1 min-w-0 text-sm font-bold text-[#2A321B] truncate">{{ selectedLabel }}</span>
+      <span v-else class="flex-1 min-w-0 text-sm font-bold text-[#4A5D23]/50 truncate">{{ placeholder || 'Seleccionar...' }}</span>
       
       <Icon 
         name="lucide:chevron-down" 
@@ -71,7 +71,7 @@ function isSelected(val: any) {
     >
       <div 
         v-if="isOpen" 
-        class="absolute z-50 w-full mt-2 bg-white border-2 border-[#4A5D23] rounded-xl shadow-[4px_4px_0px_#4A5D23] max-h-60 overflow-y-auto custom-scrollbar overflow-x-hidden py-2 origin-top"
+        class="absolute z-50 w-full mt-2 bg-white border border-[#4A5D23]/20 rounded-xl shadow-lg max-h-60 overflow-y-auto custom-scrollbar overflow-x-hidden py-2 origin-top"
       >
         <div v-if="options.length === 0" class="px-4 py-3 text-sm text-[#4A5D23]/60 italic font-medium">
           No hay opciones disponibles
@@ -85,7 +85,7 @@ function isSelected(val: any) {
           class="w-full text-left px-4 py-2.5 text-sm font-bold transition-colors"
           :class="[
             isSelected(opt.value) 
-              ? 'bg-[#4A5D23] text-[#F4F1E1]' 
+              ? 'bg-[#4A5D23] text-white' 
               : 'text-[#2A321B] hover:bg-[#4A5D23]/10 hover:text-[#4A5D23]'
           ]"
         >
