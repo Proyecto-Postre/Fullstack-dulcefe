@@ -18,12 +18,12 @@ BEGIN
     LOOP
         -- Iterar sobre la receta de ese producto
         FOR recipe_row IN 
-            SELECT raw_material_id, quantity_required 
+            SELECT raw_material_id, quantity_used 
             FROM public.recipe_items 
             WHERE product_id = item.product_id
         LOOP
             -- Calcular la cantidad total de insumo necesaria
-            total_needed := recipe_row.quantity_required * item.quantity;
+            total_needed := recipe_row.quantity_used * item.quantity;
             
             -- Restar del stock en raw_materials
             UPDATE public.raw_materials

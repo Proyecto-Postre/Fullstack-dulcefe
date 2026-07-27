@@ -102,17 +102,44 @@ async function handleDeleteMaterial(id: string, name: string) {
     alert('Error al eliminar: ' + (err.data?.statusMessage || err.message))
   }
 }
+
+const updatingStockId = ref<string | null>(null)
+
+async function updateStockInline(item: any, event: any) {
+  const newStock = Number(event.target.value)
+  if (newStock === item.stock || isNaN(newStock)) return
+  
+  updatingStockId.value = item.id
+  try {
+    await $fetch(`/api/raw-materials/${item.id}`, {
+      method: 'PUT',
+      body: {
+        name: item.name,
+        unit: item.unit,
+        purchase_price: item.purchase_price,
+        purchase_quantity: item.purchase_quantity,
+        stock: newStock
+      }
+    })
+    emit('refresh')
+  } catch (err: any) {
+    alert('Error al actualizar stock: ' + (err.data?.statusMessage || err.message))
+    event.target.value = item.stock // revert
+  } finally {
+    updatingStockId.value = null
+  }
+}
 </script>
 
 <template>
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-    <div v-if="errorMessage" class="col-span-full mb-4 bg-white border-2 border-red-800 text-red-900 p-4 rounded-xl text-sm flex items-start gap-3 shadow-[4px_4px_0px_#991B1B]">
+    <div v-if="errorMessage" class="col-span-full mb-4 bg-white border-2 border-red-800 text-red-900 p-4 rounded-xl text-sm flex items-start gap-3 shadow-sm">
       <Icon name="lucide:triangle-alert" class="w-5 h-5 shrink-0 mt-0.5" />
       <span class="font-medium leading-relaxed">{{ errorMessage }}</span>
     </div>
 
     <!-- COLUMNA IZQUIERDA: Formulario para Agregar/Editar Insumo -->
-    <section class="bg-white p-8 rounded-[2rem] border-2 border-[#4A5D23] shadow-[6px_6px_0px_#4A5D23] h-fit transition-all duration-300">
+    <section class="bg-white p-8 rounded-[2rem] border border-[#4A5D23]/20 shadow-md h-fit transition-all duration-300">
       <div class="flex items-center justify-between mb-6 pb-4 border-b border-dashed border-[#4A5D23]/30">
         <div class="flex items-center gap-3">
           <Icon :name="editingMaterialId ? 'lucide:pencil' : 'lucide:package-plus'" class="w-5 h-5 text-[#4A5D23]" />
@@ -133,7 +160,7 @@ async function handleDeleteMaterial(id: string, name: string) {
             type="text" 
             required
             placeholder="Ej: Harina / Caja x6"
-            class="w-full px-4 py-3 bg-white rounded-xl border-2 border-[#4A5D23]/20 focus:outline-none focus:border-[#4A5D23] focus:ring-4 focus:ring-[#4A5D23]/10 text-sm font-medium text-[#2A321B] placeholder:text-[#4A5D23]/30 transition-all"
+            class="w-full px-4 py-3 bg-white rounded-xl border border-[#4A5D23]/20/20 focus:outline-none focus:border-[#4A5D23] focus:ring-4 focus:ring-[#4A5D23]/10 text-sm font-medium text-[#2A321B] placeholder:text-[#4A5D23]/30 transition-all"
           />
         </div>
 
@@ -158,13 +185,13 @@ async function handleDeleteMaterial(id: string, name: string) {
               v-model="newMaterial.stock"
               type="number" 
               placeholder="0"
-              class="w-full px-4 py-3 bg-white rounded-xl border-2 border-[#4A5D23]/20 focus:outline-none focus:border-[#4A5D23] focus:ring-4 focus:ring-[#4A5D23]/10 text-sm font-bold text-[#2A321B] placeholder:text-[#4A5D23]/30 transition-all"
+              class="w-full px-4 py-3 bg-white rounded-xl border border-[#4A5D23]/20/20 focus:outline-none focus:border-[#4A5D23] focus:ring-4 focus:ring-[#4A5D23]/10 text-sm font-bold text-[#2A321B] placeholder:text-[#4A5D23]/30 transition-all"
             />
           </div>
         </div>
 
         <!-- Datos de compra styled -->
-        <div class="bg-[#F4F1E1]/50 p-5 rounded-2xl border-2 border-[#4A5D23]/20 space-y-4">
+        <div class="bg-[#F4F1E1]/50 p-5 rounded-2xl border border-[#4A5D23]/20/20 space-y-4">
           <div class="flex items-center gap-2 mb-2">
              <Icon name="lucide:badge-dollar-sign" class="w-4 h-4 text-[#4A5D23]" />
              <span class="text-[11px] font-black text-[#4A5D23] uppercase tracking-widest block">Datos de Compra</span>
@@ -181,7 +208,7 @@ async function handleDeleteMaterial(id: string, name: string) {
                   step="0.10"
                   required
                   placeholder="0.00"
-                  class="w-full pl-10 pr-4 py-3 bg-white rounded-xl border-2 border-[#4A5D23]/20 focus:outline-none focus:border-[#4A5D23] focus:ring-4 focus:ring-[#4A5D23]/10 text-sm font-bold text-[#2A321B] placeholder:text-[#4A5D23]/30 transition-all"
+                  class="w-full pl-10 pr-4 py-3 bg-white rounded-xl border border-[#4A5D23]/20/20 focus:outline-none focus:border-[#4A5D23] focus:ring-4 focus:ring-[#4A5D23]/10 text-sm font-bold text-[#2A321B] placeholder:text-[#4A5D23]/30 transition-all"
                 />
               </div>
             </div>
@@ -195,7 +222,7 @@ async function handleDeleteMaterial(id: string, name: string) {
                 step="0.01"
                 required
                 placeholder="Ej: 1000"
-                class="w-full px-4 py-3 bg-white rounded-xl border-2 border-[#4A5D23]/20 focus:outline-none focus:border-[#4A5D23] focus:ring-4 focus:ring-[#4A5D23]/10 text-sm font-bold text-[#2A321B] placeholder:text-[#4A5D23]/30 transition-all"
+                class="w-full px-4 py-3 bg-white rounded-xl border border-[#4A5D23]/20/20 focus:outline-none focus:border-[#4A5D23] focus:ring-4 focus:ring-[#4A5D23]/10 text-sm font-bold text-[#2A321B] placeholder:text-[#4A5D23]/30 transition-all"
               />
             </div>
           </div>
@@ -205,7 +232,7 @@ async function handleDeleteMaterial(id: string, name: string) {
           <button 
             type="submit"
             :disabled="isSubmitting"
-            class="flex-1 group relative inline-flex items-center justify-center px-5 py-3.5 text-sm font-bold text-[#F4F1E1] bg-[#4A5D23] hover:bg-[#3C4A1C] border border-[#2A321B] rounded-xl overflow-hidden transition-all duration-300 shadow-[4px_4px_0px_#2A321B] active:translate-y-1 active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed"
+            class="flex-1 group relative inline-flex items-center justify-center px-5 py-3.5 text-sm font-bold text-[#F4F1E1] bg-[#4A5D23] hover:bg-[#3C4A1C] text-white border-transparent rounded-xl overflow-hidden transition-all duration-300 shadow-sm active:translate-y-1 active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span class="relative z-10 flex items-center gap-2">
               <Icon v-if="isSubmitting" name="lucide:loader-2" class="w-4 h-4 animate-spin" />
@@ -218,7 +245,7 @@ async function handleDeleteMaterial(id: string, name: string) {
             v-if="editingMaterialId"
             type="button"
             @click="cancelEditMaterial"
-            class="relative inline-flex items-center justify-center px-5 py-3.5 text-sm font-bold text-[#2A321B] bg-white hover:bg-gray-50 border border-[#2A321B] rounded-xl overflow-hidden transition-all duration-300 shadow-[4px_4px_0px_#2A321B] active:translate-y-1 active:shadow-none"
+            class="relative inline-flex items-center justify-center px-5 py-3.5 text-sm font-bold text-[#2A321B] bg-white hover:bg-gray-50 border border-[#4A5D23]/20 text-[#2A321B] rounded-xl overflow-hidden transition-all duration-300 shadow-sm active:translate-y-1 active:shadow-none"
           >
             Cancelar
           </button>
@@ -227,7 +254,7 @@ async function handleDeleteMaterial(id: string, name: string) {
     </section>
 
     <!-- COLUMNA DERECHA: Tabla de Insumos -->
-    <section class="lg:col-span-2 bg-white p-8 pb-5 rounded-[2rem] border-2 border-[#4A5D23] shadow-[6px_6px_0px_#4A5D23] transition-all duration-300 flex flex-col">
+    <section class="lg:col-span-2 bg-white p-8 pb-5 rounded-[2rem] border border-[#4A5D23]/20 shadow-md transition-all duration-300 flex flex-col">
       <div class="flex items-center justify-between mb-6 pb-4 border-b border-dashed border-[#4A5D23]/30">
         <div class="flex items-center gap-3">
           <Icon name="lucide:calculator" class="w-5 h-5 text-[#4A5D23]" />
@@ -248,7 +275,7 @@ async function handleDeleteMaterial(id: string, name: string) {
       </div>
 
       <!-- State: Empty -->
-      <div v-else-if="!materials?.data || materials.data.length === 0" class="text-center py-20 bg-[#F4F1E1] rounded-3xl border-2 border-[#4A5D23] shadow-[4px_4px_0px_#4A5D23] m-4">
+      <div v-else-if="!materials?.data || materials.data.length === 0" class="text-center py-20 bg-[#F4F1E1] rounded-3xl border border-[#4A5D23]/20 shadow-sm m-4">
         <Icon name="lucide:package-open" class="w-12 h-12 text-[#4A5D23]/50 mx-auto mb-4" />
         <h3 class="text-lg font-playfair font-bold text-[#2A321B] mb-2 tracking-tight">Sin Insumos Registrados</h3>
         <p class="text-[#4A5D23]/80 font-medium text-sm max-w-sm mx-auto text-balance leading-relaxed">
@@ -260,7 +287,7 @@ async function handleDeleteMaterial(id: string, name: string) {
       <div v-else class="flex-1 flex flex-col overflow-x-auto">
         <table class="w-full text-left border-collapse whitespace-nowrap">
           <thead>
-            <tr class="border-b-2 border-[#4A5D23]/20 text-[10px] uppercase tracking-widest text-[#4A5D23]/80 font-bold">
+            <tr class="border-b border-[#4A5D23]/20 text-[10px] uppercase tracking-widest text-[#4A5D23]/80 font-bold">
               <th class="py-4 px-4">Insumo</th>
               <th class="py-4 px-4">Compra</th>
               <th class="py-4 px-4 text-center">Stock</th>
@@ -269,40 +296,49 @@ async function handleDeleteMaterial(id: string, name: string) {
             </tr>
           </thead>
           <tbody class="divide-y divide-[#4A5D23]/10 text-sm">
-            <tr v-for="mat in paginatedMaterials" :key="mat.id" class="group hover:bg-[#F4F1E1]/50 transition-colors duration-200">
+            <tr v-for="item in paginatedMaterials" :key="item.id" class="group hover:bg-[#F4F1E1]/50 transition-colors duration-200">
               <td class="py-4 px-4 font-medium text-[#2A321B] flex items-center gap-3">
                 <div class="w-8 h-8 rounded-full bg-white border border-[#4A5D23]/20 flex items-center justify-center text-[#4A5D23] group-hover:border-[#4A5D23] transition-all">
                   <Icon name="lucide:box" class="w-3.5 h-3.5" />
                 </div>
-                {{ mat.name }}
+                {{ item.name }}
               </td>
               <td class="py-4 px-4 text-xs">
-                <span class="font-bold text-[#2A321B]">S/ {{ Number(mat.purchase_price).toFixed(2) }}</span>
-                <span class="text-[#4A5D23]/60 block mt-0.5">por {{ mat.purchase_quantity }}{{ mat.unit }}</span>
+                <span class="font-bold text-[#2A321B]">S/ {{ Number(item.purchase_price).toFixed(2) }}</span>
+                <span class="text-[#4A5D23]/60 block mt-0.5">por {{ item.purchase_quantity }}{{ item.unit }}</span>
               </td>
               <td class="py-4 px-4 text-center">
-                <span class="inline-flex items-center justify-center px-3 py-1 rounded-md text-[11px] font-bold tracking-wide border-2 bg-white text-[#4A5D23] border-[#4A5D23] shadow-[2px_2px_0px_#4A5D23]">
-                  {{ mat.stock }} {{ mat.unit }}
-                </span>
+                <div class="inline-flex items-center gap-2 bg-white border border-[#4A5D23]/20 rounded-lg px-2 py-1 shadow-sm focus-within:border-[#4A5D23] focus-within:ring-2 focus-within:ring-[#4A5D23]/10 transition-all relative">
+                  <input 
+                    type="number" 
+                    :value="item.stock" 
+                    @blur="updateStockInline(item, $event)"
+                    @keyup.enter="updateStockInline(item, $event)"
+                    :disabled="updatingStockId === item.id"
+                    class="w-16 text-center text-[11px] font-bold text-[#4A5D23] bg-transparent focus:outline-none disabled:opacity-50"
+                  />
+                  <span class="text-[10px] font-bold text-[#4A5D23]/60 uppercase tracking-widest">{{ item.unit }}</span>
+                  <Icon v-if="updatingStockId === item.id" name="lucide:loader-2" class="absolute -right-5 w-4 h-4 text-[#4A5D23] animate-spin" />
+                </div>
               </td>
               <td class="py-4 px-4 bg-[#F4F1E1]/30 text-right font-inter group-hover:bg-[#F4F1E1]/80 transition-colors">
                 <div class="font-black text-[#2A321B]">
-                  <span class="text-[#4A5D23]/60 text-xs mr-0.5">S/</span>{{ Number(mat.cost_per_unit || (mat.purchase_price / mat.purchase_quantity)).toFixed(2) }}
+                  <span class="text-[#4A5D23]/60 text-xs mr-0.5">S/</span>{{ Number(item.cost_per_unit || (item.purchase_price / item.purchase_quantity)).toFixed(2) }}
                 </div>
-                <span class="text-[#4A5D23]/60 text-[10px] font-bold block mt-0.5">por {{ mat.unit }}</span>
+                <span class="text-[#4A5D23]/60 text-[10px] font-bold block mt-0.5">por {{ item.unit }}</span>
               </td>
               <td class="py-4 px-4">
                 <div class="flex items-center justify-end gap-2">
                   <button 
-                    @click="handleEditMaterial(mat)"
-                    class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-[#4A5D23] hover:text-[#2A321B] hover:bg-[#F4F1E1] hover:shadow-[2px_2px_0px_#4A5D23] hover:border hover:border-[#4A5D23] transition-all duration-300 focus:outline-none"
+                    @click="handleEditMaterial(item)"
+                    class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-[#4A5D23] hover:text-[#2A321B] hover:bg-[#F4F1E1] hover:shadow-sm hover:border hover:border-[#4A5D23] transition-all duration-300 focus:outline-none"
                     title="Editar insumo"
                   >
                     <Icon name="lucide:pencil" class="w-4 h-4" />
                   </button>
                   <button 
-                    @click="handleDeleteMaterial(mat.id, mat.name)"
-                    class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-red-700 hover:text-white hover:bg-red-800 hover:shadow-[2px_2px_0px_#991B1B] hover:border hover:border-[#4A0000] transition-all duration-300 focus:outline-none"
+                    @click="handleDeleteMaterial(item.id, item.name)"
+                    class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-red-700 hover:text-white hover:bg-red-800 hover:shadow-sm hover:border hover:border-[#4A0000] transition-all duration-300 focus:outline-none"
                     title="Eliminar insumo"
                   >
                     <Icon name="lucide:trash-2" class="w-4 h-4" />
@@ -314,7 +350,7 @@ async function handleDeleteMaterial(id: string, name: string) {
         </table>
 
         <!-- Pagination Controls -->
-        <div v-if="totalPages > 1" class="flex items-center justify-between mt-auto pt-6 px-4 py-3 bg-[#F4F1E1]/50 rounded-2xl border-2 border-[#4A5D23]/20">
+        <div v-if="totalPages > 1" class="flex items-center justify-between mt-auto pt-6 px-4 py-3 bg-[#F4F1E1]/50 rounded-2xl border border-[#4A5D23]/20/20">
           <p class="text-xs font-bold text-[#4A5D23]/80 uppercase tracking-widest">
             Página {{ currentPage }} de {{ totalPages }}
           </p>
@@ -322,7 +358,7 @@ async function handleDeleteMaterial(id: string, name: string) {
             <button 
               @click="prevPage" 
               :disabled="currentPage === 1"
-              class="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all duration-300 border-2 shadow-[2px_2px_0px_rgba(74,93,35,1)] text-[#2A321B] bg-white border-[#2A321B] hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed active:translate-y-0.5 active:shadow-none"
+              class="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all duration-300 border-2 shadow-sm text-[#2A321B] bg-white border-[#2A321B] hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed active:translate-y-0.5 active:shadow-none"
             >
               <Icon name="lucide:chevron-left" class="w-4 h-4" />
               Atrás
@@ -330,7 +366,7 @@ async function handleDeleteMaterial(id: string, name: string) {
             <button 
               @click="nextPage" 
               :disabled="currentPage === totalPages"
-              class="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all duration-300 border-2 shadow-[2px_2px_0px_rgba(74,93,35,1)] text-[#2A321B] bg-white border-[#2A321B] hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed active:translate-y-0.5 active:shadow-none"
+              class="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all duration-300 border-2 shadow-sm text-[#2A321B] bg-white border-[#2A321B] hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed active:translate-y-0.5 active:shadow-none"
             >
               Siguiente
               <Icon name="lucide:chevron-right" class="w-4 h-4" />
