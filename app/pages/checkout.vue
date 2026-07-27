@@ -215,40 +215,45 @@ const generateWhatsAppLink = async () => {
   try {
     isSaving.value = true
     
-    // 1. Guardar en Base de Datos si el usuario está logueado
+    // 1. Guardar en Base de Datos (Logueado o Invitado)
+    const orderPayload: any = {
+      total_amount: cartStore.cartTotal,
+      status: 'pending',
+      delivery_date: formData.value.deliveryDate || null,
+      delivery_time: formData.value.deliveryTime ? `${formData.value.deliveryTime} ${amPm.value}` : null,
+      notes: formData.value.notes.trim() || null
+    }
+
     if (authStore.isLoggedIn && authStore.user) {
-      // Insertar Order
-      const { data: orderData, error: orderError } = await supabase
-        .from('orders')
-        .insert({
-          profile_id: authStore.user.id,
-          total_amount: cartStore.cartTotal,
-          status: 'pending',
-          delivery_date: formData.value.deliveryDate || null,
-          delivery_time: formData.value.deliveryTime ? `${formData.value.deliveryTime} ${amPm.value}` : null,
-          notes: formData.value.notes.trim() || null
-        })
-        .select()
-        .single()
+      orderPayload.profile_id = authStore.user.id
+    }
 
-      if (orderError) throw orderError
+    // Insertar Order
+    const { data: orderData, error: orderError } = await supabase
+      .from('orders')
+      .insert(orderPayload)
+      .select()
+      .single()
 
-      // Insertar Order Items
-      if (orderData) {
-        const orderItems = cartStore.items.map(item => ({
-          order_id: orderData.id,
-          product_id: item.product_id,
-          quantity: item.quantity,
-          price_at_time: item.price
-        }))
+    if (orderError) throw orderError
 
-        const { error: itemsError } = await supabase
-          .from('order_items')
-          .insert(orderItems)
+    // Insertar Order Items
+    if (orderData) {
+      const orderItems = cartStore.items.map(item => ({
+        order_id: orderData.id,
+        product_id: item.product_id,
+        quantity: item.quantity,
+        price_at_time: item.price
+      }))
 
-        if (itemsError) throw itemsError
-        
-        // Sumar puntos al usuario (1 punto por cada sol)
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .insert(orderItems)
+
+      if (itemsError) throw itemsError
+      
+      // Sumar puntos al usuario (1 punto por cada sol) SOLO si está logueado
+      if (authStore.isLoggedIn && authStore.user) {
         const pointsEarned = Math.floor(cartStore.cartTotal)
         await supabase.rpc('increment_points', { 
           user_id: authStore.user.id, 
@@ -304,7 +309,7 @@ const generateWhatsAppLink = async () => {
       
       <!-- Header Simple -->
       <div class="flex items-center gap-4 mb-10">
-        <NuxtLink to="/" class="w-10 h-10 flex items-center justify-center rounded-full border-2 border-[#2A321B] bg-white text-[#2A321B] hover:bg-[#F4F1E1] transition-colors shadow-[2px_2px_0px_#2A321B] active:translate-y-0.5 active:shadow-none">
+        <NuxtLink to="/" class="w-10 h-10 flex items-center justify-center rounded-full border border-[#4A5D23]/20 bg-white text-[#2A321B] hover:bg-[#F4F1E1] transition-colors shadow-sm active:translate-y-0.5 active:shadow-none">
           <Icon name="lucide:arrow-left" class="w-5 h-5" />
         </NuxtLink>
         <h1 class="text-3xl font-playfair font-black text-[#2A321B]">Finalizar Pedido</h1>
@@ -316,13 +321,13 @@ const generateWhatsAppLink = async () => {
         <div class="lg:col-span-6 space-y-6">
           
           <!-- Selector de Modo -->
-          <div class="bg-white border-2 border-[#2A321B] rounded-2xl p-2 flex gap-2 shadow-[4px_4px_0px_#4A5D23]">
+          <div class="bg-white border border-[#4A5D23]/20 rounded-2xl p-2 flex gap-2 shadow-sm">
             <button 
               @click="checkoutMode = 'direct'"
               :class="[
                 'flex-1 py-3 px-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2',
                 checkoutMode === 'direct' 
-                  ? 'bg-[#4A5D23] text-white border-2 border-[#2A321B] shadow-[2px_2px_0px_#2A321B]' 
+                  ? 'bg-[#4A5D23] text-white border border-[#4A5D23]/20 shadow-sm' 
                   : 'bg-transparent text-[#4A5D23] hover:bg-[#F4F1E1]'
               ]"
             >
@@ -334,7 +339,7 @@ const generateWhatsAppLink = async () => {
               :class="[
                 'flex-1 py-3 px-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2',
                 checkoutMode === 'chat' 
-                  ? 'bg-[#4A5D23] text-white border-2 border-[#2A321B] shadow-[2px_2px_0px_#2A321B]' 
+                  ? 'bg-[#4A5D23] text-white border border-[#4A5D23]/20 shadow-sm' 
                   : 'bg-transparent text-[#4A5D23] hover:bg-[#F4F1E1]'
               ]"
             >
@@ -343,7 +348,7 @@ const generateWhatsAppLink = async () => {
             </button>
           </div>
 
-          <div class="bg-white border-2 border-[#2A321B] rounded-[2rem] p-8 shadow-[6px_6px_0px_#4A5D23]">
+          <div class="bg-white/90 backdrop-blur-md border border-[#4A5D23]/10 rounded-[2rem] p-8 shadow-md">
             <h2 class="text-xl font-playfair font-bold text-[#2A321B] mb-6 flex items-center gap-3">
               <Icon name="lucide:map-pin" class="w-6 h-6 text-[#4A5D23]" />
               Datos de Entrega
@@ -365,7 +370,7 @@ const generateWhatsAppLink = async () => {
                   v-model="formData.name"
                   type="text" 
                   placeholder="Ej. María Pérez"
-                  class="w-full bg-[#F4F1E1] border-2 border-[#2A321B] rounded-xl px-4 py-3 text-[#2A321B] font-medium focus:outline-none focus:ring-2 focus:ring-[#4A5D23] focus:border-transparent transition-all placeholder:text-[#4A5D23]/40"
+                  class="w-full bg-[#F4F1E1] border border-[#4A5D23]/20 rounded-xl px-4 py-3 text-[#2A321B] font-medium focus:outline-none focus:ring-2 focus:ring-[#4A5D23] focus:border-transparent transition-all placeholder:text-[#4A5D23]/40"
                 >
               </div>
 
@@ -379,7 +384,7 @@ const generateWhatsAppLink = async () => {
                     v-model="formData.phone"
                     type="tel" 
                     placeholder="Si es diferente al de WhatsApp"
-                    class="w-full bg-[#F4F1E1] border-2 border-[#2A321B] rounded-xl px-4 py-3 text-[#2A321B] font-medium focus:outline-none focus:ring-2 focus:ring-[#4A5D23] focus:border-transparent transition-all placeholder:text-[#4A5D23]/40"
+                    class="w-full bg-[#F4F1E1] border border-[#4A5D23]/20 rounded-xl px-4 py-3 text-[#2A321B] font-medium focus:outline-none focus:ring-2 focus:ring-[#4A5D23] focus:border-transparent transition-all placeholder:text-[#4A5D23]/40"
                   >
                 </div>
 
@@ -391,7 +396,7 @@ const generateWhatsAppLink = async () => {
                     v-model="formData.address"
                     rows="2"
                     placeholder="Calle, número, distrito, referencias..."
-                    class="w-full bg-[#F4F1E1] border-2 border-[#2A321B] rounded-xl px-4 py-3 text-[#2A321B] font-medium focus:outline-none focus:ring-2 focus:ring-[#4A5D23] focus:border-transparent transition-all placeholder:text-[#4A5D23]/40 resize-none"
+                    class="w-full bg-[#F4F1E1] border border-[#4A5D23]/20 rounded-xl px-4 py-3 text-[#2A321B] font-medium focus:outline-none focus:ring-2 focus:ring-[#4A5D23] focus:border-transparent transition-all placeholder:text-[#4A5D23]/40 resize-none"
                   ></textarea>
                 </div>
 
@@ -410,7 +415,7 @@ const generateWhatsAppLink = async () => {
                         type="text" 
                         placeholder="DD/MM/AAAA"
                         maxlength="10"
-                        class="w-full bg-[#F4F1E1] border-2 border-[#2A321B] rounded-xl px-4 py-3 text-[#2A321B] font-medium focus:outline-none focus:ring-2 focus:ring-[#4A5D23] focus:border-transparent transition-all placeholder:text-[#4A5D23]/40"
+                        class="w-full bg-white border border-[#4A5D23]/20 rounded-xl px-4 py-3 text-[#2A321B] font-medium focus:outline-none focus:ring-2 focus:ring-[#4A5D23] focus:border-transparent transition-all placeholder:text-[#4A5D23]/40 shadow-sm"
                       >
                       <button 
                         @click.prevent="toggleDatePicker"
@@ -424,7 +429,7 @@ const generateWhatsAppLink = async () => {
                         <div 
                           v-show="showDatePicker" 
                           :class="[
-                            'absolute z-50 left-0 w-64 bg-white border-2 border-[#2A321B] rounded-xl shadow-[4px_4px_0px_#2A321B] p-4',
+                            'absolute z-50 left-0 w-64 bg-white border border-[#4A5D23]/20 rounded-xl shadow-[4px_4px_0px_#2A321B] p-4',
                             datePickerPosition === 'top' ? 'bottom-full mb-2' : 'top-full mt-2'
                           ]"
                         >
@@ -471,11 +476,11 @@ const generateWhatsAppLink = async () => {
                         type="text" 
                         placeholder="HH:MM"
                         maxlength="5"
-                        class="w-full bg-[#F4F1E1] border-2 border-[#2A321B] rounded-xl px-4 py-3 text-[#2A321B] font-medium focus:outline-none focus:ring-2 focus:ring-[#4A5D23] focus:border-transparent transition-all placeholder:text-[#4A5D23]/40 text-center"
+                        class="w-full bg-[#F4F1E1] border border-[#4A5D23]/20 rounded-xl px-4 py-3 text-[#2A321B] font-medium focus:outline-none focus:ring-2 focus:ring-[#4A5D23] focus:border-transparent transition-all placeholder:text-[#4A5D23]/40 text-center"
                       >
                       <button 
                         @click.prevent="amPm = amPm === 'AM' ? 'PM' : 'AM'"
-                        class="px-3 bg-[#F4F1E1] text-[#2A321B] hover:bg-[#e5e5e5] border-2 border-[#2A321B] rounded-xl font-bold shadow-[2px_2px_0px_#2A321B] active:translate-y-0.5 active:shadow-none transition-all w-16 shrink-0"
+                        class="px-3 bg-[#F4F1E1] text-[#2A321B] hover:bg-[#e5e5e5] border border-[#4A5D23]/20 rounded-xl font-bold shadow-sm active:translate-y-0.5 active:shadow-none transition-all w-16 shrink-0"
                       >
                         {{ amPm }}
                       </button>
@@ -485,7 +490,7 @@ const generateWhatsAppLink = async () => {
                         <div 
                           v-show="showTimePicker" 
                           :class="[
-                            'absolute z-50 left-0 w-64 bg-white border-2 border-[#2A321B] rounded-xl shadow-[4px_4px_0px_#2A321B] p-4 flex gap-4',
+                            'absolute z-50 left-0 w-64 bg-white border border-[#4A5D23]/20 rounded-xl shadow-[4px_4px_0px_#2A321B] p-4 flex gap-4',
                             timePickerPosition === 'top' ? 'bottom-full mb-2' : 'top-full mt-2'
                           ]"
                         >
@@ -535,7 +540,7 @@ const generateWhatsAppLink = async () => {
                     v-model="formData.notes"
                     rows="2"
                     placeholder="Ej. Sin pasas, poco dulce, dedicatoria..."
-                    class="w-full bg-[#F4F1E1] border-2 border-[#2A321B] rounded-xl px-4 py-3 text-[#2A321B] font-medium focus:outline-none focus:ring-2 focus:ring-[#4A5D23] focus:border-transparent transition-all placeholder:text-[#4A5D23]/40 resize-none"
+                    class="w-full bg-[#F4F1E1] border border-[#4A5D23]/20 rounded-xl px-4 py-3 text-[#2A321B] font-medium focus:outline-none focus:ring-2 focus:ring-[#4A5D23] focus:border-transparent transition-all placeholder:text-[#4A5D23]/40 resize-none"
                   ></textarea>
                 </div>
               </template>
@@ -545,7 +550,7 @@ const generateWhatsAppLink = async () => {
 
         <!-- Resumen (Derecha) -->
         <div class="lg:col-span-6">
-          <div class="bg-[#2A321B] border-2 border-[#2A321B] rounded-[2rem] p-8 shadow-[6px_6px_0px_#4A5D23] text-white sticky top-24">
+          <div class="bg-[#2A321B] border border-[#4A5D23]/20 rounded-[2rem] p-8 shadow-md text-white sticky top-24">
             <h2 class="text-xl font-playfair font-bold mb-6 flex items-center gap-3 text-[#F4F1E1]">
               <Icon name="lucide:receipt" class="w-6 h-6 text-[#a3e635]" />
               Resumen

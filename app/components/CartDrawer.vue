@@ -14,19 +14,19 @@ const cartStore = useCartStore()
       ></div>
 
       <!-- Drawer -->
-      <div class="relative w-full max-w-md bg-[#F4F1E1] h-full shadow-[-8px_0px_0px_#2A321B] border-l-4 border-[#2A321B] flex flex-col drawer-panel">
+      <div class="relative w-full max-w-md bg-[#F4F1E1] h-full shadow-2xl border-l border-[#4A5D23]/10 flex flex-col drawer-panel">
         
         <!-- Header -->
-        <div class="p-6 border-b-4 border-[#2A321B] bg-white flex items-center justify-between">
+        <div class="p-6 border-b border-[#4A5D23]/10 bg-white flex items-center justify-between">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-[#4A5D23] rounded-full flex items-center justify-center text-white shadow-[2px_2px_0px_#2A321B] border-2 border-[#2A321B]">
+            <div class="w-10 h-10 bg-[#4A5D23] rounded-full flex items-center justify-center text-white shadow-sm border border-[#4A5D23]/20">
               <Icon name="lucide:shopping-bag" class="w-5 h-5" />
             </div>
             <h2 class="text-2xl font-playfair font-black text-[#2A321B]">Tu Pedido</h2>
           </div>
           <button 
             @click="cartStore.toggleDrawer()"
-            class="w-8 h-8 flex items-center justify-center rounded-full border-2 border-[#2A321B] bg-white text-[#2A321B] hover:bg-[#991B1B] hover:text-white transition-colors shadow-[2px_2px_0px_#2A321B] active:translate-y-0.5 active:shadow-none"
+            class="w-8 h-8 flex items-center justify-center rounded-full border border-[#4A5D23]/20 bg-white text-[#2A321B] hover:bg-[#991B1B] hover:text-white transition-colors shadow-sm active:translate-y-0.5 active:shadow-none"
           >
             <Icon name="lucide:x" class="w-4 h-4" />
           </button>
@@ -48,10 +48,10 @@ const cartStore = useCartStore()
             <div 
               v-for="(item, index) in cartStore.items" 
               :key="item.product_id"
-              class="bg-white border-2 border-[#2A321B] rounded-2xl p-4 flex gap-4 shadow-[4px_4px_0px_#2A321B] w-full mb-4"
+              class="bg-white border border-[#4A5D23]/10 rounded-2xl p-4 flex gap-4 shadow-sm w-full mb-4"
               :style="{ transitionDelay: `${index * 100}ms` }"
             >
-          <div class="w-20 h-20 rounded-xl bg-[#F4F1E1] border-2 border-[#2A321B] overflow-hidden shrink-0">
+          <div class="w-20 h-20 rounded-xl bg-[#F4F1E1] border border-[#4A5D23]/20 overflow-hidden shrink-0">
             <img v-if="item.image_url" :src="item.image_url" :alt="item.name" class="w-full h-full object-cover" />
             <div v-else class="w-full h-full flex items-center justify-center text-[#4A5D23]">
               <Icon name="lucide:croissant" class="w-8 h-8" />
@@ -72,17 +72,17 @@ const cartStore = useCartStore()
             <div class="flex items-center justify-between mt-2">
               <span class="font-bold text-[#4A5D23]">S/ {{ Number(item.price).toFixed(2) }}</span>
               
-              <div class="flex items-center gap-2 bg-[#F4F1E1] border-2 border-[#2A321B] rounded-lg p-1">
+              <div class="flex items-center gap-2 bg-[#F4F1E1] border border-[#4A5D23]/10 rounded-lg p-1">
                 <button 
                   @click="cartStore.updateQuantity(item.product_id, item.quantity - 1)"
-                  class="w-6 h-6 flex items-center justify-center bg-white border border-[#2A321B] rounded text-[#2A321B] hover:bg-[#4A5D23] hover:text-white transition-colors"
+                  class="w-6 h-6 flex items-center justify-center bg-white border border-[#4A5D23]/20 rounded text-[#2A321B] hover:bg-[#4A5D23] hover:text-white transition-colors shadow-sm"
                 >
                   <Icon name="lucide:minus" class="w-3 h-3" />
                 </button>
                 <span class="w-6 text-center font-bold text-sm text-[#2A321B]">{{ item.quantity }}</span>
                 <button 
                   @click="cartStore.updateQuantity(item.product_id, item.quantity + 1)"
-                  class="w-6 h-6 flex items-center justify-center bg-white border border-[#2A321B] rounded text-[#2A321B] hover:bg-[#4A5D23] hover:text-white transition-colors"
+                  class="w-6 h-6 flex items-center justify-center bg-white border border-[#4A5D23]/20 rounded text-[#2A321B] hover:bg-[#4A5D23] hover:text-white transition-colors shadow-sm"
                 >
                   <Icon name="lucide:plus" class="w-3 h-3" />
                 </button>
@@ -94,7 +94,7 @@ const cartStore = useCartStore()
       </div>
 
       <!-- Footer -->
-      <div class="p-6 bg-white border-t-4 border-[#2A321B]">
+      <div class="p-6 bg-white border-t border-[#4A5D23]/10 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
         <div class="flex justify-between items-center mb-4">
           <span class="font-bold text-[#4A5D23] uppercase tracking-widest text-sm">Subtotal</span>
           <span class="text-2xl font-black text-[#2A321B]">S/ {{ cartStore.cartTotal.toFixed(2) }}</span>
@@ -103,7 +103,7 @@ const cartStore = useCartStore()
         <button 
           @click="cartStore.toggleDrawer(); navigateTo('/checkout')"
           :disabled="cartStore.items.length === 0"
-          class="w-full bg-[#4A5D23] text-white font-bold py-4 rounded-xl border-2 border-[#2A321B] shadow-[4px_4px_0px_#2A321B] hover:bg-[#3C4A1C] active:translate-y-1 active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          class="w-full bg-[#4A5D23] text-white font-bold py-4 rounded-xl shadow-sm hover:bg-[#3C4A1C] active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           Proceder al Pago
           <Icon name="lucide:arrow-right" class="w-5 h-5" />

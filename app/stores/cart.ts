@@ -41,13 +41,11 @@ export const useCartStore = defineStore('cart', () => {
         quantity: quantity
       })
     }
-    // TODO: Sync with DB if logged in
     isDrawerOpen.value = true // Open drawer to show feedback
   }
 
   function removeFromCart(productId: string) {
     items.value = items.value.filter(item => item.product_id !== productId)
-    // TODO: Sync with DB if logged in
   }
 
   function updateQuantity(productId: string, quantity: number) {
@@ -56,7 +54,6 @@ export const useCartStore = defineStore('cart', () => {
     if (item) {
       item.quantity = quantity
     }
-    // TODO: Sync with DB if logged in
   }
 
   function clearCart() {
