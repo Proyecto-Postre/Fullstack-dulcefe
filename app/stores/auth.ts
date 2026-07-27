@@ -47,7 +47,63 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function fetchAddresses() {
-    // Placeholder
+    if (!user.value) return
+    try {
+      const supabase = useSupabaseClient()
+      const { data, error } = await supabase
+        .from('addresses')
+        .select('*')
+        .eq('profile_id', user.value.id)
+        .order('created_at', { ascending: false })
+        
+      if (error) throw error
+      addresses.value = data || []
+    } catch (err) {
+      console.error('Error fetching addresses:', err)
+    }
+  }
+
+  async function saveAddress(address: { label: string, address_line: string, reference?: string }) {
+    if (!user.value) return
+    try {
+      const supabase = useSupabaseClient()
+      const { data, error } = await supabase
+        .from('addresses')
+        .insert({
+          profile_id: user.value.id,
+          label: address.label,
+          address_line: address.address_line + (address.reference ? ` (Ref: ${address.reference})` : '')
+        } as any)
+        .select()
+        .single()
+        
+      if (error) throw error
+      if (data) {
+        addresses.value.unshift(data)
+      }
+      return { success: true }
+    } catch (err: any) {
+      console.error('Error saving address:', err)
+      return { success: false, error: err.message }
+    }
+  }
+
+  async function deleteAddress(id: string) {
+    if (!user.value) return
+    try {
+      const supabase = useSupabaseClient()
+      const { error } = await supabase
+        .from('addresses')
+        .delete()
+        .eq('id', id)
+        
+      if (error) throw error
+      addresses.value = addresses.value.filter(a => a.id !== id)
+      return { success: true }
+    } catch (err: any) {
+      console.error('Error deleting address:', err)
+      return { success: false, error: err.message }
+    }
   }
 
   function setUser(newUser: any) {
@@ -69,7 +125,9 @@ export const useAuthStore = defineStore('auth', () => {
     isLoggedIn,
     setUser,
     fetchProfile,
-    fetchAddresses
+    fetchAddresses,
+    saveAddress,
+    deleteAddress
   }
 }, {
   persist: true

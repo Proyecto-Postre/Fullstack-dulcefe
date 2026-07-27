@@ -13,9 +13,13 @@ const isLoading = ref(false)
 const errorMessage = ref('')
 const showPassword = ref(false)
 
-// Si ya está logueado, redirigir al perfil
+// Si ya está logueado, redirigir según el rol
 if (import.meta.client && authStore.isLoggedIn) {
-  navigateTo('/perfil')
+  if (authStore.profile?.is_admin) {
+    navigateTo('/admin', { replace: true })
+  } else {
+    navigateTo('/', { replace: true })
+  }
 }
 
 const toggleMode = () => {
@@ -82,8 +86,8 @@ const handleSubmit = async () => {
         </p>
       </div>
 
-      <!-- Tarjeta de Formulario Neo-Brutalista -->
-      <div class="bg-white border-2 border-[#2A321B] rounded-[2rem] p-8 shadow-[6px_6px_0px_#4A5D23]">
+      <!-- Tarjeta de Formulario Premium Soft -->
+      <div class="bg-white/90 backdrop-blur-md border border-[#4A5D23]/10 rounded-[2rem] p-8 shadow-xl">
         
         <form @submit.prevent="handleSubmit" class="space-y-5">
           
@@ -96,7 +100,7 @@ const handleSubmit = async () => {
               type="text" 
               required
               placeholder="Ej. María Pérez"
-              class="w-full bg-[#F4F1E1] border-2 border-[#2A321B] rounded-xl px-4 py-3 text-[#2A321B] font-medium focus:outline-none focus:ring-2 focus:ring-[#4A5D23] focus:border-transparent transition-all placeholder:text-[#4A5D23]/40"
+              class="w-full bg-white border border-[#4A5D23]/20 rounded-xl px-4 py-3 text-[#2A321B] font-medium focus:outline-none focus:ring-2 focus:ring-[#4A5D23] focus:border-transparent transition-all placeholder:text-[#4A5D23]/40 shadow-sm"
             >
           </div>
 
@@ -109,7 +113,7 @@ const handleSubmit = async () => {
               type="email" 
               required
               placeholder="tu@correo.com"
-              class="w-full bg-[#F4F1E1] border-2 border-[#2A321B] rounded-xl px-4 py-3 text-[#2A321B] font-medium focus:outline-none focus:ring-2 focus:ring-[#4A5D23] focus:border-transparent transition-all placeholder:text-[#4A5D23]/40"
+              class="w-full bg-white border border-[#4A5D23]/20 rounded-xl px-4 py-3 text-[#2A321B] font-medium focus:outline-none focus:ring-2 focus:ring-[#4A5D23] focus:border-transparent transition-all placeholder:text-[#4A5D23]/40 shadow-sm"
             >
           </div>
 
@@ -123,7 +127,7 @@ const handleSubmit = async () => {
                 :type="showPassword ? 'text' : 'password'" 
                 required
                 placeholder="••••••••"
-                class="w-full bg-[#F4F1E1] border-2 border-[#2A321B] rounded-xl px-4 py-3 pr-12 text-[#2A321B] font-medium focus:outline-none focus:ring-2 focus:ring-[#4A5D23] focus:border-transparent transition-all placeholder:text-[#4A5D23]/40"
+                class="w-full bg-white border border-[#4A5D23]/20 rounded-xl px-4 py-3 pr-12 text-[#2A321B] font-medium focus:outline-none focus:ring-2 focus:ring-[#4A5D23] focus:border-transparent transition-all placeholder:text-[#4A5D23]/40 shadow-sm"
               >
               <button
                 type="button"
@@ -136,7 +140,7 @@ const handleSubmit = async () => {
           </div>
 
           <!-- Mensaje de Error -->
-          <div v-if="errorMessage" class="p-3 bg-[#991B1B]/10 border border-[#991B1B]/30 rounded-xl text-[#991B1B] text-sm font-bold animate-pop">
+          <div v-if="errorMessage" class="p-3 bg-red-50 border border-red-200 rounded-xl text-red-800 text-sm font-medium animate-pop shadow-sm">
             {{ errorMessage }}
           </div>
 
@@ -144,7 +148,7 @@ const handleSubmit = async () => {
           <button 
             type="submit"
             :disabled="isLoading"
-            class="w-full bg-[#84cc16] text-[#2A321B] font-bold py-4 rounded-xl shadow-[4px_4px_0px_#2A321B] hover:bg-[#65a30d] active:translate-y-1 active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-lg mt-4"
+            class="w-full bg-[#4A5D23] text-white font-bold py-4 rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 hover:bg-[#3C4A1C] active:translate-y-0 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm uppercase tracking-widest mt-4"
           >
             <Icon v-if="isLoading" name="lucide:loader-2" class="w-6 h-6 animate-spin" />
             <span v-else>{{ isLogin ? 'Iniciar Sesión' : 'Crear Cuenta' }}</span>

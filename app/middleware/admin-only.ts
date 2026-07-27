@@ -1,21 +1,23 @@
+import { useSupabaseUser } from '#imports'
 import { useAuthStore } from '~/stores/auth'
 
 // Este middleware protege las rutas que empiecen con /admin
 export default defineNuxtRouteMiddleware(async (to) => {
   if (to.path.startsWith('/admin')) {
+    const user = useSupabaseUser()
     const authStore = useAuthStore()
     
-    // Si no está logueado, mándalo al login de admin
-    if (!authStore.isLoggedIn) {
+    // Si no hay usuario en la sesión de Supabase, redirigir al login
+    if (!user.value) {
       return navigateTo('/login')
     }
 
-    // Si el perfil aún no está cargado, lo cargamos ahora
+    // Asegurarnos de que el perfil esté cargado en el store
     if (!authStore.profile) {
       await authStore.fetchProfile()
     }
 
-    // Si está logueado pero no es admin, mándalo a su perfil de cliente
+    // Si no es admin, redirigir a su perfil de cliente
     if (!authStore.profile?.is_admin) {
       return navigateTo('/perfil')
     }
