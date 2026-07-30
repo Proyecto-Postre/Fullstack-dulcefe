@@ -149,6 +149,14 @@ const reorder = (order: any) => {
   navigateTo('/checkout')
 }
 
+const showOrderDetailsModal = ref(false)
+const selectedOrder = ref<any>(null)
+
+const openOrderDetails = (order: any) => {
+  selectedOrder.value = order
+  showOrderDetailsModal.value = true
+}
+
 const formatDate = (dateString: string) => {
   const date = new Date(dateString)
   return new Intl.DateTimeFormat('es-PE', { 
@@ -276,7 +284,8 @@ const getStatusText = (status: string) => {
                 <div 
                   v-for="order in orders" 
                   :key="order.id"
-                  class="border border-[#4A5D23]/20 rounded-2xl p-5 bg-white shadow-sm hover:shadow-md transition-shadow"
+                  @click="openOrderDetails(order)"
+                  class="border border-[#4A5D23]/20 rounded-2xl p-5 bg-white shadow-sm hover:shadow-md transition-shadow cursor-pointer"
                 >
                   <div class="flex flex-wrap items-center justify-between gap-4 mb-4 pb-4 border-b border-[#4A5D23]/10">
                     <div>
@@ -289,7 +298,7 @@ const getStatusText = (status: string) => {
                       </div>
                     </div>
                     <button 
-                      @click="reorder(order)"
+                      @click.stop="reorder(order)"
                       class="bg-[#4A5D23] text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-[#3C4A1C] transition-colors flex items-center gap-2 shadow-sm hover:shadow-md"
                     >
                       <Icon name="lucide:refresh-cw" class="w-4 h-4" />
@@ -385,6 +394,13 @@ const getStatusText = (status: string) => {
 
       </div>
     </div>
+
+    <!-- Modales -->
+    <CustomerOrderDetailsModal 
+      :show="showOrderDetailsModal" 
+      :order="selectedOrder" 
+      @close="showOrderDetailsModal = false" 
+    />
 
     <!-- Modal de Nueva Dirección -->
     <div v-if="showAddressModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">

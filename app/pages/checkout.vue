@@ -48,163 +48,6 @@ const isFormValid = computed(() => {
   }
 })
 
-// --- Lógica del Calendario Personalizado ---
-const showDatePicker = ref(false)
-const datePickerPosition = ref<'bottom' | 'top'>('bottom')
-const datePickerContainer = ref<HTMLElement | null>(null)
-
-const currentDate = ref(new Date())
-const currentMonth = ref(currentDate.value.getMonth())
-const currentYear = ref(currentDate.value.getFullYear())
-
-const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
-
-const daysInMonth = computed(() => new Date(currentYear.value, currentMonth.value + 1, 0).getDate())
-const firstDayOfMonth = computed(() => new Date(currentYear.value, currentMonth.value, 1).getDay())
-
-const openDatePicker = (e: Event) => {
-  if (!showDatePicker.value) {
-    const target = e.target as HTMLElement
-    // Si el target es el botón o el icono, usamos el input como referencia para calcular el espacio
-    const inputRect = target.closest('.relative')?.querySelector('input')?.getBoundingClientRect() || target.getBoundingClientRect()
-    const spaceBelow = window.innerHeight - inputRect.bottom
-    
-    datePickerPosition.value = spaceBelow < 350 ? 'top' : 'bottom'
-    showDatePicker.value = true
-    showTimePicker.value = false // Cerrar el otro
-  }
-}
-
-const toggleDatePicker = (e: Event) => {
-  if (showDatePicker.value) {
-    showDatePicker.value = false
-  } else {
-    openDatePicker(e)
-  }
-}
-
-// --- Lógica del Selector de Hora Personalizado ---
-const showTimePicker = ref(false)
-const timePickerPosition = ref<'bottom' | 'top'>('bottom')
-const timePickerContainer = ref<HTMLElement | null>(null)
-const amPm = ref<'AM' | 'PM'>('AM')
-
-const openTimePicker = (e: Event) => {
-  if (!showTimePicker.value) {
-    const target = e.target as HTMLElement
-    const inputRect = target.closest('.relative')?.querySelector('input')?.getBoundingClientRect() || target.getBoundingClientRect()
-    const spaceBelow = window.innerHeight - inputRect.bottom
-    
-    timePickerPosition.value = spaceBelow < 300 ? 'top' : 'bottom'
-    showTimePicker.value = true
-    showDatePicker.value = false // Cerrar el otro
-  }
-}
-
-const toggleTimePicker = (e: Event) => {
-  if (showTimePicker.value) {
-    showTimePicker.value = false
-  } else {
-    openTimePicker(e)
-  }
-}
-
-const selectHour = (h: number) => {
-  const currentMins = formData.value.deliveryTime.split(':')[1] || '00'
-  formData.value.deliveryTime = `${String(h).padStart(2, '0')}:${currentMins}`
-}
-
-const selectMinute = (m: string) => {
-  const currentHour = formData.value.deliveryTime.split(':')[0] || '12'
-  formData.value.deliveryTime = `${currentHour}:${m}`
-  showTimePicker.value = false
-}
-
-// --- Cierre al hacer clic fuera ---
-const closePopupsOutside = (e: MouseEvent) => {
-  const target = e.target as Node
-  if (showDatePicker.value && datePickerContainer.value && !datePickerContainer.value.contains(target)) {
-    showDatePicker.value = false
-  }
-  if (showTimePicker.value && timePickerContainer.value && !timePickerContainer.value.contains(target)) {
-    showTimePicker.value = false
-  }
-}
-
-onMounted(() => {
-  document.addEventListener('click', closePopupsOutside)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('click', closePopupsOutside)
-})
-
-const nextMonth = () => {
-  if (currentMonth.value === 11) {
-    currentMonth.value = 0
-    currentYear.value++
-  } else {
-    currentMonth.value++
-  }
-}
-
-const prevMonth = () => {
-  if (currentMonth.value === 0) {
-    currentMonth.value = 11
-    currentYear.value--
-  } else {
-    currentMonth.value--
-  }
-}
-
-const selectDate = (day: number) => {
-  const d = String(day).padStart(2, '0')
-  const m = String(currentMonth.value + 1).padStart(2, '0')
-  formData.value.deliveryDate = `${d}/${m}/${currentYear.value}`
-  showDatePicker.value = false
-}
-
-const handleDateInput = (e: Event) => {
-  const target = e.target as HTMLInputElement
-  let val = target.value.replace(/\D/g, '')
-  if (val.length > 8) val = val.slice(0, 8)
-  
-  if (val.length >= 5) {
-    formData.value.deliveryDate = `${val.slice(0, 2)}/${val.slice(2, 4)}/${val.slice(4)}`
-  } else if (val.length >= 3) {
-    formData.value.deliveryDate = `${val.slice(0, 2)}/${val.slice(2)}`
-  } else {
-    formData.value.deliveryDate = val
-  }
-}
-
-// (Eliminado código duplicado)
-
-const handleTimeInput = (e: Event) => {
-  const target = e.target as HTMLInputElement
-  let val = target.value.replace(/\D/g, '')
-  if (val.length > 4) val = val.slice(0, 4)
-  
-  // Validar formato 12 horas
-  if (val.length >= 2) {
-    let hours = parseInt(val.slice(0, 2))
-    if (hours > 12) hours = 12
-    if (hours === 0) hours = 1
-    val = String(hours).padStart(2, '0') + val.slice(2)
-  }
-  if (val.length >= 4) {
-    let mins = parseInt(val.slice(2, 4))
-    if (mins > 59) mins = 59
-    val = val.slice(0, 2) + String(mins).padStart(2, '0')
-  }
-
-  if (val.length >= 3) {
-    formData.value.deliveryTime = `${val.slice(0, 2)}:${val.slice(2)}`
-  } else {
-    formData.value.deliveryTime = val
-  }
-}
-
 const generateWhatsAppLink = async () => {
   if (!isFormValid.value) return
 
@@ -215,17 +58,41 @@ const generateWhatsAppLink = async () => {
   try {
     isSaving.value = true
     
+    // Construir notas finales con los datos que no tienen columna en la BD
+    let finalNotes = formData.value.notes.trim()
+    
+    if (checkoutMode.value === 'direct') {
+      if (formData.value.address.trim()) {
+        finalNotes = finalNotes ? `Dirección: ${formData.value.address.trim()}\n\nNotas: ${finalNotes}` : `Dirección: ${formData.value.address.trim()}`
+      }
+      if (formData.value.phone.trim()) {
+        finalNotes = `Teléfono: ${formData.value.phone.trim()}\n${finalNotes}`
+      }
+    }
+    
+    if (!authStore.isLoggedIn) {
+      finalNotes = `Nombre: ${formData.value.name.trim()}\n${finalNotes}`
+    }
+
     // 1. Guardar en Base de Datos (Logueado o Invitado)
     const orderPayload: any = {
       total_amount: cartStore.cartTotal,
       status: 'pending',
       delivery_date: formData.value.deliveryDate || null,
-      delivery_time: formData.value.deliveryTime ? `${formData.value.deliveryTime} ${amPm.value}` : null,
-      notes: formData.value.notes.trim() || null
+      delivery_time: formData.value.deliveryTime || null,
+      notes: finalNotes || null
     }
 
     if (authStore.isLoggedIn && authStore.user) {
       orderPayload.profile_id = authStore.user.id
+      
+      // Actualizar el teléfono en el perfil si se proporcionó uno
+      if (formData.value.phone.trim()) {
+        await supabase
+          .from('profiles')
+          .update({ phone: formData.value.phone.trim() })
+          .eq('id', authStore.user.id)
+      }
     }
 
     // Insertar Order
@@ -251,15 +118,6 @@ const generateWhatsAppLink = async () => {
         .insert(orderItems)
 
       if (itemsError) throw itemsError
-      
-      // Sumar puntos al usuario (1 punto por cada sol) SOLO si está logueado
-      if (authStore.isLoggedIn && authStore.user) {
-        const pointsEarned = Math.floor(cartStore.cartTotal)
-        await supabase.rpc('increment_points', { 
-          user_id: authStore.user.id, 
-          points_to_add: pointsEarned 
-        })
-      }
     }
 
     // 2. Generar mensaje de WhatsApp
@@ -271,7 +129,7 @@ const generateWhatsAppLink = async () => {
       if (formData.value.phone.trim()) message += `Teléfono alternativo: ${formData.value.phone.trim()}\n`
       message += `Dirección: ${formData.value.address.trim()}\n`
       if (formData.value.deliveryDate) message += `Fecha: ${formData.value.deliveryDate}\n`
-      if (formData.value.deliveryTime) message += `Hora: ${formData.value.deliveryTime} ${amPm.value}\n`
+      if (formData.value.deliveryTime) message += `Hora: ${formData.value.deliveryTime}\n`
       if (formData.value.notes.trim()) message += `Notas: ${formData.value.notes.trim()}\n`
     } else {
       message += `(Detalles de entrega a coordinar por chat)\n`
@@ -294,9 +152,9 @@ const generateWhatsAppLink = async () => {
     cartStore.clearCart()
     navigateTo('/')
     
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error al procesar el pedido:', error)
-    alert('Hubo un problema al procesar tu pedido. Por favor, intenta de nuevo o contáctanos directamente.')
+    alert(`Hubo un problema al procesar tu pedido: ${error.message || JSON.stringify(error)}. Por favor, intenta de nuevo o contáctanos directamente.`)
   } finally {
     isSaving.value = false
   }
@@ -403,132 +261,15 @@ const generateWhatsAppLink = async () => {
                 <!-- Fecha y Hora -->
                 <div class="grid grid-cols-2 gap-4 animate-pop" style="animation-delay: 100ms;">
                   <!-- Selector de Fecha -->
-                  <div class="space-y-2" ref="datePickerContainer">
+                  <div class="space-y-2">
                     <label for="date" class="block text-sm font-bold text-[#2A321B] uppercase tracking-wider">Fecha</label>
-                    <div class="relative">
-                      <input 
-                        id="date"
-                        v-model="formData.deliveryDate"
-                        @input="handleDateInput"
-                        @focus="openDatePicker"
-                        @click="openDatePicker"
-                        type="text" 
-                        placeholder="DD/MM/AAAA"
-                        maxlength="10"
-                        class="w-full bg-white border border-[#4A5D23]/20 rounded-xl px-4 py-3 text-[#2A321B] font-medium focus:outline-none focus:ring-2 focus:ring-[#4A5D23] focus:border-transparent transition-all placeholder:text-[#4A5D23]/40 shadow-sm"
-                      >
-                      <button 
-                        @click.prevent="toggleDatePicker"
-                        class="absolute right-3 top-1/2 -translate-y-1/2 text-[#2A321B] hover:text-[#4A5D23] transition-colors"
-                      >
-                        <Icon name="lucide:calendar-days" class="w-5 h-5" />
-                      </button>
-
-                      <!-- Calendario Popup Neo-Brutalista -->
-                      <Transition name="pop">
-                        <div 
-                          v-show="showDatePicker" 
-                          :class="[
-                            'absolute z-50 left-0 w-64 bg-white border border-[#4A5D23]/20 rounded-xl shadow-[4px_4px_0px_#2A321B] p-4',
-                            datePickerPosition === 'top' ? 'bottom-full mb-2' : 'top-full mt-2'
-                          ]"
-                        >
-                          <div class="flex items-center justify-between mb-4">
-                            <button @click.prevent="prevMonth" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[#F4F1E1] border border-transparent hover:border-[#2A321B] transition-all">
-                              <Icon name="lucide:chevron-left" class="w-4 h-4" />
-                            </button>
-                            <span class="font-bold text-[#2A321B]">{{ monthNames[currentMonth] }} {{ currentYear }}</span>
-                            <button @click.prevent="nextMonth" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[#F4F1E1] border border-transparent hover:border-[#2A321B] transition-all">
-                              <Icon name="lucide:chevron-right" class="w-4 h-4" />
-                            </button>
-                          </div>
-                          
-                          <div class="grid grid-cols-7 gap-1 text-center mb-2">
-                            <span v-for="day in ['D', 'L', 'M', 'M', 'J', 'V', 'S']" :key="day" class="text-xs font-bold text-[#4A5D23]">{{ day }}</span>
-                          </div>
-                          
-                          <div class="grid grid-cols-7 gap-1">
-                            <div v-for="empty in firstDayOfMonth" :key="'empty-'+empty"></div>
-                            <button 
-                              v-for="day in daysInMonth" 
-                              :key="day"
-                              @click.prevent="selectDate(day)"
-                              class="w-7 h-7 flex items-center justify-center rounded-md text-sm font-medium text-[#2A321B] hover:bg-[#84cc16] hover:border-2 hover:border-[#2A321B] transition-all"
-                            >
-                              {{ day }}
-                            </button>
-                          </div>
-                        </div>
-                      </Transition>
-                    </div>
+                    <CustomDatePicker v-model="formData.deliveryDate" bgClass="bg-[#F4F1E1]" />
                   </div>
 
                   <!-- Selector de Hora -->
-                  <div class="space-y-2" ref="timePickerContainer">
+                  <div class="space-y-2">
                     <label for="time" class="block text-sm font-bold text-[#2A321B] uppercase tracking-wider">Hora Aprox.</label>
-                    <div class="flex gap-2 relative">
-                      <input 
-                        id="time"
-                        v-model="formData.deliveryTime"
-                        @input="handleTimeInput"
-                        @focus="openTimePicker"
-                        @click="openTimePicker"
-                        type="text" 
-                        placeholder="HH:MM"
-                        maxlength="5"
-                        class="w-full bg-[#F4F1E1] border border-[#4A5D23]/20 rounded-xl px-4 py-3 text-[#2A321B] font-medium focus:outline-none focus:ring-2 focus:ring-[#4A5D23] focus:border-transparent transition-all placeholder:text-[#4A5D23]/40 text-center"
-                      >
-                      <button 
-                        @click.prevent="amPm = amPm === 'AM' ? 'PM' : 'AM'"
-                        class="px-3 bg-[#F4F1E1] text-[#2A321B] hover:bg-[#e5e5e5] border border-[#4A5D23]/20 rounded-xl font-bold shadow-sm active:translate-y-0.5 active:shadow-none transition-all w-16 shrink-0"
-                      >
-                        {{ amPm }}
-                      </button>
-
-                      <!-- Time Picker Popup -->
-                      <Transition name="pop">
-                        <div 
-                          v-show="showTimePicker" 
-                          :class="[
-                            'absolute z-50 left-0 w-64 bg-white border border-[#4A5D23]/20 rounded-xl shadow-[4px_4px_0px_#2A321B] p-4 flex gap-4',
-                            timePickerPosition === 'top' ? 'bottom-full mb-2' : 'top-full mt-2'
-                          ]"
-                        >
-                          <!-- Horas -->
-                          <div class="flex-1 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
-                            <div class="text-[10px] font-bold text-[#4A5D23] mb-2 text-center tracking-widest">HORA</div>
-                            <div class="space-y-1">
-                              <button 
-                                v-for="h in 12" 
-                                :key="h" 
-                                @click.prevent="selectHour(h)" 
-                                class="w-full py-1.5 text-sm text-center hover:bg-[#84cc16] rounded-md font-medium text-[#2A321B] border border-transparent hover:border-[#2A321B] transition-all"
-                              >
-                                {{ String(h).padStart(2, '0') }}
-                              </button>
-                            </div>
-                          </div>
-                          
-                          <!-- Separador -->
-                          <div class="w-px bg-[#2A321B]/10"></div>
-
-                          <!-- Minutos -->
-                          <div class="flex-1 max-h-48 overflow-y-auto pl-1 custom-scrollbar">
-                            <div class="text-[10px] font-bold text-[#4A5D23] mb-2 text-center tracking-widest">MINUTOS</div>
-                            <div class="space-y-1">
-                              <button 
-                                v-for="m in ['00', '15', '30', '45']" 
-                                :key="m" 
-                                @click.prevent="selectMinute(m)" 
-                                class="w-full py-1.5 text-sm text-center hover:bg-[#84cc16] rounded-md font-medium text-[#2A321B] border border-transparent hover:border-[#2A321B] transition-all"
-                              >
-                                {{ m }}
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </Transition>
-                    </div>
+                    <CustomTimePicker v-model="formData.deliveryTime" bgClass="bg-[#F4F1E1]" />
                   </div>
                 </div>
 
