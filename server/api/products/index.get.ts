@@ -9,6 +9,7 @@ export default defineEventHandler(async (event) => {
     .from('products')
     .select('*')
     .order('created_at', { ascending: false })
+    .order('id', { ascending: true })
 
   // 3. Si algo falla en la base de datos, arrojamos error 500
   if (error) {

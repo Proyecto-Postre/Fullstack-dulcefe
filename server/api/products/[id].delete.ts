@@ -14,13 +14,26 @@ export default defineEventHandler(async (event) => {
   // 2. Conectamos con Supabase
   const supabase = await serverSupabaseClient<any>(event)
 
-  // 3. Ejecutamos la orden de borrado DONDE (.eq) el id coincida
+  // 3. Primero eliminamos los items de la receta asociados a este producto
+  const { error: recipeError } = await supabase
+    .from('recipe_items')
+    .delete()
+    .eq('product_id', id)
+
+  if (recipeError) {
+    throw createError({
+      statusCode: 500,
+      statusMessage: 'Error al eliminar la receta del producto: ' + recipeError.message
+    })
+  }
+
+  // 4. Ejecutamos la orden de borrado DONDE (.eq) el id coincida
   const { error } = await supabase
     .from('products')
     .delete()
     .eq('id', id)
 
-  // 4. Si la base de datos rechaza el borrado, arrojamos error
+  // 5. Si la base de datos rechaza el borrado, arrojamos error
   if (error) {
     throw createError({
       statusCode: 500,
@@ -28,7 +41,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // 5. Confirmamos el éxito del borrado
+  // 6. Confirmamos el éxito del borrado
   return {
     success: true,
     message: `Producto con ID ${id} eliminado correctamente del catálogo.`

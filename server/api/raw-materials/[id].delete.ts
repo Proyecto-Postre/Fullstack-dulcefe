@@ -14,7 +14,20 @@ export default defineEventHandler(async (event) => {
   // 2. Conectamos con Supabase
   const supabase = await serverSupabaseClient<any>(event)
 
-  // 3. Ejecutamos la orden de borrado DONDE (.eq) el id coincida
+  // 3. Primero eliminamos los items de recetas que usan este insumo
+  const { error: recipeError } = await supabase
+    .from('recipe_items')
+    .delete()
+    .eq('material_id', id)
+
+  if (recipeError) {
+    throw createError({
+      statusCode: 500,
+      statusMessage: 'Error al eliminar el insumo de las recetas: ' + recipeError.message
+    })
+  }
+
+  // 4. Ejecutamos la orden de borrado DONDE (.eq) el id coincida
   const { error } = await supabase
     .from('raw_materials')
     .delete()
