@@ -15,20 +15,29 @@ const editingMaterialId = ref<string | null>(null)
 const isSubmitting = ref(false)
 const errorMessage = ref('')
 
+// Local state for Optimistic UI
+const localMaterials = ref<any[]>([]);
+
+watch(() => props.materials?.data, (newData) => {
+  if (newData) {
+    localMaterials.value = [...newData];
+  }
+}, { immediate: true });
+
 // Pagination
 const currentPage = ref(1)
-const itemsPerPage = 6
+const itemsPerPage = 10
 
 const paginatedMaterials = computed(() => {
-  if (!props.materials?.data) return []
+  if (!localMaterials.value.length) return []
   const start = (currentPage.value - 1) * itemsPerPage
   const end = start + itemsPerPage
-  return props.materials.data.slice(start, end)
+  return localMaterials.value.slice(start, end)
 })
 
 const totalPages = computed(() => {
-  if (!props.materials?.data) return 1
-  return Math.ceil(props.materials.data.length / itemsPerPage)
+  if (!localMaterials.value.length) return 1
+  return Math.ceil(localMaterials.value.length / itemsPerPage)
 })
 
 function nextPage() {
@@ -95,10 +104,23 @@ function cancelEditMaterial() {
 
 async function handleDeleteMaterial(id: string, name: string) {
   if (!confirm(`¿Estás seguro de eliminar "${name}" del inventario de insumos?`)) return
+  
+  // Optimistic UI update: Eliminar localmente primero para disparar la animación al instante
+  const index = localMaterials.value.findIndex((m: any) => m.id === id);
+  let deletedItem = null;
+  if (index !== -1) {
+    deletedItem = localMaterials.value[index];
+    localMaterials.value.splice(index, 1);
+  }
+
   try {
     await $fetch(`/api/raw-materials/${id}`, { method: 'DELETE' })
-    emit('refresh')
+    // No llamamos a emit("refresh") para evitar el spinner y el retraso
   } catch (err: any) {
+    // Si falla, revertimos el cambio local
+    if (deletedItem && index !== -1) {
+      localMaterials.value.splice(index, 0, deletedItem);
+    }
     alert('Error al eliminar: ' + (err.data?.statusMessage || err.message))
   }
 }
@@ -139,7 +161,7 @@ async function updateStockInline(item: any, event: any) {
     </div>
 
     <!-- COLUMNA IZQUIERDA: Formulario para Agregar/Editar Insumo -->
-    <section class="bg-white p-8 rounded-[2rem] border border-[#4A5D23]/20 shadow-md h-fit transition-all duration-300">
+    <section class="transition-all duration-300">
       <div class="flex items-center justify-between mb-6 pb-4 border-b border-dashed border-[#4A5D23]/30">
         <div class="flex items-center gap-3">
           <Icon :name="editingMaterialId ? 'lucide:pencil' : 'lucide:package-plus'" class="w-5 h-5 text-[#4A5D23]" />
@@ -253,8 +275,8 @@ async function updateStockInline(item: any, event: any) {
       </form>
     </section>
 
-    <!-- COLUMNA DERECHA: Tabla de Insumos -->
-    <section class="lg:col-span-2 bg-white p-8 pb-5 rounded-[2rem] border border-[#4A5D23]/20 shadow-md transition-all duration-300 flex flex-col">
+    <!-- COLUMNA DERECHA: Lista de Insumos -->
+    <section class="lg:col-span-2 transition-all duration-300 flex flex-col">
       <div class="flex items-center justify-between mb-6 pb-4 border-b border-dashed border-[#4A5D23]/30">
         <div class="flex items-center gap-3">
           <Icon name="lucide:calculator" class="w-5 h-5 text-[#4A5D23]" />
@@ -283,71 +305,77 @@ async function updateStockInline(item: any, event: any) {
         </p>
       </div>
 
-      <!-- State: Table Grid -->
-      <div v-else class="flex-1 flex flex-col overflow-x-auto">
-        <table class="w-full text-left border-collapse whitespace-nowrap">
-          <thead>
-            <tr class="border-b border-[#4A5D23]/20 text-[10px] uppercase tracking-widest text-[#4A5D23]/80 font-bold">
-              <th class="py-4 px-4">Insumo</th>
-              <th class="py-4 px-4">Compra</th>
-              <th class="py-4 px-4 text-center">Stock</th>
-              <th class="py-4 px-4 bg-[#F4F1E1]/50 text-[#4A5D23] text-right rounded-t-lg">Costo Unitario</th>
-              <th class="py-4 px-4 text-right">Acción</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-[#4A5D23]/10 text-sm">
-            <tr v-for="item in paginatedMaterials" :key="item.id" class="group hover:bg-[#F4F1E1]/50 transition-colors duration-200">
-              <td class="py-4 px-4 font-medium text-[#2A321B] flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full bg-white border border-[#4A5D23]/20 flex items-center justify-center text-[#4A5D23] group-hover:border-[#4A5D23] transition-all">
-                  <Icon name="lucide:box" class="w-3.5 h-3.5" />
-                </div>
-                {{ item.name }}
-              </td>
-              <td class="py-4 px-4 text-xs">
-                <span class="font-bold text-[#2A321B]">S/ {{ Number(item.purchase_price).toFixed(2) }}</span>
-                <span class="text-[#4A5D23]/60 block mt-0.5">por {{ item.purchase_quantity }}{{ item.unit }}</span>
-              </td>
-              <td class="py-4 px-4 text-center">
-                <div class="inline-flex items-center gap-2 bg-white border border-[#4A5D23]/20 rounded-lg px-2 py-1 shadow-sm focus-within:border-[#4A5D23] focus-within:ring-2 focus-within:ring-[#4A5D23]/10 transition-all relative">
-                  <input 
-                    type="number" 
-                    :value="item.stock" 
-                    @blur="updateStockInline(item, $event)"
-                    @keyup.enter="updateStockInline(item, $event)"
-                    :disabled="updatingStockId === item.id"
-                    class="w-16 text-center text-[11px] font-bold text-[#4A5D23] bg-transparent focus:outline-none disabled:opacity-50"
-                  />
-                  <span class="text-[10px] font-bold text-[#4A5D23]/60 uppercase tracking-widest">{{ item.unit }}</span>
-                  <Icon v-if="updatingStockId === item.id" name="lucide:loader-2" class="absolute -right-5 w-4 h-4 text-[#4A5D23] animate-spin" />
-                </div>
-              </td>
-              <td class="py-4 px-4 bg-[#F4F1E1]/30 text-right font-inter group-hover:bg-[#F4F1E1]/80 transition-colors">
-                <div class="font-black text-[#2A321B]">
-                  <span class="text-[#4A5D23]/60 text-xs mr-0.5">S/</span>{{ Number(item.cost_per_unit || (item.purchase_price / item.purchase_quantity)).toFixed(2) }}
-                </div>
-                <span class="text-[#4A5D23]/60 text-[10px] font-bold block mt-0.5">por {{ item.unit }}</span>
-              </td>
-              <td class="py-4 px-4">
-                <div class="flex items-center justify-end gap-2">
-                  <button 
-                    @click="handleEditMaterial(item)"
-                    class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-[#4A5D23] hover:text-[#2A321B] hover:bg-[#F4F1E1] hover:shadow-sm hover:border hover:border-[#4A5D23] transition-all duration-300 focus:outline-none"
-                    title="Editar insumo"
-                  >
-                    <Icon name="lucide:pencil" class="w-4 h-4" />
-                  </button>
-                  <button 
-                    @click="handleDeleteMaterial(item.id, item.name)"
-                    class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-red-700 hover:text-white hover:bg-red-800 hover:shadow-sm hover:border hover:border-[#4A0000] transition-all duration-300 focus:outline-none"
-                    title="Eliminar insumo"
-                  >
-                    <Icon name="lucide:trash-2" class="w-4 h-4" />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <!-- State: List -->
+      <TransitionGroup 
+        v-else 
+        name="list" 
+        tag="div" 
+        class="flex-1 flex flex-col gap-3 relative"
+      >
+        <div v-for="item in paginatedMaterials" :key="item.id" class="bg-white rounded-2xl border border-[#4A5D23]/10 shadow-sm p-4 flex items-center gap-4 hover:shadow-md transition-all duration-300 group">
+          
+          <!-- Icon -->
+          <div class="w-12 h-12 rounded-xl bg-[#F4F1E1]/50 flex items-center justify-center text-[#4A5D23] shrink-0">
+            <Icon name="lucide:box" class="w-6 h-6" />
+          </div>
+
+          <!-- Info -->
+          <div class="flex-1 min-w-0 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+            <!-- Name & Purchase -->
+            <div>
+              <h3 class="font-bold text-[#2A321B] text-sm truncate">{{ item.name }}</h3>
+              <p class="text-[10px] font-bold text-[#4A5D23]/60 uppercase tracking-widest mt-0.5">
+                Compra: S/ {{ Number(item.purchase_price).toFixed(2) }} / {{ item.purchase_quantity }}{{ item.unit }}
+              </p>
+            </div>
+            
+            <!-- Stock Input -->
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] font-bold text-[#4A5D23]/60 uppercase tracking-widest">Stock:</span>
+              <div class="inline-flex items-center gap-1 bg-[#F4F1E1]/50 border border-[#4A5D23]/20 rounded-lg px-2 py-1 focus-within:border-[#4A5D23] focus-within:bg-white transition-all relative">
+                <input 
+                  type="number" 
+                  :value="item.stock" 
+                  @blur="updateStockInline(item, $event)"
+                  @keyup.enter="updateStockInline(item, $event)"
+                  :disabled="updatingStockId === item.id"
+                  class="w-12 text-center text-xs font-bold text-[#4A5D23] bg-transparent focus:outline-none disabled:opacity-50"
+                />
+                <span class="text-[10px] font-bold text-[#4A5D23]">{{ item.unit }}</span>
+                <Icon v-if="updatingStockId === item.id" name="lucide:loader-2" class="absolute -right-5 w-4 h-4 text-[#4A5D23] animate-spin" />
+              </div>
+            </div>
+
+            <!-- Unit Cost -->
+            <div class="text-right">
+              <p class="text-sm font-black text-[#2A321B]">
+                S/ {{ Number(item.cost_per_unit || (item.purchase_price / item.purchase_quantity)).toFixed(2) }}
+              </p>
+              <p class="text-[10px] font-bold text-[#4A5D23]/60 uppercase tracking-widest mt-0.5">
+                por {{ item.unit }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex items-center gap-2 shrink-0 border-l border-[#4A5D23]/10 pl-4 ml-2">
+            <button 
+              @click="handleEditMaterial(item)"
+              class="w-8 h-8 rounded-lg flex items-center justify-center text-[#4A5D23] bg-[#F4F1E1]/50 hover:bg-[#4A5D23] hover:text-white transition-colors"
+              title="Editar"
+            >
+              <Icon name="lucide:pencil" class="w-4 h-4" />
+            </button>
+            <button 
+              @click="handleDeleteMaterial(item.id, item.name)"
+              class="w-8 h-8 rounded-lg flex items-center justify-center text-red-600 bg-red-50 hover:bg-red-600 hover:text-white transition-colors"
+              title="Eliminar"
+            >
+              <Icon name="lucide:trash-2" class="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </TransitionGroup>
 
         <!-- Pagination Controls -->
         <div v-if="totalPages > 1" class="flex items-center justify-between mt-auto pt-6 px-4 py-3 bg-[#F4F1E1]/50 rounded-2xl border border-[#4A5D23]/20/20">
@@ -373,7 +401,26 @@ async function updateStockInline(item: any, event: any) {
             </button>
           </div>
         </div>
-      </div>
     </section>
   </div>
 </template>
+
+<style scoped>
+/* Animaciones de Lista (Pop y Deslizamiento) */
+.list-move,
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.4s cubic-bezier(0.55, 0, 0.1, 1);
+}
+
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+  transform: scale(0.8) translateY(20px);
+}
+
+.list-leave-active {
+  position: absolute;
+  width: 100%;
+}
+</style>
