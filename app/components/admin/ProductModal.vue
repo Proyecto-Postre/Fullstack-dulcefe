@@ -105,13 +105,13 @@ async function saveProduct() {
   <div v-if="show" class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
     <div class="absolute inset-0 bg-[#2A321B]/40 backdrop-blur-sm" @click="closeModal"></div>
     
-    <div class="relative w-full max-w-md bg-white rounded-[2rem] shadow-2xl overflow-hidden animate-pop">
-      <div class="p-6 sm:p-8">
+    <div class="relative w-full max-w-md bg-white rounded-[2rem] shadow-2xl overflow-hidden animate-pop border border-[#4A5D23]/10">
+      <div class="p-5 sm:p-6">
         <div class="flex items-center justify-between mb-6">
-          <h3 class="text-2xl font-playfair font-bold text-[#2A321B]">
+          <h3 class="text-xl font-playfair font-black text-[#2A321B]">
             {{ productToEdit ? 'Editar Producto' : 'Nuevo Producto' }}
           </h3>
-          <button @click="closeModal" class="w-8 h-8 flex items-center justify-center rounded-full bg-[#F4F1E1] text-[#2A321B] hover:bg-[#e6e2cc] transition-colors">
+          <button @click="closeModal" class="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-[#4A5D23]/20 text-[#2A321B] hover:bg-[#e6e2cc] hover:scale-105 active:scale-95 transition-all shadow-sm">
             <Icon name="lucide:x" class="w-4 h-4" />
           </button>
         </div>
@@ -123,65 +123,69 @@ async function saveProduct() {
 
         <form @submit.prevent="saveProduct" class="space-y-5">
           <!-- Imagen -->
-          <div>
+          <div class="group">
             <div 
               @click="triggerFileInput"
-              class="w-full h-40 border border-dashed border-[#4A5D23]/30 rounded-2xl bg-[#F4F1E1]/30 hover:bg-[#F4F1E1] transition-colors cursor-pointer flex flex-col items-center justify-center overflow-hidden relative group"
+              class="w-full h-48 border-2 border-dashed border-[#4A5D23]/20 rounded-2xl bg-[#F4F1E1]/50 hover:bg-[#F4F1E1] hover:border-[#4A5D23]/40 transition-all cursor-pointer flex flex-col items-center justify-center overflow-hidden relative"
             >
               <input type="file" id="productImageInputModal" accept="image/*" class="hidden" @change="handleFileChange" />
               <template v-if="previewUrl">
-                <img :src="previewUrl" class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" />
-                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                  <span class="text-white text-xs font-bold bg-[#2A321B]/80 px-3 py-1.5 rounded-lg">Cambiar Foto</span>
+                <img :src="previewUrl" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                <div class="absolute inset-0 bg-[#2A321B]/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity backdrop-blur-[2px]">
+                  <div class="flex items-center gap-2 bg-white text-[#2A321B] px-4 py-2 rounded-xl font-bold text-sm shadow-sm">
+                    <Icon name="lucide:camera" class="w-4 h-4" />
+                    Cambiar Foto
+                  </div>
                 </div>
               </template>
               <template v-else>
-                <div class="w-12 h-12 rounded-full bg-white border border-[#4A5D23]/10 flex items-center justify-center text-[#4A5D23]/50 mb-2 shadow-sm group-hover:scale-110 transition-transform">
-                  <Icon name="lucide:camera" class="w-6 h-6" />
+                <div class="w-14 h-14 rounded-full bg-white border border-[#4A5D23]/10 flex items-center justify-center text-[#4A5D23]/40 mb-3 shadow-sm group-hover:scale-110 group-hover:text-[#4A5D23] transition-all">
+                  <Icon name="lucide:image-plus" class="w-6 h-6" />
                 </div>
-                <span class="text-xs font-medium text-[#4A5D23]/60 group-hover:text-[#4A5D23]">Subir fotografía</span>
+                <span class="text-sm font-bold text-[#4A5D23]/60 group-hover:text-[#4A5D23] transition-colors">Subir fotografía</span>
+                <span class="text-[10px] text-[#4A5D23]/40 mt-1">PNG, JPG hasta 5MB</span>
               </template>
             </div>
           </div>
 
           <!-- Nombre -->
           <div>
-            <label class="block text-[11px] font-bold text-[#4A5D23] uppercase tracking-widest mb-2">Nombre del postre</label>
+            <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest mb-1.5">Nombre del postre</label>
             <input 
               v-model="newProduct.name"
               type="text" 
               required
               placeholder="Ej: Box Brownies x6"
-              class="w-full px-4 py-3 bg-white rounded-xl border border-[#4A5D23]/20 focus:outline-none focus:border-[#4A5D23] focus:ring-2 focus:ring-[#4A5D23]/10 text-sm font-medium text-[#2A321B] shadow-sm transition-all"
+              class="w-full px-3 py-2.5 bg-[#F4F1E1]/30 rounded-xl border border-[#4A5D23]/20 focus:outline-none focus:bg-white focus:border-[#4A5D23] focus:ring-2 focus:ring-[#4A5D23]/10 text-sm font-bold text-[#2A321B] shadow-sm transition-all placeholder:text-[#4A5D23]/30"
             />
           </div>
 
           <div v-if="productToEdit" class="grid grid-cols-2 gap-4">
             <!-- Precio -->
             <div>
-              <label class="block text-[11px] font-bold text-[#4A5D23] uppercase tracking-widest mb-2">Precio (S/)</label>
+              <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest mb-1.5">Precio (S/)</label>
               <div class="relative">
-                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-[#4A5D23]/50 font-bold text-sm">S/</span>
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-[#4A5D23]/50 font-black text-sm">S/</span>
                 <input 
                   v-model="newProduct.price"
                   type="number" 
                   step="0.01"
                   required
                   placeholder="0.00"
-                  class="w-full pl-9 pr-4 py-3 bg-white rounded-xl border border-[#4A5D23]/20 focus:outline-none focus:border-[#4A5D23] focus:ring-2 focus:ring-[#4A5D23]/10 text-sm font-medium text-[#2A321B] shadow-sm transition-all"
+                  class="w-full pl-8 pr-3 py-2.5 bg-[#F4F1E1]/30 rounded-xl border border-[#4A5D23]/20 focus:outline-none focus:bg-white focus:border-[#4A5D23] focus:ring-2 focus:ring-[#4A5D23]/10 text-sm font-bold text-[#2A321B] shadow-sm transition-all placeholder:text-[#4A5D23]/30 [&::-webkit-inner-spin-button]:appearance-none"
                 />
               </div>
             </div>
 
             <!-- Stock -->
             <div>
-              <label class="block text-[11px] font-bold text-[#4A5D23] uppercase tracking-widest mb-2">Stock Inicial</label>
+              <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest mb-1.5">Stock Inicial</label>
               <input 
                 v-model="newProduct.stock"
                 type="number" 
                 min="0"
                 placeholder="0"
-                class="w-full px-4 py-3 bg-white rounded-xl border border-[#4A5D23]/20 focus:outline-none focus:border-[#4A5D23] focus:ring-2 focus:ring-[#4A5D23]/10 text-sm font-medium text-[#2A321B] shadow-sm transition-all"
+                class="w-full px-3 py-2.5 bg-[#F4F1E1]/30 rounded-xl border border-[#4A5D23]/20 focus:outline-none focus:bg-white focus:border-[#4A5D23] focus:ring-2 focus:ring-[#4A5D23]/10 text-sm font-bold text-[#2A321B] shadow-sm transition-all placeholder:text-[#4A5D23]/30 [&::-webkit-inner-spin-button]:appearance-none"
               />
             </div>
           </div>
@@ -189,9 +193,9 @@ async function saveProduct() {
           <button 
             type="submit" 
             :disabled="isSubmitting" 
-            class="w-full bg-[#4A5D23] text-white font-bold py-4 rounded-xl mt-2 hover:bg-[#3C4A1C] transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            class="w-full bg-[#4A5D23] border border-transparent text-white font-bold py-3 rounded-xl mt-4 shadow-sm transition-all duration-300 active:translate-y-0.5 active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 hover:bg-[#3C4A1C] text-sm"
           >
-            <Icon v-if="isSubmitting" name="lucide:loader-2" class="w-5 h-5 animate-spin" />
+            <Icon v-if="isSubmitting" name="lucide:loader-2" class="w-4 h-4 animate-spin" />
             {{ isSubmitting ? 'Guardando...' : (productToEdit ? 'Guardar Cambios' : 'Crear y Costear') }}
             <Icon v-if="!isSubmitting && !productToEdit" name="lucide:arrow-right" class="w-4 h-4" />
           </button>
