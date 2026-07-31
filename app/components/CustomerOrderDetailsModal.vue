@@ -50,7 +50,7 @@ const getStatusColor = (status: string) => {
 <template>
   <div
     v-if="show && order"
-    class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
+    class="absolute inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto custom-scrollbar"
   >
     <div
       class="absolute inset-0 bg-[#2A321B]/40 backdrop-blur-sm"
@@ -58,7 +58,7 @@ const getStatusColor = (status: string) => {
     ></div>
 
     <div
-      class="relative w-full max-w-2xl bg-white rounded-[2rem] shadow-2xl overflow-hidden animate-pop flex flex-col max-h-[90vh]"
+      class="relative w-full max-w-2xl bg-white rounded-[2rem] shadow-2xl overflow-hidden animate-pop flex flex-col max-h-[85vh]"
     >
       <!-- Header -->
       <div
@@ -90,7 +90,7 @@ const getStatusColor = (status: string) => {
       </div>
 
       <!-- Body -->
-      <div class="p-5 sm:p-6 overflow-y-auto custom-scrollbar space-y-6">
+      <div class="p-5 sm:p-6 overflow-y-auto custom-scrollbar space-y-6 flex-1">
         
         <!-- Datos de Entrega -->
         <section v-if="order.delivery_date || order.delivery_time || order.notes">

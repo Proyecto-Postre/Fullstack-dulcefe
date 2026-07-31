@@ -115,74 +115,75 @@ const openWhatsApp = () => {
 </script>
 
 <template>
-  <div
-    v-if="show && order"
-    class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
-  >
+  <Teleport to="#admin-modal-portal">
     <div
-      class="absolute inset-0 bg-[#2A321B]/40 backdrop-blur-sm"
-      @click="closeModal"
-    ></div>
-
-    <div
-      class="relative w-full max-w-2xl bg-white rounded-[2rem] shadow-2xl overflow-hidden animate-pop flex flex-col max-h-[90vh]"
+      v-if="show && order"
+      class="absolute inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto custom-scrollbar pointer-events-auto"
     >
-      <!-- Header -->
       <div
-        class="p-5 sm:p-6 bg-[#F4F1E1]/30 border-b border-[#4A5D23]/10 flex items-center justify-between shrink-0"
-      >
-        <div>
-          <h3
-            class="text-xl font-playfair font-black text-[#2A321B] flex items-center gap-2"
-          >
-            <Icon name="lucide:receipt" class="w-5 h-5 text-[#4A5D23]" />
-            Detalle del Pedido
-          </h3>
-          <p class="text-xs text-[#4A5D23]/70 font-bold mt-1">
-            ID: {{ order.id.split("-")[0] }} •
-            {{ formatDate(order.created_at) }}
-          </p>
-        </div>
-        <div class="flex items-center gap-2">
-          <button
-            v-if="!isEditing"
-            @click="isEditing = true"
-            class="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-[#4A5D23]/20 text-[#4A5D23] hover:bg-[#F4F1E1] hover:scale-105 active:scale-95 transition-all shadow-sm"
-            title="Editar Pedido"
-          >
-            <Icon name="lucide:pencil" class="w-4 h-4" />
-          </button>
-          <button
-            @click="closeModal"
-            class="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-[#4A5D23]/20 text-[#2A321B] hover:bg-[#e6e2cc] hover:scale-105 active:scale-95 transition-all shadow-sm"
-          >
-            <Icon name="lucide:x" class="w-4 h-4" />
-          </button>
-        </div>
-      </div>
+        class="absolute inset-0 bg-[#2A321B]/40 backdrop-blur-sm"
+        @click="closeModal"
+      ></div>
 
-      <!-- Body -->
-      <div class="p-5 sm:p-6 overflow-y-auto custom-scrollbar space-y-6">
-        <!-- Cliente Info -->
-        <section>
-          <h4
-            class="text-[11px] font-bold text-[#4A5D23] uppercase tracking-widest mb-3"
-          >
-            Datos del Cliente y Entrega
-          </h4>
-          
-          <!-- Modo Edición -->
-          <div v-if="isEditing" class="bg-[#F4F1E1]/30 p-5 rounded-2xl border border-[#4A5D23]/20 space-y-4">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest mb-1.5">Nombre</label>
-                <input v-model="editData.full_name" type="text" class="w-full px-3 py-2 bg-white rounded-xl border border-[#4A5D23]/20 focus:outline-none focus:border-[#4A5D23] focus:ring-2 focus:ring-[#4A5D23]/10 text-sm font-bold text-[#2A321B] shadow-sm transition-all" />
+      <div
+        class="relative w-full max-w-2xl bg-white rounded-[2rem] shadow-2xl overflow-hidden animate-pop flex flex-col max-h-[85vh]"
+      >
+        <!-- Header -->
+        <div
+          class="p-5 sm:p-6 bg-[#F4F1E1]/30 border-b border-[#4A5D23]/10 flex items-center justify-between shrink-0"
+        >
+          <div>
+            <h3
+              class="text-xl font-playfair font-black text-[#2A321B] flex items-center gap-2"
+            >
+              <Icon name="lucide:receipt" class="w-5 h-5 text-[#4A5D23]" />
+              Detalle del Pedido
+            </h3>
+            <p class="text-xs text-[#4A5D23]/70 font-bold mt-1">
+              ID: {{ order.id.split("-")[0] }} •
+              {{ formatDate(order.created_at) }}
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button
+              v-if="!isEditing"
+              @click="isEditing = true"
+              class="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-[#4A5D23]/20 text-[#4A5D23] hover:bg-[#F4F1E1] hover:scale-105 active:scale-95 transition-all shadow-sm"
+              title="Editar Pedido"
+            >
+              <Icon name="lucide:pencil" class="w-4 h-4" />
+            </button>
+            <button
+              @click="closeModal"
+              class="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-[#4A5D23]/20 text-[#2A321B] hover:bg-[#e6e2cc] hover:scale-105 active:scale-95 transition-all shadow-sm"
+            >
+              <Icon name="lucide:x" class="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        <!-- Body -->
+        <div class="p-5 sm:p-6 overflow-y-auto custom-scrollbar space-y-6 flex-1">
+          <!-- Cliente Info -->
+          <section>
+            <h4
+              class="text-[11px] font-bold text-[#4A5D23] uppercase tracking-widest mb-3"
+            >
+              Datos del Cliente y Entrega
+            </h4>
+            
+            <!-- Modo Edición -->
+            <div v-if="isEditing" class="bg-[#F4F1E1]/30 p-5 rounded-2xl border border-[#4A5D23]/20 space-y-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest mb-1.5">Nombre</label>
+                  <input v-model="editData.full_name" type="text" class="w-full px-3 py-2 bg-white rounded-xl border border-[#4A5D23]/20 focus:outline-none focus:border-[#4A5D23] focus:ring-2 focus:ring-[#4A5D23]/10 text-sm font-bold text-[#2A321B] shadow-sm transition-all" />
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest mb-1.5">Teléfono</label>
+                  <input v-model="editData.phone" type="text" class="w-full px-3 py-2 bg-white rounded-xl border border-[#4A5D23]/20 focus:outline-none focus:border-[#4A5D23] focus:ring-2 focus:ring-[#4A5D23]/10 text-sm font-bold text-[#2A321B] shadow-sm transition-all" />
+                </div>
               </div>
-              <div>
-                <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest mb-1.5">Teléfono</label>
-                <input v-model="editData.phone" type="text" class="w-full px-3 py-2 bg-white rounded-xl border border-[#4A5D23]/20 focus:outline-none focus:border-[#4A5D23] focus:ring-2 focus:ring-[#4A5D23]/10 text-sm font-bold text-[#2A321B] shadow-sm transition-all" />
-              </div>
-            </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest mb-1.5">Fecha de Entrega</label>
@@ -311,6 +312,7 @@ const openWhatsApp = () => {
       </div>
     </div>
   </div>
+</Teleport>
 </template>
 
 <style scoped>

@@ -230,9 +230,12 @@ async function handleLogout() {
       </div>
     </div>
 
-    <!-- Main Content -->
-    <main class="col-span-full lg:col-span-1 row-span-1 relative z-10 overflow-y-auto bg-transparent custom-scrollbar">
-      <div class="max-w-7xl mx-auto py-8 px-6 lg:px-12">
+    <!-- Main Content Area (Bounded for Modals with 0 Gap) -->
+    <main class="col-span-full lg:col-span-1 row-span-1 relative z-10 overflow-hidden flex flex-col bg-transparent">
+      <!-- Portal Target for Modals (Absolute 0px Top, Left, Right, Bottom) -->
+      <div id="admin-modal-portal" class="absolute inset-0 z-50 pointer-events-none"></div>
+
+      <div class="flex-1 overflow-y-auto custom-scrollbar py-8 px-6 lg:px-12 max-w-7xl mx-auto w-full">
         <!-- Componentes de Pestaña -->
       <AdminDashboardTab 
         v-if="currentTab === 'dashboard'" 

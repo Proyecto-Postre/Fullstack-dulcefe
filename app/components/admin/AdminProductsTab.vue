@@ -99,26 +99,42 @@ async function handleDeleteProduct(id: string, name: string) {
 }
 
 function getProductIcon(name: string): string {
-  const n = name.toLowerCase();
-  if (n.includes("brownie") || n.includes("box") || n.includes("caja"))
-    return "lucide:package";
-  if (n.includes("alfajor") || n.includes("galleta") || n.includes("cookie"))
-    return "lucide:cookie";
-  if (
-    n.includes("torta") ||
-    n.includes("pastel") ||
-    n.includes("cake") ||
-    n.includes("keke") ||
-    n.includes("queque")
-  )
-    return "lucide:cake-slice";
-  if (n.includes("pie") || n.includes("tart") || n.includes("kuchen"))
-    return "lucide:pie-chart";
-  if (n.includes("cafe") || n.includes("café") || n.includes("coffee"))
-    return "lucide:coffee";
-  if (n.includes("helado") || n.includes("ice cream"))
-    return "lucide:ice-cream";
-  return "lucide:croissant";
+  if (!name) return 'lucide:croissant'
+  const n = name.toLowerCase()
+  
+  // 1. Panadería, Masas y Salados
+  if (n.includes('pan') || n.includes('panes') || n.includes('baguette') || n.includes('ciabatta') || n.includes('brioche') || n.includes('miga')) return 'lucide:sandwich'
+  if (n.includes('hojaldre') || n.includes('empanada') || n.includes('croissant') || n.includes('medialuna') || n.includes('milhojas') || n.includes('cachito')) return 'lucide:croissant'
+  if (n.includes('pizza') || n.includes('focaccia') || n.includes('quiche') || n.includes('tarta salada') || n.includes('calzone')) return 'lucide:pizza'
+  if (n.includes('sandwich') || n.includes('sándwich') || n.includes('butifarra') || n.includes('bocadito') || n.includes('canape') || n.includes('mixto') || n.includes('hamburguesa') || n.includes('burger')) return 'lucide:sandwich'
+  
+  // 2. Carnes, Pollo, Jamón y Salados
+  if (n.includes('carne') || n.includes('res') || n.includes('lomo') || n.includes('asado') || n.includes('jamon') || n.includes('jamón') || n.includes('tocino') || n.includes('chicharron') || n.includes('chorizo')) return 'lucide:beef'
+  if (n.includes('pollo') || n.includes('gallina') || n.includes('pavo') || n.includes('alita') || n.includes('pechuga')) return 'lucide:drumstick'
+  if (n.includes('pescado') || n.includes('atun') || n.includes('atún') || n.includes('salmon') || n.includes('salmón')) return 'lucide:fish'
+  if (n.includes('queso') || n.includes('cheese') || n.includes('mozzarella')) return 'lucide:milk'
+
+  // 3. Pastelería, Tortas y Tartas Dulces
+  if (n.includes('torta') || n.includes('pastel') || n.includes('cake') || n.includes('keke') || n.includes('queque') || n.includes('bizcochuelo') || n.includes('mousse')) return 'lucide:cake'
+  if (n.includes('porcion') || n.includes('porción') || n.includes('tajada') || n.includes('slice')) return 'lucide:cake-slice'
+  if (n.includes('cupcake') || n.includes('muffin') || n.includes('magdalena')) return 'lucide:cake-slice'
+  if (n.includes('pie') || n.includes('pay') || n.includes('tarta') || n.includes('tartaleta') || n.includes('kuchen')) return 'lucide:pie-chart'
+  if (n.includes('dona') || n.includes('donut') || n.includes('berlina') || n.includes('rosca') || n.includes('glaseado')) return 'lucide:donut'
+
+  // 4. Chocolates, Galletas, Chocotejas y Dulces
+  if (n.includes('alfajor') || n.includes('galleta') || n.includes('cookie') || n.includes('chocoteja') || n.includes('trufa') || n.includes('chocolate') || n.includes('cacao') || n.includes('bombom') || n.includes('brownie')) return 'lucide:cookie'
+  if (n.includes('helado') || n.includes('ice cream') || n.includes('gelato') || n.includes('sorbete') || n.includes('paleta')) return 'lucide:popsicle'
+  if (n.includes('candy') || n.includes('dulce') || n.includes('caramelo') || n.includes('gomita') || n.includes('turron') || n.includes('marshmallow')) return 'lucide:candy'
+
+  // 5. Cajas, Boxes y Packs
+  if (n.includes('box') || n.includes('caja') || n.includes('pack') || n.includes('combo') || n.includes('set')) return 'lucide:package'
+
+  // 6. Bebidas y Café
+  if (n.includes('cafe') || n.includes('café') || n.includes('coffee') || n.includes('latte') || n.includes('cappuccino') || n.includes('expresso') || n.includes('te') || n.includes('matcha')) return 'lucide:coffee'
+  if (n.includes('jugo') || n.includes('refresco') || n.includes('gaseosa') || n.includes('bebida') || n.includes('limonada') || n.includes('chicha')) return 'lucide:cup-soda'
+  if (n.includes('licor') || n.includes('pisco') || n.includes('vino') || n.includes('cerveza')) return 'lucide:glass-water'
+
+  return 'lucide:croissant'
 }
 </script>
 

@@ -404,7 +404,7 @@ const getStatusText = (status: string) => {
 
     <!-- Modal de Nueva Dirección -->
     <div v-if="showAddressModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div class="bg-white rounded-3xl p-8 max-w-xl w-full shadow-xl animate-pop relative">
+      <div class="bg-white rounded-3xl p-8 max-w-xl w-full shadow-xl animate-pop relative max-h-[85vh] overflow-y-auto custom-scrollbar">
         <button @click="showAddressModal = false" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-[#F4F1E1] text-[#2A321B] hover:bg-[#e6e2cc] transition-colors">
           <Icon name="lucide:x" class="w-4 h-4" />
         </button>
