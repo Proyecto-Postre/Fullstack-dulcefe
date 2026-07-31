@@ -61,7 +61,7 @@ const { data: catalog, pending, error } = await useAsyncData<ApiResponse>(
           <!-- Botón de Iniciar Sesión (Si no está logueado) -->
           <NuxtLink 
             v-if="!authStore.isLoggedIn"
-            to="/cuenta"
+            to="/login"
             class="hidden md:flex items-center justify-center px-5 py-2 text-sm font-bold text-white bg-[#4A5D23] hover:bg-[#3C4A1C] rounded-full transition-colors shadow-sm"
           >
             Iniciar Sesión

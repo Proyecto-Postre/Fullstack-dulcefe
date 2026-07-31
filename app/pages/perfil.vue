@@ -11,7 +11,7 @@ const cartStore = useCartStore()
 
 // Redirigir si no está logueado
 if (import.meta.client && !authStore.isLoggedIn) {
-  navigateTo('/cuenta', { replace: true })
+  navigateTo('/login', { replace: true })
 }
 
 const activeTab = ref<'history' | 'addresses' | 'points'>('history')

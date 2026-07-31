@@ -3,7 +3,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   
   // Si no está logueado, redirigir al login
   if (!authStore.isLoggedIn) {
-    return navigateTo('/cuenta')
+    return navigateTo('/login')
   }
 
   // Si está logueado pero no es admin, redirigir al perfil

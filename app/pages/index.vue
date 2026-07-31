@@ -74,7 +74,7 @@ const featuredProducts = [
           <!-- Botón de Iniciar Sesión (Si no está logueado) -->
           <NuxtLink 
             v-if="!authStore.isLoggedIn"
-            to="/cuenta"
+            to="/login"
             class="hidden md:flex items-center justify-center px-5 py-2 text-sm font-bold text-white bg-[#4A5D23] hover:bg-[#3C4A1C] rounded-full transition-colors shadow-sm"
           >
             Iniciar Sesión
@@ -153,7 +153,7 @@ const featuredProducts = [
             </NuxtLink>
             
             <NuxtLink 
-              to="/cuenta"
+              to="/login"
               class="inline-flex items-center justify-center px-8 py-4 text-sm font-bold text-[#2A321B] bg-white hover:bg-[#F4F1E1] rounded-full transition-all duration-300 shadow-sm hover:shadow-md"
             >
               Únete al Club
