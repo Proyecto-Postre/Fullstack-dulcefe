@@ -93,7 +93,7 @@ async function handleLogout() {
         <Icon name="lucide:leaf" class="absolute -bottom-10 -left-10 w-48 h-48 text-[#4A5D23]/[0.02] -rotate-45" />
       </div>
 
-      <div class="p-6 flex flex-col gap-2 flex-1 overflow-y-auto custom-scrollbar relative z-10">
+      <div class="p-6 flex flex-col gap-2 flex-1 overflow-y-auto hide-scrollbar relative z-10">
         <p class="text-[10px] font-black text-[#4A5D23]/60 uppercase tracking-[0.2em] mb-4 px-2">Menú Principal</p>
         <button 
           @click="currentTab = 'dashboard'"
@@ -235,7 +235,7 @@ async function handleLogout() {
       <!-- Portal Target for Modals (Absolute 0px Top, Left, Right, Bottom) -->
       <div id="admin-modal-portal" class="absolute inset-0 z-50 pointer-events-none"></div>
 
-      <div class="flex-1 overflow-y-auto custom-scrollbar py-8 px-6 lg:px-12 max-w-7xl mx-auto w-full">
+      <div class="flex-1 overflow-y-auto hide-scrollbar py-8 px-6 lg:px-12 max-w-7xl mx-auto w-full">
         <!-- Componentes de Pestaña -->
       <AdminDashboardTab 
         v-if="currentTab === 'dashboard'" 
@@ -295,18 +295,4 @@ async function handleLogout() {
   scrollbar-width: none;  /* Firefox */
 }
 
-/* Custom Scrollbar */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(74, 93, 35, 0.2);
-  border-radius: 10px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(74, 93, 35, 0.4);
-}
 </style>
