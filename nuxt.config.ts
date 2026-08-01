@@ -15,6 +15,13 @@ export default defineNuxtConfig({
     '@pinia-plugin-persistedstate/nuxt'
   ],
   
+  piniaPluginPersistedstate: {
+    cookieOptions: {
+      sameSite: 'lax',
+    },
+    storage: 'cookies'
+  },
+  
   supabase: {
     redirect: false
   }
