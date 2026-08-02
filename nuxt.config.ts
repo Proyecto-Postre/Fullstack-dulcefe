@@ -23,8 +23,6 @@ export default defineNuxtConfig({
   },
   
   supabase: {
-    redirect: false,
-    url: process.env.SUPABASE_URL || 'https://dummy.supabase.co',
-    key: process.env.SUPABASE_KEY || 'dummy-key'
+    redirect: false
   }
 })
