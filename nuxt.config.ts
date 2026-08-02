@@ -23,6 +23,8 @@ export default defineNuxtConfig({
   },
   
   supabase: {
-    redirect: false
+    redirect: false,
+    url: 'https://rklxfrwzuwjvnfcdhmei.supabase.co',
+    key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrbHhmcnd6dXdqdm5mY2RobWVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM4Nzg4NTQsImV4cCI6MjA5OTQ1NDg1NH0.aZPDwe2FG2oF12-NXpEbR9ADfLyJYhxePQjC8xHHKqs'
   }
 })
