@@ -8,11 +8,11 @@ export default defineNuxtConfig({
   
   // AGREGA '@nuxtjs/tailwindcss' EXACTAMENTE AQUÍ:
   modules: [
+    '@pinia/nuxt',
+    '@pinia-plugin-persistedstate/nuxt',
     '@nuxtjs/supabase',
     '@nuxtjs/tailwindcss',
-    '@nuxt/icon',
-    '@pinia/nuxt',
-    '@pinia-plugin-persistedstate/nuxt'
+    '@nuxt/icon'
   ],
   
   piniaPluginPersistedstate: {
@@ -23,6 +23,8 @@ export default defineNuxtConfig({
   },
   
   supabase: {
-    redirect: false
+    redirect: false,
+    url: process.env.SUPABASE_URL || 'https://dummy.supabase.co',
+    key: process.env.SUPABASE_KEY || 'dummy-key'
   }
 })
