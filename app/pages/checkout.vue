@@ -3,9 +3,11 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { navigateTo } from 'nuxt/app'
 import { useCartStore } from '~/stores/cart'
 import { useAuthStore } from '~/stores/auth'
+import { useSupabaseClient } from '#imports'
 
 const cartStore = useCartStore()
 const authStore = useAuthStore()
+const supabase = useSupabaseClient()
 
 const checkoutMode = ref<'direct' | 'chat'>('direct')
 const editingItemId = ref<string | null>(null)
@@ -51,8 +53,6 @@ const isFormValid = computed(() => {
 const generateWhatsAppLink = async () => {
   if (!isFormValid.value) return
 
-  const supabase = useSupabaseClient()
-  const authStore = useAuthStore()
   const isSaving = ref(false)
 
   try {

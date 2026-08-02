@@ -2,8 +2,10 @@
 import { ref } from 'vue'
 import { navigateTo } from 'nuxt/app'
 import { useAuthStore } from '~/stores/auth'
+import { useSupabaseClient } from '#imports'
 
 const authStore = useAuthStore()
+const supabase = useSupabaseClient()
 
 const isLogin = ref(true)
 const email = ref('')
@@ -32,8 +34,6 @@ const handleSubmit = async () => {
   errorMessage.value = ''
   
   try {
-    const supabase = useSupabaseClient()
-    
     if (isLogin.value) {
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.value,

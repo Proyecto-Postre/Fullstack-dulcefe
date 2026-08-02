@@ -24,13 +24,15 @@ export const useAuthStore = defineStore('auth', () => {
   const addresses = ref<UserAddress[]>([])
   const isLoading = ref(false)
 
+  // Inicializar Supabase client a nivel de setup para evitar pérdida de contexto en SSR
+  const supabase = useSupabaseClient()
+
   const isLoggedIn = computed(() => !!user.value)
 
   async function fetchProfile() {
     if (!user.value) return
     isLoading.value = true
     try {
-      const supabase = useSupabaseClient()
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -49,7 +51,6 @@ export const useAuthStore = defineStore('auth', () => {
   async function fetchAddresses() {
     if (!user.value) return
     try {
-      const supabase = useSupabaseClient()
       const { data, error } = await supabase
         .from('addresses')
         .select('*')
@@ -66,7 +67,6 @@ export const useAuthStore = defineStore('auth', () => {
   async function saveAddress(address: { label: string, address_line: string, reference?: string }) {
     if (!user.value) return
     try {
-      const supabase = useSupabaseClient()
       const { data, error } = await supabase
         .from('addresses')
         .insert({
@@ -91,7 +91,6 @@ export const useAuthStore = defineStore('auth', () => {
   async function deleteAddress(id: string) {
     if (!user.value) return
     try {
-      const supabase = useSupabaseClient()
       const { error } = await supabase
         .from('addresses')
         .delete()
