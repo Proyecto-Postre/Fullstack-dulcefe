@@ -1,6 +1,6 @@
-import { defineStore } from 'pinia'
+﻿import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { useSupabaseClient } from '#imports'
+import { useSupabaseClient, useSupabaseUser } from '#imports'
 
 export interface UserProfile {
   id: string
@@ -24,10 +24,21 @@ export const useAuthStore = defineStore('auth', () => {
   const addresses = ref<UserAddress[]>([])
   const isLoading = ref(false)
 
-  const isLoggedIn = computed(() => !!user.value)
+  const isLoggedIn = computed(() => {
+    return Boolean(user.value)
+  })
+
+  const isAdmin = computed(() => {
+    if (!user.value) return false
+    return Boolean(
+      profile.value?.is_admin || 
+      user.value?.user_metadata?.is_admin ||
+      user.value?.app_metadata?.is_admin
+    )
+  })
 
   async function fetchProfile() {
-    if (!user.value) return
+    if (!user.value?.id) return
     isLoading.value = true
     try {
       const supabase = useSupabaseClient()
@@ -47,7 +58,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function fetchAddresses() {
-    if (!user.value) return
+    if (!user.value?.id) return
     try {
       const supabase = useSupabaseClient()
       const { data, error } = await supabase
@@ -64,7 +75,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function saveAddress(address: { label: string, address_line: string, reference?: string }) {
-    if (!user.value) return
+    if (!user.value?.id) return
     try {
       const supabase = useSupabaseClient()
       const { data, error } = await supabase
@@ -89,7 +100,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function deleteAddress(id: string) {
-    if (!user.value) return
+    if (!user.value?.id) return
     try {
       const supabase = useSupabaseClient()
       const { error } = await supabase
@@ -117,13 +128,25 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  // Auto-sync on client initialization if session exists
+  function initAuth() {
+    if (import.meta.client) {
+      const supabaseUser = useSupabaseUser()
+      if (supabaseUser.value && !user.value) {
+        setUser(supabaseUser.value)
+      }
+    }
+  }
+
   return {
     user,
     profile,
     addresses,
     isLoading,
     isLoggedIn,
+    isAdmin,
     setUser,
+    initAuth,
     fetchProfile,
     fetchAddresses,
     saveAddress,

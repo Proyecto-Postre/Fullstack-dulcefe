@@ -1,9 +1,9 @@
-import { defineStore } from 'pinia'
+﻿import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
 export interface CartItem {
   id: string
-  product_id: string
+  product_id: string | number
   name: string
   price: number
   image_url?: string
@@ -16,7 +16,7 @@ export const useCartStore = defineStore('cart', () => {
   const isSyncing = ref(false)
 
   const cartTotal = computed(() => {
-    return items.value.reduce((total, item) => total + (item.price * item.quantity), 0)
+    return items.value.reduce((total, item) => total + (Number(item.price) * item.quantity), 0)
   })
 
   const cartItemCount = computed(() => {
@@ -27,30 +27,50 @@ export const useCartStore = defineStore('cart', () => {
     isDrawerOpen.value = !isDrawerOpen.value
   }
 
+  function openDrawer() {
+    isDrawerOpen.value = true
+  }
+
+  function closeDrawer() {
+    isDrawerOpen.value = false
+  }
+
   function addToCart(product: any, quantity: number = 1) {
-    const existingItem = items.value.find(item => item.product_id === product.id)
+    if (!product) return
+    const pId = String(product.id)
+    const existingItem = items.value.find(item => String(item.product_id) === pId)
+    
     if (existingItem) {
       existingItem.quantity += quantity
     } else {
+      const generatedId = (typeof crypto !== 'undefined' && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : String(Date.now() + Math.random())
+
       items.value.push({
-        id: crypto.randomUUID(),
+        id: generatedId,
         product_id: product.id,
         name: product.name,
-        price: Number(product.price),
-        image_url: product.image_url,
-        quantity: quantity
+        price: Number(product.price) || 0,
+        image_url: product.image_url || '',
+        quantity: Math.max(1, quantity)
       })
     }
-    isDrawerOpen.value = true // Open drawer to show feedback
+    isDrawerOpen.value = true
   }
 
-  function removeFromCart(productId: string) {
-    items.value = items.value.filter(item => item.product_id !== productId)
+  function removeFromCart(productId: string | number) {
+    const pId = String(productId)
+    items.value = items.value.filter(item => String(item.product_id) !== pId)
   }
 
-  function updateQuantity(productId: string, quantity: number) {
-    if (quantity < 1) return
-    const item = items.value.find(item => item.product_id === productId)
+  function updateQuantity(productId: string | number, quantity: number) {
+    const pId = String(productId)
+    if (quantity <= 0) {
+      removeFromCart(pId)
+      return
+    }
+    const item = items.value.find(item => String(item.product_id) === pId)
     if (item) {
       item.quantity = quantity
     }
@@ -67,6 +87,8 @@ export const useCartStore = defineStore('cart', () => {
     cartTotal,
     cartItemCount,
     toggleDrawer,
+    openDrawer,
+    closeDrawer,
     addToCart,
     removeFromCart,
     updateQuantity,

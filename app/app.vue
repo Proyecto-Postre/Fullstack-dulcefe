@@ -1,6 +1,31 @@
+﻿<script setup lang="ts">
+import { onMounted } from 'vue'
+import { Toaster } from 'vue-sonner'
+import { useAuthStore } from '~/stores/auth'
+
+const authStore = useAuthStore()
+
+onMounted(() => {
+  authStore.initAuth()
+})
+</script>
+
 <template>
   <div>
     <NuxtPage />
+    <Toaster 
+      position="top-right" 
+      richColors 
+      closeButton
+      :toastOptions="{
+        style: {
+          fontFamily: 'Inter, sans-serif',
+          borderRadius: '12px',
+          border: '2px solid #2A321B',
+          boxShadow: '4px 4px 0px #2A321B'
+        }
+      }" 
+    />
   </div>
 </template>
 
@@ -10,11 +35,9 @@
   display: none;
 }
 .custom-scrollbar {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
-
-
 
 /* Quitar flechas de incremento/decremento en inputs numéricos globalmente */
 input[type=number]::-webkit-inner-spin-button, 
@@ -26,84 +49,34 @@ input[type=number] {
   -moz-appearance: textfield;
 }
 
-/* Transiciones de Página (Neo-Brutalismo) */
+/* Transiciones de Página */
 .page-enter-active,
 .page-leave-active {
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: all 0.25s ease-out;
 }
 .page-enter-from {
   opacity: 0;
-  transform: translateY(20px) scale(0.98);
+  transform: translateY(12px);
 }
 .page-leave-to {
   opacity: 0;
-  transform: translateY(-20px) scale(0.98);
+  transform: translateY(-12px);
 }
 
-/* Transiciones de Lista (Staggered Pop-ins) */
+/* Animaciones de Lista Sedosas y Suaves (Estilo Admin Dulce Fe) */
+.list-move,
 .list-enter-active,
 .list-leave-active {
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: all 0.4s cubic-bezier(0.55, 0, 0.1, 1);
 }
-.list-enter-from {
-  opacity: 0;
-  transform: scale(0.8) translateY(30px);
-}
+
+.list-enter-from,
 .list-leave-to {
   opacity: 0;
-  transform: scale(0.8);
+  transform: scale(0.9) translateY(20px);
 }
 
-/* Transiciones de Popups (Calendario, Hora) */
-.pop-enter-active,
-.pop-leave-active {
-  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-.pop-enter-from,
-.pop-leave-to {
-  opacity: 0;
-  transform: scale(0.95) translateY(10px);
-}
-
-/* Transiciones para items del carrito */
-.cart-item-move,
-.cart-item-enter-active,
-.cart-item-leave-active {
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-.cart-item-leave-active {
-  overflow: hidden;
-  max-height: 200px; /* Permite que la altura se anime a 0 */
-}
-.cart-item-enter-from {
-  opacity: 0;
-  transform: translateX(100%);
-}
-.cart-item-leave-to {
-  opacity: 0;
-  transform: translateX(100%);
-  max-height: 0;
-  padding-top: 0;
-  padding-bottom: 0;
-  margin-bottom: 0;
-  border-width: 0;
-}
-
-/* Transiciones del Drawer (Panel Lateral) */
-.drawer-root-enter-active .drawer-backdrop,
-.drawer-root-leave-active .drawer-backdrop,
-.drawer-root-enter-active .drawer-panel,
-.drawer-root-leave-active .drawer-panel {
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.drawer-root-enter-from .drawer-backdrop,
-.drawer-root-leave-to .drawer-backdrop {
-  opacity: 0;
-}
-
-.drawer-root-enter-from .drawer-panel,
-.drawer-root-leave-to .drawer-panel {
-  transform: translateX(100%);
+.list-leave-active {
+  position: absolute;
 }
 </style>
