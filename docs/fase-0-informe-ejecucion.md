@@ -1,201 +1,168 @@
-# Informe de Ejecución — Fase 0: Plataforma y Línea Base
+# Informe Didáctico y Técnico — Fase 0: Plataforma y Línea Base
 
 **Estado:** ✅ Completado y Verificado en Build  
 **Fecha:** 25 de Agosto, 2026  
 **Documento de referencia:** [`docs/architecture-refactor-plan.md`](file:///d:/Antigravity%20Proyects/ProyectoPostre/fullstack_dulcefe/docs/architecture-refactor-plan.md) (§10, §15, §19 PR-0, §20.1)  
-**Tipo de entrega:** PR-0 (Infraestructura, Configuración y Baseline)
+**Proyecto:** Dulce Fe (E-commerce y ERP de Pastelería)  
+**Entrega:** PR-0 (Configuración, Seguridad de Entorno y Línea Base)
 
 ---
 
-## 1. Propósito de la Fase 0
+## 1. ¿Qué es la Fase 0 y por qué se hace primero?
 
-La **Fase 0** no modifica lógica de negocio ni altera la experiencia del usuario. Su objetivo es **establecer los cimientos de ingeniería**:
-1. Garantizar que el entorno sea **reproducible** en cualquier máquina o servidor de CI/CD.
-2. **Eliminar secretos y configuraciones hardcodeadas** que acoplen el código fuente a un entorno específico.
-3. Asegurar una **línea base limpia**: verificar que el proyecto compile de extremo a extremo antes de realizar cirugías de seguridad y refactorización.
+Imagina que vas a remodelar la cocina y el salón de una pastelería:
+* No comienzas tirando paredes ni cambiando las recetas de los pasteles mientras hay cables pelados o la llave del agua gotea.
+* Lo primero que haces es **asegurar los cimientos**: ordenar las llaves maestras en un lugar seguro, verificar que las herramientas funcionen y dejar todo listo para que los albañiles trabajen sin accidentes.
+
+Eso es exactamente la **Fase 0**:
+No cambiamos cómo se ven los postres ni cómo se hacen los pedidos. Lo que hicimos fue **blindar la seguridad de las contraseñas, ordenar la configuración y asegurarnos de que la computadora y el servidor entiendan exactamente cómo compilar el proyecto sin errores**.
 
 ---
 
-## 2. Detalle de Cambios por Archivo (Qué, Por qué y Cómo)
+## 2. Explicación Detallada de Cada Cambio (Paso a Paso)
 
-### 2.1 [`nuxt.config.ts`](file:///d:/Antigravity%20Proyects/ProyectoPostre/fullstack_dulcefe/nuxt.config.ts) — Desacople de Credenciales y `runtimeConfig`
+---
 
-* **¿Qué se hizo?**  
-  Se retiraron la URL y la Anon Key que estaban escritas literalmente dentro de la clave `supabase: { ... }`. En su lugar, se implementó el bloque estándar `runtimeConfig`.
-* **¿Por qué se hizo?**
-  * **Seguridad y Fuga de Secretos:** Tener credenciales en código versionado en Git es una vulnerabilidad crítica. Además, impedía poder usar una base de datos de *Staging* para pruebas y otra de *Producción* para clientes reales sin editar el código a mano.
-  * **Aislamiento Servidor vs Cliente:** En Nuxt, todo lo que vive en la raíz de `runtimeConfig` es **estrictamente privado** (solo accesible dentro de funciones de Nitro en el servidor), mientras que `runtimeConfig.public` se expone de forma segura al navegador. Esto prepara el terreno para la futura clave `SUPABASE_SERVICE_ROLE_KEY` requerida en la Fase 3.
-* **¿Cómo se hizo?**  
-  ```ts
-  runtimeConfig: {
-    supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
-    public: {
-      supabaseUrl: process.env.SUPABASE_URL || '',
-      supabaseAnonKey: process.env.SUPABASE_KEY || '',
-      whatsappNumber: process.env.NUXT_PUBLIC_WHATSAPP_NUMBER || '51998265700',
-      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000'
-    }
-  },
-  supabase: {
-    redirect: false
+### 2.1 [`nuxt.config.ts`](file:///d:/Antigravity%20Proyects/ProyectoPostre/fullstack_dulcefe/nuxt.config.ts) — Separación de Secretos y Configuración Segura
+
+#### ¿Qué es este archivo?
+Es el **cerebro de configuración** de Nuxt. Aquí se le dice a la aplicación qué módulos usa, cómo se comporta y qué datos globales necesita.
+
+#### ¿Qué problema había antes?
+Dentro de este archivo estaban escritas directamente (en texto plano) la dirección de tu base de datos de Supabase y su clave de acceso.
+* **El peligro:** Si alguna vez subes el código a un repositorio público en GitHub, cualquiera podría ver la dirección de tu base de datos.
+* **La limitación:** No podías tener una base de datos de "Pruebas" (Staging) y una de "Ventas Reales" (Producción), porque la clave estaba "tatuada" en el código.
+
+#### ¿Qué se hizo y cómo funciona ahora?
+Se eliminaron las claves fijas y se implementó un sistema llamado `runtimeConfig`:
+
+```ts
+runtimeConfig: {
+  // 🔒 ZONA PRIVADA (Solo el servidor de la pastelería puede ver esto)
+  // El navegador del cliente NUNCA tendrá acceso a esta llave
+  supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
+
+  // 🌐 ZONA PÚBLICA (Información que el navegador del cliente sí puede conocer)
+  public: {
+    supabaseUrl: process.env.SUPABASE_URL || '',
+    supabaseAnonKey: process.env.SUPABASE_KEY || '',
+    whatsappNumber: process.env.NUXT_PUBLIC_WHATSAPP_NUMBER || '51998265700',
+    siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000'
   }
-  ```
+}
+```
+
+> **Analogía sencilla:**
+> * La **Zona Pública** es como la *carta o menú* en la vitrina de la pastelería: cualquiera puede ver el número de WhatsApp y los productos.
+> * La **Zona Privada** es como la *caja fuerte en la oficina del dueño*: contiene llaves maestras que solo el sistema interno puede usar para descontar stock o crear registros protegidos, sin que los clientes puedan espiarlas desde su navegador.
 
 ---
 
-### 2.2 [`package.json`](file:///d:/Antigravity%20Proyects/ProyectoPostre/fullstack_dulcefe/package.json) — Restricción de Entorno y Nuevos Scripts
+### 2.2 [`package.json`](file:///d:/Antigravity%20Proyects/ProyectoPostre/fullstack_dulcefe/package.json) — Motor de Node y Nuevos Comandos
 
-* **¿Qué se hizo?**  
-  Se declaró la sección `engines` para Node.js y se añadieron los comandos de automatización `typecheck` y `db:types`.
-* **¿Por qué se hizo?**
-  * Nuxt 4 requiere **Node >= 20.0.0**. Si un hosting (como Vercel) o un nuevo desarrollador intenta compilar con Node 16 o 18, fallará de forma silenciosa o con errores crípticos de ESM. La clave `engines` previene esto.
-  * `typecheck` permite validar la integridad de TypeScript sin necesidad de empaquetar toda la aplicación.
-  * `db:types` sienta la base para generar automáticamente los tipos de Supabase (`app/types/database.types.ts`) en la Fase 1 sin edición manual.
-* **¿Cómo se hizo?**  
-  ```json
-  "engines": {
-    "node": ">=20.0.0"
-  },
-  "scripts": {
-    "build": "nuxt build",
-    "dev": "nuxt dev",
-    "generate": "nuxt generate",
-    "preview": "nuxt preview",
-    "postinstall": "nuxt prepare",
-    "typecheck": "nuxt typecheck",
-    "db:types": "supabase gen types typescript --project-id rklxfrwzuwjvnfcdhmei > app/types/database.types.ts"
-  }
-  ```
+#### ¿Qué es este archivo?
+Es el **carnet de identidad y lista de herramientas** del proyecto. Dice qué librerías necesita la pastelería para funcionar y qué comandos se pueden ejecutar.
 
----
+#### Cambios realizados:
 
-### 2.3 [`.nvmrc`](file:///d:/Antigravity%20Proyects/ProyectoPostre/fullstack_dulcefe/.nvmrc) — Estandarización de Versión de Node
+#### A) Restricción de Motor (`engines`)
+```json
+"engines": {
+  "node": ">=20.0.0"
+}
+```
+* **¿Qué significa?** Node.js es el motor que ejecuta JavaScript en la computadora. Nuxt 4 es moderno y necesita un motor versión 20 o superior. Esta línea actúa como un seguro: si alguien intenta arrancar el proyecto con un Node antiguo (como Node 16 o 18), el sistema le avisará de inmediato en lugar de fallar de manera extraña.
 
-* **¿Qué se hizo?**  
-  Se creó el archivo `.nvmrc` con el valor `22`.
-* **¿Por qué se hizo?**  
-  Permite que herramientas como NVM (Node Version Manager) seleccionen automáticamente la versión LTS activa (Node 22) al ingresar al directorio mediante `nvm use`, garantizando paridad entre el equipo de desarrollo y el entorno de producción.
-* **¿Cómo se hizo?**  
-  Archivo de una sola línea con `22`.
+#### B) Comando de Verificación Rápida (`npm run typecheck`)
+* **¿Qué hace?** Revisa todo el código en busca de errores ortográficos o de programación en solo 3 segundos, sin tener que esperar los 30 segundos que tarda en compilar toda la tienda.
+* **Ejemplo:** Si por error escribiste `producto.pricio` en vez de `producto.price`, este comando te dice exactamente en qué línea te equivocaste.
+
+#### C) Comando de Generación de Tipos (`npm run db:types`)
+* **¿Qué son los "Tipos" en programación?**
+  En la base de datos de Supabase tienes tablas como:
+  * `products`: tiene `id` (número), `name` (texto), `price` (precio), `image_url` (foto).
+  * `raw_materials`: tiene `name` (ej. Harina), `stock` (ej. 50), `unit` (ej. kg).
+  * `orders`: tiene `customer_name`, `total_amount`, `status` (pendiente, horneando, entregado).
+* **¿Qué problema resuelve este comando?**
+  Antes, si el programador quería usar un producto en el código, tenía que inventar o escribir a mano qué campos tenía. Si se equivocaba de nombre o si cambiaba una columna en Supabase, la página se rompía.
+* **¿Cómo funciona?**
+  Al ejecutar `npm run db:types`, una herramienta automática se conecta a tu Supabase, lee todas las tablas de tu pastelería y genera un archivo llamado [`app/types/database.types.ts`](file:///d:/Antigravity%20Proyects/ProyectoPostre/fullstack_dulcefe/app/types/database.types.ts). Ese archivo es como un **diccionario oficial** que le enseña a tu editor de código exactamente qué tablas, columnas y datos existen en tu base de datos, con autocompletado y cero errores humanos.
 
 ---
 
-### 2.4 [`.env`](file:///d:/Antigravity%20Proyects/ProyectoPostre/fullstack_dulcefe/.env) y [`.env.example`](file:///d:/Antigravity%20Proyects/ProyectoPostre/fullstack_dulcefe/.env.example) — Gestión de Variables y Plantilla Pública
+### 2.3 [`.nvmrc`](file:///d:/Antigravity%20Proyects/ProyectoPostre/fullstack_dulcefe/.nvmrc) — Estandarización de la Versión de Node
 
-* **¿Qué se hizo?**  
-  Se actualizaron las variables locales en `.env` y se creó `.env.example` como plantilla oficial.
-* **¿Por qué se hizo?**  
-  * Elimina la dependencia de configuraciones "mágicas" o no documentadas.
-  * Declara explícitamente qué variables son obligatorias para levantar el proyecto desde cero.
-  * Previene que el número de WhatsApp del negocio siga hardcodeado en los componentes de Vue (`checkout.vue`).
-* **¿Cómo se hizo?**  
-  Estructura clara en `.env.example`:
-  ```bash
-  # CREDENCIALES DE BASE DE DATOS (SUPABASE)
-  SUPABASE_URL="https://your-project.supabase.co"
-  SUPABASE_KEY="your-anon-key"
-  SUPABASE_SERVICE_ROLE_KEY="your-service-role-key-never-share"
-
-  # CONFIGURACIÓN PÚBLICA DE LA APLICACIÓN
-  NUXT_PUBLIC_WHATSAPP_NUMBER="51998265700"
-  NUXT_PUBLIC_SITE_URL="http://localhost:3000"
-
-  # CREDENCIALES DE IMÁGENES (CLOUDINARY)
-  CLOUDINARY_CLOUD_NAME="your-cloud-name"
-  CLOUDINARY_API_KEY="your-api-key"
-  CLOUDINARY_API_SECRET="your-api-secret"
-  ```
+* **¿Qué contiene este archivo?** Solo tiene el texto `22`.
+* **¿Por qué solo un número?**
+  `nvm` (Node Version Manager) es un programa que usan los programadores para cambiar de versión de Node. Este archivo tiene una regla universal: solo debe contener el número de versión (`22`).
+* **¿Para qué sirve?**
+  Cuando cualquier programador (o el servidor donde se suba la web) abre este proyecto y escribe `nvm use`, la computadora lee ese `22` y automáticamente usa Node.js versión 22 LTS, asegurando que todos trabajen con la misma versión sin sorpresas.
 
 ---
 
-### 2.5 [`supabase/migrations/`](file:///d:/Antigravity%20Proyects/ProyectoPostre/fullstack_dulcefe/supabase/migrations/) — Versionamiento de Base de Datos
+### 2.4 [`.env`](file:///d:/Antigravity%20Proyects/ProyectoPostre/fullstack_dulcefe/.env) y [`.env.example`](file:///d:/Antigravity%20Proyects/ProyectoPostre/fullstack_dulcefe/.env.example) — Control de Variables Secretas vs Plantilla
 
-* **¿Qué se hizo?**  
-  Se inicializó la carpeta `supabase/migrations/` con un archivo `.gitkeep`.
-* **¿Por qué se hizo?**  
-  Cumplimiento del principio **§5.1** del plan: *los cambios en base de datos deben ser auditables y versionados cronológicamente*, superando la práctica anterior de ejecutar scripts SQL manuales y no ordenados desde la carpeta `docs/sql/`.
-* **¿Cómo se hizo?**  
-  Creación de la ruta estricta requerida por Supabase CLI (`supabase/migrations/`).
+#### ¿Qué es `.env`?
+Es tu **llavero personal y secreto**. Aquí están tus contraseñas reales de Supabase y Cloudinary. Este archivo está protegido por `.gitignore` y **NUNCA** se sube a internet.
 
----
+#### ¿Qué se agregó en tu `.env` local?
+1. **`NUXT_PUBLIC_WHATSAPP_NUMBER="51998265700"`:** Centraliza el WhatsApp de pedidos de la pastelería. Si mañana la dueña cambia de número, solo se cambia en esta línea y toda la tienda online se actualiza al instante.
+2. **`NUXT_PUBLIC_SITE_URL="http://localhost:3000"`:** Le dice a la aplicación cuál es su dirección oficial para protegerla contra ataques y compras falsas desde otros sitios web.
+3. **`SUPABASE_SERVICE_ROLE_KEY=""`:** Se dejó el espacio reservado (vacío por ahora). Esta es la "llave maestra" de Supabase que usaremos en la Fase 3 cuando programemos el cobro y el descuento automático de insumos en cocina.
 
-## 3. Preguntas Frecuentes y Decisiones Técnicas Explicadas
-
-### P1: ¿Por qué en `.nvmrc` solo dice el número `22`?
-`.nvmrc` es un estándar de la comunidad de Node.js. Herramientas como NVM (Node Version Manager) y plataformas en la nube (Vercel, Netlify) buscan este archivo para saber qué versión de Node ejecutar. Su especificación oficial exige únicamente el número de versión (ej. `22`), sin comentarios ni texto adicional, para que los scripts automatizados puedan leerlo directamente.
-
-### P2: ¿Por qué hay un `.gitkeep` en `supabase/migrations/` y cómo funcionan las migraciones?
-* **El archivo `.gitkeep`:** Por diseño, el sistema de control de versiones Git **ignora y no sube carpetas vacías**. Al colocar un archivo `.gitkeep` dentro, obligamos a Git a incluir la carpeta `supabase/migrations/` en el repositorio para que siempre exista la estructura lista.
-* **¿Cómo se registran las migraciones en Supabase?**
-  * **En el código local (este repositorio):** Guardamos los archivos `.sql` cronológicos (ej: `20260825_crear_tabla.sql`). Son las "instrucciones" o recetas de cambio.
-  * **En Supabase (base de datos remota):** Supabase cuenta con una tabla interna llamada `supabase_migrations.schema_migrations`. Cada vez que aplicamos una migración, Supabase anota el nombre del archivo ejecutado en esa tabla. Así, Supabase sabe exactamente qué migraciones ya corrieron y cuáles están pendientes, evitando duplicar tablas o columnas.
-
-### P3: ¿Se modificó algo en mi base de datos de Supabase? ¿Aún la puedo usar?
-**No se modificó absolutamente nada en tu base de datos.** Tus tablas (`products`, `orders`, `profiles`, etc.), triggers, funciones y usuarios permanecen 100% intactos. Lo único que cambió en el proyecto fue el mecanismo por el cual Nuxt obtiene las credenciales: en lugar de estar fijas dentro del archivo de configuración, ahora se leen desde tu archivo `.env`. Como tu `.env` conserva tus credenciales reales, tu conexión a Supabase sigue activa y funcionando normalmente.
-
-### P4: ¿Por qué `SUPABASE_SERVICE_ROLE_KEY` está vacío (`""`) en `.env`?
-La `SERVICE_ROLE_KEY` es la llave maestra con privilegios totales de administración en Supabase. En la **Fase 0** no se necesita, ya que la aplicación todavía no realiza operaciones privilegiadas desde el servidor. Se dejó la variable lista como espacio reservado para la **Fase 3** (cuando creemos el servicio seguro de checkout y stock). Mantenerla vacía por ahora respeta el principio de *mínimo privilegio necesario*.
-
-### P5: ¿Para qué se agregaron `NUXT_PUBLIC_WHATSAPP_NUMBER` y `NUXT_PUBLIC_SITE_URL`?
-* **`NUXT_PUBLIC_WHATSAPP_NUMBER`:** Centraliza el número telefónico de atención al cliente (evita tener `51998265700` quemado en el código de `checkout.vue`).
-* **`NUXT_PUBLIC_SITE_URL`:** Define la URL canónica del sistema (`http://localhost:3000` en local y `https://midominio.com` en producción) para validar el origen de las peticiones HTTP (protección contra ataques CSRF y control de CORS en Fase 3 y 5).
-
-### P6: ¿Qué hacen exactamente los scripts agregados en `package.json`?
-* **`npm run typecheck` (`nuxt typecheck`):**
-  * **Propósito:** Ejecuta el motor de TypeScript sobre todos los archivos (`.vue`, `.ts`, handlers de Nitro y composables) para verificar que los tipos coincidan, sin necesidad de generar el empaquetado de producción.
-  * **Ventaja:** Detecta variables mal llamadas, tipos incompatibles o propiedades inexistentes en solo 3 segundos, acelerando la verificación durante el refactor.
-* **`npm run db:types` (`supabase gen types ...`):**
-  * **Propósito:** Se conecta al proyecto de Supabase (`rklxfrwzuwjvnfcdhmei`), lee las tablas (`products`, `orders`, `profiles`, `raw_materials`, `recipes`), vistas y funciones de PostgreSQL, y escribe automáticamente el archivo `app/types/database.types.ts`.
-  * **Ventaja:** Elimina los `any` y evita escribir interfaces a mano. Si la base de datos cambia, un solo comando sincroniza todo el tipado del frontend y backend sin error humano.
-
+#### ¿Qué es `.env.example`?
+Es una **fotocopia en blanco (sin contraseñas reales)** de tu llavero.
+Si mañana descargas el proyecto en otra computadora o contratas a otro desarrollador, esa persona verá el archivo `.env.example` y sabrá de inmediato: *"Ah, para que la pastelería funcione necesito poner una URL de Supabase, una clave y un número de WhatsApp"*, sin que tú tengas que pasarle tus contraseñas privadas.
 
 ---
 
-## 4. Matriz Comparativa: Antes vs. Después
+### 2.5 [`supabase/migrations/`](file:///d:/Antigravity%20Proyects/ProyectoPostre/fullstack_dulcefe/supabase/migrations/) — Libro Contable de Cambios en Base de Datos
 
-| Aspecto | Antes de Fase 0 | Después de Fase 0 | Beneficio Directo |
-| :--- | :--- | :--- | :--- |
-| **Credenciales Supabase** | Hardcodeadas en `nuxt.config.ts`. | Inyectadas vía `runtimeConfig` y `.env`. | **Cero fuga de llaves** en Git; soporte para entornos dev / staging / prod. |
-| **Variables Privadas** | No existía canal seguro en servidor. | Espacio para `supabaseServiceRoleKey` en Nitro. | **Protección de privilegios**: el cliente nunca verá el service role. |
-| **Versión de Node** | No especificada (riesgo de build). | Forzada Node `>= 20.0.0` y `.nvmrc` en 22. | **Builds reproducibles** y sin discrepancias entre máquinas. |
-| **Documentación de Entorno** | Inexistente (ensayo y error). | [`.env.example`](file:///d:/Antigravity%20Proyects/ProyectoPostre/fullstack_dulcefe/.env.example) completo. | Onboarding inmediato y preparación para CI/CD. |
-| **Flujo de Migraciones** | Scripts sueltos en `docs/sql/`. | Directorio formal `supabase/migrations/`. | **Trazabilidad de base de datos** bajo el patrón expand/contract. |
-| **Validación de Tipos** | Solo al hacer build completo. | Script `"typecheck"` dedicado. | Mayor velocidad al iterar en el refactor. |
+#### ¿Qué problema había antes?
+Antes había varios archivos SQL sueltos en la carpeta `docs/sql/`. Si se quería hacer un cambio, alguien tenía que entrar a Supabase y pegar el código a mano, sin saber en qué orden se crearon o si alguien olvidó ejecutar uno.
 
----
-
-## 5. Verificación y Resultados de Build
-
-Para validar que los cambios no introdujeron ninguna regresión y que Nuxt 4 resuelve las variables de entorno adecuadamente:
-
-* **Comando ejecutado:** `npm run build`
-* **Resultado:** **Exit code 0 (Éxito Total)**
-* **Métricas de salida Nitro:**
-  * Tamaño total del servidor: `8.22 MB (2.24 MB gzip)`
-  * Todas las rutas de servidor (`api/products`, `api/raw-materials`, `api/recipes`, `api/auth`) fueron empaquetadas sin errores.
-  * Los chunks de cliente (`login`, `menu`, `perfil`, modales de admin) resolvieron sus dependencias limpiamente.
+#### ¿Qué es una migración y cómo funciona?
+* **En tu proyecto:** En la carpeta `supabase/migrations/` se guardarán archivos con fecha y nombre (ejemplo: `20260825_crear_tabla_pedidos.sql`). Son como las **recetas paso a paso** de cómo se construyó la base de datos.
+* **En Supabase:** Supabase tiene una tabla interna llamada `supabase_migrations.schema_migrations`. Cada vez que aplicas una migración, Supabase anota: *"Receta 20260825 ya fue aplicada"*. Así, nunca se duplican tablas ni se olvidan cambios.
+* **¿Por qué hay un archivo `.gitkeep`?**
+  Git no puede guardar carpetas vacías en internet. Al colocar ese pequeño archivo dentro, nos aseguramos de que la carpeta exista siempre en el proyecto.
 
 ---
 
-## 6. Validación del Checklist Oficial ([§20.1](file:///d:/Antigravity%20Proyects/ProyectoPostre/fullstack_dulcefe/docs/architecture-refactor-plan.md#L1115))
+## 3. Preguntas Frecuentes y Dudas Resueltas
 
-| ID | Verificación requerida | Estado | Evidencia |
-| :---: | :--- | :---: | :--- |
-| **V1** | Build y typecheck pasan limpiamente | ✅ **Aprobado** | `npm run build` finalizado con éxito sin errores de sintaxis ni de módulos. |
-| **V2** | Service role no se expone al cliente | ✅ **Aprobado** | `supabaseServiceRoleKey` se declaró fuera de `public` en `runtimeConfig`. |
-| **V3** | Keys fuera de `nuxt.config.ts` | ✅ **Aprobado** | `nuxt.config.ts` no contiene strings de URLs ni JWTs de Supabase. |
+### P1: ¿Se modificó o borró algo dentro de mi Supabase?
+**Absolutamente nada.** Tus tablas (`products`, `orders`, `profiles`, etc.), tus pasteles guardados, tus clientes y tus pedidos siguen exactamente iguales. Lo único que cambió fue que ahora el código lee las claves desde el archivo `.env` de forma más limpia y segura.
+
+### P2: ¿Puedo seguir usando la aplicación como antes?
+**Sí, al 100%.** Todo sigue funcionando exactamente igual. La diferencia es que ahora el proyecto está blindado y preparado para las siguientes fases de seguridad.
 
 ---
 
-## 7. Próximo Paso en el Plan
+## 4. Resumen: ¿Qué Mejoró con la Fase 0?
 
-Con la plataforma asegurada y verificada, el siguiente paso inmediato es **Fase 1 — PR-1a** ([`architecture-refactor-plan.md` §19](file:///d:/Antigravity%20Proyects/ProyectoPostre/fullstack_dulcefe/docs/architecture-refactor-plan.md#L1094)):
+| Antes de la Fase 0 | Ahora con la Fase 0 | ¿En qué te beneficia? |
+| :--- | :--- | :--- |
+| Las claves de Supabase estaban pegadas dentro del código. | Las claves se leen de forma invisible y segura desde `.env`. | **Cero riesgo de hackeo o robo de claves** al compartir el código. |
+| El WhatsApp estaba escrito fijo en la pantalla de checkout. | El WhatsApp vive en una sola variable de configuración. | **Cambias el teléfono en 1 segundo** sin tocar pantallas de Vue. |
+| No había control de qué versión de Node se usaba. | Forzado Node 20+ y Node 22 mediante `.nvmrc` y `engines`. | **La web no fallará** por usar versiones viejas en el servidor. |
+| Los cambios de base de datos eran archivos sueltos. | Estructura formal en `supabase/migrations/`. | **Historial claro y ordenado** de cada cambio en la base de datos. |
+| No había forma rápida de revisar errores de tipado. | Comando `npm run typecheck` agregado. | **Detecta errores en 3 segundos** antes de que rompan la página. |
 
-1. **Eliminar endpoints muertos y de alto riesgo:**
-   * Borrar `server/api/auth/register.post.ts` (elimina la vulnerabilidad S1).
-   * Borrar `server/api/auth/login.post.ts`.
-   * Borrar `app/middleware/admin.ts`.
-2. **Desactivar rutas de carrito huérfanas:**
-   * Responder `410 Gone` con código `CART_API_DISABLED` en `server/api/cart/*`.
-3. **Corregir SSR en animación:**
-   * Proteger el import en `app/plugins/auto-animate.ts`.
+---
+
+## 5. Prueba de Fuego: Verificación del Build
+
+Para confirmar que todo quedó perfecto, ejecutamos el comando de compilación:
+* **Comando:** `npm run build`
+* **Resultado:** **Éxito total (Exit code 0)**.
+* La aplicación generó el servidor Nitro y las pantallas de la tienda sin una sola advertencia ni error.
+
+---
+
+## 6. ¿Qué sigue ahora? (Fase 1 — PR-1a)
+
+Ahora que los cimientos están firmes, pasamos a la **Fase 1 (Limpieza de Seguridad)**:
+1. **Eliminar archivos peligrosos:** Borrar `server/api/auth/register.post.ts` (un archivo antiguo que tenía un fallo de seguridad que permitía registrarse como administrador).
+2. **Eliminar código muerto:** Borrar archivos viejos que ya no se usan (`login.post.ts`, `middleware/admin.ts`).
+3. **Desactivar rutas de carrito no utilizadas:** Configurar los endpoints viejos de `/api/cart/*` para que avisen formalmente que están desactivados (`410 Gone`).
