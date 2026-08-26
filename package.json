@@ -2,12 +2,17 @@
   "name": "fullstack_dulcefe",
   "type": "module",
   "private": true,
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "typecheck": "nuxt typecheck",
+    "db:types": "supabase gen types typescript --project-id rklxfrwzuwjvnfcdhmei > app/types/database.types.ts"
   },
   "dependencies": {
     "@formkit/auto-animate": "^0.10.0",
