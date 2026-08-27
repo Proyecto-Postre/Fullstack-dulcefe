@@ -1,6 +1,9 @@
 import { serverSupabaseClient } from '#supabase/server'
 
 export default defineEventHandler(async (event) => {
+  // 🔒 Validación de privilegios de administrador (Fase 1 - PR-1b)
+  await requireAdmin(event)
+
   try {
     const supabase = await serverSupabaseClient(event)
     const formData = await readMultipartFormData(event)
@@ -41,10 +44,14 @@ export default defineEventHandler(async (event) => {
       success: true,
       url: publicUrl
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    if (error && typeof error === 'object' && 'statusCode' in error) {
+      throw error
+    }
+    const message = error instanceof Error ? error.message : 'Error interno al subir imagen'
     throw createError({
       statusCode: 500,
-      statusMessage: error.message || 'Error interno al subir imagen'
+      statusMessage: message
     })
   }
 })

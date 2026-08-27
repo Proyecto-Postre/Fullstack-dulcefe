@@ -1,6 +1,10 @@
 import { serverSupabaseClient } from '#supabase/server'
+import type { Database } from '~/types/database.types'
 
 export default defineEventHandler(async (event) => {
+  // 🔒 Validación de privilegios de administrador (Fase 1 - PR-1b)
+  await requireAdmin(event)
+
   // 1. Capturamos el JSON que envías en el Body de Postman
   const body = await readBody(event)
   const { name, price, stock, image_url } = body
@@ -14,7 +18,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // 3. Conectamos con la base de datos en la nube
-  const supabase = await serverSupabaseClient<any>(event)
+  const supabase = await serverSupabaseClient<Database>(event)
 
   // 4. Insertamos la fila en la tabla 'products' de Supabase
   const { data, error } = await supabase
