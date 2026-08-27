@@ -85,11 +85,12 @@ flowchart TD
 * [[design-system-tokens]] — Paleta de colores Dulce Fe, tipografía y bordes.
 * [[herramientas-ui]] — Utilidades y librerías de UI (Lucide Icons, Toast, Modal).
 
-### 📁 04 - Informes de Ejecución
-* [[fase-0-informe-ejecucion]] — Auditoría inicial de dependencias y vulnerabilidades.
-* [[fase-1-pr-1a-informe-ejecucion]] — Corrección de bugs críticos y limpieza de imports.
-* [[fase-1-pr-1b-informe-ejecucion]] — Consolidación de tipos TypeScript y composables.
-* [[fase-1-pr-1c-informe-ejecucion]] — Blindaje de RLS en Supabase y funciones Security Definer.
+### 📁 04 - Informes de Ejecucion
+* [[fase-0-informe-ejecucion]] — Auditoría inicial de dependencias y variables de entorno.
+* [[fase-1-pr-1a-informe-ejecucion]] — Cierre de vulnerabilidad S1 y desactivación 410 de carrito.
+* [[fase-1-pr-1b-informe-ejecucion]] — Guards de servidor `require-user` y `require-admin` en 12 endpoints.
+* [[fase-1-pr-1c-informe-ejecucion]] — Blindaje de `isAdmin` en Pinia y migración SQL de RLS en Supabase.
+* [[fase-1-pr-1d-informe-ejecucion]] — Upload seguro con Magic Bytes, script `db:types` y suite de tests Vitest.
 
 ### 📁 05 - Decisiones Técnicas (ADR)
 * [[ADR-001-stack-nuxt4-fullstack]] — Monolito Modular Nuxt 4 vs Frontend/Backend separados.

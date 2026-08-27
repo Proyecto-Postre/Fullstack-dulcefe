@@ -1,4 +1,5 @@
 import { serverSupabaseUser } from '#supabase/server'
+import { createError } from 'h3'
 import type { H3Event } from 'h3'
 import type { User } from '@supabase/supabase-js'
 
@@ -8,7 +9,7 @@ import type { User } from '@supabase/supabase-js'
  */
 export async function requireUser(event: H3Event): Promise<User> {
   // 1. Reutilizar usuario si ya fue resuelto en este request
-  if (event.context.user) {
+  if (event.context?.user) {
     return event.context.user as User
   }
 
@@ -29,6 +30,8 @@ export async function requireUser(event: H3Event): Promise<User> {
   }
 
   // 3. Cachear en el contexto del evento
-  event.context.user = user
+  if (event.context) {
+    event.context.user = user
+  }
   return user
 }

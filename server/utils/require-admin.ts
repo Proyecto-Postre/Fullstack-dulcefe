@@ -1,7 +1,9 @@
 import { serverSupabaseClient } from '#supabase/server'
+import { createError } from 'h3'
 import type { H3Event } from 'h3'
 import type { User } from '@supabase/supabase-js'
 import type { Database } from '~/types/database.types'
+import { requireUser } from './require-user'
 
 export type UserProfile = Database['public']['Tables']['profiles']['Row']
 
@@ -20,7 +22,7 @@ export async function requireAdmin(event: H3Event): Promise<AdminAuthContext> {
   const user = await requireUser(event)
 
   // 2. Reutilizar perfil si ya fue resuelto en este request
-  if (event.context.profile) {
+  if (event.context?.profile) {
     const profile = event.context.profile as UserProfile
     if (profile.is_admin === true) {
       return { user, profile }
@@ -65,6 +67,8 @@ export async function requireAdmin(event: H3Event): Promise<AdminAuthContext> {
   }
 
   // 6. Cachear perfil en el contexto del evento y retornar
-  event.context.profile = profile
+  if (event.context) {
+    event.context.profile = profile
+  }
   return { user, profile }
 }
