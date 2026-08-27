@@ -9,18 +9,18 @@
 
 ## 📋 TABLA DE CONTENIDOS
 
-1. [Visión General y Objetivos Estratégicos](#1-visión-general-y-objetivos-estratégicos)
-2. [Arquitectura Tecnológica & Stack de Producción](#2-arquitectura-tecnológica--stack-de-producción)
-3. [Diferenciación de Experiencia: Administrador vs. Cliente](#3-diferenciación-de-experiencia-administrador-vs-cliente)
-4. [Estrategia de Autenticación & Cuentas de Usuario](#4-estrategia-de-autenticación--cuentas-de-usuario)
-5. [MÓDULO A: E-Commerce & Experiencia de Cliente (Storefront Public)](#5-módulo-a-e-commerce--experiencia-de-cliente-storefront-public)
-6. [MÓDULO B: ERP Financiero, Costeo & Escandallos (Backend Administrativo)](#6-módulo-b-erp-financiero-costeo--escandallos-backend-administrativo)
-7. [MÓDULO C: Operaciones, Producción & Cocina (KDS)](#7-módulo-c-operaciones-producción--cocina-kds)
-8. [MÓDULO D: Analítica, Métricas & Business Intelligence](#8-módulo-d-analítica-métricas--business-intelligence)
-9. [MÓDULO E: Automatizaciones con n8n & Ecosistema Gratuito/Open-Source](#9-módulo-e-automatizaciones-con-n8n--ecosistema-gratuitoopen-source)
-10. [Seguridad, Autenticación & Permisos Granulares (RBAC & RLS)](#10-seguridad-autenticación--permisos-granulares-rbac--rls)
-11. [Evolución Arquitectónica & Escalabilidad a Futuro](#11-evolución-arquitectónica--escalabilidad-a-futuro)
-12. [Hoja de Ruta & Fases de Implementación (Roadmap)](#12-hoja-de-ruta--fases-de-implementación-roadmap)
+1. [[#1. VISIÓN GENERAL Y OBJETIVOS ESTRATÉGICOS|Visión General y Objetivos Estratégicos]]
+2. [[#2. ARQUITECTURA TECNOLÓGICA & STACK DE PRODUCCIÓN|Arquitectura Tecnológica & Stack de Producción]]
+3. [[#3. DIFERENCIACIÓN DE EXPERIENCIA: ADMINISTRADOR VS. CLIENTE|Diferenciación de Experiencia: Administrador vs. Cliente]]
+4. [[#4. ESTRATEGIA DE AUTENTICACIÓN & CUENTAS DE USUARIO|Estrategia de Autenticación & Cuentas de Usuario]]
+5. [[#5. MÓDULO A: E-COMMERCE & EXPERIENCIA DE CLIENTE (STOREFRONT PUBLIC)|MÓDULO A: E-Commerce & Experiencia de Cliente (Storefront Public)]]
+6. [[#6. MÓDULO B: ERP FINANCIERO, COSTEO & ESCANDALLOS (BACKEND ADMINISTRATIVO)|MÓDULO B: ERP Financiero, Costeo & Escandallos (Backend Administrativo)]]
+7. [[#7. MÓDULO C: OPERACIONES, PRODUCCIÓN & COCINA (KDS)|MÓDULO C: Operaciones, Producción & Cocina (KDS)]]
+8. [[#8. MÓDULO D: ANALÍTICA, MÉTRICAS & BUSINESS INTELLIGENCE|MÓDULO D: Analítica, Métricas & Business Intelligence]]
+9. [[#9. MÓDULO E: AUTOMATIZACIONES CON N8N & ECOSISTEMA GRATUITO/OPEN-SOURCE|MÓDULO E: Automatizaciones con n8n & Ecosistema Gratuito/Open-Source]]
+10. [[#10. SEGURIDAD, AUTENTICACIÓN & PERMISOS GRANULARES (RBAC & RLS)|Seguridad, Autenticación & Permisos Granulares (RBAC & RLS)]]
+11. [[#11. EVOLUCIÓN ARQUITECTÓNICA & ESCALABILIDAD A FUTURO|Evolución Arquitectónica & Escalabilidad a Futuro]]
+12. [[#12. HOJA DE RUTA & FASES DE IMPLEMENTACIÓN (ROADMAP)|Hoja de Ruta & Fases de Implementación (Roadmap)]]
 
 ---
 

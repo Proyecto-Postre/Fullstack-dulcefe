@@ -1,6 +1,10 @@
 import { serverSupabaseClient } from '#supabase/server'
+import type { Database } from '~/types/database.types'
 
 export default defineEventHandler(async (event) => {
+  // 🔒 Validación de privilegios de administrador (Fase 1 - PR-1b)
+  await requireAdmin(event)
+
   const body = await readBody(event)
   const { name, unit, purchase_price, purchase_quantity, stock } = body
 
@@ -11,7 +15,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const supabase = await serverSupabaseClient<any>(event)
+  const supabase = await serverSupabaseClient<Database>(event)
 
   const { data, error } = await supabase
     .from('raw_materials')

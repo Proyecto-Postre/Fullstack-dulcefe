@@ -1,47 +1,54 @@
-﻿import { defineStore } from 'pinia'
+import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import type { User } from '@supabase/supabase-js'
 import { useSupabaseClient, useSupabaseUser } from '#imports'
+import type { Database } from '~/types/database.types'
 
-export interface UserProfile {
-  id: string
-  full_name: string | null
-  phone: string | null
-  birth_date: string | null
-  points: number
-  is_admin: boolean
-}
+export type UserProfile = Database['public']['Tables']['profiles']['Row']
 
 export interface UserAddress {
   id: string
+  profile_id: string
   label: string
   address_line: string
   is_default: boolean
+  created_at: string
+}
+
+export interface SaveAddressInput {
+  label: string
+  address_line: string
+  reference?: string
+}
+
+export interface AddressOperationResult {
+  success: boolean
+  error?: string
 }
 
 export const useAuthStore = defineStore('auth', () => {
-  const user = ref<any>(null)
+  const user = ref<User | null>(null)
   const profile = ref<UserProfile | null>(null)
   const addresses = ref<UserAddress[]>([])
-  const isLoading = ref(false)
+  const isLoading = ref<boolean>(false)
 
-  const isLoggedIn = computed(() => {
+  const isLoggedIn = computed<boolean>(() => {
     return Boolean(user.value)
   })
 
-  const isAdmin = computed(() => {
-    if (!user.value) return false
-    return Boolean(
-      profile.value?.is_admin || 
-      user.value?.user_metadata?.is_admin ||
-      user.value?.app_metadata?.is_admin
-    )
+  // 🔒 CIERRE DE VULNERABILIDAD S5:
+  // Solo se otorga rol de administrador si la base de datos PostgreSQL indica is_admin === true.
+  // Se prohíbe terminantemente evaluar user_metadata o app_metadata del JWT.
+  const isAdmin = computed<boolean>(() => {
+    if (!user.value || !profile.value) return false
+    return profile.value.is_admin === true
   })
 
-  async function fetchProfile() {
+  async function fetchProfile(): Promise<void> {
     if (!user.value?.id) return
     isLoading.value = true
     try {
-      const supabase = useSupabaseClient()
+      const supabase = useSupabaseClient<Database>()
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -50,60 +57,61 @@ export const useAuthStore = defineStore('auth', () => {
         
       if (error) throw error
       profile.value = data
-    } catch (err) {
-      console.error('Error fetching profile:', err)
+    } catch (err: unknown) {
+      console.error('Error al obtener perfil de usuario:', err)
     } finally {
       isLoading.value = false
     }
   }
 
-  async function fetchAddresses() {
+  async function fetchAddresses(): Promise<void> {
     if (!user.value?.id) return
     try {
-      const supabase = useSupabaseClient()
-      const { data, error } = await supabase
+      const supabase = useSupabaseClient<Database>()
+      const { data, error } = await (supabase as any)
         .from('addresses')
         .select('*')
         .eq('profile_id', user.value.id)
         .order('created_at', { ascending: false })
         
       if (error) throw error
-      addresses.value = data || []
-    } catch (err) {
-      console.error('Error fetching addresses:', err)
+      addresses.value = (data as UserAddress[]) || []
+    } catch (err: unknown) {
+      console.error('Error al obtener direcciones:', err)
     }
   }
 
-  async function saveAddress(address: { label: string, address_line: string, reference?: string }) {
-    if (!user.value?.id) return
+  async function saveAddress(address: SaveAddressInput): Promise<AddressOperationResult> {
+    if (!user.value?.id) return { success: false, error: 'Usuario no autenticado' }
     try {
-      const supabase = useSupabaseClient()
-      const { data, error } = await supabase
+      const supabase = useSupabaseClient<Database>()
+      const { data, error } = await (supabase as any)
         .from('addresses')
         .insert({
           profile_id: user.value.id,
           label: address.label,
           address_line: address.address_line + (address.reference ? ` (Ref: ${address.reference})` : '')
-        } as any)
+        })
         .select()
         .single()
         
       if (error) throw error
       if (data) {
-        addresses.value.unshift(data)
+        addresses.value.unshift(data as UserAddress)
       }
       return { success: true }
-    } catch (err: any) {
-      console.error('Error saving address:', err)
-      return { success: false, error: err.message }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error desconocido al guardar dirección'
+      console.error('Error guardando dirección:', err)
+      return { success: false, error: message }
     }
   }
 
-  async function deleteAddress(id: string) {
-    if (!user.value?.id) return
+  async function deleteAddress(id: string): Promise<AddressOperationResult> {
+    if (!user.value?.id) return { success: false, error: 'Usuario no autenticado' }
     try {
-      const supabase = useSupabaseClient()
-      const { error } = await supabase
+      const supabase = useSupabaseClient<Database>()
+      const { error } = await (supabase as any)
         .from('addresses')
         .delete()
         .eq('id', id)
@@ -111,13 +119,14 @@ export const useAuthStore = defineStore('auth', () => {
       if (error) throw error
       addresses.value = addresses.value.filter(a => a.id !== id)
       return { success: true }
-    } catch (err: any) {
-      console.error('Error deleting address:', err)
-      return { success: false, error: err.message }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error desconocido al eliminar dirección'
+      console.error('Error eliminando dirección:', err)
+      return { success: false, error: message }
     }
   }
 
-  function setUser(newUser: any) {
+  function setUser(newUser: User | null): void {
     user.value = newUser
     if (newUser) {
       fetchProfile()
@@ -128,12 +137,12 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  // Auto-sync on client initialization if session exists
-  function initAuth() {
+  // Sincronización automática en cliente si existe sesión
+  function initAuth(): void {
     if (import.meta.client) {
       const supabaseUser = useSupabaseUser()
       if (supabaseUser.value && !user.value) {
-        setUser(supabaseUser.value)
+        setUser(supabaseUser.value as User)
       }
     }
   }

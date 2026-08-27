@@ -1,7 +1,23 @@
 import { serverSupabaseClient } from '#supabase/server'
 import ExcelJS from 'exceljs'
+import type { Database } from '~/types/database.types'
+
+interface RawMaterialInfo {
+  name: string
+  unit: string
+  purchase_price: number
+  purchase_quantity: number
+}
+
+interface RecipeItemExportRow {
+  quantity_used: number
+  raw_materials: RawMaterialInfo | RawMaterialInfo[] | null
+}
 
 export default defineEventHandler(async (event) => {
+  // 🔒 Validación de privilegios de administrador (Fase 1 - PR-1b)
+  await requireAdmin(event)
+
   const query = getQuery(event)
   const productId = query.productId as string
   const packaging = Number(query.packaging || 0)
@@ -12,7 +28,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Falta el ID del producto.' })
   }
 
-  const supabase = await serverSupabaseClient<any>(event)
+  const supabase = await serverSupabaseClient<Database>(event)
 
   // Fetch product info
   const { data: product } = await supabase
@@ -81,8 +97,8 @@ export default defineEventHandler(async (event) => {
 
   // Llenar ingredientes
   if (items && items.length > 0) {
-    items.forEach((item, index) => {
-      const mat = item.raw_materials
+    (items as unknown as RecipeItemExportRow[]).forEach((item, index) => {
+      const mat = Array.isArray(item.raw_materials) ? item.raw_materials[0] : item.raw_materials
       const costPerUnit = (mat && mat.purchase_quantity > 0) 
         ? Number(mat.purchase_price) / Number(mat.purchase_quantity) 
         : 0

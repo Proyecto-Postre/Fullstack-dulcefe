@@ -1,6 +1,10 @@
 import { serverSupabaseClient } from '#supabase/server'
+import type { Database } from '~/types/database.types'
 
 export default defineEventHandler(async (event) => {
+  // 🔒 Validación de privilegios de administrador (Fase 1 - PR-1b)
+  await requireAdmin(event)
+
   // 1. Extraemos el ID de la URL
   const id = getRouterParam(event, 'id')
 
@@ -16,7 +20,7 @@ export default defineEventHandler(async (event) => {
   const { name, unit, purchase_price, purchase_quantity, stock } = body
 
   // 3. Conectamos con Supabase
-  const supabase = await serverSupabaseClient<any>(event)
+  const supabase = await serverSupabaseClient<Database>(event)
 
   // 4. Actualizamos el insumo
   const { data, error } = await supabase
@@ -28,7 +32,7 @@ export default defineEventHandler(async (event) => {
       purchase_quantity: purchase_quantity !== undefined ? Number(purchase_quantity) : undefined,
       stock: stock !== undefined ? Number(stock) : undefined
     })
-    .eq('id', id)
+    .eq('id', Number(id))
     .select()
 
   // 5. Manejo de errores

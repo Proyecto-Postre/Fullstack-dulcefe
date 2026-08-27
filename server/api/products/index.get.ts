@@ -1,8 +1,9 @@
 import { serverSupabaseClient } from '#supabase/server'
+import type { Database } from '~/types/database.types'
 
 export default defineEventHandler(async (event) => {
   // 1. Conectamos con el cliente de Supabase
-  const supabase = await serverSupabaseClient(event)
+  const supabase = await serverSupabaseClient<Database>(event)
 
   // 2. Hacemos la consulta: "Tráeme todas las columnas de la tabla products ordenadas por fecha"
   const { data: products, error } = await supabase
