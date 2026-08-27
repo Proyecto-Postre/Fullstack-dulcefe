@@ -8,23 +8,23 @@
 
 ## 📋 TABLA DE CONTENIDOS
 
-1. [Principios Fundamentales de Software](#1-principios-fundamentales-de-software)
-2. [Arquitectura en Capas (Clean Architecture en Nuxt 4)](#2-arquitectura-en-capas-clean-architecture-en-nuxt-4)
-3. [Patrones de Diseño Frontend (Vue 3 / Nuxt)](#3-patrones-de-diseño-frontend-vue-3--nuxt)
+1. [[#1. PRINCIPIOS FUNDAMENTALES DE SOFTWARE|Principios Fundamentales de Software]]
+2. [[#2. ARQUITECTURA EN CAPAS (CLEAN ARCHITECTURE EN NUXT 4)|Arquitectura en Capas (Clean Architecture en Nuxt 4)]]
+3. [[#3. PATRONES DE DISEÑO FRONTEND (VUE 3 / NUXT)|Patrones de Diseño Frontend (Vue 3 / Nuxt)]]
    - 3.1. Smart vs. Dumb Components (Container / Presentational)
    - 3.2. Composables Pattern (Reusabilidad de Lógica de Estado)
    - 3.3. Strategy Pattern (Motor de Cálculo de Precios y Personalización)
    - 3.4. State Management & Reactividad Unidireccional
-4. [Patrones de Backend & Servidor (Nitro Engine & BFF)](#4-patrones-de-backend--servidor-nitro-engine--bff)
+4. [[#4. PATRONES DE BACKEND & SERVIDOR (NITRO ENGINE & BFF)|Patrones de Backend & Servidor (Nitro Engine & BFF)]]
    - 4.1. Pattern BFF (Backend-For-Frontend)
    - 4.2. Repository Pattern (Abstracción de Datos)
    - 4.3. DTO Pattern (Data Transfer Objects)
    - 4.4. Middleware & Guards Pattern (Autorización Granular)
-5. [Patrones de Base de Datos & Eventos (Supabase PostgreSQL)](#5-patrones-de-base-de-datos--eventos-supabase-postgresql)
+5. [[#5. PATRONES DE BASE DE DATOS & EVENTOS (SUPABASE POSTGRESQL)|Patrones de Base de Datos & Eventos (Supabase PostgreSQL)]]
    - 5.1. Event-Driven Architecture (Database Webhooks & Triggers)
    - 5.2. RLS Security Pattern (Seguridad en Capa de Datos)
-6. [Arquitectura de Automatizaciones (n8n Webhook Architecture)](#6-arquitectura-de-automatizaciones-n8n-webhook-architecture)
-7. [Estrategia de Escalabilidad & Decoupling a Futuro](#7-estrategia-de-escalabilidad--decoupling-a-futuro)
+6. [[#6. ARQUITECTURA DE AUTOMATIZACIONES (N8N WEBHOOK ARCHITECTURE)|Arquitectura de Automatizaciones (n8n Webhook Architecture)]]
+7. [[#7. ESTRATEGIA DE ESCALABILIDAD & DECOUPLING A FUTURO|Estrategia de Escalabilidad & Decoupling a Futuro]]
 
 ---
 
