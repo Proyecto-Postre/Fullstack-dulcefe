@@ -68,7 +68,7 @@ export const useAuthStore = defineStore('auth', () => {
     if (!user.value?.id) return
     try {
       const supabase = useSupabaseClient<Database>()
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('addresses')
         .select('*')
         .eq('profile_id', user.value.id)
@@ -85,7 +85,7 @@ export const useAuthStore = defineStore('auth', () => {
     if (!user.value?.id) return { success: false, error: 'Usuario no autenticado' }
     try {
       const supabase = useSupabaseClient<Database>()
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('addresses')
         .insert({
           profile_id: user.value.id,
@@ -107,11 +107,40 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function updateAddress(id: string, address: SaveAddressInput): Promise<AddressOperationResult> {
+    if (!user.value?.id) return { success: false, error: 'Usuario no autenticado' }
+    try {
+      const supabase = useSupabaseClient<Database>()
+      const { data, error } = await supabase
+        .from('addresses')
+        .update({
+          label: address.label,
+          address_line: address.address_line + (address.reference ? ` (Ref: ${address.reference})` : '')
+        })
+        .eq('id', id)
+        .select()
+        .single()
+        
+      if (error) throw error
+      if (data) {
+        const idx = addresses.value.findIndex(a => a.id === id)
+        if (idx !== -1) {
+          addresses.value[idx] = data as UserAddress
+        }
+      }
+      return { success: true }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error desconocido al actualizar dirección'
+      console.error('Error actualizando dirección:', err)
+      return { success: false, error: message }
+    }
+  }
+
   async function deleteAddress(id: string): Promise<AddressOperationResult> {
     if (!user.value?.id) return { success: false, error: 'Usuario no autenticado' }
     try {
       const supabase = useSupabaseClient<Database>()
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('addresses')
         .delete()
         .eq('id', id)
@@ -142,7 +171,7 @@ export const useAuthStore = defineStore('auth', () => {
     if (import.meta.client) {
       const supabaseUser = useSupabaseUser()
       if (supabaseUser.value && !user.value) {
-        setUser(supabaseUser.value as User)
+        setUser(supabaseUser.value as unknown as User)
       }
     }
   }
@@ -159,6 +188,8 @@ export const useAuthStore = defineStore('auth', () => {
     fetchProfile,
     fetchAddresses,
     saveAddress,
+    addAddress: saveAddress,
+    updateAddress,
     deleteAddress
   }
 }, {

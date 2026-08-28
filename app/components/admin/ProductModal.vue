@@ -16,6 +16,7 @@ const isSubmitting = ref(false)
 const errorMessage = ref('')
 const selectedFile = ref<File | null>(null)
 const previewUrl = ref<string | null>(null)
+const fileInput = ref<HTMLInputElement | null>(null)
 
 watch(() => props.show, (newVal) => {
   if (newVal) {
@@ -128,14 +129,14 @@ async function saveProduct() {
               <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest mb-1.5">Imagen del Producto</label>
               <div class="flex items-center gap-4">
                 <div class="w-20 h-20 rounded-2xl bg-[#F4F1E1]/50 border-2 border-dashed border-[#4A5D23]/20 flex items-center justify-center overflow-hidden shrink-0 relative group">
-                  <img v-if="imagePreview" :src="imagePreview" class="w-full h-full object-cover" />
+                  <img v-if="previewUrl" :src="previewUrl" class="w-full h-full object-cover" />
                   <Icon v-else name="lucide:cake" class="w-8 h-8 text-[#4A5D23]/40" />
                 </div>
                 <div class="flex-1">
                   <input type="file" ref="fileInput" accept="image/*" @change="handleFileChange" class="hidden" />
                   <button type="button" @click="fileInput?.click()" class="px-4 py-2 bg-[#F4F1E1] border border-[#4A5D23]/20 rounded-xl text-xs font-bold text-[#4A5D23] hover:bg-[#e6e2cc] transition-all flex items-center gap-2 shadow-sm">
                     <Icon name="lucide:upload" class="w-3.5 h-3.5" />
-                    {{ imagePreview ? 'Cambiar Foto' : 'Subir Foto' }}
+                    {{ previewUrl ? 'Cambiar Foto' : 'Subir Foto' }}
                   </button>
                   <p class="text-[10px] text-[#4A5D23]/60 font-medium mt-1">Formatos JPG, PNG o WEBP (máx. 2MB)</p>
                 </div>

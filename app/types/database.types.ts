@@ -138,6 +138,41 @@ export interface Database {
         }
         Relationships: []
       }
+      addresses: {
+        Row: {
+          id: string
+          profile_id: string
+          label: string
+          address_line: string
+          is_default: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          profile_id: string
+          label: string
+          address_line: string
+          is_default?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          profile_id?: string
+          label?: string
+          address_line?: string
+          is_default?: boolean
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "addresses_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       orders: {
         Row: {
           id: string
@@ -237,6 +272,14 @@ export interface Database {
     Functions: {
       is_admin: {
         Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      process_order_inventory: {
+        Args: { order_uuid: string }
+        Returns: boolean
+      }
+      award_loyalty_points: {
+        Args: { order_uuid: string }
         Returns: boolean
       }
     }

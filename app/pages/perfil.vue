@@ -14,6 +14,28 @@ if (import.meta.client && !authStore.isLoggedIn) {
   navigateTo('/login', { replace: true })
 }
 
+interface AddressItem {
+  id: string
+  label: string
+  address_line: string
+}
+
+interface OrderItem {
+  id: string
+  created_at: string
+  status: string
+  total_amount: number
+  order_items?: Array<{
+    id: string
+    quantity: number
+    unit_price: number
+    products?: {
+      name: string
+      image_url?: string | null
+    } | null
+  }>
+}
+
 const activeTab = ref<'history' | 'addresses' | 'points'>('history')
 const showAddressModal = ref(false)
 
@@ -31,12 +53,11 @@ const openNewAddressModal = () => {
   showAddressModal.value = true
 }
 
-const openEditAddressModal = (address: any) => {
-  // Intentar extraer la referencia si existe en el formato " (Ref: ...)"
-  let addressLine = address.address_line
+const openEditAddressModal = (address: AddressItem) => {
+  let addressLine = address.address_line || ''
   let reference = ''
   const refMatch = addressLine.match(/ \(Ref: (.*?)\)$/)
-  if (refMatch) {
+  if (refMatch && refMatch[1] && refMatch[0]) {
     reference = refMatch[1]
     addressLine = addressLine.replace(refMatch[0], '')
   }
@@ -68,115 +89,95 @@ const handleSaveAddress = async () => {
   isSavingAddress.value = true
   
   if (newAddress.value.id) {
-    // Lógica de actualización (requiere un método updateAddress en el store)
-    // Por ahora, eliminamos y recreamos para simplificar
-    await authStore.deleteAddress(newAddress.value.id)
-  }
-  
-  const result = await authStore.saveAddress(newAddress.value)
-  isSavingAddress.value = false
-  
-  if (result?.success) {
-    showAddressModal.value = false
-    newAddress.value = { id: '', label: '', address_line: '', reference: '' }
+    await authStore.updateAddress(newAddress.value.id, {
+      label: newAddress.value.label,
+      address_line: newAddress.value.address_line,
+      reference: newAddress.value.reference
+    })
   } else {
-    alert('Error al guardar la dirección: ' + result?.error)
+    await authStore.addAddress({
+      label: newAddress.value.label,
+      address_line: newAddress.value.address_line,
+      reference: newAddress.value.reference
+    })
   }
+  
+  isSavingAddress.value = false
+  showAddressModal.value = false
 }
 
-const logout = async () => {
-  await supabase.auth.signOut()
-  authStore.setUser(null)
-  navigateTo('/')
-}
-
-const orders = ref<any[]>([])
-const isLoadingOrders = ref(true)
+// Historial de Pedidos
+const orders = ref<OrderItem[]>([])
+const isLoadingOrders = ref(false)
+const selectedOrder = ref<OrderItem | null>(null)
+const showOrderDetailsModal = ref(false)
 
 const fetchOrders = async () => {
   if (!authStore.user) return
   isLoadingOrders.value = true
-  try {
-    const { data, error } = await supabase
-      .from('orders')
-      .select(`
-        *,
-        order_items (
-          quantity,
-          price_at_time,
-          products (
-            id,
-            name,
-            image_url
-          )
+  
+  const { data, error } = await supabase
+    .from('orders')
+    .select(`
+      id,
+      created_at,
+      status,
+      total_amount,
+      order_items (
+        id,
+        quantity,
+        unit_price,
+        products (
+          name,
+          image_url
         )
-      `)
-      .eq('profile_id', authStore.user.id)
-      .order('created_at', { ascending: false })
-      
-    if (error) throw error
-    orders.value = data || []
-  } catch (err) {
-    console.error('Error fetching orders:', err)
-  } finally {
-    isLoadingOrders.value = false
+      )
+    `)
+    .eq('profile_id', authStore.user.id)
+    .order('created_at', { ascending: false })
+    
+  if (error) {
+    console.error('Error fetching orders:', error)
+  } else {
+    orders.value = (data as unknown as OrderItem[]) || []
   }
+  isLoadingOrders.value = false
 }
 
-onMounted(() => {
-  if (authStore.isLoggedIn) {
-    fetchOrders()
-  }
-})
-
-const reorder = (order: any) => {
-  // Limpiar carrito actual
-  cartStore.clearCart()
-  
-  // Añadir items del pedido anterior
-  order.order_items.forEach((item: any) => {
-    if (item.products) {
-      cartStore.addToCart({
-        id: item.products.id,
-        name: item.products.name,
-        price: item.price_at_time,
-        image_url: item.products.image_url
-      }, item.quantity)
-    }
-  })
-  
-  // Ir al checkout
-  navigateTo('/checkout')
-}
-
-const showOrderDetailsModal = ref(false)
-const selectedOrder = ref<any>(null)
-
-const openOrderDetails = (order: any) => {
+const openOrderDetails = (order: OrderItem) => {
   selectedOrder.value = order
   showOrderDetailsModal.value = true
 }
 
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString)
-  return new Intl.DateTimeFormat('es-PE', { 
-    day: '2-digit', month: 'short', year: 'numeric',
-    hour: '2-digit', minute: '2-digit'
-  }).format(date)
+const logout = async () => {
+  await supabase.auth.signOut()
+  cartStore.clearCart()
+  navigateTo('/login')
 }
 
-const getStatusColor = (status: string) => {
-  switch(status) {
-    case 'completed': return 'bg-[#84cc16]/20 text-[#4A5D23]'
-    case 'pending': return 'bg-yellow-500/20 text-yellow-700'
-    case 'cancelled': return 'bg-red-500/20 text-red-700'
-    default: return 'bg-gray-500/20 text-gray-700'
+onMounted(() => {
+  if (authStore.isLoggedIn) {
+    authStore.fetchAddresses()
+    fetchOrders()
+  }
+})
+
+const getStatusBadge = (status: string) => {
+  switch (status) {
+    case 'completed': return 'bg-status-success/20 text-brand-secondary border-status-success/30'
+    case 'in_delivery': return 'bg-blue-100 text-blue-800 border-blue-200'
+    case 'preparing': return 'bg-amber-100 text-amber-800 border-amber-200'
+    case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200'
+    case 'cancelled': return 'bg-red-100 text-status-danger border-red-200'
+    default: return 'bg-gray-100 text-gray-800 border-gray-200'
   }
 }
 
-const getStatusText = (status: string) => {
-  switch(status) {
-    case 'completed': return 'Completado'
+const getStatusLabel = (status: string) => {
+  switch (status) {
+    case 'completed': return 'Entregado'
+    case 'in_delivery': return 'En camino'
+    case 'preparing': return 'En preparación'
     case 'pending': return 'Pendiente'
     case 'cancelled': return 'Cancelado'
     default: return status
@@ -185,214 +186,201 @@ const getStatusText = (status: string) => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#F4F1E1] font-inter text-[#2A321B] py-12 px-6">
-    <div class="max-w-5xl mx-auto">
+  <div class="max-w-5xl mx-auto py-10 px-6">
+    
+    <!-- Encabezado de Perfil -->
+    <div class="flex items-center justify-between mb-8">
+      <div class="flex items-center gap-4">
+        <NuxtLink to="/" class="w-10 h-10 flex items-center justify-center rounded-full border border-brand-primary/20 bg-surface text-brand-secondary hover:bg-brand-cream transition-colors shadow-soft-sm">
+          <Icon name="lucide:arrow-left" class="w-5 h-5" />
+        </NuxtLink>
+        <div>
+          <h1 class="text-3xl font-playfair font-black text-brand-secondary">Mi Cuenta</h1>
+          <p class="text-xs text-brand-primary font-medium mt-0.5">Gestiona tus pedidos, direcciones y puntos acumulados</p>
+        </div>
+      </div>
+      <button 
+        @click="logout"
+        class="flex items-center gap-2 text-status-danger font-bold hover:opacity-80 transition-opacity text-sm cursor-pointer"
+      >
+        <Icon name="lucide:log-out" class="w-4 h-4" />
+        <span>Cerrar Sesión</span>
+      </button>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
       
-      <!-- Header Simple -->
-      <div class="flex items-center justify-between mb-10">
-        <div class="flex items-center gap-4">
-          <NuxtLink to="/" class="w-10 h-10 flex items-center justify-center rounded-full border border-[#4A5D23]/20 bg-white text-[#2A321B] hover:bg-[#F4F1E1] transition-colors shadow-sm">
-            <Icon name="lucide:arrow-left" class="w-5 h-5" />
-          </NuxtLink>
-          <h1 class="text-3xl font-playfair font-black text-[#2A321B]">Mi Perfil</h1>
-        </div>
-        <button 
-          @click="logout"
-          class="flex items-center gap-2 text-[#991B1B] font-bold hover:text-[#7a1515] transition-colors"
-        >
-          <Icon name="lucide:log-out" class="w-5 h-5" />
-          Cerrar Sesión
-        </button>
-      </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <!-- Sidebar (Navegación) -->
+      <div class="lg:col-span-4 space-y-6">
         
-        <!-- Sidebar (Navegación) -->
-        <div class="lg:col-span-4 space-y-6">
-          
-          <!-- Tarjeta de Usuario -->
-          <div class="bg-white border border-[#4A5D23]/10 rounded-[2rem] p-6 shadow-md">
-            <div class="w-16 h-16 bg-[#F4F1E1] border border-[#4A5D23]/20 rounded-full flex items-center justify-center mb-4 shadow-sm">
-              <Icon name="lucide:user" class="w-8 h-8 text-[#4A5D23]" />
-            </div>
-            <h2 class="text-xl font-black font-playfair mb-1">{{ authStore.user?.user_metadata?.full_name || 'Usuario' }}</h2>
-            <p class="text-sm text-[#4A5D23] font-medium">{{ authStore.user?.email }}</p>
-            
-            <div class="mt-6 pt-6 border-t border-[#4A5D23]/10">
-              <div class="flex items-center justify-between">
-                <span class="font-bold text-sm uppercase tracking-wider">Puntos Dulce Fe</span>
-                <span class="text-2xl font-black text-[#84cc16]">{{ authStore.profile?.points || 0 }}</span>
-              </div>
-            </div>
+        <!-- Tarjeta de Usuario -->
+        <div class="bg-surface border border-brand-primary/10 rounded-[2rem] p-6 shadow-soft-md">
+          <div class="w-16 h-16 bg-brand-cream border border-brand-primary/20 rounded-full flex items-center justify-center mb-4 shadow-soft-sm">
+            <Icon name="lucide:user" class="w-8 h-8 text-brand-primary" />
           </div>
-
-          <!-- Menú -->
-          <div class="bg-white border border-[#4A5D23]/10 rounded-[2rem] p-4 shadow-md flex flex-col gap-2">
-            <button 
-              @click="activeTab = 'history'"
-              :class="[
-                'flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all text-left',
-                activeTab === 'history' ? 'bg-[#4A5D23] text-white' : 'hover:bg-[#F4F1E1] text-[#2A321B]'
-              ]"
-            >
-              <Icon name="lucide:history" class="w-5 h-5" />
-              Historial de Pedidos
-            </button>
-            <button 
-              @click="activeTab = 'addresses'"
-              :class="[
-                'flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all text-left',
-                activeTab === 'addresses' ? 'bg-[#4A5D23] text-white' : 'hover:bg-[#F4F1E1] text-[#2A321B]'
-              ]"
-            >
-              <Icon name="lucide:map-pin" class="w-5 h-5" />
-              Mis Direcciones
-            </button>
-            <button 
-              @click="activeTab = 'points'"
-              :class="[
-                'flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all text-left',
-                activeTab === 'points' ? 'bg-[#4A5D23] text-white' : 'hover:bg-[#F4F1E1] text-[#2A321B]'
-              ]"
-            >
-              <Icon name="lucide:star" class="w-5 h-5" />
-              Programa de Lealtad
-            </button>
+          <h2 class="text-xl font-black font-playfair mb-1 text-brand-secondary">{{ authStore.user?.user_metadata?.full_name || 'Cliente Dulce Fe' }}</h2>
+          <p class="text-sm text-brand-primary font-medium truncate">{{ authStore.user?.email }}</p>
+          
+          <div class="mt-6 pt-6 border-t border-brand-primary/10">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-sm uppercase tracking-wider text-brand-secondary">Puntos Dulce Fe</span>
+              <span class="text-2xl font-black text-brand-primary">{{ authStore.profile?.points || 0 }}</span>
+            </div>
           </div>
         </div>
 
-        <!-- Contenido Principal -->
-        <div class="lg:col-span-8">
-          <div class="bg-white border border-[#4A5D23]/10 rounded-[2rem] p-8 shadow-md min-h-[400px]">
-            
-            <!-- Tab: Historial -->
-            <div v-if="activeTab === 'history'" class="animate-pop">
-              <h2 class="text-2xl font-playfair font-bold mb-6">Tus Pedidos Anteriores</h2>
-              
-              <div v-if="isLoadingOrders" class="flex justify-center py-12">
-                <Icon name="lucide:loader-2" class="w-8 h-8 animate-spin text-[#4A5D23]" />
-              </div>
-              
-              <div v-else-if="orders.length === 0" class="text-center py-12">
-                <Icon name="lucide:shopping-bag" class="w-16 h-16 text-[#4A5D23]/20 mx-auto mb-4" />
-                <p class="text-[#4A5D23] font-medium">Aún no tienes pedidos en tu historial.</p>
-                <NuxtLink to="/menu" class="inline-block mt-4 text-[#84cc16] font-bold hover:underline">Ir a comprar</NuxtLink>
-              </div>
-              
-              <!-- Lista de pedidos -->
-              <div v-else class="space-y-6">
-                <div 
-                  v-for="order in orders" 
-                  :key="order.id"
-                  @click="openOrderDetails(order)"
-                  class="border border-[#4A5D23]/20 rounded-2xl p-5 bg-white shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-                >
-                  <div class="flex flex-wrap items-center justify-between gap-4 mb-4 pb-4 border-b border-[#4A5D23]/10">
-                    <div>
-                      <p class="text-xs font-bold text-[#4A5D23] uppercase tracking-wider mb-1">{{ formatDate(order.created_at) }}</p>
-                      <div class="flex items-center gap-2">
-                        <span class="font-black text-lg">S/ {{ Number(order.total_amount).toFixed(2) }}</span>
-                        <span :class="['px-2 py-0.5 rounded-md text-xs font-bold', getStatusColor(order.status)]">
-                          {{ getStatusText(order.status) }}
-                        </span>
-                      </div>
-                    </div>
-                    <button 
-                      @click.stop="reorder(order)"
-                      class="bg-[#4A5D23] text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-[#3C4A1C] transition-colors flex items-center gap-2 shadow-sm hover:shadow-md"
-                    >
-                      <Icon name="lucide:refresh-cw" class="w-4 h-4" />
-                      Volver a pedir
-                    </button>
-                  </div>
-                  
-                  <div class="space-y-3">
-                    <div v-for="item in order.order_items" :key="item.products?.id" class="flex items-center gap-3">
-                      <div class="w-10 h-10 rounded-lg bg-[#F4F1E1] border border-[#4A5D23]/10 overflow-hidden shrink-0">
-                        <img v-if="item.products?.image_url" :src="item.products.image_url" class="w-full h-full object-cover" />
-                        <div v-else class="w-full h-full flex items-center justify-center text-[#4A5D23]/50">
-                          <Icon name="lucide:croissant" class="w-5 h-5" />
-                        </div>
-                      </div>
-                      <div class="flex-1">
-                        <p class="font-bold text-sm">{{ item.products?.name || 'Producto eliminado' }}</p>
-                        <p class="text-xs text-[#4A5D23] font-medium">{{ item.quantity }}x S/ {{ Number(item.price_at_time).toFixed(2) }}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Tab: Direcciones -->
-            <div v-if="activeTab === 'addresses'" class="animate-pop">
-              <div class="flex items-center justify-between mb-6">
-                <h2 class="text-2xl font-playfair font-bold">Mis Direcciones</h2>
-                <button @click="openNewAddressModal" class="bg-[#4A5D23] text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-[#3C4A1C] transition-colors shadow-sm hover:shadow-md flex items-center gap-2">
-                  <Icon name="lucide:plus" class="w-4 h-4" />
-                  Nueva Dirección
-                </button>
-              </div>
-              
-              <div v-if="authStore.addresses.length === 0" class="text-center py-12 border border-dashed border-[#4A5D23]/30 rounded-2xl bg-[#F4F1E1]/30">
-                <Icon name="lucide:map" class="w-12 h-12 text-[#4A5D23]/20 mx-auto mb-4" />
-                <p class="text-[#4A5D23] font-medium">No tienes direcciones guardadas.</p>
-              </div>
-              
-              <div v-else class="flex flex-col gap-4">
-                <div 
-                  v-for="address in authStore.addresses" 
-                  :key="address.id"
-                  class="border border-[#4A5D23]/20 rounded-2xl p-5 bg-white shadow-sm flex items-start gap-4 relative group"
-                >
-                  <div class="w-10 h-10 rounded-full bg-[#F4F1E1] flex items-center justify-center text-[#4A5D23] shrink-0">
-                    <Icon name="lucide:map-pin" class="w-5 h-5" />
-                  </div>
-                  <div class="flex-1 pr-12">
-                    <h3 class="font-bold text-[#2A321B] mb-1">{{ address.label }}</h3>
-                    <p class="text-sm text-[#4A5D23] leading-relaxed">{{ address.address_line }}</p>
-                  </div>
-                  
-                  <!-- Acciones (Editar/Eliminar) -->
-                  <div class="absolute top-4 right-4 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button 
-                      @click="openEditAddressModal(address)"
-                      class="w-8 h-8 rounded-full bg-[#F4F1E1] text-[#4A5D23] flex items-center justify-center hover:bg-[#4A5D23] hover:text-white transition-colors"
-                      title="Editar"
-                    >
-                      <Icon name="lucide:pencil" class="w-4 h-4" />
-                    </button>
-                    <button 
-                      @click="handleDeleteAddress(address.id)"
-                      :disabled="isDeletingAddress === address.id"
-                      class="w-8 h-8 rounded-full bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-colors disabled:opacity-50"
-                      title="Eliminar"
-                    >
-                      <Icon v-if="isDeletingAddress === address.id" name="lucide:loader-2" class="w-4 h-4 animate-spin" />
-                      <Icon v-else name="lucide:trash-2" class="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Tab: Puntos -->
-            <div v-if="activeTab === 'points'" class="animate-pop">
-              <h2 class="text-2xl font-playfair font-bold mb-6">Programa de Lealtad</h2>
-              
-              <div class="bg-[#F4F1E1]/50 border border-[#4A5D23]/20 rounded-2xl p-6 text-center shadow-sm">
-                <Icon name="lucide:award" class="w-16 h-16 text-[#84cc16] mx-auto mb-4" />
-                <h3 class="text-xl font-bold mb-2">¡Tienes {{ authStore.profile?.points || 0 }} Puntos Dulce Fe!</h3>
-                <p class="text-sm text-[#4A5D23] max-w-md mx-auto">
-                  Acumulas 1 punto por cada S/ 1.00 de compra. Podrás canjear tus puntos por descuentos exclusivos, envíos gratis o postres sorpresa de regalo en tus próximos pedidos.
-                </p>
-              </div>
-            </div>
-
-          </div>
+        <!-- Menú de Pestañas -->
+        <div class="bg-surface border border-brand-primary/10 rounded-[2rem] p-4 shadow-soft-md flex flex-col gap-2">
+          <button 
+            @click="activeTab = 'history'"
+            :class="[
+              'flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all text-left cursor-pointer text-sm',
+              activeTab === 'history' ? 'bg-brand-primary text-white' : 'hover:bg-brand-cream text-brand-secondary'
+            ]"
+          >
+            <Icon name="lucide:history" class="w-4 h-4" />
+            Historial de Pedidos
+          </button>
+          <button 
+            @click="activeTab = 'addresses'"
+            :class="[
+              'flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all text-left cursor-pointer text-sm',
+              activeTab === 'addresses' ? 'bg-brand-primary text-white' : 'hover:bg-brand-cream text-brand-secondary'
+            ]"
+          >
+            <Icon name="lucide:map-pin" class="w-4 h-4" />
+            Mis Direcciones
+          </button>
+          <button 
+            @click="activeTab = 'points'"
+            :class="[
+              'flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all text-left cursor-pointer text-sm',
+              activeTab === 'points' ? 'bg-brand-primary text-white' : 'hover:bg-brand-cream text-brand-secondary'
+            ]"
+          >
+            <Icon name="lucide:star" class="w-4 h-4" />
+            Programa de Lealtad
+          </button>
         </div>
 
       </div>
+
+      <!-- Contenido Principal -->
+      <div class="lg:col-span-8">
+        <div class="bg-surface border border-brand-primary/10 rounded-[2rem] p-8 shadow-soft-md min-h-[400px]">
+          
+          <!-- Tab: Historial -->
+          <div v-if="activeTab === 'history'" class="animate-pop">
+            <h2 class="text-2xl font-playfair font-bold mb-6 text-brand-secondary">Historial de Pedidos</h2>
+            
+            <div v-if="isLoadingOrders" class="flex justify-center py-12">
+              <Icon name="lucide:loader-2" class="w-8 h-8 text-brand-primary animate-spin" />
+            </div>
+
+            <div v-else-if="orders.length === 0" class="text-center py-12 text-brand-primary">
+              <Icon name="lucide:shopping-bag" class="w-12 h-12 mx-auto mb-3 opacity-30" />
+              <p class="font-bold text-sm">Aún no has realizado ningún pedido.</p>
+              <NuxtLink to="/menu" class="inline-block mt-4 text-xs font-bold text-white bg-brand-primary px-6 py-2.5 rounded-full hover:bg-brand-secondary transition-all">
+                Ir a la Carta
+              </NuxtLink>
+            </div>
+
+            <div v-else class="space-y-4">
+              <div 
+                v-for="order in orders" 
+                :key="order.id"
+                @click="openOrderDetails(order)"
+                class="border border-brand-primary/10 rounded-2xl p-5 hover:border-brand-primary/40 transition-all cursor-pointer bg-brand-cream/30 hover:bg-brand-cream/60 flex items-center justify-between"
+              >
+                <div>
+                  <div class="flex items-center gap-3 mb-1">
+                    <span class="font-bold text-sm text-brand-secondary">Pedido #{{ order.id.slice(0, 8) }}</span>
+                    <span :class="['text-[11px] font-bold px-2.5 py-0.5 rounded-full border', getStatusBadge(order.status)]">
+                      {{ getStatusLabel(order.status) }}
+                    </span>
+                  </div>
+                  <p class="text-xs text-brand-primary/80">
+                    {{ new Date(order.created_at).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) }}
+                  </p>
+                </div>
+                <div class="text-right">
+                  <span class="text-xs text-brand-primary block">Total</span>
+                  <span class="text-lg font-black font-inter text-brand-secondary">S/ {{ Number(order.total_amount).toFixed(2) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab: Direcciones -->
+          <div v-if="activeTab === 'addresses'" class="animate-pop">
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="text-2xl font-playfair font-bold text-brand-secondary">Mis Direcciones</h2>
+              <button 
+                @click="openNewAddressModal"
+                class="flex items-center gap-1.5 text-xs font-bold bg-brand-primary text-white px-4 py-2 rounded-full hover:bg-brand-secondary transition-all cursor-pointer shadow-soft-sm"
+              >
+                <Icon name="lucide:plus" class="w-4 h-4" />
+                Nueva Dirección
+              </button>
+            </div>
+
+            <div v-if="authStore.addresses.length === 0" class="text-center py-12 text-brand-primary">
+              <Icon name="lucide:map-pin" class="w-12 h-12 mx-auto mb-3 opacity-30" />
+              <p class="font-bold text-sm">No tienes direcciones guardadas.</p>
+            </div>
+
+            <div v-else class="space-y-4">
+              <div 
+                v-for="address in authStore.addresses" 
+                :key="address.id"
+                class="border border-brand-primary/10 rounded-2xl p-5 flex items-start gap-4 relative group bg-brand-cream/30"
+              >
+                <div class="w-10 h-10 rounded-full bg-surface flex items-center justify-center text-brand-primary shrink-0 shadow-soft-sm">
+                  <Icon name="lucide:home" class="w-5 h-5" />
+                </div>
+                <div class="flex-1 pr-12">
+                  <h3 class="font-bold text-brand-secondary mb-1 text-sm">{{ address.label }}</h3>
+                  <p class="text-xs text-brand-primary/90 leading-relaxed">{{ address.address_line }}</p>
+                </div>
+                
+                <div class="absolute top-4 right-4 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button 
+                    @click="openEditAddressModal(address)"
+                    class="w-8 h-8 rounded-full bg-surface text-brand-primary flex items-center justify-center hover:bg-brand-primary hover:text-white transition-colors cursor-pointer shadow-soft-sm"
+                    title="Editar"
+                  >
+                    <Icon name="lucide:pencil" class="w-3.5 h-3.5" />
+                  </button>
+                  <button 
+                    @click="handleDeleteAddress(address.id)"
+                    :disabled="isDeletingAddress === address.id"
+                    class="w-8 h-8 rounded-full bg-red-50 text-status-danger flex items-center justify-center hover:bg-status-danger hover:text-white transition-colors disabled:opacity-50 cursor-pointer shadow-soft-sm"
+                    title="Eliminar"
+                  >
+                    <Icon v-if="isDeletingAddress === address.id" name="lucide:loader-2" class="w-3.5 h-3.5 animate-spin" />
+                    <Icon v-else name="lucide:trash-2" class="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab: Puntos -->
+          <div v-if="activeTab === 'points'" class="animate-pop">
+            <h2 class="text-2xl font-playfair font-bold mb-6 text-brand-secondary">Programa de Lealtad</h2>
+            
+            <div class="bg-brand-cream/50 border border-brand-primary/20 rounded-2xl p-6 text-center shadow-soft-sm">
+              <Icon name="lucide:award" class="w-16 h-16 text-brand-primary mx-auto mb-4" />
+              <h3 class="text-xl font-bold mb-2 text-brand-secondary">¡Tienes {{ authStore.profile?.points || 0 }} Puntos Dulce Fe!</h3>
+              <p class="text-xs text-brand-primary/80 max-w-md mx-auto leading-relaxed font-medium">
+                Acumulas 1 punto por cada S/ 1.00 de compra. Podrás canjear tus puntos por descuentos exclusivos, envíos gratis o postres sorpresa de regalo en tus próximos pedidos.
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
     </div>
 
     <!-- Modales -->
@@ -402,32 +390,32 @@ const getStatusText = (status: string) => {
       @close="showOrderDetailsModal = false" 
     />
 
-    <!-- Modal de Nueva Dirección -->
+    <!-- Modal de Dirección -->
     <div v-if="showAddressModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div class="bg-white rounded-3xl p-8 max-w-xl w-full shadow-xl animate-pop relative max-h-[85vh] overflow-y-auto custom-scrollbar">
-        <button @click="showAddressModal = false" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-[#F4F1E1] text-[#2A321B] hover:bg-[#e6e2cc] transition-colors">
+      <div class="bg-surface rounded-3xl p-8 max-w-xl w-full shadow-soft-lg animate-pop relative max-h-[85vh] overflow-y-auto custom-scrollbar">
+        <button @click="showAddressModal = false" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-brand-cream text-brand-secondary hover:bg-brand-primary hover:text-white transition-colors cursor-pointer">
           <Icon name="lucide:x" class="w-4 h-4" />
         </button>
-        <h3 class="text-2xl font-playfair font-bold mb-6">{{ newAddress.id ? 'Editar Dirección' : 'Nueva Dirección' }}</h3>
+        <h3 class="text-2xl font-playfair font-bold mb-6 text-brand-secondary">{{ newAddress.id ? 'Editar Dirección' : 'Nueva Dirección' }}</h3>
         <div class="space-y-5">
           <div>
-            <label class="block text-sm font-bold mb-2">Nombre de la dirección (Ej. Casa, Trabajo)</label>
-            <input v-model="newAddress.label" type="text" class="w-full bg-[#F4F1E1] border border-[#4A5D23]/20 rounded-xl px-4 py-3 focus:outline-none focus:border-[#4A5D23] transition-colors" placeholder="Mi Casa">
+            <label class="block text-xs font-bold mb-2 uppercase tracking-wider text-brand-secondary">Nombre de la dirección</label>
+            <input v-model="newAddress.label" type="text" class="w-full bg-brand-cream/60 border border-brand-primary/20 rounded-xl px-4 py-3 focus:outline-none focus:border-brand-primary text-sm font-medium text-brand-secondary transition-colors" placeholder="Ej. Casa, Trabajo">
           </div>
           <div>
-            <label class="block text-sm font-bold mb-2">Dirección completa</label>
-            <textarea v-model="newAddress.address_line" rows="3" class="w-full bg-[#F4F1E1] border border-[#4A5D23]/20 rounded-xl px-4 py-3 focus:outline-none focus:border-[#4A5D23] transition-colors resize-none" placeholder="Av. Los Pinos 123, Dpto 402, Distrito, Ciudad..."></textarea>
+            <label class="block text-xs font-bold mb-2 uppercase tracking-wider text-brand-secondary">Dirección completa</label>
+            <textarea v-model="newAddress.address_line" rows="3" class="w-full bg-brand-cream/60 border border-brand-primary/20 rounded-xl px-4 py-3 focus:outline-none focus:border-brand-primary text-sm font-medium text-brand-secondary transition-colors resize-none" placeholder="Av. Los Pinos 123, Dpto 402..."></textarea>
           </div>
           <div>
-            <label class="block text-sm font-bold mb-2">Referencia</label>
-            <input v-model="newAddress.reference" type="text" class="w-full bg-[#F4F1E1] border border-[#4A5D23]/20 rounded-xl px-4 py-3 focus:outline-none focus:border-[#4A5D23] transition-colors" placeholder="Frente al parque">
+            <label class="block text-xs font-bold mb-2 uppercase tracking-wider text-brand-secondary">Referencia</label>
+            <input v-model="newAddress.reference" type="text" class="w-full bg-brand-cream/60 border border-brand-primary/20 rounded-xl px-4 py-3 focus:outline-none focus:border-brand-primary text-sm font-medium text-brand-secondary transition-colors" placeholder="Frente al parque principal">
           </div>
           <button 
             @click="handleSaveAddress" 
             :disabled="isSavingAddress || !newAddress.label || !newAddress.address_line"
-            class="w-full bg-[#4A5D23] text-white font-bold py-4 rounded-xl mt-2 hover:bg-[#3C4A1C] transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            class="w-full bg-brand-primary text-white font-bold py-4 rounded-xl mt-2 hover:bg-brand-secondary transition-colors shadow-soft-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer text-sm uppercase tracking-wider"
           >
-            <Icon v-if="isSavingAddress" name="lucide:loader-2" class="w-5 h-5 animate-spin" />
+            <Icon v-if="isSavingAddress" name="lucide:loader-2" class="w-4 h-4 animate-spin" />
             {{ isSavingAddress ? 'Guardando...' : 'Guardar Dirección' }}
           </button>
         </div>

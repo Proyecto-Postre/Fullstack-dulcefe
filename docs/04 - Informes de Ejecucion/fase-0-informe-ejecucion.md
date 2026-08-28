@@ -1,8 +1,8 @@
-# Informe Didáctico y Técnico — Fase 0: Plataforma y Línea Base
+﻿# Informe Didáctico y Técnico — Fase 0: Plataforma y Línea Base
 
 **Estado:** ✅ Completado y Verificado en Build  
 **Fecha:** 25 de Agosto, 2026  
-**Documento de referencia:** [`docs/architecture-refactor-plan.md`](file:///d:/Antigravity%20Proyects/ProyectoPostre/fullstack_dulcefe/docs/architecture-refactor-plan.md) (§10, §15, §19 PR-0, §20.1)  
+**Documento de referencia:** [[architecture-refactor-plan]] (§10, §15, §19 PR-0, §20.1)  
 **Proyecto:** Dulce Fe (E-commerce y ERP de Pastelería)  
 **Entrega:** PR-0 (Configuración, Seguridad de Entorno y Línea Base)
 

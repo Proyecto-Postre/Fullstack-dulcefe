@@ -1,8 +1,8 @@
-# Informe Didáctico y Técnico — Fase 1 (PR-1b): Guards de Servidor y Blindaje de APIs
+﻿# Informe Didáctico y Técnico — Fase 1 (PR-1b): Guards de Servidor y Blindaje de APIs
 
 **Estado:** ✅ Completado y Verificado en Build  
 **Fecha:** 26 de Agosto, 2026  
-**Documento de referencia:** [`docs/architecture-refactor-plan.md`](file:///d:/Antigravity%20Proyects/ProyectoPostre/fullstack_dulcefe/docs/architecture-refactor-plan.md) (§5 S2 y S3, §9.3, §10 Fase 1 pasos 4-5, §14.4, §14.5, §19 PR-1b, §20.1 V5, V6 y V7)  
+**Documento de referencia:** [[architecture-refactor-plan]] (§5 S2 y S3, §9.3, §10 Fase 1 pasos 4-5, §14.4, §14.5, §19 PR-1b, §20.1 V5, V6 y V7)  
 **Rama activa:** `feat/fase-01-restructuration_proyect`  
 **Entrega:** PR-1b (Seguridad Backend P0 — Guards `require-user` y `require-admin`)
 
@@ -155,7 +155,7 @@ Si un endpoint necesita validar al usuario varias veces durante la misma petici�
 
 ---
 
-## 5. Validación del Checklist Oficial ([§20.1](file:///d:/Antigravity%20Proyects/ProyectoPostre/fullstack_dulcefe/docs/architecture-refactor-plan.md#L1115))
+## 5. Validación del Checklist Oficial ([[§20.1]])
 
 | ID | Verificación requerida | Estado | Evidencia |
 | :---: | :--- | :---: | :--- |
@@ -165,7 +165,7 @@ Si un endpoint necesita validar al usuario varias veces durante la misma petici�
 
 ---
 
-## 6. Próximo Paso en el Plan Maestro: Fase 1 — PR-1c ([§19](file:///d:/Antigravity%20Proyects/ProyectoPostre/fullstack_dulcefe/docs/architecture-refactor-plan.md#L1096))
+## 6. Próximo Paso en el Plan Maestro: Fase 1 — PR-1c ([[§19]])
 
 Ahora que el backend tiene guardianes estrictos, el siguiente paso es **blindar la base de datos y el estado global de la app**:
 1. **Store de Pinia (`app/stores/auth.ts` — Cierre S5):** Asegurar que `isAdmin` en el frontend solo lea `profile.value?.is_admin` de la base de datos y nunca acepte metadatos del JWT.

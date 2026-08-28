@@ -260,6 +260,12 @@ function getMaterialIcon(name: string): string {
 
   return 'lucide:box'
 }
+
+function onSearchBlur() {
+  setTimeout(() => {
+    isSearchFocused.value = false
+  }, 200)
+}
 </script>
 
 <template>
@@ -275,7 +281,7 @@ function getMaterialIcon(name: string): string {
       
       <div class="flex flex-wrap items-center gap-3">
         <!-- Buscador Inteligente con Sugerencias en Tiempo Real -->
-        <div class="relative flex-1 sm:w-72" @focusin="isSearchFocused = true" @blur="setTimeout(() => isSearchFocused = false, 200)">
+        <div class="relative flex-1 sm:w-72" @focusin="isSearchFocused = true" @blur="onSearchBlur">
           <div class="relative flex items-center">
             <Icon name="lucide:search" class="w-4 h-4 text-[#4A5D23]/50 absolute left-3.5 pointer-events-none" />
             <input 

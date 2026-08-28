@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { toast } from 'vue-sonner'
 
@@ -87,7 +87,7 @@ async function handleAddRecipeItem() {
         quantity_used: Number(newRecipeItem.value.quantity_used)
       }
     })
-    toast.success('Insumo agregado a la receta', { icon: '🌾' })
+    toast.success('Insumo agregado a la receta')
     newRecipeItem.value = { raw_material_id: '', quantity_used: '' }
     await fetchRecipe()
   } catch (err: any) {
@@ -126,7 +126,7 @@ function exportToExcel() {
   
   const url = `/api/recipes/export?${params.toString()}`
   window.location.href = url
-  toast.success('Generando reporte Excel...', { description: 'El archivo descargará en breve.', icon: '📊' })
+  toast.success('Generando reporte Excel...', { description: 'El archivo descargará en breve.' })
   
   setTimeout(() => {
     isExporting.value = false
@@ -150,7 +150,7 @@ async function publishProduct() {
     if (res.success) {
       activeProduct.value = null
       emit('refresh-catalog')
-      toast.success('¡Producto actualizado y publicado en vitrina!', { icon: '🍰' })
+      toast.success('¡Producto actualizado y publicado en vitrina!')
     }
   } catch (err: any) {
     toast.error('Error al publicar', { description: err.data?.statusMessage || err.message })

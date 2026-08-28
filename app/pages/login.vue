@@ -64,8 +64,9 @@ const handleSubmit = async () => {
     } else {
       navigateTo('/')
     }
-  } catch (error: any) {
-    errorMessage.value = error.message || 'Ocurrió un error inesperado.'
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : 'Ocurrió un error inesperado al autenticar.'
+    errorMessage.value = msg
   } finally {
     isLoading.value = false
   }
@@ -73,53 +74,53 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#F4F1E1] font-inter flex items-center justify-center p-6">
+  <div class="flex items-center justify-center py-16 px-6">
     <div class="w-full max-w-md">
       
       <!-- Header -->
       <div class="text-center mb-8">
         <NuxtLink to="/" class="inline-block">
-          <h1 class="text-4xl font-playfair font-black text-[#2A321B] hover:text-[#4A5D23] transition-colors">Dulce Fe</h1>
+          <h1 class="text-4xl font-playfair font-black text-brand-secondary hover:text-brand-primary transition-colors">Dulce Fe</h1>
         </NuxtLink>
-        <p class="text-[#4A5D23] font-medium mt-2">
-          {{ isLogin ? 'Bienvenido de vuelta' : 'Únete a nuestra familia dulce' }}
+        <p class="text-brand-primary font-medium mt-2">
+          {{ isLogin ? 'Bienvenido de vuelta a tu pastelería favorita' : 'Únete a nuestra familia dulce' }}
         </p>
       </div>
 
       <!-- Tarjeta de Formulario Premium Soft -->
-      <div class="bg-white/90 backdrop-blur-md border border-[#4A5D23]/10 rounded-[2rem] p-8 shadow-xl">
+      <div class="bg-surface/90 backdrop-blur-md border border-brand-primary/10 rounded-[2rem] p-8 shadow-soft-lg">
         
         <form @submit.prevent="handleSubmit" class="space-y-5">
           
           <!-- Nombre (Solo Registro) -->
           <div v-if="!isLogin" class="space-y-2 animate-pop">
-            <label for="fullName" class="block text-sm font-bold text-[#2A321B] uppercase tracking-wider">Nombre Completo</label>
+            <label for="fullName" class="block text-sm font-bold text-brand-secondary uppercase tracking-wider">Nombre Completo</label>
             <input 
               id="fullName"
               v-model="fullName"
               type="text" 
               required
               placeholder="Ej. María Pérez"
-              class="w-full bg-white border border-[#4A5D23]/20 rounded-xl px-4 py-3 text-[#2A321B] font-medium focus:outline-none focus:ring-2 focus:ring-[#4A5D23] focus:border-transparent transition-all placeholder:text-[#4A5D23]/40 shadow-sm"
+              class="w-full bg-surface border border-brand-primary/20 rounded-xl px-4 py-3 text-brand-secondary font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent transition-all placeholder:text-brand-primary/40 shadow-soft-sm"
             >
           </div>
 
           <!-- Email -->
           <div class="space-y-2">
-            <label for="email" class="block text-sm font-bold text-[#2A321B] uppercase tracking-wider">Correo Electrónico</label>
+            <label for="email" class="block text-sm font-bold text-brand-secondary uppercase tracking-wider">Correo Electrónico</label>
             <input 
               id="email"
               v-model="email"
               type="email" 
               required
               placeholder="tu@correo.com"
-              class="w-full bg-white border border-[#4A5D23]/20 rounded-xl px-4 py-3 text-[#2A321B] font-medium focus:outline-none focus:ring-2 focus:ring-[#4A5D23] focus:border-transparent transition-all placeholder:text-[#4A5D23]/40 shadow-sm"
+              class="w-full bg-surface border border-brand-primary/20 rounded-xl px-4 py-3 text-brand-secondary font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent transition-all placeholder:text-brand-primary/40 shadow-soft-sm"
             >
           </div>
 
           <!-- Contraseña -->
           <div class="space-y-2">
-            <label for="password" class="block text-sm font-bold text-[#2A321B] uppercase tracking-wider">Contraseña</label>
+            <label for="password" class="block text-sm font-bold text-brand-secondary uppercase tracking-wider">Contraseña</label>
             <div class="relative">
               <input 
                 id="password"
@@ -127,12 +128,12 @@ const handleSubmit = async () => {
                 :type="showPassword ? 'text' : 'password'" 
                 required
                 placeholder="••••••••"
-                class="w-full bg-white border border-[#4A5D23]/20 rounded-xl px-4 py-3 pr-12 text-[#2A321B] font-medium focus:outline-none focus:ring-2 focus:ring-[#4A5D23] focus:border-transparent transition-all placeholder:text-[#4A5D23]/40 shadow-sm"
+                class="w-full bg-surface border border-brand-primary/20 rounded-xl px-4 py-3 pr-12 text-brand-secondary font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent transition-all placeholder:text-brand-primary/40 shadow-soft-sm"
               >
               <button
                 type="button"
                 @click="showPassword = !showPassword"
-                class="absolute right-4 top-1/2 -translate-y-1/2 text-[#4A5D23]/50 hover:text-[#2A321B] transition-colors"
+                class="absolute right-4 top-1/2 -translate-y-1/2 text-brand-primary/50 hover:text-brand-secondary transition-colors cursor-pointer"
               >
                 <Icon :name="showPassword ? 'lucide:eye-off' : 'lucide:eye'" class="w-5 h-5" />
               </button>
@@ -140,7 +141,7 @@ const handleSubmit = async () => {
           </div>
 
           <!-- Mensaje de Error -->
-          <div v-if="errorMessage" class="p-3 bg-red-50 border border-red-200 rounded-xl text-red-800 text-sm font-medium animate-pop shadow-sm">
+          <div v-if="errorMessage" class="p-3 bg-red-50 border border-status-danger/20 rounded-xl text-status-danger text-sm font-medium animate-pop shadow-soft-sm">
             {{ errorMessage }}
           </div>
 
@@ -148,7 +149,7 @@ const handleSubmit = async () => {
           <button 
             type="submit"
             :disabled="isLoading"
-            class="w-full bg-[#4A5D23] text-white font-bold py-4 rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 hover:bg-[#3C4A1C] active:translate-y-0 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm uppercase tracking-widest mt-4"
+            class="w-full bg-brand-primary text-white font-bold py-4 rounded-xl shadow-soft-md hover:shadow-soft-lg hover:-translate-y-0.5 hover:bg-brand-secondary active:translate-y-0 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm uppercase tracking-widest mt-4 cursor-pointer"
           >
             <Icon v-if="isLoading" name="lucide:loader-2" class="w-6 h-6 animate-spin" />
             <span v-else>{{ isLogin ? 'Iniciar Sesión' : 'Crear Cuenta' }}</span>
@@ -159,7 +160,7 @@ const handleSubmit = async () => {
         <div class="mt-6 text-center">
           <button 
             @click.prevent="toggleMode"
-            class="text-[#4A5D23] font-bold hover:text-[#2A321B] transition-colors underline decoration-2 underline-offset-4"
+            class="text-brand-primary font-bold hover:text-brand-secondary transition-colors underline decoration-2 underline-offset-4 cursor-pointer text-sm"
           >
             {{ isLogin ? '¿No tienes cuenta? Regístrate aquí' : '¿Ya tienes cuenta? Inicia sesión' }}
           </button>

@@ -19,13 +19,13 @@ export default defineEventHandler(async (event) => {
   await requireAdmin(event)
 
   const query = getQuery(event)
-  const productId = query.productId as string
+  const productId = Number(query.productId)
   const packaging = Number(query.packaging || 0)
   const utilities = Number(query.utilities || 0)
   const labor = Number(query.labor || 0)
 
-  if (!productId) {
-    throw createError({ statusCode: 400, statusMessage: 'Falta el ID del producto.' })
+  if (!productId || isNaN(productId)) {
+    throw createError({ statusCode: 400, statusMessage: 'Falta el ID del producto o es inválido.' })
   }
 
   const supabase = await serverSupabaseClient<Database>(event)

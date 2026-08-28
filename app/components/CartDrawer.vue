@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { useCartStore } from '~/stores/cart'
 import { useConfetti } from '~/composables/useConfetti'
 import { toast } from 'vue-sonner'
@@ -9,8 +9,7 @@ const { triggerConfetti } = useConfetti()
 function handleRemoveItem(productId: string | number, name: string) {
   cartStore.removeFromCart(productId)
   toast.info('Producto eliminado', {
-    description: `${name} fue retirado de tu pedido.`,
-    icon: '🗑️'
+    description: `${name} fue retirado de tu pedido.`
   })
 }
 
