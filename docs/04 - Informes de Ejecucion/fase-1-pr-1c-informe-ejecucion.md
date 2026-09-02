@@ -1,8 +1,8 @@
-# Informe Didáctico y Técnico — Fase 1 (PR-1c): Seguridad en Store Pinia y Migración RLS en Base de Datos
+﻿# Informe Didáctico y Técnico — Fase 1 (PR-1c): Seguridad en Store Pinia y Migración RLS en Base de Datos
 
 **Estado:** ✅ Completado y Verificado  
 **Fecha:** 26 de Agosto, 2026  
-**Documento de referencia:** [`docs/architecture-refactor-plan.md`](file:///d:/Antigravity%20Proyects/ProyectoPostre/fullstack_dulcefe/docs/architecture-refactor-plan.md) (§5 S4, S5, S10, S12, §10 Tareas 6-7, §12.3, §19 PR-1c, §20.1 V8, V9 y V10)  
+**Documento de referencia:** [[architecture-refactor-plan]] (§5 S4, S5, S10, S12, §10 Tareas 6-7, §12.3, §19 PR-1c, §20.1 V8, V9 y V10)  
 **Rama activa:** `feat/fase-01-restructuration_proyect`  
 **Entrega:** PR-1c (Seguridad Frontend Pinia + Migración SQL RLS en PostgreSQL)
 
@@ -58,7 +58,7 @@ Imagina un banco que tiene guardias de seguridad en la puerta de entrada (nuestr
 
 ---
 
-### 2.3 [`docs/sql/README.md`](file:///d:/Antigravity%20Proyects/ProyectoPostre/fullstack_dulcefe/docs/sql/README.md) [NUEVO] — Gobernanza SQL (Cierre S12)
+### 2.3 [[sql/README]] [NUEVO] — Gobernanza SQL (Cierre S12)
 
 * **¿Qué problema existía?**  
   Había 8 archivos `.sql` sueltos en `docs/sql/` ejecutados manualmente sin trazabilidad ni orden de precedencia.
@@ -77,7 +77,7 @@ Cuando una función corre como `SECURITY DEFINER`, adquiere permisos de superusu
 
 ---
 
-## 4. Validación del Checklist Oficial ([§20.1](file:///d:/Antigravity%20Proyects/ProyectoPostre/fullstack_dulcefe/docs/architecture-refactor-plan.md#L1115))
+## 4. Validación del Checklist Oficial ([[§20.1]])
 
 | ID | Verificación requerida | Estado | Evidencia |
 | :---: | :--- | :---: | :--- |
@@ -87,7 +87,7 @@ Cuando una función corre como `SECURITY DEFINER`, adquiere permisos de superusu
 
 ---
 
-## 5. Próximo Paso en el Plan Maestro: Fase 1 — PR-1d ([§19](file:///d:/Antigravity%20Proyects/ProyectoPostre/fullstack_dulcefe/docs/architecture-refactor-plan.md#L1097))
+## 5. Próximo Paso en el Plan Maestro: Fase 1 — PR-1d ([[§19]])
 
 Con las tres capas de seguridad completadas (Nitro guards, Pinia store y PostgreSQL RLS), el siguiente subpaso de la Fase 1 es:
 1. **Upload seguro de imágenes (`server/api/products/upload.post.ts` — Cierre S7 y S8):** Validación rigurosa de Magic Bytes en cabeceras de imagen, límite de tamaño a 5MB y sanitización de nombres de archivo.

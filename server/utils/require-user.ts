@@ -29,6 +29,8 @@ export async function requireUser(event: H3Event): Promise<User> {
   }
 
   // 3. Cachear en el contexto del evento
-  event.context.user = user
-  return user
+  if (event.context) {
+    event.context.user = user
+  }
+  return user as unknown as User
 }

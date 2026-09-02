@@ -1,4 +1,4 @@
-# 📄 PLAN MAESTRO DULCE FE (MASTER BLUEPRINT)
+﻿# 📄 PLAN MAESTRO DULCE FE (MASTER BLUEPRINT)
 
 > **Ecosistema Digital de Repostería Artesanal: E-Commerce & ERP Financiero-Operativo**  
 > **Versión:** 1.1.0  
@@ -292,7 +292,7 @@ gantt
 
 ### 📌 Documentos Complementarios en `/docs`
 
-1. **[plan-maestro.md](file:///c:/Users/PRUEBA/Documents/Visual%20Proyects/Fullstack-dulcefe/docs/plan-maestro.md):** Especificación de producto, visión y roadmap.
-2. **[arquitectura-patrones.md](file:///c:/Users/PRUEBA/Documents/Visual%20Proyects/Fullstack-dulcefe/docs/arquitectura-patrones.md):** Guía profunda de arquitectura de software, patrones de diseño y flujo de datos.
-3. **[formulas-costeo.md](file:///c:/Users/PRUEBA/Documents/Visual%20Proyects/Fullstack-dulcefe/docs/formulas-costeo.md):** Algoritmos y fórmulas matemáticas para el escandallo.
-4. **[componentes-arquitectura.md](file:///c:/Users/PRUEBA/Documents/Visual%20Proyects/Fullstack-dulcefe/docs/componentes-arquitectura.md):** Estructura y convenciones de componentes Vue 3.
+1. **[[plan-maestro]]:** Especificación de producto, visión y roadmap.
+2. **[[arquitectura-patrones]]:** Guía profunda de arquitectura de software, patrones de diseño y flujo de datos.
+3. **[[formulas-costeo]]:** Algoritmos y fórmulas matemáticas para el escandallo.
+4. **[[componentes-arquitectura]]:** Estructura y convenciones de componentes Vue 3.

@@ -1,41 +1,85 @@
 import { serverSupabaseClient } from '#supabase/server'
+import { randomUUID } from 'node:crypto'
+import type { Database } from '~/types/database.types'
+import { validateImageBuffer } from '../../utils/image-validator'
 
 export default defineEventHandler(async (event) => {
-  // 🔒 Validación de privilegios de administrador (Fase 1 - PR-1b)
+  // 1. 🔒 Validación de privilegios de administrador (Fase 1 - PR-1b)
   await requireAdmin(event)
 
   try {
-    const supabase = await serverSupabaseClient(event)
+    const supabase = await serverSupabaseClient<Database>(event)
     const formData = await readMultipartFormData(event)
     
     if (!formData || formData.length === 0) {
-      throw createError({ statusCode: 400, statusMessage: 'No se envió ningún archivo' })
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'Bad Request',
+        data: {
+          error: {
+            code: 'MISSING_FILE',
+            message: 'No se envió ningún archivo en el formulario multipart.'
+          }
+        }
+      })
     }
 
     const file = formData.find(item => item.name === 'file' && item.filename)
     if (!file || !file.data) {
-      throw createError({ statusCode: 400, statusMessage: 'Archivo inválido o corrupto' })
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'Bad Request',
+        data: {
+          error: {
+            code: 'INVALID_FILE',
+            message: 'El campo file no contiene datos válidos.'
+          }
+        }
+      })
     }
 
-    // Generar un nombre único para el archivo
-    const fileExt = file.filename?.split('.').pop() || 'jpg'
-    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 15)}.${fileExt}`
+    // 2. 🛡️ Validación estricta por Magic Bytes y tamaño máximo de 2 MB (Fase 1 - PR-1d)
+    const validation = validateImageBuffer(file.data, file.data.length)
+    if (!validation.valid || !validation.extension || !validation.mimeType) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'Bad Request',
+        data: {
+          error: validation.error || {
+            code: 'INVALID_IMAGE',
+            message: 'El archivo enviado no es una imagen válida o está dañado.'
+          }
+        }
+      })
+    }
+
+    // 3. Generar un nombre único e impredecible usando UUIDv4 para prevenir colisiones y directory traversal
+    const fileName = `${randomUUID()}.${validation.extension}`
     const filePath = `${fileName}`
 
-    // Subir a Supabase Storage
-    const { data, error } = await supabase.storage
+    // 4. Subir a Supabase Storage con Content-Type canónico
+    const { error: uploadError } = await supabase.storage
       .from('product_images')
       .upload(filePath, file.data, {
-        contentType: file.type || 'image/jpeg',
+        contentType: validation.mimeType,
         cacheControl: '3600',
         upsert: false
       })
 
-    if (error) {
-      throw createError({ statusCode: 500, statusMessage: 'Error al subir a Supabase: ' + error.message })
+    if (uploadError) {
+      throw createError({
+        statusCode: 500,
+        statusMessage: 'Internal Server Error',
+        data: {
+          error: {
+            code: 'STORAGE_UPLOAD_ERROR',
+            message: `Error al almacenar la imagen en Supabase Storage: ${uploadError.message}`
+          }
+        }
+      })
     }
 
-    // Obtener URL pública
+    // 5. Obtener URL pública oficial
     const { data: { publicUrl } } = supabase.storage
       .from('product_images')
       .getPublicUrl(filePath)
@@ -48,10 +92,16 @@ export default defineEventHandler(async (event) => {
     if (error && typeof error === 'object' && 'statusCode' in error) {
       throw error
     }
-    const message = error instanceof Error ? error.message : 'Error interno al subir imagen'
+    const message = error instanceof Error ? error.message : 'Error interno al procesar la subida de imagen'
     throw createError({
       statusCode: 500,
-      statusMessage: message
+      statusMessage: 'Internal Server Error',
+      data: {
+        error: {
+          code: 'IMAGE_UPLOAD_EXCEPTION',
+          message
+        }
+      }
     })
   }
 })

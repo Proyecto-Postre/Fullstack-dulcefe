@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { onMounted } from 'vue'
 import { Toaster } from 'vue-sonner'
 import { useAuthStore } from '~/stores/auth'
@@ -11,8 +11,10 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
-    <NuxtPage />
+  <div class="min-h-screen bg-brand-cream font-inter text-brand-secondary selection:bg-brand-primary selection:text-brand-cream">
+    <NuxtLayout>
+      <NuxtPage />
+    </NuxtLayout>
     <Toaster 
       position="top-right" 
       richColors 
@@ -21,8 +23,8 @@ onMounted(() => {
         style: {
           fontFamily: 'Inter, sans-serif',
           borderRadius: '12px',
-          border: '2px solid #2A321B',
-          boxShadow: '4px 4px 0px #2A321B'
+          border: '1px solid rgba(74, 93, 35, 0.2)',
+          boxShadow: '0 4px 16px -4px rgba(42, 50, 27, 0.1)'
         }
       }" 
     />
@@ -30,7 +32,7 @@ onMounted(() => {
 </template>
 
 <style>
-/* Estilos globales para los scrollbars (Neo-Brutalismo Botánico) */
+/* Estilos globales para los scrollbars */
 .custom-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -63,7 +65,7 @@ input[type=number] {
   transform: translateY(-12px);
 }
 
-/* Animaciones de Lista Sedosas y Suaves (Estilo Admin Dulce Fe) */
+/* Animaciones de Lista */
 .list-move,
 .list-enter-active,
 .list-leave-active {

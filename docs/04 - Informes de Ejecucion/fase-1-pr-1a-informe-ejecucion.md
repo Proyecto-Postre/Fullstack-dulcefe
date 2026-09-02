@@ -1,8 +1,8 @@
-# Informe Didáctico y Técnico — Fase 1 (PR-1a): Limpieza Inmediata, Cierre de Agujero S1 y Desactivación de Carrito
+﻿# Informe Didáctico y Técnico — Fase 1 (PR-1a): Limpieza Inmediata, Cierre de Agujero S1 y Desactivación de Carrito
 
 **Estado:** ✅ Completado y Verificado en Build (Exit code 0)  
 **Fecha:** 25 de Agosto, 2026  
-**Documento de referencia:** [`docs/architecture-refactor-plan.md`](file:///d:/Antigravity%20Proyects/ProyectoPostre/fullstack_dulcefe/docs/architecture-refactor-plan.md) (§5 S1, §11 Código Muerto, §14.5, §19 PR-1a, §20.1 V4 y V11)  
+**Documento de referencia:** [[architecture-refactor-plan]] (§5 S1, §11 Código Muerto, §14.5, §19 PR-1a, §20.1 V4 y V11)  
 **Rama activa:** `feat/fase-01-restructuration_proyect`  
 **Entrega:** PR-1a (Seguridad P0, Limpieza de Superficie y Dependencias)
 
@@ -155,7 +155,7 @@ Ejecutamos la prueba de compilación completa tras los cambios:
 
 ---
 
-## 6. Validación del Checklist Oficial ([§20.1](file:///d:/Antigravity%20Proyects/ProyectoPostre/fullstack_dulcefe/docs/architecture-refactor-plan.md#L1115))
+## 6. Validación del Checklist Oficial ([[§20.1]])
 
 | ID | Verificación requerida | Estado | Evidencia |
 | :---: | :--- | :---: | :--- |
@@ -165,7 +165,7 @@ Ejecutamos la prueba de compilación completa tras los cambios:
 
 ---
 
-## 7. Próximo Paso: Fase 1 — PR-1b ([§19](file:///d:/Antigravity%20Proyects/ProyectoPostre/fullstack_dulcefe/docs/architecture-refactor-plan.md#L1095))
+## 7. Próximo Paso: Fase 1 — PR-1b ([[§19]])
 
 Con la casa limpia, el siguiente paso es **blindar las mutaciones del backend**:
 1. Crear los guardianes de autorización en servidor: `server/utils/require-user.ts` y `server/utils/require-admin.ts`.
