@@ -1,4 +1,4 @@
-﻿---
+---
 tipo: api-endpoint
 metodo: DELETE
 ruta: /api/cart/:productId

@@ -7,7 +7,7 @@ ultima_actualizacion: 2026-08-26
 
 # 🍰 Dulce Fe — Centro de Comando
 
-> **Estado:** 🟢 Fase 1 (Seguridad & RLS) | 🟡 Fase 2 (E-Commerce & ERP)  
+> **Estado:** 🟢 Fase 1 (Seguridad & RLS) | 🟢 Fase 2 (Shell Visual & Layouts) | 🟡 Fase 3 (PR-3a y PR-3b Completados - Checkout Seguro & Frontend Integrado)
 > **Vista Gráfica:** Presiona `Ctrl + G` en Obsidian para el mapa global.
 
 ---
@@ -92,6 +92,7 @@ flowchart TD
 * [[fase-1-pr-1c-informe-ejecucion]] — Blindaje de `isAdmin` en Pinia y migración SQL de RLS en Supabase.
 * [[fase-1-pr-1d-informe-ejecucion]] — Upload seguro con Magic Bytes, script `db:types` y suite de tests Vitest.
 * [[fase-2-informe-ejecucion]] — Shell Visual, Design System, Layouts `default`/`admin` y Componentes Atómicos UI.
+* [[fase-3-informe-ejecucion]] — Checkout Seguro, Idempotencia Concurrente, Dinero en Céntimos y Tablas de Apoyo.
 
 ### 📁 05 - Decisiones Técnicas (ADR)
 * [[ADR-001-stack-nuxt4-fullstack]] — Monolito Modular Nuxt 4 vs Frontend/Backend separados.

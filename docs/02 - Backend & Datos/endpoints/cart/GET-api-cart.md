@@ -1,4 +1,4 @@
-﻿---
+---
 tipo: api-endpoint
 metodo: GET
 ruta: /api/cart
