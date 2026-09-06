@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import type { ProfileOrder } from "~/types/profile";
 
 const props = defineProps<{
   show: boolean;
-  order: any | null;
+  order: ProfileOrder | null;
 }>();
 
 const emit = defineEmits<{
@@ -26,7 +27,8 @@ const formatDate = (dateString: string) => {
   }).format(date);
 };
 
-const getStatusText = (status: string) => {
+const getStatusText = (status: string | null) => {
+  if (!status) return 'Desconocido'
   const map: Record<string, string> = {
     pending: 'Pendiente',
     processing: 'En Preparación',
@@ -36,7 +38,8 @@ const getStatusText = (status: string) => {
   return map[status] || status
 }
 
-const getStatusColor = (status: string) => {
+const getStatusColor = (status: string | null) => {
+  if (!status) return 'bg-gray-100 text-gray-800'
   const map: Record<string, string> = {
     pending: 'bg-orange-100 text-orange-800',
     processing: 'bg-blue-100 text-blue-800',
