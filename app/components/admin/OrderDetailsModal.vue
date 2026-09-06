@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { useSupabaseClient } from '#imports'
-
-const supabase = useSupabaseClient()
 
 const props = defineProps<{
   show: boolean;
@@ -47,32 +44,26 @@ async function saveChanges() {
   isSaving.value = true
   
   try {
-    // 1. Update Profile (Name and Phone)
-    if (props.order.user_id) {
-      await (supabase as any)
-        .from('profiles')
-        .update({ 
-          full_name: editData.value.full_name,
-          phone: editData.value.phone
-        })
-        .eq('id', props.order.user_id)
-    }
-
-    // 2. Update Order (Date, Time, Notes)
-    await (supabase as any)
-      .from('orders')
-      .update({
+    await $fetch(`/api/admin/orders/${props.order.id}`, {
+      method: 'PATCH',
+      body: {
+        customer_name: editData.value.full_name,
+        customer_phone: editData.value.phone,
+        full_name: editData.value.full_name,
+        phone: editData.value.phone,
         delivery_date: editData.value.delivery_date || null,
         delivery_time: editData.value.delivery_time || null,
         notes: editData.value.notes || null
-      })
-      .eq('id', props.order.id)
+      }
+    })
 
     // Update local state optimistically
     if (props.order.profiles) {
       props.order.profiles.full_name = editData.value.full_name
       props.order.profiles.phone = editData.value.phone
     }
+    props.order.customer_name = editData.value.full_name
+    props.order.customer_phone = editData.value.phone
     props.order.delivery_date = editData.value.delivery_date
     props.order.delivery_time = editData.value.delivery_time
     props.order.notes = editData.value.notes

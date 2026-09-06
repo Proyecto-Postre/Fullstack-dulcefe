@@ -1,12 +1,11 @@
-import { serverSupabaseClient } from '#supabase/server'
-import type { Database } from '~/types/database.types'
+import { getOrCreateRequestId } from '../../utils/request-id'
+import { RecipeService } from '../../services/recipe.service'
 
 export default defineEventHandler(async (event) => {
-  // 🔒 Validación de privilegios de administrador (Fase 1 - PR-1b)
-  await requireAdmin(event)
+  const requestId = getOrCreateRequestId(event)
 
   const body = await readBody(event)
-  const { product_id, raw_material_id, quantity_used } = body
+  const { product_id, raw_material_id, quantity_used } = body || {}
 
   if (!product_id || !raw_material_id || !quantity_used) {
     throw createError({ 
@@ -15,20 +14,15 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const supabase = await serverSupabaseClient<Database>(event)
-
-  const { data, error } = await supabase
-    .from('recipe_items')
-    .insert([{
+  const data = await RecipeService.saveRecipeItem(
+    event,
+    {
       product_id: Number(product_id),
       raw_material_id: Number(raw_material_id),
       quantity_used: Number(quantity_used)
-    }])
-    .select()
+    },
+    requestId
+  )
 
-  if (error) {
-    throw createError({ statusCode: 500, statusMessage: 'Error al agregar insumo a la receta: ' + error.message })
-  }
-
-  return { success: true, data: data }
-})
+  return { success: true, data: [data] }
+})

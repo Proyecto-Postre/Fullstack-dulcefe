@@ -51,8 +51,31 @@ Alimenta el cerebro financiero de escandallos ([[formulas-costeo]]).
 
 ---
 
-## 🛒 4. Módulo: Carrito de Compras (`/api/cart`)
-* [[GET-api-cart|GET /api/cart]] — 👤 Carrito de compras para usuarios autenticados.
-* [[POST-api-cart|POST /api/cart]] — 👤 Agregar o actualizar cantidad de postres en el carrito.
-* [[DELETE-api-cart-productId|DELETE /api/cart/:productId]] — 👤 Quitar postre del carrito.
-*(Nota: Para visitantes anónimos el carrito opera 100% en cliente con Pinia según [[ADR-006-carrito-cliente-pinia-cookies]]).*
+## 🛒 4. Módulo: Carrito de Compras (`/api/cart`) [DESACTIVADO 410 GONE]
+* [[GET-api-cart|GET /api/cart]] — ⛔ Desactivado (410 GONE). Carrito gestionado 100% en cliente con Pinia según [[ADR-006-carrito-cliente-pinia-cookies]].
+* [[POST-api-cart|POST /api/cart]] — ⛔ Desactivado (410 GONE).
+* [[DELETE-api-cart-productId|DELETE /api/cart/:productId]] — ⛔ Desactivado (410 GONE).
+
+---
+
+## 💳 5. Módulo: Checkout & Pedidos Públicos (`/api/checkout`)
+* [[POST-api-checkout|POST /api/checkout]] — 🌐 Checkout transaccional con precios de servidor en céntimos, soporte de invitados y usuarios registrados, control de idempotencia de 24h y rate limiting por IP.
+
+---
+
+## 📋 6. Módulo: Pedidos & Operaciones Admin (`/api/admin/orders`)
+* [[GET-api-admin-orders|GET /api/admin/orders]] — 🔒 Listado completo de órdenes para el tablero Kanban con relaciones (Solo Admin).
+* [[GET-api-admin-orders-id|GET /api/admin/orders/:id]] — 🔒 Detalle exhaustivo de una orden específica (Solo Admin).
+* [[PATCH-api-admin-orders-id|PATCH /api/admin/orders/:id]] — 🔒 Actualización de datos del cliente, fecha, hora de entrega y notas (Solo Admin).
+* [[PATCH-api-admin-orders-id-status|PATCH /api/admin/orders/:id/status]] — 🔒 Transición de estado de pedidos en Kanban KDS, quiebre atómico de insumos y otorgamiento de puntos (Solo Admin).
+* [[POST-api-admin-orders|POST /api/admin/orders]] — 🔒 Creación de pedidos manuales de mostrador con precios oficiales de servidor y cero perfiles fantasma (Solo Admin).
+
+---
+
+## 🛠️ 7. Módulo: Dominio Administrativo Namespace (`/api/admin/*`)
+Rutas con namespace dedicado que delegan a `CatalogService`, `InventoryService` y `RecipeService`:
+* `/api/admin/products` — Gestión de catálogo delegado a `CatalogService`.
+* `/api/admin/materials` — Gestión de materias primas con kardex delegado a `InventoryService`.
+* `/api/admin/recipes` — Gestión de fichas técnicas delegada a `RecipeService`.
+
+
