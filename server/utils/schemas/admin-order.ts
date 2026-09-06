@@ -5,7 +5,9 @@ const PERU_PHONE_REGEX = /^(?:\+51)?9\d{8}$/
 export const AdminUpdateOrderStatusSchema = z.object({
   status: z.enum(['processing', 'ready', 'completed', 'cancelled'], {
     message: "El estado debe ser 'processing', 'ready', 'completed' o 'cancelled'"
-  })
+  }),
+  cancellation_reason: z.string().trim().min(3, 'El motivo debe tener al menos 3 caracteres').max(200).optional(),
+  restore_stock: z.boolean().optional()
 })
 
 export type AdminUpdateOrderStatusInput = z.infer<typeof AdminUpdateOrderStatusSchema>

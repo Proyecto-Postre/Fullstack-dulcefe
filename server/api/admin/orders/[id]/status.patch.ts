@@ -61,6 +61,10 @@ export default defineEventHandler(async (event) => {
     event,
     orderId.trim(),
     parseResult.data.status,
-    requestId
+    requestId,
+    {
+      cancellation_reason: parseResult.data.cancellation_reason,
+      restore_stock: parseResult.data.restore_stock
+    }
   )
 })

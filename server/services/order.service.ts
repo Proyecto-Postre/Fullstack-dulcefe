@@ -8,6 +8,7 @@ import type { AdminCreateOrderInput } from '../utils/schemas/admin-order'
 import { solesToCents, centsToSoles, calculateLoyaltyPoints } from '../utils/money'
 import { requireAdmin } from '../utils/require-admin'
 import { generateOrderTrackingToken } from '../utils/crypto'
+import { InventoryService } from './inventory.service'
 
 export interface OrderResponseItem {
   product_id: number
@@ -409,7 +410,8 @@ export class OrderService {
     event: H3Event,
     orderId: string,
     newStatus: string,
-    requestId: string
+    requestId: string,
+    options?: { cancellation_reason?: string; restore_stock?: boolean }
   ) {
     const adminUser = await requireAdmin(event)
     const supabase = serverSupabaseServiceRole<Database>(event)
@@ -599,7 +601,15 @@ export class OrderService {
       }
     }
 
-    // 4. Transición a 'completed': Otorgamiento de puntos de lealtad
+    // 4. Transición a 'cancelled': Reversión de stock o declaración de merma (ADR-001 / D1)
+    if (newStatus === 'cancelled' && (order.inventory_processed ?? false)) {
+      const restoreStock = options?.restore_stock ?? true
+      const reason = options?.cancellation_reason || 'Cancelación de pedido en administración'
+      await InventoryService.revertOrderInventory(event, orderId, reason, restoreStock, requestId)
+      inventoryProcessed = false
+    }
+
+    // 5. Transición a 'completed': Otorgamiento de puntos de lealtad
     if (newStatus === 'completed' && !pointsAwarded && order.profile_id) {
       const orderTotalCents = solesToCents(order.total_amount ?? 0)
       const pointsToAward = calculateLoyaltyPoints(orderTotalCents)
