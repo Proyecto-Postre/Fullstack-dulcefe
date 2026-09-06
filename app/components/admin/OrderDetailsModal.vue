@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
+import type { AdminOrder } from "~/types/admin-orders";
 
 const props = defineProps<{
   show: boolean;
-  order: any | null;
+  order: AdminOrder | null;
 }>();
 
 const emit = defineEmits<{
@@ -11,41 +12,44 @@ const emit = defineEmits<{
   (e: "updated"): void;
 }>();
 
-const isEditing = ref(false)
-const isSaving = ref(false)
+const isEditing = ref(false);
+const isSaving = ref(false);
 const editData = ref({
-  full_name: '',
-  phone: '',
-  delivery_date: '',
-  delivery_time: '',
-  notes: ''
-})
+  full_name: "",
+  phone: "",
+  delivery_date: "",
+  delivery_time: "",
+  notes: "",
+});
 
-watch(() => props.show, (newVal) => {
-  if (newVal && props.order) {
-    isEditing.value = false
-    editData.value = {
-      full_name: props.order.profiles?.full_name || '',
-      phone: props.order.profiles?.phone || '',
-      delivery_date: props.order.delivery_date || '',
-      delivery_time: props.order.delivery_time || '',
-      notes: props.order.notes || ''
+watch(
+  () => props.show,
+  (newVal) => {
+    if (newVal && props.order) {
+      isEditing.value = false;
+      editData.value = {
+        full_name: props.order.profiles?.full_name || props.order.customer_name || "",
+        phone: props.order.profiles?.phone || props.order.customer_phone || "",
+        delivery_date: props.order.delivery_date || "",
+        delivery_time: props.order.delivery_time || "",
+        notes: props.order.notes || "",
+      };
     }
-  }
-})
+  },
+);
 
-function closeModal() {
-  isEditing.value = false
+function closeModal(): void {
+  isEditing.value = false;
   emit("close");
 }
 
-async function saveChanges() {
-  if (!props.order) return
-  isSaving.value = true
-  
+async function saveChanges(): Promise<void> {
+  if (!props.order) return;
+  isSaving.value = true;
+
   try {
     await $fetch(`/api/admin/orders/${props.order.id}`, {
-      method: 'PATCH',
+      method: "PATCH",
       body: {
         customer_name: editData.value.full_name,
         customer_phone: editData.value.phone,
@@ -53,34 +57,36 @@ async function saveChanges() {
         phone: editData.value.phone,
         delivery_date: editData.value.delivery_date || null,
         delivery_time: editData.value.delivery_time || null,
-        notes: editData.value.notes || null
-      }
-    })
+        notes: editData.value.notes || null,
+      },
+    });
 
     // Update local state optimistically
     if (props.order.profiles) {
-      props.order.profiles.full_name = editData.value.full_name
-      props.order.profiles.phone = editData.value.phone
+      props.order.profiles.full_name = editData.value.full_name;
+      props.order.profiles.phone = editData.value.phone;
     }
-    props.order.customer_name = editData.value.full_name
-    props.order.customer_phone = editData.value.phone
-    props.order.delivery_date = editData.value.delivery_date
-    props.order.delivery_time = editData.value.delivery_time
-    props.order.notes = editData.value.notes
+    props.order.customer_name = editData.value.full_name;
+    props.order.customer_phone = editData.value.phone;
+    props.order.delivery_date = editData.value.delivery_date;
+    props.order.delivery_time = editData.value.delivery_time;
+    props.order.notes = editData.value.notes;
 
-    isEditing.value = false
-    emit('updated')
-  } catch (error) {
-    console.error('Error updating order:', error)
-    alert('Hubo un error al guardar los cambios.')
+    isEditing.value = false;
+    emit("updated");
+  } catch (error: unknown) {
+    const fetchErr = error as { data?: { error?: { message?: string } }; message?: string };
+    const msg = fetchErr.data?.error?.message || fetchErr.message || "Hubo un error al guardar los cambios.";
+    alert(msg);
   } finally {
-    isSaving.value = false
+    isSaving.value = false;
   }
 }
 
-const formatDate = (dateString: string) => {
+const formatDate = (dateString: string | null | undefined): string => {
   if (!dateString) return "";
   const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "";
   return new Intl.DateTimeFormat("es-PE", {
     day: "2-digit",
     month: "short",
@@ -90,12 +96,14 @@ const formatDate = (dateString: string) => {
   }).format(date);
 };
 
-const customerName = computed(
-  () => props.order?.profiles?.full_name || "Cliente sin nombre",
+const customerName = computed<string>(
+  () => props.order?.profiles?.full_name || props.order?.customer_name || "Cliente sin nombre",
 );
-const customerPhone = computed(() => props.order?.profiles?.phone || "");
+const customerPhone = computed<string>(
+  () => props.order?.profiles?.phone || props.order?.customer_phone || "",
+);
 
-const openWhatsApp = () => {
+const openWhatsApp = (): void => {
   if (!customerPhone.value) return;
   const phone = customerPhone.value.replace(/\D/g, "");
   const message = encodeURIComponent(
@@ -119,218 +127,280 @@ const openWhatsApp = () => {
       <div
         class="relative w-full max-w-2xl bg-white rounded-[2rem] shadow-2xl overflow-hidden animate-pop flex flex-col max-h-[85vh]"
       >
-        <!-- Header -->
+        <!-- Header del Modal -->
         <div
-          class="p-5 sm:p-6 bg-[#F4F1E1]/30 border-b border-[#4A5D23]/10 flex items-center justify-between shrink-0"
+          class="p-6 bg-[#F4F1E1]/30 border-b border-[#4A5D23]/10 flex items-center justify-between shrink-0"
         >
           <div>
-            <h3
-              class="text-xl font-playfair font-black text-[#2A321B] flex items-center gap-2"
+            <span
+              class="text-[10px] font-bold uppercase tracking-wider text-[#4A5D23]"
+              >Detalles del Pedido</span
             >
-              <Icon name="lucide:receipt" class="w-5 h-5 text-[#4A5D23]" />
-              Detalle del Pedido
+            <h3 class="text-xl font-playfair font-black text-[#2A321B]">
+              #{{ order.id.split("-")[0] }}
             </h3>
-            <p class="text-xs text-[#4A5D23]/70 font-bold mt-1">
-              ID: {{ order.id.split("-")[0] }} •
-              {{ formatDate(order.created_at) }}
-            </p>
           </div>
           <div class="flex items-center gap-2">
             <button
               v-if="!isEditing"
               @click="isEditing = true"
-              class="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-[#4A5D23]/20 text-[#4A5D23] hover:bg-[#F4F1E1] hover:scale-105 active:scale-95 transition-all shadow-sm"
-              title="Editar Pedido"
+              type="button"
+              class="px-3 py-1.5 rounded-lg border border-[#4A5D23]/20 bg-white text-xs font-bold text-[#4A5D23] hover:bg-[#F4F1E1] transition-all flex items-center gap-1 cursor-pointer"
             >
-              <Icon name="lucide:pencil" class="w-4 h-4" />
+              <Icon name="lucide:pencil" class="w-3.5 h-3.5" />
+              Editar
             </button>
             <button
               @click="closeModal"
-              class="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-[#4A5D23]/20 text-[#2A321B] hover:bg-[#e6e2cc] hover:scale-105 active:scale-95 transition-all shadow-sm"
+              type="button"
+              class="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-[#4A5D23]/20 text-[#2A321B] hover:bg-[#e6e2cc] hover:scale-105 active:scale-95 transition-all shadow-sm cursor-pointer"
             >
               <Icon name="lucide:x" class="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        <!-- Body -->
-        <div class="p-5 sm:p-6 overflow-y-auto custom-scrollbar space-y-6 flex-1">
-          <!-- Cliente Info -->
-          <section>
-            <h4
-              class="text-[11px] font-bold text-[#4A5D23] uppercase tracking-widest mb-3"
-            >
-              Datos del Cliente y Entrega
-            </h4>
-            
-            <!-- Modo Edición -->
-            <div v-if="isEditing" class="bg-[#F4F1E1]/30 p-5 rounded-2xl border border-[#4A5D23]/20 space-y-4">
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest mb-1.5">Nombre</label>
-                  <input v-model="editData.full_name" type="text" class="w-full px-3 py-2 bg-white rounded-xl border border-[#4A5D23]/20 focus:outline-none focus:border-[#4A5D23] focus:ring-2 focus:ring-[#4A5D23]/10 text-sm font-bold text-[#2A321B] shadow-sm transition-all" />
-                </div>
-                <div>
-                  <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest mb-1.5">Teléfono</label>
-                  <input v-model="editData.phone" type="text" class="w-full px-3 py-2 bg-white rounded-xl border border-[#4A5D23]/20 focus:outline-none focus:border-[#4A5D23] focus:ring-2 focus:ring-[#4A5D23]/10 text-sm font-bold text-[#2A321B] shadow-sm transition-all" />
-                </div>
-              </div>
+        <!-- Contenido -->
+        <div class="p-6 overflow-y-auto custom-scrollbar space-y-6 flex-1">
+          <!-- Modo Edición Formulario -->
+          <div
+            v-if="isEditing"
+            class="space-y-4 bg-[#F4F1E1]/20 p-4 rounded-xl border border-[#4A5D23]/10"
+          >
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest mb-1.5">Fecha de Entrega</label>
-                <CustomDatePicker v-model="editData.delivery_date" bgClass="bg-white" />
+                <label
+                  class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-wider mb-1"
+                  >Nombre del Cliente</label
+                >
+                <input
+                  v-model="editData.full_name"
+                  type="text"
+                  class="w-full px-3 py-2 bg-white rounded-lg border border-[#4A5D23]/20 text-sm font-bold text-[#2A321B] focus:outline-none focus:border-[#4A5D23]"
+                />
               </div>
               <div>
-                <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest mb-1.5">Hora de Entrega</label>
-                <CustomTimePicker v-model="editData.delivery_time" bgClass="bg-white" />
-              </div>
-            </div>
-            <div>
-              <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest mb-1.5">Notas / Instrucciones</label>
-              <textarea v-model="editData.notes" rows="2" class="w-full px-3 py-2 bg-white rounded-xl border border-[#4A5D23]/20 focus:outline-none focus:border-[#4A5D23] focus:ring-2 focus:ring-[#4A5D23]/10 text-sm font-bold text-[#2A321B] shadow-sm transition-all resize-none"></textarea>
-            </div>
-            <div class="flex justify-end gap-2 pt-2">
-              <button @click="isEditing = false" class="px-4 py-2 rounded-xl text-sm font-bold text-[#4A5D23] hover:bg-[#4A5D23]/10 transition-colors">Cancelar</button>
-              <button @click="saveChanges" :disabled="isSaving" class="px-5 py-2 rounded-xl text-sm font-bold bg-[#4A5D23] text-white hover:bg-[#3C4A1C] shadow-sm transition-all active:translate-y-0.5 active:shadow-none flex items-center gap-2">
-                <Icon v-if="isSaving" name="lucide:loader-2" class="w-4 h-4 animate-spin" />
-                Guardar Cambios
-              </button>
-            </div>
-          </div>
-
-          <!-- Modo Lectura -->
-          <div v-else class="bg-[#F4F1E1]/50 p-5 rounded-2xl border border-[#4A5D23]/10 flex flex-col gap-4">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <div
-                  class="w-12 h-12 rounded-full bg-white border border-[#4A5D23]/20 flex items-center justify-center text-[#4A5D23] shadow-sm"
+                <label
+                  class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-wider mb-1"
+                  >Teléfono (WhatsApp)</label
                 >
-                  <Icon name="lucide:user" class="w-6 h-6" />
-                </div>
-                <div>
-                  <p class="font-black text-[#2A321B] text-base">
-                    {{ customerName }}
-                  </p>
-                  <p class="text-xs text-[#4A5D23]/80 font-medium">
-                    {{ customerPhone || "Sin teléfono registrado" }}
-                  </p>
-                </div>
+                <input
+                  v-model="editData.phone"
+                  type="text"
+                  class="w-full px-3 py-2 bg-white rounded-lg border border-[#4A5D23]/20 text-sm font-bold text-[#2A321B] focus:outline-none focus:border-[#4A5D23]"
+                />
               </div>
-              <button
-                v-if="customerPhone"
-                @click="openWhatsApp"
-                class="flex items-center gap-2 bg-[#25D366] text-white px-3 py-1.5 rounded-xl font-bold text-xs hover:bg-[#20b858] transition-all shadow-sm active:translate-y-0.5 active:shadow-none"
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label
+                  class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-wider mb-1"
+                  >Fecha de Entrega</label
+                >
+                <input
+                  v-model="editData.delivery_date"
+                  type="date"
+                  class="w-full px-3 py-2 bg-white rounded-lg border border-[#4A5D23]/20 text-sm font-bold text-[#2A321B] focus:outline-none focus:border-[#4A5D23]"
+                />
+              </div>
+              <div>
+                <label
+                  class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-wider mb-1"
+                  >Hora de Entrega</label
+                >
+                <input
+                  v-model="editData.delivery_time"
+                  type="time"
+                  class="w-full px-3 py-2 bg-white rounded-lg border border-[#4A5D23]/20 text-sm font-bold text-[#2A321B] focus:outline-none focus:border-[#4A5D23]"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label
+                class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-wider mb-1"
+                >Notas del Pedido</label
               >
-                <Icon name="lucide:message-circle" class="w-3.5 h-3.5" />
-                WhatsApp
+              <textarea
+                v-model="editData.notes"
+                rows="2"
+                class="w-full px-3 py-2 bg-white rounded-lg border border-[#4A5D23]/20 text-sm font-medium text-[#2A321B] focus:outline-none focus:border-[#4A5D23]"
+              ></textarea>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                @click="isEditing = false"
+                class="px-4 py-2 rounded-lg border border-[#4A5D23]/20 text-xs font-bold text-[#2A321B] hover:bg-white transition-all cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                @click="saveChanges"
+                :disabled="isSaving"
+                class="px-4 py-2 rounded-lg bg-[#4A5D23] text-white text-xs font-bold hover:bg-[#3C4A1C] transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                <Icon
+                  v-if="isSaving"
+                  name="lucide:loader-2"
+                  class="w-4 h-4 animate-spin"
+                />
+                {{ isSaving ? "Guardando..." : "Guardar Cambios" }}
               </button>
             </div>
-            
-            <div v-if="order.delivery_date || order.delivery_time || order.notes" class="pt-4 border-t border-dashed border-[#4A5D23]/20 grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div v-if="order.delivery_date || order.delivery_time">
-                <p class="text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest mb-1">Entrega Programada</p>
-                <p class="text-sm font-bold text-[#2A321B] flex items-center gap-1.5">
-                  <Icon name="lucide:calendar-clock" class="w-4 h-4 text-[#4A5D23]" />
-                  {{ order.delivery_date || 'Sin fecha' }} {{ order.delivery_time ? `a las ${order.delivery_time}` : '' }}
-                </p>
-              </div>
-              <div v-if="order.notes">
-                <p class="text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest mb-1">Notas</p>
-                <p class="text-sm font-medium text-[#2A321B] bg-white p-2.5 rounded-lg border border-[#4A5D23]/10 whitespace-pre-wrap">
-                  {{ order.notes }}
-                </p>
-              </div>
-            </div>
           </div>
-        </section>
 
-        <!-- Productos -->
-        <section>
-          <h4
-            class="text-[11px] font-bold text-[#4A5D23] uppercase tracking-widest mb-3"
-          >
-            Productos Solicitados
-          </h4>
-          <div class="border border-[#4A5D23]/10 rounded-xl overflow-hidden">
-            <table class="w-full text-left text-sm">
-              <thead class="bg-[#F4F1E1]/50">
-                <tr>
-                  <th class="px-4 py-3 font-bold text-[#4A5D23]">Cant.</th>
-                  <th class="px-4 py-3 font-bold text-[#4A5D23]">Producto</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-[#4A5D23]/10">
-                <tr
-                  v-for="(item, index) in order.order_items"
-                  :key="index"
-                  class="bg-white"
-                >
-                  <td class="px-4 py-3 font-black text-[#2A321B] w-16">
-                    {{ item.quantity }}x
-                  </td>
-                  <td class="px-4 py-3 font-medium text-[#2A321B]">
-                    {{ item.products?.name || "Producto Desconocido" }}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- Resumen Financiero -->
-        <section>
-          <h4
-            class="text-[11px] font-bold text-[#4A5D23] uppercase tracking-widest mb-3"
-          >
-            Resumen Financiero
-          </h4>
+          <!-- Información del Cliente (Modo Vista) -->
           <div
-            class="bg-[#4A5D23] text-white p-5 rounded-xl shadow-sm flex items-center justify-between"
+            v-else
+            class="bg-[#F4F1E1]/30 p-4 rounded-xl border border-[#4A5D23]/10 flex items-center justify-between"
           >
             <div>
-              <p class="text-white/70 text-xs font-medium mb-1">Total Pagado</p>
-              <p class="text-2xl font-black">
-                S/ {{ Number(order.total_amount).toFixed(2) }}
+              <p
+                class="text-[10px] font-bold uppercase tracking-wider text-[#4A5D23]/60"
+              >
+                Cliente
+              </p>
+              <h4 class="font-bold text-[#2A321B] text-base">
+                {{ customerName }}
+              </h4>
+              <p
+                v-if="customerPhone"
+                class="text-xs text-[#4A5D23] font-medium mt-0.5"
+              >
+                {{ customerPhone }}
               </p>
             </div>
-            <div
-              class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center"
+            <button
+              v-if="customerPhone"
+              @click="openWhatsApp"
+              type="button"
+              class="flex items-center gap-1.5 px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
             >
-              <Icon name="lucide:banknote" class="w-6 h-6 text-white" />
+              <Icon name="lucide:message-circle" class="w-4 h-4" />
+              WhatsApp
+            </button>
+          </div>
+
+          <!-- Entrega y Notas -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div
+              class="p-4 rounded-xl border border-[#4A5D23]/10 bg-white shadow-xs"
+            >
+              <p
+                class="text-[10px] font-bold uppercase tracking-wider text-[#4A5D23]/60 mb-1"
+              >
+                Fecha y Hora de Entrega
+              </p>
+              <p
+                v-if="order.delivery_date || order.delivery_time"
+                class="font-bold text-[#991B1B] text-sm flex items-center gap-1.5"
+              >
+                <Icon name="lucide:calendar-clock" class="w-4 h-4" />
+                {{ order.delivery_date }} {{ order.delivery_time }}
+              </p>
+              <p v-else class="text-xs text-gray-400 italic">No especificada</p>
+            </div>
+
+            <div
+              class="p-4 rounded-xl border border-[#4A5D23]/10 bg-white shadow-xs"
+            >
+              <p
+                class="text-[10px] font-bold uppercase tracking-wider text-[#4A5D23]/60 mb-1"
+              >
+                Dirección
+              </p>
+              <p v-if="order.address" class="text-xs font-bold text-[#2A321B]">
+                {{ order.address }}
+              </p>
+              <p v-else class="text-xs text-gray-400 italic">
+                Recojo en tienda / No especificada
+              </p>
             </div>
           </div>
-        </section>
+
+          <!-- Notas -->
+          <div
+            v-if="order.notes"
+            class="p-4 rounded-xl border border-[#4A5D23]/10 bg-amber-50/50"
+          >
+            <p
+              class="text-[10px] font-bold uppercase tracking-wider text-amber-800/60 mb-1"
+            >
+              Notas del Cliente
+            </p>
+            <p class="text-xs text-amber-900 font-medium whitespace-pre-wrap">
+              {{ order.notes }}
+            </p>
+          </div>
+
+          <!-- Lista de Productos -->
+          <div>
+            <h4
+              class="font-bold text-[#2A321B] text-sm mb-3 flex items-center justify-between"
+            >
+              <span>Productos Solicitados</span>
+              <span class="text-xs font-medium text-[#4A5D23]/70"
+                >{{ order.order_items?.length || 0 }} items</span
+              >
+            </h4>
+            <div
+              class="border border-[#4A5D23]/10 rounded-xl overflow-hidden divide-y divide-[#4A5D23]/10"
+            >
+              <div
+                v-for="item in order.order_items"
+                :key="item.id"
+                class="p-3 flex items-center justify-between bg-white hover:bg-[#F4F1E1]/20 transition-colors"
+              >
+                <div class="flex items-center gap-3">
+                  <span
+                    class="w-6 h-6 rounded-md bg-[#F4F1E1] border border-[#4A5D23]/10 flex items-center justify-center text-xs font-black text-[#4A5D23]"
+                  >
+                    {{ item.quantity }}
+                  </span>
+                  <div>
+                    <p class="text-xs font-bold text-[#2A321B]">
+                      {{ item.products?.name || "Producto" }}
+                    </p>
+                    <p class="text-[10px] text-[#4A5D23]/60 font-medium">
+                      S/ {{ Number(item.price_at_time).toFixed(2) }} c/u
+                    </p>
+                  </div>
+                </div>
+                <p class="text-xs font-black text-[#2A321B]">
+                  S/ {{ (item.quantity * item.price_at_time).toFixed(2) }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer del Modal -->
+        <div
+          class="p-4 sm:p-6 bg-[#F4F1E1]/30 border-t border-[#4A5D23]/10 flex items-center justify-between shrink-0"
+        >
+          <div>
+            <p
+              class="text-[10px] font-bold uppercase tracking-wider text-[#4A5D23]/60"
+            >
+              Total del Pedido
+            </p>
+            <p class="text-2xl font-black text-[#2A321B]">
+              S/ {{ Number(order.total_amount ?? order.total_price ?? 0).toFixed(2) }}
+            </p>
+          </div>
+          <button
+            @click="closeModal"
+            type="button"
+            class="px-6 py-2.5 rounded-xl bg-[#4A5D23] text-white text-xs font-bold hover:bg-[#3C4A1C] transition-all shadow-sm cursor-pointer"
+          >
+            Cerrar
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-</Teleport>
+  </Teleport>
 </template>
-
-<style scoped>
-.animate-pop {
-  animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-}
-@keyframes pop {
-  0% {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(74, 93, 35, 0.2);
-  border-radius: 10px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(74, 93, 35, 0.4);
-}
-</style>

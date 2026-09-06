@@ -1,165 +1,97 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { toast } from 'vue-sonner'
+import type { ProductRow } from '~/types/catalog'
+import type { RawMaterialRow } from '~/types/inventory'
+import { useAdminRecipes } from '~/composables/admin/useAdminRecipes'
+import ProductModal from './ProductModal.vue'
 
 const props = defineProps<{
-  catalog: any
-  materials: any
-  modelValue: any
+  catalog: { success: boolean; data: ProductRow[] } | null | undefined
+  materials: { success: boolean; data: RawMaterialRow[] } | null | undefined
+  modelValue: ProductRow | null | undefined
 }>()
 
 const emit = defineEmits<{
-  (e: 'update:modelValue', val: any): void
+  (e: 'update:modelValue', val: ProductRow | null): void
   (e: 'refresh-catalog'): void
 }>()
 
-const activeProduct = computed({
+const activeProduct = computed<ProductRow | null | undefined>({
   get: () => props.modelValue,
-  set: (val) => emit('update:modelValue', val)
+  set: (val) => emit('update:modelValue', val ?? null)
 })
 
-// Refs
-const recipeItems = ref<any[]>([])
-const recipeTotalCost = ref(0)
-const additionalCosts = ref({ packaging: 0, utilities: 0, labor: 0 })
-const newRecipeItem = ref({ raw_material_id: '', quantity_used: '' })
-const isSubmittingRecipe = ref(false)
-const recipeErrorMessage = ref('')
-const pendingRecipe = ref(false)
-const isExporting = ref(false)
-const publishData = ref({ price: 0, stock: 0 })
-const isPublishing = ref(false)
 const showModal = ref(false)
 
-// Computed
-const computedTotalCost = computed(() => {
-  return recipeTotalCost.value + Number(additionalCosts.value.packaging || 0) + Number(additionalCosts.value.utilities || 0) + Number(additionalCosts.value.labor || 0)
-})
+// Composable de gestión de escandallos
+const {
+  recipeItems,
+  additionalCosts,
+  newRecipeItem,
+  isSubmittingRecipe,
+  pendingRecipe,
+  recipeErrorMessage,
+  isExporting,
+  isPublishing,
+  publishData,
+  computedTotalCost,
+  profitMargin,
+  profitMarginPercent,
+  fetchRecipe,
+  addRecipeItem,
+  deleteRecipeItem,
+  exportToExcel,
+  publishProduct,
+  resetRecipeState
+} = useAdminRecipes(activeProduct)
 
-const profitMargin = computed(() => {
-  return Number(activeProduct.value?.price || 0) - computedTotalCost.value
-})
-
-const profitMarginPercent = computed(() => {
-  const price = Number(activeProduct.value?.price || 0)
-  if (price <= 0) return 0
-  return (profitMargin.value / price) * 100
-})
-
-const selectedMaterialUnit = computed(() => {
+const selectedMaterialUnit = computed<string>(() => {
   if (!newRecipeItem.value.raw_material_id || !props.materials?.data) return ''
-  const mat = props.materials.data.find((m: any) => m.id === newRecipeItem.value.raw_material_id)
-  return mat ? mat.unit : ''
+  const idNum = Number(newRecipeItem.value.raw_material_id)
+  const mat = props.materials.data.find((m: RawMaterialRow) => m.id === idNum)
+  return (mat && mat.unit) ? mat.unit : ''
 })
 
-// Recipe API
-async function fetchRecipe() {
-  if (!activeProduct.value?.id) return
-  pendingRecipe.value = true
-  recipeErrorMessage.value = ''
-  additionalCosts.value = { packaging: 0, utilities: 0, labor: 0 }
-  try {
-    const res: any = await $fetch(`/api/recipes/${activeProduct.value.id}`)
-    if (res && res.success) {
-      recipeItems.value = res.data
-      recipeTotalCost.value = res.total_cost
-    }
-  } catch (err: any) {
-    recipeErrorMessage.value = err.data?.statusMessage || 'Error al cargar receta.'
-  } finally {
-    pendingRecipe.value = false
-  }
-}
-
-async function handleAddRecipeItem() {
+async function handleAddRecipeItem(): Promise<void> {
   if (!newRecipeItem.value.raw_material_id || !newRecipeItem.value.quantity_used) {
     toast.error('Datos incompletos', { description: 'Selecciona un insumo e ingresa la cantidad.' })
     return
   }
-  isSubmittingRecipe.value = true
-  recipeErrorMessage.value = ''
-  try {
-    await $fetch('/api/recipes', {
-      method: 'POST',
-      body: {
-        product_id: activeProduct.value.id,
-        raw_material_id: newRecipeItem.value.raw_material_id,
-        quantity_used: Number(newRecipeItem.value.quantity_used)
-      }
-    })
+  const ok = await addRecipeItem()
+  if (ok) {
     toast.success('Insumo agregado a la receta')
-    newRecipeItem.value = { raw_material_id: '', quantity_used: '' }
-    await fetchRecipe()
-  } catch (err: any) {
-    const msg = err.data?.statusMessage || 'Error al agregar insumo.'
-    recipeErrorMessage.value = msg
-    toast.error('Error al agregar insumo', { description: msg })
-  } finally {
-    isSubmittingRecipe.value = false
+  } else if (recipeErrorMessage.value) {
+    toast.error('Error al agregar insumo', { description: recipeErrorMessage.value })
   }
 }
 
-async function handleDeleteRecipeItem(id: string, name: string) {
-  recipeErrorMessage.value = ''
-  try {
-    await $fetch(`/api/recipes/${id}`, { method: 'DELETE' })
-    toast.info('Insumo eliminado', { description: `${name} fue quitado de la receta.` })
-    await fetchRecipe()
-  } catch (err: any) {
-    const msg = err.data?.statusMessage || 'Error al quitar insumo.'
-    recipeErrorMessage.value = msg
-    toast.error('Error al quitar', { description: msg })
+async function handleDeleteRecipeItem(id: number | string, name?: string): Promise<void> {
+  const ok = await deleteRecipeItem(id)
+  if (ok) {
+    toast.info('Insumo eliminado', { description: `${name || 'Insumo'} fue quitado de la receta.` })
+  } else if (recipeErrorMessage.value) {
+    toast.error('Error al quitar', { description: recipeErrorMessage.value })
   }
 }
 
-// Export
-function exportToExcel() {
-  if (!activeProduct.value) return
-  isExporting.value = true
-  
-  const params = new URLSearchParams({
-    productId: activeProduct.value.id,
-    packaging: additionalCosts.value.packaging.toString(),
-    utilities: additionalCosts.value.utilities.toString(),
-    labor: additionalCosts.value.labor.toString()
-  })
-  
-  const url = `/api/recipes/export?${params.toString()}`
-  window.location.href = url
+function handleExportToExcel(): void {
+  exportToExcel()
   toast.success('Generando reporte Excel...', { description: 'El archivo descargará en breve.' })
-  
-  setTimeout(() => {
-    isExporting.value = false
-  }, 1000)
 }
 
-// Publish
-async function publishProduct() {
-  if (!activeProduct.value) return
-  isPublishing.value = true
-  try {
-    const res: any = await $fetch(`/api/products/${activeProduct.value.id}`, {
-      method: 'PUT',
-      body: {
-        name: activeProduct.value.name,
-        price: Number(publishData.value.price),
-        stock: Number(publishData.value.stock),
-        image_url: activeProduct.value.image_url
-      }
-    })
-    if (res.success) {
-      activeProduct.value = null
-      emit('refresh-catalog')
-      toast.success('¡Producto actualizado y publicado en vitrina!')
-    }
-  } catch (err: any) {
-    toast.error('Error al publicar', { description: err.data?.statusMessage || err.message })
-  } finally {
-    isPublishing.value = false
+async function handlePublishProduct(): Promise<void> {
+  const ok = await publishProduct()
+  if (ok) {
+    activeProduct.value = null
+    emit('refresh-catalog')
+    toast.success('¡Producto actualizado y publicado en vitrina!')
+  } else if (recipeErrorMessage.value) {
+    toast.error('Error al publicar', { description: recipeErrorMessage.value })
   }
 }
 
-function handleProductSaved(savedProduct: any, isNew: boolean) {
+function handleProductSaved(savedProduct: ProductRow, isNew: boolean): void {
   emit('refresh-catalog')
   if (isNew && savedProduct?.id) {
     activeProduct.value = savedProduct
@@ -172,10 +104,7 @@ watch(() => props.modelValue, (newVal) => {
     publishData.value.price = Number(newVal.price) || 0
     publishData.value.stock = Number(newVal.stock) || 0
   } else {
-    recipeItems.value = []
-    recipeTotalCost.value = 0
-    additionalCosts.value = { packaging: 0, utilities: 0, labor: 0 }
-    publishData.value = { price: 0, stock: 0 }
+    resetRecipeState()
   }
 }, { immediate: true })
 </script>
@@ -194,7 +123,7 @@ watch(() => props.modelValue, (newVal) => {
         <div class="flex items-center gap-2">
           <CustomSelect 
             v-model="activeProduct"
-            :options="(catalog?.data || []).map((p: any) => ({ label: p.name, value: p }))"
+            :options="(catalog?.data || []).map((p: ProductRow) => ({ label: p.name, value: p }))"
             placeholder="Selecciona un producto del catálogo..."
             bgClass="bg-[#F4F1E1]"
             class="flex-1 min-w-0"
@@ -222,7 +151,7 @@ watch(() => props.modelValue, (newVal) => {
             <label class="block text-[11px] font-bold text-[#4A5D23] uppercase tracking-widest mb-2">Insumo del Almacén</label>
             <CustomSelect 
               v-model="newRecipeItem.raw_material_id"
-              :options="(materials?.data || []).map((m: any) => ({ label: `${m.name} (${m.unit})`, value: m.id }))"
+              :options="(materials?.data || []).map((m: RawMaterialRow) => ({ label: `${m.name} (${m.unit})`, value: m.id }))"
               placeholder="Selecciona un insumo..."
               bgClass="bg-white"
             />
@@ -266,7 +195,7 @@ watch(() => props.modelValue, (newVal) => {
             <Icon name="lucide:store" class="w-4 h-4 text-[#4A5D23]" />
             <h3 class="font-playfair font-bold text-lg text-[#2A321B]">Vitrina Comercial</h3>
           </div>
-          <span v-if="activeProduct?.price > 0" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#4A5D23]/10 text-[#4A5D23] border border-[#4A5D23]/20">
+          <span v-if="Number(activeProduct?.price || 0) > 0" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#4A5D23]/10 text-[#4A5D23] border border-[#4A5D23]/20">
             Publicado
           </span>
           <span v-else class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
@@ -274,7 +203,7 @@ watch(() => props.modelValue, (newVal) => {
           </span>
         </div>
 
-        <form @submit.prevent="publishProduct" class="space-y-4">
+        <form @submit.prevent="handlePublishProduct" class="space-y-4">
           <div>
             <label class="block text-[11px] font-bold text-[#4A5D23] uppercase tracking-widest mb-1.5">Precio de Venta al Público (S/)</label>
             <div class="relative">
@@ -399,7 +328,7 @@ watch(() => props.modelValue, (newVal) => {
             </div>
             <div class="flex items-center gap-3">
               <button 
-                @click="exportToExcel"
+                @click="handleExportToExcel"
                 :disabled="isExporting || recipeItems.length === 0"
                 class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-300 border border-transparent shadow-sm text-white bg-[#4A5D23] hover:bg-[#3C4A1C] disabled:opacity-50 disabled:cursor-not-allowed active:translate-y-0.5 active:shadow-none"
                 title="Exportar a Excel"
@@ -446,9 +375,9 @@ watch(() => props.modelValue, (newVal) => {
                 <tr v-for="item in recipeItems" :key="item.id" class="group hover:bg-[#F4F1E1]/50 transition-colors">
                   <td class="py-2.5 px-3">
                     <div class="flex items-center gap-2">
-                      <span class="font-bold text-[#2A321B]">{{ item.name }}</span>
+                      <span class="font-bold text-[#2A321B]">{{ item.material_name || item.name }}</span>
                       <span class="text-[9px] text-[#4A5D23]/60 font-black uppercase tracking-widest bg-[#4A5D23]/5 px-1.5 py-0.5 rounded">
-                        S/ {{ item.cost_per_unit?.toFixed(2) }} x {{ item.unit }}
+                        S/ {{ (item.unit_cost ?? item.cost_per_unit ?? 0).toFixed(2) }} x {{ item.unit }}
                       </span>
                     </div>
                   </td>
@@ -458,12 +387,12 @@ watch(() => props.modelValue, (newVal) => {
                     </span>
                   </td>
                   <td class="py-2.5 px-3 text-right font-black text-[#2A321B] font-inter text-base">
-                    <span class="text-[#4A5D23]/50 text-xs mr-0.5">S/</span>{{ item.item_total_cost?.toFixed(2) }}
+                    <span class="text-[#4A5D23]/50 text-xs mr-0.5">S/</span>{{ (item.item_cost ?? item.item_total_cost ?? 0).toFixed(2) }}
                   </td>
                   <td class="py-2.5 px-3">
                     <div class="flex items-center justify-end">
                       <button 
-                        @click="handleDeleteRecipeItem(item.id, item.name)"
+                        @click="handleDeleteRecipeItem(item.id, item.material_name || item.name)"
                         class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-red-700 hover:text-white hover:bg-red-800 hover:shadow-sm transition-all duration-300 focus:outline-none"
                         title="Quitar de la receta"
                       >
@@ -480,7 +409,7 @@ watch(() => props.modelValue, (newVal) => {
     </div>
 
     <!-- Modal de Producto -->
-    <AdminProductModal 
+    <ProductModal 
       :show="showModal"
       :productToEdit="null"
       @close="showModal = false"

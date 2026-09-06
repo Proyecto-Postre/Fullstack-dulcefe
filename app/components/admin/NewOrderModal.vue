@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useSupabaseClient } from '#imports'
+import type { Database } from '~/types/database.types'
+import type { ProductRow } from '~/types/catalog'
+import type { SelectedProductItem } from '~/types/admin-orders'
 
-const supabase = useSupabaseClient()
+const supabase = useSupabaseClient<Database>()
 
 const props = defineProps<{
   show: boolean
@@ -26,20 +29,20 @@ const orderData = ref({
 })
 
 // Products selection
-const products = ref<any[]>([])
-const selectedProducts = ref<{ product_id: string, quantity: number, price: number, name: string }[]>([])
-const selectedProductId = ref('')
+const products = ref<ProductRow[]>([])
+const selectedProducts = ref<SelectedProductItem[]>([])
+const selectedProductId = ref<number | string>('')
 
 const productOptions = computed(() => {
-  return products.value.map(p => ({
-    label: `${p.name} - S/ ${p.price}`,
+  return products.value.map((p: ProductRow) => ({
+    label: `${p.name} - S/ ${Number(p.price).toFixed(2)}`,
     value: p.id
   }))
 })
 
-const fetchProducts = async () => {
-  const { data } = await supabase.from('products').select('id, name, price, stock').order('name')
-  if (data) products.value = data
+const fetchProducts = async (): Promise<void> => {
+  const { data } = await supabase.from('products').select('*').order('name')
+  if (data) products.value = data as ProductRow[]
 }
 
 onMounted(() => {
@@ -54,34 +57,35 @@ watch(() => props.show, (newVal) => {
   }
 })
 
-const addProduct = (productId: string) => {
+const addProduct = (productId: number | string): void => {
   if (!productId) return
-  const product = products.value.find(p => p.id === productId)
+  const idNum = Number(productId)
+  const product = products.value.find((p: ProductRow) => p.id === idNum)
   if (!product) return
   
-  const existing = selectedProducts.value.find(p => p.product_id === productId)
+  const existing = selectedProducts.value.find((p: SelectedProductItem) => p.product_id === idNum)
   if (existing) {
     existing.quantity++
   } else {
     selectedProducts.value.push({
       product_id: product.id,
       name: product.name,
-      price: product.price,
+      price: Number(product.price),
       quantity: 1
     })
   }
   selectedProductId.value = ''
 }
 
-const removeProduct = (index: number) => {
+const removeProduct = (index: number): void => {
   selectedProducts.value.splice(index, 1)
 }
 
-const totalAmount = computed(() => {
+const totalAmount = computed<number>(() => {
   return selectedProducts.value.reduce((sum, item) => sum + (item.price * item.quantity), 0)
 })
 
-const createOrder = async () => {
+const createOrder = async (): Promise<void> => {
   if (!orderData.value.customerName || selectedProducts.value.length === 0) {
     errorMessage.value = 'Debes ingresar el nombre del cliente y al menos un producto.'
     return
@@ -91,9 +95,8 @@ const createOrder = async () => {
   errorMessage.value = ''
   
   try {
-    // 1. Create a dummy profile for the manual order (or find existing by phone if we wanted to be fancy)
     const payload = {
-      channel: 'admin',
+      channel: 'admin' as const,
       customer_name: orderData.value.customerName.trim(),
       customer_phone: orderData.value.customerPhone?.trim() || undefined,
       delivery_date: orderData.value.deliveryDate || undefined,
@@ -112,9 +115,9 @@ const createOrder = async () => {
 
     emit('created')
     emit('close')
-  } catch (err: any) {
-    console.error('Error creating manual order:', err)
-    errorMessage.value = err?.data?.error?.message || err.message || 'Error al crear el pedido manual.'
+  } catch (err: unknown) {
+    const fetchErr = err as { data?: { error?: { message?: string } }; message?: string }
+    errorMessage.value = fetchErr.data?.error?.message || fetchErr.message || 'Error al crear el pedido manual.'
   } finally {
     isSubmitting.value = false
   }
@@ -133,139 +136,158 @@ const createOrder = async () => {
             <Icon name="lucide:plus-circle" class="w-5 h-5 text-[#4A5D23]" />
             Nuevo Pedido Manual
           </h3>
-          <button @click="emit('close')" class="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-[#4A5D23]/20 text-[#2A321B] hover:bg-[#e6e2cc] hover:scale-105 active:scale-95 transition-all shadow-sm">
+          <button @click="emit('close')" type="button" class="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-[#4A5D23]/20 text-[#2A321B] hover:bg-[#e6e2cc] hover:scale-105 active:scale-95 transition-all shadow-sm cursor-pointer">
             <Icon name="lucide:x" class="w-4 h-4" />
           </button>
         </div>
 
-        <!-- Body -->
-        <div class="p-5 sm:p-6 overflow-y-auto custom-scrollbar flex-1">
-          <div v-if="errorMessage" class="mb-6 bg-red-50 border border-red-200 text-red-800 p-4 rounded-xl text-sm flex items-start gap-2">
-            <Icon name="lucide:alert-circle" class="w-5 h-5 shrink-0" />
+        <!-- Form Body -->
+        <div class="p-5 sm:p-6 overflow-y-auto custom-scrollbar space-y-6 flex-1">
+          <!-- Error Alert -->
+          <div v-if="errorMessage" class="bg-red-50 border border-red-200 text-red-800 p-3 rounded-xl text-sm flex items-start gap-2">
+            <Icon name="lucide:alert-circle" class="w-4 h-4 shrink-0 mt-0.5" />
             <span>{{ errorMessage }}</span>
           </div>
 
-          <form @submit.prevent="createOrder" class="space-y-8">
-            <!-- Cliente -->
-            <section>
-              <h4 class="text-[11px] font-bold text-[#4A5D23] uppercase tracking-widest mb-4">Datos del Cliente</h4>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest mb-1.5">Nombre Completo *</label>
-                  <input v-model="orderData.customerName" type="text" required placeholder="Ej: Juan Pérez" class="w-full px-3 py-2.5 bg-[#F4F1E1]/30 rounded-xl border border-[#4A5D23]/20 focus:outline-none focus:bg-white focus:border-[#4A5D23] focus:ring-2 focus:ring-[#4A5D23]/10 text-sm font-bold text-[#2A321B] shadow-sm transition-all placeholder:text-[#4A5D23]/30" />
-                </div>
-                <div>
-                  <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest mb-1.5">Teléfono</label>
-                  <input v-model="orderData.customerPhone" type="text" placeholder="Ej: 987654321" class="w-full px-3 py-2.5 bg-[#F4F1E1]/30 rounded-xl border border-[#4A5D23]/20 focus:outline-none focus:bg-white focus:border-[#4A5D23] focus:ring-2 focus:ring-[#4A5D23]/10 text-sm font-bold text-[#2A321B] shadow-sm transition-all placeholder:text-[#4A5D23]/30" />
-                </div>
+          <!-- Customer Data -->
+          <div class="space-y-4">
+            <h4 class="text-xs font-bold text-[#4A5D23] uppercase tracking-wider border-b border-[#4A5D23]/10 pb-2">
+              Datos del Cliente
+            </h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-wider mb-1">Nombre Completo *</label>
+                <input 
+                  v-model="orderData.customerName" 
+                  type="text" 
+                  required
+                  placeholder="Ej: Maria Lopez"
+                  class="w-full px-3 py-2 bg-[#F4F1E1]/30 rounded-xl border border-[#4A5D23]/20 text-sm font-bold text-[#2A321B] focus:outline-none focus:border-[#4A5D23]"
+                />
               </div>
-            </section>
-
-            <!-- Productos -->
-            <section>
-              <h4 class="text-[11px] font-bold text-[#4A5D23] uppercase tracking-widest mb-4">Productos</h4>
-              <div class="bg-[#F4F1E1]/30 p-4 rounded-2xl border border-[#4A5D23]/20 space-y-4">
-                <div class="flex gap-2">
-                  <CustomSelect 
-                    v-model="selectedProductId"
-                    :options="productOptions"
-                    placeholder="Seleccionar producto..."
-                    bgClass="bg-white py-2.5"
-                    class="flex-1"
-                  />
-                <button type="button" @click="addProduct(selectedProductId)" class="px-5 py-2.5 bg-[#4A5D23] text-white rounded-xl font-bold shadow-sm hover:bg-[#3C4A1C] transition-all active:translate-y-0.5 active:shadow-none text-sm">
-                  Agregar
-                </button>
-              </div>
-
-              <div v-if="selectedProducts.length > 0" class="border border-[#4A5D23]/10 rounded-xl overflow-hidden bg-white">
-                <table class="w-full text-left text-sm">
-                  <thead class="bg-[#F4F1E1]/50">
-                    <tr>
-                      <th class="px-4 py-3 font-bold text-[#4A5D23]">Producto</th>
-                      <th class="px-4 py-3 font-bold text-[#4A5D23] text-center">Cant.</th>
-                      <th class="px-4 py-3 font-bold text-[#4A5D23] text-right">Subtotal</th>
-                      <th class="px-4 py-3"></th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-[#4A5D23]/10">
-                    <tr v-for="(item, idx) in selectedProducts" :key="idx">
-                      <td class="px-4 py-3 font-medium text-[#2A321B]">{{ item.name }}</td>
-                      <td class="px-4 py-3 text-center">
-                        <input type="number" v-model="item.quantity" min="1" class="w-16 px-2 py-1 text-center bg-[#F4F1E1]/50 rounded-lg border border-[#4A5D23]/20 focus:outline-none focus:bg-white font-bold text-[#2A321B] [&::-webkit-inner-spin-button]:appearance-none" />
-                      </td>
-                      <td class="px-4 py-3 font-black text-[#4A5D23] text-right">S/ {{ (item.price * item.quantity).toFixed(2) }}</td>
-                      <td class="px-4 py-3 text-right">
-                        <button type="button" @click="removeProduct(idx)" class="text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-colors">
-                          <Icon name="lucide:trash-2" class="w-4 h-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              
-              <div class="flex justify-end pt-2">
-                <p class="text-base font-black text-[#2A321B]">Total: <span class="text-[#4A5D23]">S/ {{ totalAmount.toFixed(2) }}</span></p>
+              <div>
+                <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-wider mb-1">Teléfono (WhatsApp)</label>
+                <input 
+                  v-model="orderData.customerPhone" 
+                  type="tel" 
+                  placeholder="Ej: 987654321"
+                  class="w-full px-3 py-2 bg-[#F4F1E1]/30 rounded-xl border border-[#4A5D23]/20 text-sm font-bold text-[#2A321B] focus:outline-none focus:border-[#4A5D23]"
+                />
               </div>
             </div>
-          </section>
+          </div>
 
-          <!-- Entrega -->
-          <section>
-            <h4 class="text-[11px] font-bold text-[#4A5D23] uppercase tracking-widest mb-4">Detalles de Entrega</h4>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+          <!-- Delivery Data -->
+          <div class="space-y-4">
+            <h4 class="text-xs font-bold text-[#4A5D23] uppercase tracking-wider border-b border-[#4A5D23]/10 pb-2">
+              Entrega y Despacho
+            </h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest mb-1.5">Fecha de Entrega</label>
-                <CustomDatePicker v-model="orderData.deliveryDate" bgClass="bg-[#F4F1E1]/30" />
+                <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-wider mb-1">Fecha de Entrega</label>
+                <input 
+                  v-model="orderData.deliveryDate" 
+                  type="date" 
+                  class="w-full px-3 py-2 bg-[#F4F1E1]/30 rounded-xl border border-[#4A5D23]/20 text-sm font-bold text-[#2A321B] focus:outline-none focus:border-[#4A5D23]"
+                />
               </div>
               <div>
-                <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest mb-1.5">Hora de Entrega</label>
-                <CustomTimePicker v-model="orderData.deliveryTime" bgClass="bg-[#F4F1E1]/30" />
+                <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-wider mb-1">Hora de Entrega</label>
+                <input 
+                  v-model="orderData.deliveryTime" 
+                  type="time" 
+                  class="w-full px-3 py-2 bg-[#F4F1E1]/30 rounded-xl border border-[#4A5D23]/20 text-sm font-bold text-[#2A321B] focus:outline-none focus:border-[#4A5D23]"
+                />
               </div>
             </div>
             <div>
-              <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest mb-1.5">Notas / Instrucciones</label>
-              <textarea v-model="orderData.notes" rows="2" placeholder="Ej: Entregar en puerta trasera" class="w-full px-3 py-2.5 bg-[#F4F1E1]/30 rounded-xl border border-[#4A5D23]/20 focus:outline-none focus:bg-white focus:border-[#4A5D23] focus:ring-2 focus:ring-[#4A5D23]/10 text-sm font-bold text-[#2A321B] shadow-sm transition-all resize-none placeholder:text-[#4A5D23]/30"></textarea>
+              <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-wider mb-1">Notas / Especificaciones</label>
+              <textarea 
+                v-model="orderData.notes" 
+                rows="2" 
+                placeholder="Dedicatoria especial, empaque de regalo, etc."
+                class="w-full px-3 py-2 bg-[#F4F1E1]/30 rounded-xl border border-[#4A5D23]/20 text-sm font-medium text-[#2A321B] focus:outline-none focus:border-[#4A5D23]"
+              ></textarea>
             </div>
-          </section>
+          </div>
 
-          <!-- Footer Actions -->
-          <div class="pt-4 border-t border-[#4A5D23]/10 flex justify-end gap-3">
-            <button type="button" @click="emit('close')" class="px-5 py-2.5 rounded-xl font-bold text-[#4A5D23] hover:bg-[#4A5D23]/10 transition-colors text-sm">
+          <!-- Products Selection -->
+          <div class="space-y-4">
+            <h4 class="text-xs font-bold text-[#4A5D23] uppercase tracking-wider border-b border-[#4A5D23]/10 pb-2 flex items-center justify-between">
+              <span>Productos del Pedido</span>
+              <span class="text-[10px] font-medium text-[#4A5D23]/70">{{ selectedProducts.length }} seleccionados</span>
+            </h4>
+            
+            <div class="flex gap-2">
+              <select 
+                v-model="selectedProductId" 
+                class="flex-1 px-3 py-2 bg-[#F4F1E1]/30 rounded-xl border border-[#4A5D23]/20 text-sm font-bold text-[#2A321B] focus:outline-none focus:border-[#4A5D23]"
+              >
+                <option value="" disabled>Selecciona un producto...</option>
+                <option v-for="opt in productOptions" :key="opt.value" :value="opt.value">
+                  {{ opt.label }}
+                </option>
+              </select>
+              <button 
+                @click="addProduct(selectedProductId)" 
+                type="button" 
+                class="px-4 py-2 bg-[#4A5D23] text-white rounded-xl font-bold text-xs hover:bg-[#3C4A1C] transition-all flex items-center gap-1 shadow-sm shrink-0 cursor-pointer"
+              >
+                <Icon name="lucide:plus" class="w-4 h-4" />
+                Agregar
+              </button>
+            </div>
+
+            <!-- Products List -->
+            <div v-if="selectedProducts.length > 0" class="border border-[#4A5D23]/10 rounded-xl overflow-hidden divide-y divide-[#4A5D23]/10">
+              <div v-for="(item, idx) in selectedProducts" :key="idx" class="p-3 flex items-center justify-between bg-white">
+                <div>
+                  <p class="text-sm font-bold text-[#2A321B]">{{ item.name }}</p>
+                  <p class="text-[10px] text-[#4A5D23]/70">S/ {{ item.price.toFixed(2) }} c/u</p>
+                </div>
+                <div class="flex items-center gap-3">
+                  <div class="flex items-center border border-[#4A5D23]/20 rounded-lg overflow-hidden">
+                    <button @click="item.quantity > 1 ? item.quantity-- : removeProduct(idx)" type="button" class="px-2 py-1 bg-[#F4F1E1] hover:bg-[#e6e2cc] text-xs font-bold text-[#2A321B] transition-colors cursor-pointer">-</button>
+                    <span class="px-3 py-1 text-xs font-black text-[#2A321B] bg-white">{{ item.quantity }}</span>
+                    <button @click="item.quantity++" type="button" class="px-2 py-1 bg-[#F4F1E1] hover:bg-[#e6e2cc] text-xs font-bold text-[#2A321B] transition-colors cursor-pointer">+</button>
+                  </div>
+                  <span class="text-xs font-black text-[#2A321B] w-16 text-right">
+                    S/ {{ (item.price * item.quantity).toFixed(2) }}
+                  </span>
+                  <button @click="removeProduct(idx)" type="button" class="text-red-500 hover:text-red-700 p-1 cursor-pointer">
+                    <Icon name="lucide:trash-2" class="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div v-else class="text-center py-6 bg-[#F4F1E1]/20 rounded-xl border border-dashed border-[#4A5D23]/20">
+              <p class="text-xs text-[#4A5D23]/60 italic">Aún no has agregado productos al pedido</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="p-5 sm:p-6 bg-[#F4F1E1]/30 border-t border-[#4A5D23]/10 flex items-center justify-between shrink-0">
+          <div>
+            <p class="text-[10px] font-bold text-[#4A5D23] uppercase tracking-wider">Total a Cobrar</p>
+            <p class="text-2xl font-black text-[#2A321B]">S/ {{ totalAmount.toFixed(2) }}</p>
+          </div>
+          <div class="flex gap-2">
+            <button @click="emit('close')" type="button" class="px-4 py-2.5 rounded-xl border border-[#4A5D23]/20 text-xs font-bold text-[#2A321B] hover:bg-[#F4F1E1] transition-all cursor-pointer">
               Cancelar
             </button>
-            <button type="submit" :disabled="isSubmitting" class="px-6 py-2.5 rounded-xl font-bold bg-[#4A5D23] text-white hover:bg-[#3C4A1C] shadow-sm transition-all active:translate-y-0.5 active:shadow-none flex items-center gap-2 disabled:opacity-50 text-sm">
+            <button 
+              @click="createOrder" 
+              :disabled="isSubmitting || selectedProducts.length === 0"
+              type="button" 
+              class="px-5 py-2.5 bg-[#4A5D23] text-white rounded-xl text-xs font-bold hover:bg-[#3C4A1C] transition-all shadow-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            >
               <Icon v-if="isSubmitting" name="lucide:loader-2" class="w-4 h-4 animate-spin" />
-              Crear Pedido
+              <span>{{ isSubmitting ? 'Creando Pedido...' : 'Confirmar Pedido' }}</span>
             </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
-  </div>
-</Teleport>
+  </Teleport>
 </template>
-
-<style scoped>
-.animate-pop {
-  animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-}
-@keyframes pop {
-  0% { opacity: 0; transform: scale(0.95); }
-  100% { opacity: 1; transform: scale(1); }
-}
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(74, 93, 35, 0.2);
-  border-radius: 10px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(74, 93, 35, 0.4);
-}
-</style>

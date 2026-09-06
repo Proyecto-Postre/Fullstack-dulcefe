@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
+import type { RawMaterialRow, BaseUnit } from "~/types/inventory";
 
 const props = defineProps<{
   show: boolean;
-  materialToEdit?: any | null;
+  materialToEdit?: RawMaterialRow | null;
 }>();
 
 const emit = defineEmits<{
@@ -11,13 +12,20 @@ const emit = defineEmits<{
   (e: "saved"): void;
 }>();
 
-const newMaterial = ref({
+const newMaterial = ref<{
+  name: string;
+  unit: BaseUnit | string;
+  purchase_price: number | string;
+  purchase_quantity: number | string;
+  stock: number | string;
+}>({
   name: "",
   unit: "g",
   purchase_price: "",
   purchase_quantity: "",
   stock: "",
 });
+
 const isSubmitting = ref(false);
 const errorMessage = ref("");
 
@@ -27,11 +35,11 @@ watch(
     if (newVal) {
       if (props.materialToEdit) {
         newMaterial.value = {
-          name: props.materialToEdit.name,
-          unit: props.materialToEdit.unit,
-          purchase_price: props.materialToEdit.purchase_price,
-          purchase_quantity: props.materialToEdit.purchase_quantity,
-          stock: props.materialToEdit.stock,
+          name: props.materialToEdit.name || "",
+          unit: (props.materialToEdit.unit as BaseUnit) || "g",
+          purchase_price: props.materialToEdit.purchase_price ?? "",
+          purchase_quantity: props.materialToEdit.purchase_quantity ?? "",
+          stock: props.materialToEdit.stock ?? "",
         };
       } else {
         newMaterial.value = {
@@ -47,11 +55,11 @@ watch(
   },
 );
 
-function closeModal() {
+function closeModal(): void {
   emit("close");
 }
 
-async function saveMaterial() {
+async function saveMaterial(): Promise<void> {
   if (
     !newMaterial.value.name ||
     !newMaterial.value.purchase_price ||
@@ -81,8 +89,9 @@ async function saveMaterial() {
 
     emit("saved");
     closeModal();
-  } catch (err: any) {
-    errorMessage.value = err.data?.statusMessage || "Error al guardar insumo.";
+  } catch (err: unknown) {
+    const fetchErr = err as { data?: { statusMessage?: string }; message?: string };
+    errorMessage.value = fetchErr.data?.statusMessage || fetchErr.message || "Error al guardar insumo.";
   } finally {
     isSubmitting.value = false;
   }
@@ -147,16 +156,17 @@ async function saveMaterial() {
                 >
                 <div class="relative">
                   <span
-                    class="absolute left-3 top-1/2 -translate-y-1/2 text-[#4A5D23]/50 font-black text-sm"
+                    class="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-[#4A5D23]/40"
                     >S/</span
                   >
                   <input
                     v-model="newMaterial.purchase_price"
                     type="number"
                     step="0.01"
+                    min="0"
                     required
                     placeholder="0.00"
-                    class="w-full pl-8 pr-3 py-2.5 bg-[#F4F1E1]/30 rounded-xl border border-[#4A5D23]/20 focus:outline-none focus:bg-white focus:border-[#4A5D23] focus:ring-2 focus:ring-[#4A5D23]/10 text-sm font-bold text-[#2A321B] shadow-sm transition-all placeholder:text-[#4A5D23]/30 [&::-webkit-inner-spin-button]:appearance-none"
+                    class="w-full pl-8 pr-3 py-2.5 bg-[#F4F1E1]/30 rounded-xl border border-[#4A5D23]/20 focus:outline-none focus:bg-white focus:border-[#4A5D23] focus:ring-2 focus:ring-[#4A5D23]/10 text-sm font-bold text-[#2A321B] shadow-sm transition-all placeholder:text-[#4A5D23]/30"
                   />
                 </div>
               </div>
@@ -164,18 +174,17 @@ async function saveMaterial() {
               <div>
                 <label
                   class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest mb-1.5"
-                  >Unidad de Medida</label
+                  >Cantidad Paquete</label
                 >
-                <select
-                  v-model="newMaterial.unit"
-                  class="w-full px-3 py-2.5 bg-[#F4F1E1]/30 rounded-xl border border-[#4A5D23]/20 focus:outline-none focus:bg-white focus:border-[#4A5D23] focus:ring-2 focus:ring-[#4A5D23]/10 text-sm font-bold text-[#2A321B] shadow-sm transition-all appearance-none"
-                >
-                  <option value="g">Gramos (g)</option>
-                  <option value="kg">Kilogramos (kg)</option>
-                  <option value="ml">Mililitros (ml)</option>
-                  <option value="l">Litros (l)</option>
-                  <option value="und">Unidades (und)</option>
-                </select>
+                <input
+                  v-model="newMaterial.purchase_quantity"
+                  type="number"
+                  step="any"
+                  min="0.001"
+                  required
+                  placeholder="Ej: 5000"
+                  class="w-full px-3 py-2.5 bg-[#F4F1E1]/30 rounded-xl border border-[#4A5D23]/20 focus:outline-none focus:bg-white focus:border-[#4A5D23] focus:ring-2 focus:ring-[#4A5D23]/10 text-sm font-bold text-[#2A321B] shadow-sm transition-all placeholder:text-[#4A5D23]/30"
+                />
               </div>
             </div>
 
@@ -183,70 +192,66 @@ async function saveMaterial() {
               <div>
                 <label
                   class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest mb-1.5"
-                  >Cantidad que trae</label
+                  >Unidad Base</label
                 >
-                <input
-                  v-model="newMaterial.purchase_quantity"
-                  type="number"
-                  step="any"
-                  required
-                  :placeholder="newMaterial.unit === 'g' ? 'Ej: 1000' : 'Ej: 1'"
-                  class="w-full px-3 py-2.5 bg-[#F4F1E1]/30 rounded-xl border border-[#4A5D23]/20 focus:outline-none focus:bg-white focus:border-[#4A5D23] focus:ring-2 focus:ring-[#4A5D23]/10 text-sm font-bold text-[#2A321B] shadow-sm transition-all placeholder:text-[#4A5D23]/30 [&::-webkit-inner-spin-button]:appearance-none"
-                />
+                <select
+                  v-model="newMaterial.unit"
+                  class="w-full px-3 py-2.5 bg-[#F4F1E1]/30 rounded-xl border border-[#4A5D23]/20 focus:outline-none focus:bg-white focus:border-[#4A5D23] focus:ring-2 focus:ring-[#4A5D23]/10 text-sm font-bold text-[#2A321B] shadow-sm transition-all"
+                >
+                  <option value="g">Gramos (g)</option>
+                  <option value="ml">Mililitros (ml)</option>
+                  <option value="und">Unidades (und)</option>
+                  <option value="kg">Kilogramos (kg)</option>
+                  <option value="L">Litros (L)</option>
+                </select>
               </div>
 
               <div>
                 <label
                   class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest mb-1.5"
-                  >Stock Actual ({{ newMaterial.unit }})</label
+                  >Stock Actual</label
                 >
                 <input
                   v-model="newMaterial.stock"
                   type="number"
                   step="any"
+                  min="0"
                   placeholder="0"
-                  class="w-full px-3 py-2.5 bg-[#F4F1E1]/30 rounded-xl border border-[#4A5D23]/20 focus:outline-none focus:bg-white focus:border-[#4A5D23] focus:ring-2 focus:ring-[#4A5D23]/10 text-sm font-bold text-[#2A321B] shadow-sm transition-all placeholder:text-[#4A5D23]/30 [&::-webkit-inner-spin-button]:appearance-none"
+                  class="w-full px-3 py-2.5 bg-[#F4F1E1]/30 rounded-xl border border-[#4A5D23]/20 focus:outline-none focus:bg-white focus:border-[#4A5D23] focus:ring-2 focus:ring-[#4A5D23]/10 text-sm font-bold text-[#2A321B] shadow-sm transition-all placeholder:text-[#4A5D23]/30"
                 />
               </div>
             </div>
 
-            <button
-              type="submit"
-              :disabled="isSubmitting"
-              class="w-full bg-[#4A5D23] border border-transparent text-white font-bold py-3 rounded-xl mt-4 shadow-sm transition-all duration-300 active:translate-y-0.5 active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 hover:bg-[#3C4A1C] text-sm"
-            >
-              <Icon
-                v-if="isSubmitting"
-                name="lucide:loader-2"
-                class="w-4 h-4 animate-spin"
-              />
-              {{
-                isSubmitting
-                  ? "Guardando..."
-                  : materialToEdit
-                    ? "Guardar Cambios"
-                    : "Registrar Insumo"
-              }}
-            </button>
+            <div class="pt-4 flex justify-end gap-3 border-t border-[#4A5D23]/10">
+              <button
+                type="button"
+                @click="closeModal"
+                class="px-5 py-2.5 rounded-xl border border-[#4A5D23]/20 text-xs font-bold text-[#2A321B] hover:bg-[#F4F1E1] transition-all"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                :disabled="isSubmitting"
+                class="px-6 py-2.5 rounded-xl bg-[#4A5D23] text-white text-xs font-bold hover:bg-[#3C4A1C] transition-all shadow-sm flex items-center gap-2"
+              >
+                <Icon
+                  v-if="isSubmitting"
+                  name="lucide:loader-2"
+                  class="w-4 h-4 animate-spin"
+                />
+                <span>{{
+                  isSubmitting
+                    ? "Guardando..."
+                    : materialToEdit
+                    ? "Actualizar"
+                    : "Crear Insumo"
+                }}</span>
+              </button>
+            </div>
           </form>
         </div>
       </div>
     </div>
   </Teleport>
 </template>
-
-<style scoped>
-.animate-pop {
-  animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-}
-@keyframes pop {
-  0% {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-</style>

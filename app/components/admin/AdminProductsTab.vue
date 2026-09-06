@@ -1,31 +1,33 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
+import type { ProductRow } from "~/types/catalog";
+import ProductModal from "./ProductModal.vue";
 
 const props = defineProps<{
-  catalog: any;
+  catalog: { success: boolean; data: ProductRow[] } | null | undefined;
   pendingCatalog: boolean;
 }>();
 
 const emit = defineEmits<{
   (e: "refresh"): void;
-  (e: "view-recipe", product: any): void;
+  (e: "view-recipe", product: ProductRow): void;
 }>();
 
 // Modal State
 const showModal = ref(false);
-const productToEdit = ref<any | null>(null);
+const productToEdit = ref<ProductRow | null>(null);
 
-function openNewProductModal() {
+function openNewProductModal(): void {
   productToEdit.value = null;
   showModal.value = true;
 }
 
-function handleEditProduct(item: any) {
+function handleEditProduct(item: ProductRow): void {
   productToEdit.value = item;
   showModal.value = true;
 }
 
-function handleProductSaved(savedProduct: any, isNew: boolean) {
+function handleProductSaved(savedProduct: ProductRow, isNew: boolean): void {
   emit("refresh");
   if (isNew) {
     emit("view-recipe", savedProduct);
@@ -33,7 +35,7 @@ function handleProductSaved(savedProduct: any, isNew: boolean) {
 }
 
 // Local state for Optimistic UI
-const localCatalog = ref<any[]>([]);
+const localCatalog = ref<ProductRow[]>([]);
 
 watch(() => props.catalog?.data, (newData) => {
   if (newData) {
@@ -45,26 +47,26 @@ watch(() => props.catalog?.data, (newData) => {
 const currentPage = ref(1);
 const itemsPerPage = 10;
 
-const paginatedCatalog = computed(() => {
+const paginatedCatalog = computed<ProductRow[]>(() => {
   if (!localCatalog.value.length) return [];
   // Solo mostrar en vitrina los productos que ya tienen precio (publicados)
-  const publishedProducts = localCatalog.value.filter((p: any) => p.price > 0);
+  const publishedProducts = localCatalog.value.filter((p: ProductRow) => Number(p.price) > 0);
   const start = (currentPage.value - 1) * itemsPerPage;
   const end = start + itemsPerPage;
   return publishedProducts.slice(start, end);
 });
 
-const totalPages = computed(() => {
+const totalPages = computed<number>(() => {
   if (!localCatalog.value.length) return 1;
-  const publishedProducts = localCatalog.value.filter((p: any) => p.price > 0);
+  const publishedProducts = localCatalog.value.filter((p: ProductRow) => Number(p.price) > 0);
   return Math.ceil(publishedProducts.length / itemsPerPage);
 });
 
-function nextPage() {
+function nextPage(): void {
   if (currentPage.value < totalPages.value) currentPage.value++;
 }
 
-function prevPage() {
+function prevPage(): void {
   if (currentPage.value > 1) currentPage.value--;
 }
 
@@ -75,26 +77,27 @@ watch(
   },
 );
 
-async function handleDeleteProduct(id: string, name: string) {
+async function handleDeleteProduct(id: number | string, name: string): Promise<void> {
   if (!confirm(`¿Estás seguro de eliminar "${name}" del catálogo?`)) return;
   
   // Optimistic UI update: Eliminar localmente primero para disparar la animación al instante
-  const index = localCatalog.value.findIndex((p: any) => p.id === id);
-  let deletedItem = null;
+  const numId = Number(id);
+  const index = localCatalog.value.findIndex((p: ProductRow) => p.id === numId);
+  let deletedItem: ProductRow | null = null;
   if (index !== -1) {
-    deletedItem = localCatalog.value[index];
+    deletedItem = localCatalog.value[index] ?? null;
     localCatalog.value.splice(index, 1);
   }
 
   try {
     await $fetch(`/api/products/${id}`, { method: "DELETE" });
-    // No llamamos a emit("refresh") para evitar el spinner y el retraso
-  } catch (err: any) {
+  } catch (err: unknown) {
     // Si falla, revertimos el cambio local
     if (deletedItem && index !== -1) {
       localCatalog.value.splice(index, 0, deletedItem);
     }
-    alert("Error al eliminar: " + (err.data?.statusMessage || err.message));
+    const fetchErr = err as { data?: { statusMessage?: string }; message?: string };
+    alert("Error al eliminar: " + (fetchErr.data?.statusMessage || fetchErr.message || "Error desconocido"));
   }
 }
 
@@ -118,249 +121,179 @@ function getProductIcon(name: string): string {
   if (n.includes('torta') || n.includes('pastel') || n.includes('cake') || n.includes('keke') || n.includes('queque') || n.includes('bizcochuelo') || n.includes('mousse')) return 'lucide:cake'
   if (n.includes('porcion') || n.includes('porción') || n.includes('tajada') || n.includes('slice')) return 'lucide:cake-slice'
   if (n.includes('cupcake') || n.includes('muffin') || n.includes('magdalena')) return 'lucide:cake-slice'
-  if (n.includes('pie') || n.includes('pay') || n.includes('tarta') || n.includes('tartaleta') || n.includes('kuchen')) return 'lucide:pie-chart'
-  if (n.includes('dona') || n.includes('donut') || n.includes('berlina') || n.includes('rosca') || n.includes('glaseado')) return 'lucide:donut'
+  if (n.includes('tartaleta') || n.includes('tarta') || n.includes('pie') || n.includes('pay')) return 'lucide:pie-chart'
+  if (n.includes('cheesecake') || n.includes('cheese cake')) return 'lucide:heart'
+  if (n.includes('brownie') || n.includes('alfajor') || n.includes('galleta') || n.includes('cookie') || n.includes('macaron') || n.includes('trufa') || n.includes('bombón') || n.includes('bombon')) return 'lucide:cookie'
+  if (n.includes('postre') || n.includes('dulce') || n.includes('crema') || n.includes('flan') || n.includes('pudin') || n.includes('pudding') || n.includes('suspiro')) return 'lucide:sparkles'
 
-  // 4. Chocolates, Galletas, Chocotejas y Dulces
-  if (n.includes('alfajor') || n.includes('galleta') || n.includes('cookie') || n.includes('chocoteja') || n.includes('trufa') || n.includes('chocolate') || n.includes('cacao') || n.includes('bombom') || n.includes('brownie')) return 'lucide:cookie'
-  if (n.includes('helado') || n.includes('ice cream') || n.includes('gelato') || n.includes('sorbete') || n.includes('paleta')) return 'lucide:popsicle'
-  if (n.includes('candy') || n.includes('dulce') || n.includes('caramelo') || n.includes('gomita') || n.includes('turron') || n.includes('marshmallow')) return 'lucide:candy'
-
-  // 5. Cajas, Boxes y Packs
-  if (n.includes('box') || n.includes('caja') || n.includes('pack') || n.includes('combo') || n.includes('set')) return 'lucide:package'
-
-  // 6. Bebidas y Café
-  if (n.includes('cafe') || n.includes('café') || n.includes('coffee') || n.includes('latte') || n.includes('cappuccino') || n.includes('expresso') || n.includes('te') || n.includes('matcha')) return 'lucide:coffee'
-  if (n.includes('jugo') || n.includes('refresco') || n.includes('gaseosa') || n.includes('bebida') || n.includes('limonada') || n.includes('chicha')) return 'lucide:cup-soda'
-  if (n.includes('licor') || n.includes('pisco') || n.includes('vino') || n.includes('cerveza')) return 'lucide:glass-water'
-
+  // Default
   return 'lucide:croissant'
 }
 </script>
 
 <template>
   <div class="space-y-6">
-    <!-- Catálogo Completo -->
-    <section class="transition-all duration-300">
-      <div
-        class="flex items-center justify-between mb-8 pb-4 border-b border-[#4A5D23]/10"
+    <!-- Header Section -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-[2rem] border border-[#4A5D23]/10 shadow-soft-sm">
+      <div>
+        <h2 class="text-2xl font-black font-playfair text-[#2A321B]">Vitrina Comercial</h2>
+        <p class="text-xs text-[#4A5D23]/70 font-medium mt-0.5">Gestiona los postres que se muestran públicamente a los clientes</p>
+      </div>
+      <button
+        @click="openNewProductModal"
+        type="button"
+        class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#4A5D23] text-white text-xs font-bold hover:bg-[#3C4A1C] transition-all shadow-sm active:scale-95 cursor-pointer self-start sm:self-auto"
       >
-        <div class="flex items-center gap-3">
-          <Icon name="lucide:library-big" class="w-5 h-5 text-[#4A5D23]" />
-          <h2
-            class="text-xl font-playfair font-bold text-[#2A321B] tracking-tight"
-          >
-            Catálogo Publicado
-          </h2>
-        </div>
-        <div class="flex items-center gap-4">
-          <button
-            @click="emit('refresh')"
-            class="text-[#4A5D23]/60 hover:text-[#4A5D23] transition-colors"
-            title="Actualizar"
-          >
-            <Icon
-              name="lucide:refresh-cw"
-              :class="['w-5 h-5', pendingCatalog ? 'animate-spin' : '']"
-            />
-          </button>
-          <button
-            @click="openNewProductModal"
-            class="bg-[#4A5D23] text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-[#3C4A1C] transition-colors shadow-sm flex items-center gap-2"
-          >
-            <Icon name="lucide:plus" class="w-4 h-4" />
-            Nuevo Producto
-          </button>
-        </div>
+        <Icon name="lucide:plus" class="w-4 h-4" />
+        <span>Nuevo Producto</span>
+      </button>
+    </div>
+
+    <!-- Loading State -->
+    <div v-if="pendingCatalog" class="flex justify-center py-20">
+      <Icon name="lucide:loader-2" class="w-8 h-8 text-[#4A5D23] animate-spin" />
+    </div>
+
+    <!-- Empty State -->
+    <div v-else-if="!localCatalog.length" class="text-center py-20 bg-white rounded-[2rem] border border-[#4A5D23]/10 p-8 shadow-soft-sm">
+      <div class="w-16 h-16 rounded-full bg-[#F4F1E1] flex items-center justify-center mx-auto mb-4 text-[#4A5D23]">
+        <Icon name="lucide:cake-slice" class="w-8 h-8" />
+      </div>
+      <h3 class="text-xl font-bold font-playfair text-[#2A321B] mb-1">Sin productos en la vitrina</h3>
+      <p class="text-xs text-[#4A5D23]/70 max-w-sm mx-auto mb-6">Comienza agregando los postres artesanales de tu carta.</p>
+      <button
+        @click="openNewProductModal"
+        type="button"
+        class="px-5 py-2.5 rounded-xl bg-[#4A5D23] text-white text-xs font-bold hover:bg-[#3C4A1C] transition-all"
+      >
+        Crear Primer Producto
+      </button>
+    </div>
+
+    <!-- Table Section -->
+    <div v-else class="bg-white rounded-[2rem] border border-[#4A5D23]/10 shadow-soft-sm overflow-hidden">
+      <div class="overflow-x-auto custom-scrollbar">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="border-b border-[#4A5D23]/10 bg-[#F4F1E1]/40">
+              <th class="py-4 px-6 text-[11px] font-bold text-[#4A5D23] uppercase tracking-wider">Producto</th>
+              <th class="py-4 px-6 text-[11px] font-bold text-[#4A5D23] uppercase tracking-wider text-right">Precio</th>
+              <th class="py-4 px-6 text-[11px] font-bold text-[#4A5D23] uppercase tracking-wider text-center">Stock</th>
+              <th class="py-4 px-6 text-[11px] font-bold text-[#4A5D23] uppercase tracking-wider text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-[#4A5D23]/5">
+            <tr 
+              v-for="item in paginatedCatalog" 
+              :key="item.id" 
+              class="hover:bg-[#F4F1E1]/20 transition-colors group"
+            >
+              <!-- Producto: Imagen + Nombre -->
+              <td class="py-4 px-6">
+                <div class="flex items-center gap-3">
+                  <div class="w-12 h-12 rounded-xl bg-[#F4F1E1] border border-[#4A5D23]/10 overflow-hidden shrink-0 flex items-center justify-center">
+                    <img 
+                      v-if="item.image_url" 
+                      :src="item.image_url" 
+                      :alt="item.name" 
+                      class="w-full h-full object-cover" 
+                    />
+                    <Icon v-else :name="getProductIcon(item.name)" class="w-6 h-6 text-[#4A5D23]/60" />
+                  </div>
+                  <div>
+                    <h4 class="font-bold text-sm text-[#2A321B]">{{ item.name }}</h4>
+                    <p class="text-[11px] text-[#4A5D23]/60">ID: #{{ item.id }}</p>
+                  </div>
+                </div>
+              </td>
+
+              <!-- Precio -->
+              <td class="py-4 px-6 text-right">
+                <span class="font-bold text-sm text-[#2A321B] font-inter">
+                  S/ {{ Number(item.price).toFixed(2) }}
+                </span>
+              </td>
+
+              <!-- Stock -->
+              <td class="py-4 px-6 text-center">
+                <span 
+                  :class="[
+                    'inline-block px-3 py-1 rounded-full text-xs font-bold border',
+                    (item.stock ?? 0) <= 5 && (item.stock ?? 0) > 0 
+                      ? 'bg-red-50 text-status-danger border-red-200' 
+                      : (item.stock ?? 0) === 0 
+                        ? 'bg-gray-100 text-gray-700 border-gray-200' 
+                        : 'bg-brand-cream/60 text-brand-secondary border-brand-primary/20'
+                  ]"
+                >
+                  {{ item.stock ?? 0 }} disp.
+                </span>
+              </td>
+
+              <!-- Acciones -->
+              <td class="py-4 px-6 text-right">
+                <div class="inline-flex items-center gap-1.5">
+                  <button
+                    @click="emit('view-recipe', item)"
+                    type="button"
+                    class="w-8 h-8 rounded-lg bg-[#F4F1E1]/60 text-[#4A5D23] hover:bg-[#4A5D23] hover:text-white transition-all flex items-center justify-center shadow-xs cursor-pointer"
+                    title="Ver Escandallo / Receta"
+                  >
+                    <Icon name="lucide:calculator" class="w-4 h-4" />
+                  </button>
+                  <button
+                    @click="handleEditProduct(item)"
+                    type="button"
+                    class="w-8 h-8 rounded-lg bg-[#F4F1E1]/60 text-[#4A5D23] hover:bg-[#4A5D23] hover:text-white transition-all flex items-center justify-center shadow-xs cursor-pointer"
+                    title="Editar"
+                  >
+                    <Icon name="lucide:pencil" class="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    @click="handleDeleteProduct(item.id, item.name)"
+                    type="button"
+                    class="w-8 h-8 rounded-lg bg-red-50 text-status-danger hover:bg-status-danger hover:text-white transition-all flex items-center justify-center shadow-xs cursor-pointer"
+                    title="Eliminar"
+                  >
+                    <Icon name="lucide:trash-2" class="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
-      <div v-if="pendingCatalog && (!catalog?.data)" class="flex justify-center py-12">
-        <Icon
-          name="lucide:loader-2"
-          class="w-8 h-8 animate-spin text-[#4A5D23]"
-        />
-      </div>
-
-      <div
-        v-else-if="!catalog?.data?.length"
-        class="text-center py-12 bg-[#F4F1E1]/30 rounded-2xl border border-dashed border-[#4A5D23]/20"
-      >
-        <Icon
-          name="lucide:cake-slice"
-          class="w-12 h-12 text-[#4A5D23]/20 mx-auto mb-4"
-        />
-        <p class="text-[#4A5D23] font-medium">
-          No hay productos en el catálogo.
-        </p>
-        <button
-          @click="openNewProductModal"
-          class="mt-4 text-sm font-bold text-[#4A5D23] hover:underline"
-        >
-          Crear el primer producto
-        </button>
-      </div>
-
-      <TransitionGroup
-        v-else
-        name="list"
-        tag="div"
-        class="grid grid-cols-1 lg:grid-cols-2 gap-4 relative"
-      >
-        <div
-          v-for="item in paginatedCatalog"
-          :key="item.id"
-          class="bg-white rounded-2xl border border-[#4A5D23]/10 shadow-sm p-4 flex items-center gap-4 hover:shadow-md transition-shadow group"
-        >
-          <!-- Image Section -->
-          <div class="w-20 h-20 rounded-xl bg-[#F4F1E1]/50 overflow-hidden shrink-0 relative flex items-center justify-center">
-            <img
-              v-if="item.image_url"
-              :src="item.image_url"
-              class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-            <Icon
-              v-else
-              :name="getProductIcon(item.name)"
-              class="w-8 h-8 text-[#4A5D23]/20 transition-transform duration-500 group-hover:scale-110"
-            />
-          </div>
-
-          <!-- Content Section -->
-          <div class="flex-1 min-w-0 flex flex-col justify-center">
-            <div class="flex items-center gap-2 mb-1">
-              <h3 class="font-bold text-[#2A321B] text-base truncate">
-                {{ item.name }}
-              </h3>
-              <!-- Stock Badge -->
-              <span
-                v-if="item.stock > 5"
-                class="px-2 py-0.5 rounded-md text-[9px] font-black bg-[#F4F1E1] text-[#4A5D23] shrink-0"
-              >
-                {{ item.stock }} UND
-              </span>
-              <span
-                v-else-if="item.stock > 0"
-                class="px-2 py-0.5 rounded-md text-[9px] font-black bg-amber-100 text-amber-800 shrink-0"
-              >
-                {{ item.stock }} UND
-              </span>
-              <span
-                v-else
-                class="px-2 py-0.5 rounded-md text-[9px] font-black bg-red-100 text-red-800 shrink-0"
-              >
-                AGOTADO
-              </span>
-            </div>
-            <p class="text-lg font-black text-[#4A5D23]">
-              S/ {{ Number(item.price).toFixed(2) }}
-            </p>
-          </div>
-
-          <!-- Actions Section -->
-          <div class="flex items-center gap-2 shrink-0">
-            <button
-              @click="emit('view-recipe', item)"
-              class="w-10 h-10 rounded-xl flex items-center justify-center text-[#4A5D23] bg-[#F4F1E1]/50 hover:bg-[#4A5D23] hover:text-white transition-colors"
-              title="Ver Receta"
-            >
-              <Icon name="lucide:chef-hat" class="w-5 h-5" />
-            </button>
-            <button
-              @click="handleEditProduct(item)"
-              class="w-10 h-10 rounded-xl flex items-center justify-center text-[#4A5D23] bg-[#F4F1E1]/50 hover:bg-[#4A5D23] hover:text-white transition-colors"
-              title="Editar"
-            >
-              <Icon name="lucide:pencil" class="w-5 h-5" />
-            </button>
-            <button
-              @click="handleDeleteProduct(item.id, item.name)"
-              class="w-10 h-10 rounded-xl flex items-center justify-center text-red-600 bg-red-50 hover:bg-red-600 hover:text-white transition-colors"
-              title="Eliminar"
-            >
-              <Icon name="lucide:trash-2" class="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      </TransitionGroup>
-
-      <!-- Paginación -->
-      <div
-        v-if="totalPages > 1"
-        class="flex items-center justify-between mt-6 pt-6 border-t border-[#4A5D23]/10"
-      >
-        <span
-          class="text-xs font-bold text-[#4A5D23] uppercase tracking-widest"
-        >
+      <!-- Pagination Footer -->
+      <div v-if="totalPages > 1" class="flex items-center justify-between p-4 border-t border-[#4A5D23]/10 bg-[#F4F1E1]/20">
+        <span class="text-xs text-[#4A5D23]/70 font-medium">
           Página {{ currentPage }} de {{ totalPages }}
         </span>
-        <div class="flex gap-2">
+        <div class="flex items-center gap-2">
           <button
             @click="prevPage"
-            :disabled="currentPage === 1"
-            class="px-4 py-2 rounded-xl border border-[#4A5D23]/20 text-sm font-bold text-[#2A321B] hover:bg-[#F4F1E1] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+            :disabled="currentPage <= 1"
+            class="px-3 py-1.5 rounded-lg border border-[#4A5D23]/20 text-xs font-bold text-[#2A321B] hover:bg-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
           >
-            <Icon name="lucide:chevron-left" class="w-4 h-4" />
-            Atrás
+            Anterior
           </button>
           <button
             @click="nextPage"
-            :disabled="currentPage === totalPages"
-            class="px-4 py-2 rounded-xl border border-[#4A5D23]/20 text-sm font-bold text-[#2A321B] hover:bg-[#F4F1E1] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+            :disabled="currentPage >= totalPages"
+            class="px-3 py-1.5 rounded-lg border border-[#4A5D23]/20 text-xs font-bold text-[#2A321B] hover:bg-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
           >
             Siguiente
-            <Icon name="lucide:chevron-right" class="w-4 h-4" />
           </button>
         </div>
       </div>
-    </section>
+    </div>
 
-    <!-- Modal de Producto -->
-    <AdminProductModal
+    <!-- Modal de Edición / Creación -->
+    <ProductModal
       :show="showModal"
-      :productToEdit="productToEdit"
+      :product-to-edit="productToEdit"
       @close="showModal = false"
       @saved="handleProductSaved"
     />
   </div>
 </template>
-
-<style scoped>
-.custom-scrollbar::-webkit-scrollbar {
-  height: 6px;
-  width: 6px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(74, 93, 35, 0.2);
-  border-radius: 10px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(74, 93, 35, 0.4);
-}
-
-/* Animaciones de Lista (Pop y Deslizamiento) */
-.list-move,
-.list-enter-active,
-.list-leave-active {
-  transition: all 0.4s cubic-bezier(0.55, 0, 0.1, 1);
-}
-
-.list-enter-from,
-.list-leave-to {
-  opacity: 0;
-  transform: scale(0.8) translateY(20px);
-}
-
-.list-leave-active {
-  position: absolute;
-  /* Para que no colapse el ancho al salir del flujo */
-  width: calc(100% - 1rem); 
-}
-@media (min-width: 1024px) {
-  .list-leave-active {
-    width: calc(50% - 0.5rem);
-  }
-}
-</style>

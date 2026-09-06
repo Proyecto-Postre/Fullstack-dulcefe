@@ -1,140 +1,37 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted } from "vue";
+import type { AdminOrder, OrderStatus } from "~/types/admin-orders";
+import { useAdminOrders } from "~/composables/admin/useAdminOrders";
+import OrderDetailsModal from "./OrderDetailsModal.vue";
+import NewOrderModal from "./NewOrderModal.vue";
 
-const orders = ref<any[]>([]);
-const isLoading = ref(true);
-const viewMode = ref<"kanban" | "list">("kanban");
+const {
+  orders,
+  isLoading,
+  viewMode,
+  columns,
+  fetchOrders,
+  onDragStart,
+  onDrop,
+  getOrdersForColumn,
+  formatDate,
+  getCustomerName,
+  getCustomerPhone
+} = useAdminOrders();
 
 // Modal state
 const showOrderModal = ref(false);
-const selectedOrder = ref<any>(null);
+const selectedOrder = ref<AdminOrder | null>(null);
 const showNewOrderModal = ref(false);
 
-function openOrderDetails(order: any) {
+function openOrderDetails(order: AdminOrder): void {
   selectedOrder.value = order;
   showOrderModal.value = true;
 }
 
-// Definición de las columnas del Kanban
-const columns = [
-  {
-    id: "pending",
-    title: "Pendientes",
-    color:
-      "bg-gradient-to-b from-yellow-50 to-yellow-100/50 border-yellow-200 text-yellow-800",
-    icon: "lucide:clock",
-    headerColor: "bg-yellow-100/80",
-  },
-  {
-    id: "processing",
-    title: "Horneando",
-    color:
-      "bg-gradient-to-b from-orange-50 to-orange-100/50 border-orange-200 text-orange-800",
-    icon: "lucide:chef-hat",
-    headerColor: "bg-orange-100/80",
-  },
-  {
-    id: "ready",
-    title: "Listo para Despacho",
-    color:
-      "bg-gradient-to-b from-blue-50 to-blue-100/50 border-blue-200 text-blue-800",
-    icon: "lucide:package",
-    headerColor: "bg-blue-100/80",
-  },
-  {
-    id: "completed",
-    title: "Entregado",
-    color:
-      "bg-gradient-to-b from-green-50 to-green-100/50 border-green-200 text-green-800",
-    icon: "lucide:check-circle",
-    headerColor: "bg-green-100/80",
-  },
-];
-
-const fetchOrders = async () => {
-  isLoading.value = true;
-  try {
-    const res = await $fetch<{ success: boolean; data: any[] }>("/api/admin/orders");
-    orders.value = res.data || [];
-  } catch (err) {
-    console.error("Error fetching orders:", err);
-  } finally {
-    isLoading.value = false;
-  }
-};
-
 onMounted(() => {
   fetchOrders();
 });
-
-// Lógica de Drag and Drop
-const draggedOrder = ref<any>(null);
-
-const onDragStart = (order: any, event: DragEvent) => {
-  draggedOrder.value = order;
-  if (event.dataTransfer) {
-    event.dataTransfer.effectAllowed = "move";
-    event.dataTransfer.setData("text/plain", order.id);
-  }
-};
-
-const onDrop = async (columnId: string, event: DragEvent) => {
-  if (!draggedOrder.value) return;
-
-  const orderId = draggedOrder.value.id;
-  const oldStatus = draggedOrder.value.status;
-  const newStatus = columnId;
-
-  if (oldStatus === newStatus) return;
-
-  // Optimistic UI update
-  const orderIndex = orders.value.findIndex((o) => o.id === orderId);
-  if (orderIndex !== -1) {
-    orders.value[orderIndex].status = newStatus;
-  }
-
-  try {
-    const result = await $fetch<{
-      order_id: string
-      from: string
-      to: string
-      inventory_processed: boolean
-      points_awarded: boolean
-    }>(`/api/admin/orders/${orderId}/status`, {
-      method: 'PATCH',
-      body: { status: newStatus }
-    })
-
-    if (orderIndex !== -1 && result) {
-      orders.value[orderIndex].inventory_processed = result.inventory_processed
-      orders.value[orderIndex].points_awarded = result.points_awarded
-    }
-  } catch (err: any) {
-    console.error("Error updating order status:", err);
-    // Revertir cambio en UI si falla
-    if (orderIndex !== -1) {
-      orders.value[orderIndex].status = oldStatus;
-    }
-    const apiMsg = err?.data?.error?.message || err?.message || "Hubo un error al mover el pedido.";
-    alert(apiMsg);
-  } finally {
-    draggedOrder.value = null;
-  }
-};
-
-const getOrdersByStatus = (status: string) => {
-  return orders.value.filter((o) => o.status === status);
-};
-
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  return new Intl.DateTimeFormat("es-PE", {
-    day: "2-digit",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
-};
 </script>
 
 <template>
@@ -146,14 +43,16 @@ const formatDate = (dateString: string) => {
       <div class="flex items-center gap-4">
         <button
           @click="showNewOrderModal = true"
-          class="flex items-center gap-2 px-4 py-2 bg-[#4A5D23] text-white rounded-xl font-bold text-sm shadow-sm hover:bg-[#3C4A1C] active:translate-y-0.5 active:shadow-none transition-all"
+          type="button"
+          class="flex items-center gap-2 px-4 py-2 bg-[#4A5D23] text-white rounded-xl font-bold text-sm shadow-sm hover:bg-[#3C4A1C] active:translate-y-0.5 active:shadow-none transition-all cursor-pointer"
         >
           <Icon name="lucide:plus" class="w-4 h-4" />
           Nuevo Pedido
         </button>
         <button
           @click="fetchOrders"
-          class="flex items-center gap-2 px-4 py-2 bg-white border border-[#4A5D23]/20 rounded-xl font-bold text-sm shadow-sm hover:bg-[#F4F1E1] active:translate-y-0.5 active:shadow-none transition-all"
+          type="button"
+          class="flex items-center gap-2 px-4 py-2 bg-white border border-[#4A5D23]/20 rounded-xl font-bold text-sm shadow-sm hover:bg-[#F4F1E1] active:translate-y-0.5 active:shadow-none transition-all cursor-pointer"
         >
           <Icon
             name="lucide:refresh-cw"
@@ -166,8 +65,9 @@ const formatDate = (dateString: string) => {
         >
           <button
             @click="viewMode = 'list'"
+            type="button"
             :class="[
-              'px-4 py-1.5 rounded-lg text-sm font-bold transition-colors flex items-center gap-2',
+              'px-4 py-1.5 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 cursor-pointer',
               viewMode === 'list'
                 ? 'bg-[#4A5D23] text-white'
                 : 'text-[#4A5D23]/60 hover:text-[#4A5D23]',
@@ -178,8 +78,9 @@ const formatDate = (dateString: string) => {
           </button>
           <button
             @click="viewMode = 'kanban'"
+            type="button"
             :class="[
-              'px-4 py-1.5 rounded-lg text-sm font-bold transition-colors flex items-center gap-2',
+              'px-4 py-1.5 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 cursor-pointer',
               viewMode === 'kanban'
                 ? 'bg-[#4A5D23] text-white'
                 : 'text-[#4A5D23]/60 hover:text-[#4A5D23]',
@@ -207,7 +108,7 @@ const formatDate = (dateString: string) => {
         ]"
         @dragover.prevent
         @dragenter.prevent
-        @drop="onDrop(col.id, $event)"
+        @drop="onDrop(col.id as OrderStatus, $event)"
       >
         <!-- Header de Columna -->
         <div
@@ -225,21 +126,21 @@ const formatDate = (dateString: string) => {
           <span
             class="bg-white px-2.5 py-1 rounded-md text-xs font-black border border-current/10 shadow-sm"
           >
-            {{ getOrdersByStatus(col.id).length }}
+            {{ getOrdersForColumn(col.id as OrderStatus).length }}
           </span>
         </div>
 
         <!-- Lista de Tarjetas -->
         <div class="p-4 flex-1 flex flex-col gap-4 overflow-y-auto">
           <div
-            v-if="isLoading && getOrdersByStatus(col.id).length === 0"
+            v-if="isLoading && getOrdersForColumn(col.id as OrderStatus).length === 0"
             class="text-center py-8 opacity-50"
           >
             <Icon name="lucide:loader-2" class="w-6 h-6 animate-spin mx-auto" />
           </div>
 
           <div
-            v-else-if="getOrdersByStatus(col.id).length === 0"
+            v-else-if="getOrdersForColumn(col.id as OrderStatus).length === 0"
             class="text-center py-8 opacity-50 border border-dashed border-[#4A5D23]/30 rounded-xl bg-white/50"
           >
             <p
@@ -251,7 +152,7 @@ const formatDate = (dateString: string) => {
 
           <!-- Tarjeta de Pedido -->
           <div
-            v-for="order in getOrdersByStatus(col.id)"
+            v-for="order in getOrdersForColumn(col.id as OrderStatus)"
             :key="order.id"
             draggable="true"
             @dragstart="onDragStart(order, $event)"
@@ -264,24 +165,26 @@ const formatDate = (dateString: string) => {
                 <h4
                   class="font-bold text-[#2A321B] text-sm group-hover:text-current transition-colors leading-tight"
                 >
-                  {{ order.profiles?.full_name || "Cliente Anónimo" }}
+                  {{ getCustomerName(order) }}
                 </h4>
                 <p
-                  v-if="order.profiles?.phone"
+                  v-if="getCustomerPhone(order)"
                   class="text-[10px] text-current/70 flex items-center gap-1 mt-1 font-medium"
                 >
                   <Icon name="lucide:phone" class="w-3 h-3" />
-                  {{ order.profiles.phone }}
+                  {{ getCustomerPhone(order) }}
                 </p>
               </div>
               <span
                 class="font-black text-[#2A321B] bg-[#F4F1E1] px-2 py-1 rounded-md text-xs border border-[#4A5D23]/10 shrink-0"
-                >S/ {{ Number(order.total_amount).toFixed(2) }}</span
               >
+                S/ {{ Number(order.total_amount ?? order.total_price ?? 0).toFixed(2) }}
+              </span>
             </div>
 
             <!-- Items del Pedido -->
             <div
+              v-if="order.order_items && order.order_items.length > 0"
               class="space-y-1.5 bg-current/5 p-2.5 rounded-lg border border-current/10"
             >
               <div
@@ -291,11 +194,12 @@ const formatDate = (dateString: string) => {
               >
                 <span
                   class="font-black text-current bg-white px-1.5 py-0.5 rounded shadow-sm shrink-0"
-                  >{{ item.quantity }}x</span
                 >
-                <span class="leading-tight pt-0.5">{{
-                  item.products?.name
-                }}</span>
+                  {{ item.quantity }}x
+                </span>
+                <span class="leading-tight pt-0.5">
+                  {{ item.products?.name || 'Producto' }}
+                </span>
               </div>
             </div>
 
@@ -353,17 +257,17 @@ const formatDate = (dateString: string) => {
                   {{ order.id.split("-")[0] }}
                 </p>
                 <p class="text-[10px] text-[#4A5D23]/70 font-medium">
-                  {{ new Date(order.created_at).toLocaleDateString("es-PE") }}
+                  {{ formatDate(order.created_at) }}
                 </p>
               </td>
               <td class="py-4 font-bold text-[#2A321B]">
-                {{ order.profiles?.full_name || "Sin nombre" }}
+                {{ getCustomerName(order) }}
               </td>
               <td class="py-4 text-[#4A5D23]/80 font-medium">
-                {{ order.profiles?.phone || "Sin teléfono" }}
+                {{ getCustomerPhone(order) || "Sin teléfono" }}
               </td>
               <td class="py-4 text-center font-black text-[#4A5D23]">
-                S/ {{ Number(order.total_amount).toFixed(2) }}
+                S/ {{ Number(order.total_amount ?? order.total_price ?? 0).toFixed(2) }}
               </td>
               <td class="py-4 text-center">
                 <span
@@ -386,8 +290,9 @@ const formatDate = (dateString: string) => {
               </td>
               <td class="py-4 text-right pr-6">
                 <button
+                  type="button"
                   @click.stop="openOrderDetails(order)"
-                  class="text-[#4A5D23] hover:bg-[#4A5D23]/10 p-2 rounded-lg transition-colors"
+                  class="text-[#4A5D23] hover:bg-[#4A5D23]/10 p-2 rounded-lg transition-colors cursor-pointer"
                   title="Ver Detalles"
                 >
                   <Icon name="lucide:eye" class="w-5 h-5" />
@@ -400,7 +305,7 @@ const formatDate = (dateString: string) => {
     </div>
 
     <!-- Modal de Detalles del Pedido -->
-    <AdminOrderDetailsModal
+    <OrderDetailsModal
       :show="showOrderModal"
       :order="selectedOrder"
       @close="showOrderModal = false"
@@ -408,7 +313,7 @@ const formatDate = (dateString: string) => {
     />
 
     <!-- Modal de Nuevo Pedido Manual -->
-    <AdminNewOrderModal
+    <NewOrderModal
       :show="showNewOrderModal"
       @close="showNewOrderModal = false"
       @created="fetchOrders"
