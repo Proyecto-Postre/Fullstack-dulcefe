@@ -1,4 +1,4 @@
-﻿name: Dulce Fe — CI/CD Quality & Governance Pipeline
+name: Dulce Fe — CI/CD Quality & Governance Pipeline
 
 on:
   push:
@@ -93,8 +93,8 @@ jobs:
       - name: Run Nuxt Production Build
         run: npm run build
 
-  type-drift-gate:
-    name: 5. Database Type Drift Gate (§5.3 / V50)
+  governance-gate:
+    name: 5. Architecture, SQL Migrations & Type Drift Gate (§5.3 / §10.3 / V42 / V50)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -109,6 +109,6 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      - name: Verify Database Types Contract & Header
+      - name: Verify Architecture Boundaries, SQL Migrations & Database Types Contract
         run: |
-          npx vitest run tests/architecture/type-drift-gate.test.ts
+          npx vitest run tests/architecture/architectural-boundaries.test.ts tests/architecture/sql-migrations.test.ts tests/architecture/type-drift-gate.test.ts tests/architecture/e2e-smoke-flows.test.ts
