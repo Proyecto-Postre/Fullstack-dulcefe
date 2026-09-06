@@ -321,6 +321,12 @@ export type Database = {
           id: string
           inventory_processed: boolean
           notes: string | null
+          payment_method: string | null
+          payment_receipt_url: string | null
+          payment_reference: string | null
+          payment_status: string | null
+          payment_verified_at: string | null
+          payment_verified_by: string | null
           points_awarded: boolean | null
           profile_id: string | null
           status: string | null
@@ -337,6 +343,12 @@ export type Database = {
           id?: string
           inventory_processed?: boolean
           notes?: string | null
+          payment_method?: string | null
+          payment_receipt_url?: string | null
+          payment_reference?: string | null
+          payment_status?: string | null
+          payment_verified_at?: string | null
+          payment_verified_by?: string | null
           points_awarded?: boolean | null
           profile_id?: string | null
           status?: string | null
@@ -353,6 +365,12 @@ export type Database = {
           id?: string
           inventory_processed?: boolean
           notes?: string | null
+          payment_method?: string | null
+          payment_receipt_url?: string | null
+          payment_reference?: string | null
+          payment_status?: string | null
+          payment_verified_at?: string | null
+          payment_verified_by?: string | null
           points_awarded?: boolean | null
           profile_id?: string | null
           status?: string | null

@@ -7,6 +7,9 @@ export interface CheckoutFormData {
   deliveryDate: string
   deliveryTime: string
   notes: string
+  paymentMethod?: 'cash' | 'yape' | 'plin' | 'card'
+  paymentReference?: string
+  paymentReceiptUrl?: string
 }
 
 export interface CheckoutItemPayload {
@@ -22,6 +25,9 @@ export interface CheckoutPayload {
   delivery_date?: string
   delivery_time?: string
   notes?: string
+  payment_method: 'cash' | 'yape' | 'plin' | 'card'
+  payment_reference?: string
+  payment_receipt_url?: string
   items: CheckoutItemPayload[]
 }
 

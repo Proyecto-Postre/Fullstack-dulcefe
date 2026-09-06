@@ -293,7 +293,11 @@ export class OrderService {
           delivery_date: dto.delivery_date || null,
           delivery_time: dto.delivery_time || null,
           notes: dto.notes || null,
-          tracking_token: trackingToken
+          tracking_token: trackingToken,
+          payment_method: dto.payment_method || 'cash',
+          payment_reference: dto.payment_reference || null,
+          payment_receipt_url: dto.payment_receipt_url || null,
+          payment_status: 'pending'
         })
         .select()
         .single()
@@ -973,5 +977,100 @@ export class OrderService {
       })
     }
   }
+
+  /**
+   * Verifica o rechaza el pago de una orden (ADR-005 / D5).
+   */
+  static async verifyPayment(
+    event: H3Event,
+    orderId: string,
+    action: 'verify' | 'reject',
+    notes: string | undefined,
+    requestId: string
+  ): Promise<{
+    success: boolean
+    data: {
+      order_id: string
+      payment_status: 'verified' | 'rejected'
+      payment_verified_at: string | null
+      payment_verified_by: string | null
+    }
+  }> {
+    const adminCtx = await requireAdmin(event)
+    const supabase = serverSupabaseServiceRole<Database>(event)
+
+    const { data: order, error: findError } = await supabase
+      .from('orders')
+      .select('id, payment_status, payment_method')
+      .eq('id', orderId)
+      .maybeSingle()
+
+    if (findError || !order) {
+      throw createError({
+        statusCode: 404,
+        statusMessage: 'ORDER_NOT_FOUND',
+        data: {
+          error: {
+            code: 'ORDER_NOT_FOUND',
+            message: `La orden con ID ${orderId} no existe.`,
+            request_id: requestId
+          }
+        }
+      })
+    }
+
+    const newPaymentStatus = action === 'verify' ? 'verified' : 'rejected'
+    const nowIso = new Date().toISOString()
+    const verifiedBy = action === 'verify' ? adminCtx.user.id : null
+    const verifiedAt = action === 'verify' ? nowIso : null
+
+    const { error: updateError } = await supabase
+      .from('orders')
+      .update({
+        payment_status: newPaymentStatus,
+        payment_verified_at: verifiedAt,
+        payment_verified_by: verifiedBy
+      })
+      .eq('id', orderId)
+
+    if (updateError) {
+      throw createError({
+        statusCode: 500,
+        statusMessage: 'INTERNAL_ERROR',
+        data: {
+          error: {
+            code: 'INTERNAL_ERROR',
+            message: `Error al actualizar estado de pago: ${updateError.message}`,
+            request_id: requestId
+          }
+        }
+      })
+    }
+
+    // Registro de auditoría
+    try {
+      await supabase.from('audit_events').insert({
+        actor_id: adminCtx.user.id,
+        action: action === 'verify' ? 'payment.verified' : 'payment.rejected',
+        entity: 'orders',
+        entity_id: orderId,
+        result: 'success',
+        request_id: requestId
+      })
+    } catch {
+      // Ignorar fallos no críticos de auditoría secundaria
+    }
+
+    return {
+      success: true,
+      data: {
+        order_id: orderId,
+        payment_status: newPaymentStatus,
+        payment_verified_at: verifiedAt,
+        payment_verified_by: verifiedBy
+      }
+    }
+  }
 }
+
 
