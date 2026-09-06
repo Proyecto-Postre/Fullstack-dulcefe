@@ -1,62 +1,68 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { ref, computed } from "vue";
 import { useAuthStore } from "~/stores/auth";
+import type { ProductRow } from "~/types/catalog";
+import type { RawMaterialRow } from "~/types/inventory";
+import ProductModal from "./ProductModal.vue";
+import MaterialModal from "./MaterialModal.vue";
 
 const authStore = useAuthStore();
 
 const props = defineProps<{
-  catalog: any;
-  materials: any;
+  catalog: { success: boolean; data: ProductRow[] } | null | undefined;
+  materials: { success: boolean; data: RawMaterialRow[] } | null | undefined;
 }>();
-
-// Computed properties for dashboard metrics
-const totalProducts = computed(() => props.catalog?.data?.length || 0);
-const totalMaterials = computed(() => props.materials?.data?.length || 0);
-
-const lowStockProducts = computed(() => {
-  if (!props.catalog?.data) return [];
-  return props.catalog.data.filter((p: any) => p.stock <= 5);
-});
-
-const lowStockMaterials = computed(() => {
-  if (!props.materials?.data) return [];
-  // Assuming a threshold of 500g or 5 units for materials
-  return props.materials.data.filter((m: any) => {
-    if (m.unit === "g" || m.unit === "ml") return m.stock <= 500;
-    return m.stock <= 5;
-  });
-});
-
-const totalInventoryValue = computed(() => {
-  if (!props.materials?.data) return 0;
-  return props.materials.data.reduce((sum: number, m: any) => {
-    const costPerUnit =
-      m.cost_per_unit || m.purchase_price / m.purchase_quantity;
-    return sum + costPerUnit * m.stock;
-  }, 0);
-});
-
-// Modal state
-const showProductModal = ref(false);
-const productToEdit = ref<any>(null);
-const showMaterialModal = ref(false);
-const materialToEdit = ref<any>(null);
 
 const emit = defineEmits<{
   (e: "refresh"): void;
 }>();
 
-function openProductModal(product: any) {
+// Computed properties for dashboard metrics
+const totalProducts = computed<number>(() => props.catalog?.data?.length || 0);
+const totalMaterials = computed<number>(() => props.materials?.data?.length || 0);
+
+const lowStockProducts = computed<ProductRow[]>(() => {
+  if (!props.catalog?.data) return [];
+  return props.catalog.data.filter((p: ProductRow) => Number(p.stock) <= 5);
+});
+
+const lowStockMaterials = computed<RawMaterialRow[]>(() => {
+  if (!props.materials?.data) return [];
+  return props.materials.data.filter((m: RawMaterialRow) => {
+    const stock = Number(m.stock || 0);
+    if (m.unit === "g" || m.unit === "ml") return stock <= 500;
+    return stock <= 5;
+  });
+});
+
+const totalInventoryValue = computed<number>(() => {
+  if (!props.materials?.data) return 0;
+  return props.materials.data.reduce((sum: number, m: RawMaterialRow) => {
+    const price = Number(m.purchase_price || 0);
+    const qty = Number(m.purchase_quantity || 1);
+    const costPerUnit = qty > 0 ? price / qty : 0;
+    const stock = Number(m.stock || 0);
+    return sum + costPerUnit * stock;
+  }, 0);
+});
+
+// Modal state
+const showProductModal = ref(false);
+const productToEdit = ref<ProductRow | null>(null);
+const showMaterialModal = ref(false);
+const materialToEdit = ref<RawMaterialRow | null>(null);
+
+function openProductModal(product: ProductRow): void {
   productToEdit.value = product;
   showProductModal.value = true;
 }
 
-function openMaterialModal(material: any) {
+function openMaterialModal(material: RawMaterialRow): void {
   materialToEdit.value = material;
   showMaterialModal.value = true;
 }
 
-function onModalSaved() {
+function onModalSaved(): void {
   emit("refresh");
 }
 </script>
@@ -98,10 +104,10 @@ function onModalSaved() {
     <!-- Metrics Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <div
-        class="bg-white p-6 rounded-2xl border border-[#4A5D23]/10 shadow-sm flex items-center gap-4"
+        class="bg-white rounded-[2rem] p-6 border border-[#4A5D23]/10 shadow-sm flex items-center gap-4"
       >
         <div
-          class="w-12 h-12 rounded-xl bg-[#F4F1E1] text-[#4A5D23] flex items-center justify-center border border-[#4A5D23]/20"
+          class="w-12 h-12 rounded-2xl bg-[#F4F1E1] text-[#4A5D23] flex items-center justify-center font-bold"
         >
           <Icon name="lucide:cake-slice" class="w-6 h-6" />
         </div>
@@ -109,17 +115,17 @@ function onModalSaved() {
           <p
             class="text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest"
           >
-            Productos en Catálogo
+            Productos Vitrina
           </p>
           <p class="text-2xl font-black text-[#2A321B]">{{ totalProducts }}</p>
         </div>
       </div>
 
       <div
-        class="bg-white p-6 rounded-2xl border border-[#4A5D23]/10 shadow-sm flex items-center gap-4"
+        class="bg-white rounded-[2rem] p-6 border border-[#4A5D23]/10 shadow-sm flex items-center gap-4"
       >
         <div
-          class="w-12 h-12 rounded-xl bg-[#F4F1E1] text-[#4A5D23] flex items-center justify-center border border-[#4A5D23]/20"
+          class="w-12 h-12 rounded-2xl bg-[#F4F1E1] text-[#4A5D23] flex items-center justify-center font-bold"
         >
           <Icon name="lucide:scale" class="w-6 h-6" />
         </div>
@@ -127,25 +133,32 @@ function onModalSaved() {
           <p
             class="text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest"
           >
-            Insumos Registrados
+            Insumos Almacén
           </p>
-          <p class="text-2xl font-black text-[#2A321B]">{{ totalMaterials }}</p>
+          <p class="text-2xl font-black text-[#2A321B]">
+            {{ totalMaterials }}
+          </p>
         </div>
       </div>
 
       <div
-        class="bg-white p-6 rounded-2xl border border-[#4A5D23]/10 shadow-sm flex items-center gap-4"
+        class="bg-white rounded-[2rem] p-6 border border-[#4A5D23]/10 shadow-sm flex items-center gap-4"
       >
         <div
-          class="w-12 h-12 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center border border-amber-200"
+          :class="[
+            'w-12 h-12 rounded-2xl flex items-center justify-center font-bold',
+            lowStockProducts.length > 0
+              ? 'bg-amber-100 text-amber-700'
+              : 'bg-[#F4F1E1] text-[#4A5D23]',
+          ]"
         >
-          <Icon name="lucide:alert-circle" class="w-6 h-6" />
+          <Icon name="lucide:alert-triangle" class="w-6 h-6" />
         </div>
         <div>
           <p
-            class="text-[10px] font-bold text-amber-700 uppercase tracking-widest"
+            class="text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest"
           >
-            Bajo Stock (Vitrina)
+            Prod. Stock Bajo
           </p>
           <p class="text-2xl font-black text-[#2A321B]">
             {{ lowStockProducts.length }}
@@ -154,16 +167,23 @@ function onModalSaved() {
       </div>
 
       <div
-        class="bg-white p-6 rounded-2xl border border-[#4A5D23]/10 shadow-sm flex items-center gap-4"
+        class="bg-white rounded-[2rem] p-6 border border-[#4A5D23]/10 shadow-sm flex items-center gap-4"
       >
         <div
-          class="w-12 h-12 rounded-xl bg-red-50 text-red-700 flex items-center justify-center border border-red-200"
+          :class="[
+            'w-12 h-12 rounded-2xl flex items-center justify-center font-bold',
+            lowStockMaterials.length > 0
+              ? 'bg-red-100 text-red-700'
+              : 'bg-[#F4F1E1] text-[#4A5D23]',
+          ]"
         >
-          <Icon name="lucide:triangle-alert" class="w-6 h-6" />
+          <Icon name="lucide:package-x" class="w-6 h-6" />
         </div>
         <div>
-          <p class="text-[10px] font-bold text-red-700 uppercase tracking-widest">
-            Bajo Stock (Almacén)
+          <p
+            class="text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest"
+          >
+            Insumos Críticos
           </p>
           <p class="text-2xl font-black text-[#2A321B]">
             {{ lowStockMaterials.length }}
@@ -172,58 +192,65 @@ function onModalSaved() {
       </div>
     </div>
 
-    <!-- Quick Lists / Tables -->
+    <!-- Alert Sections -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <!-- Low Stock Products -->
+      <!-- Low Stock Products List -->
       <div
-        class="bg-white p-6 rounded-[2rem] border border-[#4A5D23]/10 shadow-sm space-y-4"
+        class="bg-white rounded-[2rem] border border-[#4A5D23]/10 shadow-sm p-6 flex flex-col"
       >
-        <div class="flex items-center justify-between">
-          <h3 class="text-lg font-playfair font-black text-[#2A321B]">
-            Productos con Stock Crítico
-          </h3>
-          <span
-            class="text-xs font-bold bg-[#F4F1E1] text-[#4A5D23] px-2.5 py-1 rounded-full"
-          >
-            {{ lowStockProducts.length }} alerta(s)
-          </span>
-        </div>
+        <h3
+          class="font-playfair font-bold text-lg text-[#2A321B] mb-4 flex items-center gap-2"
+        >
+          <Icon name="lucide:cake" class="w-5 h-5 text-[#4A5D23]" />
+          Productos por Agotarse (≤ 5 und)
+        </h3>
 
         <div
           v-if="lowStockProducts.length === 0"
-          class="py-8 text-center text-sm font-medium text-[#4A5D23]/60"
+          class="flex-1 flex flex-col items-center justify-center py-8 text-center"
         >
           <Icon
-            name="lucide:check-circle-2"
-            class="w-8 h-8 mx-auto mb-2 text-[#4A5D23]"
+            name="lucide:check-circle"
+            class="w-12 h-12 text-[#4A5D23]/30 mb-2"
           />
-          El inventario de vitrina está en niveles saludables.
+          <p class="text-sm font-medium text-[#4A5D23]/60">
+            ¡Excelente! Tu vitrina está bien abastecida.
+          </p>
         </div>
 
-        <div v-else class="divide-y divide-[#4A5D23]/5">
+        <div v-else class="space-y-3">
           <div
             v-for="p in lowStockProducts"
             :key="p.id"
-            class="py-3 flex items-center justify-between"
+            class="flex items-center justify-between p-3 rounded-xl bg-[#F4F1E1]/40 border border-[#4A5D23]/10"
           >
-            <div>
-              <p class="font-bold text-sm text-[#2A321B]">{{ p.name }}</p>
-              <p class="text-xs text-[#4A5D23]">S/ {{ p.price.toFixed(2) }}</p>
+            <div class="flex items-center gap-3">
+              <img
+                :src="p.image_url || '/placeholder-cake.png'"
+                class="w-10 h-10 rounded-lg object-cover bg-white"
+              />
+              <div>
+                <h4 class="font-bold text-sm text-[#2A321B]">{{ p.name }}</h4>
+                <p class="text-xs text-[#4A5D23]/70 font-medium">
+                  S/ {{ Number(p.price).toFixed(2) }}
+                </p>
+              </div>
             </div>
             <div class="flex items-center gap-3">
               <span
                 :class="[
-                  'text-xs font-bold px-2.5 py-1 rounded-full',
+                  'px-2.5 py-1 rounded-full text-xs font-bold',
                   p.stock === 0
                     ? 'bg-red-100 text-red-800'
                     : 'bg-amber-100 text-amber-800',
                 ]"
               >
-                {{ p.stock === 0 ? "Agotado" : `${p.stock} unid.` }}
+                {{ p.stock === 0 ? "Agotado" : `${p.stock} disponibles` }}
               </span>
               <button
                 @click="openProductModal(p)"
-                class="text-xs font-bold text-[#4A5D23] hover:underline"
+                type="button"
+                class="text-xs font-bold text-[#4A5D23] hover:underline cursor-pointer"
               >
                 Editar
               </button>
@@ -232,48 +259,46 @@ function onModalSaved() {
         </div>
       </div>
 
-      <!-- Low Stock Materials -->
+      <!-- Critical Materials List -->
       <div
-        class="bg-white p-6 rounded-[2rem] border border-[#4A5D23]/10 shadow-sm space-y-4"
+        class="bg-white rounded-[2rem] border border-[#4A5D23]/10 shadow-sm p-6 flex flex-col"
       >
-        <div class="flex items-center justify-between">
-          <h3 class="text-lg font-playfair font-black text-[#2A321B]">
-            Insumos con Stock Crítico
-          </h3>
-          <span
-            class="text-xs font-bold bg-[#F4F1E1] text-[#4A5D23] px-2.5 py-1 rounded-full"
-          >
-            {{ lowStockMaterials.length }} alerta(s)
-          </span>
-        </div>
+        <h3
+          class="font-playfair font-bold text-lg text-[#2A321B] mb-4 flex items-center gap-2"
+        >
+          <Icon name="lucide:scale" class="w-5 h-5 text-[#4A5D23]" />
+          Insumos con Stock Bajo
+        </h3>
 
         <div
           v-if="lowStockMaterials.length === 0"
-          class="py-8 text-center text-sm font-medium text-[#4A5D23]/60"
+          class="flex-1 flex flex-col items-center justify-center py-8 text-center"
         >
           <Icon
-            name="lucide:check-circle-2"
-            class="w-8 h-8 mx-auto mb-2 text-[#4A5D23]"
+            name="lucide:check-circle"
+            class="w-12 h-12 text-[#4A5D23]/30 mb-2"
           />
-          El almacén tiene suficiente stock de todos los insumos.
+          <p class="text-sm font-medium text-[#4A5D23]/60">
+            Todos los insumos del almacén tienen stock suficiente.
+          </p>
         </div>
 
-        <div v-else class="divide-y divide-[#4A5D23]/5">
+        <div v-else class="space-y-3">
           <div
             v-for="m in lowStockMaterials"
             :key="m.id"
-            class="py-3 flex items-center justify-between"
+            class="flex items-center justify-between p-3 rounded-xl bg-[#F4F1E1]/40 border border-[#4A5D23]/10"
           >
             <div>
-              <p class="font-bold text-sm text-[#2A321B]">{{ m.name }}</p>
-              <p class="text-xs text-[#4A5D23]">
-                S/ {{ (m.cost_per_unit || 0).toFixed(4) }} por {{ m.unit }}
+              <h4 class="font-bold text-sm text-[#2A321B]">{{ m.name }}</h4>
+              <p class="text-[10px] font-bold uppercase tracking-wider text-[#4A5D23]/70">
+                Costo Base: S/ {{ Number(m.purchase_price).toFixed(2) }} x {{ m.purchase_quantity }} {{ m.unit }}
               </p>
             </div>
             <div class="flex items-center gap-3">
               <span
                 :class="[
-                  'text-xs font-bold px-2.5 py-1 rounded-full',
+                  'px-2.5 py-1 rounded-full text-xs font-bold',
                   m.stock === 0
                     ? 'bg-red-100 text-red-800'
                     : 'bg-amber-100 text-amber-800',
@@ -283,7 +308,8 @@ function onModalSaved() {
               </span>
               <button
                 @click="openMaterialModal(m)"
-                class="text-xs font-bold text-[#4A5D23] hover:underline"
+                type="button"
+                class="text-xs font-bold text-[#4A5D23] hover:underline cursor-pointer"
               >
                 Reabastecer
               </button>
@@ -294,14 +320,14 @@ function onModalSaved() {
     </div>
 
     <!-- Modals -->
-    <AdminProductModal
+    <ProductModal
       :show="showProductModal"
       :productToEdit="productToEdit"
       @close="showProductModal = false"
       @saved="onModalSaved"
     />
 
-    <AdminMaterialModal
+    <MaterialModal
       :show="showMaterialModal"
       :materialToEdit="materialToEdit"
       @close="showMaterialModal = false"
