@@ -7,6 +7,7 @@ import type { CheckoutBodyDTO } from '../utils/schemas/checkout'
 import type { AdminCreateOrderInput } from '../utils/schemas/admin-order'
 import { solesToCents, centsToSoles, calculateLoyaltyPoints } from '../utils/money'
 import { requireAdmin } from '../utils/require-admin'
+import { generateOrderTrackingToken } from '../utils/crypto'
 
 export interface OrderResponseItem {
   product_id: number
@@ -27,6 +28,8 @@ export interface CheckoutResponseOrder {
   delivery_time: string | null
   notes: string | null
   items: OrderResponseItem[]
+  tracking_token?: string | null
+  tracking_url?: string | null
 }
 
 export interface CheckoutResult {
@@ -273,6 +276,7 @@ export class OrderService {
     }
 
     const totalAmountString = centsToSoles(orderTotalCents)
+    const trackingToken = generateOrderTrackingToken(crypto.randomUUID(), now.toISOString())
 
     // 7. Inserción de orden y detalle
     try {
@@ -287,7 +291,8 @@ export class OrderService {
           status: 'pending',
           delivery_date: dto.delivery_date || null,
           delivery_time: dto.delivery_time || null,
-          notes: dto.notes || null
+          notes: dto.notes || null,
+          tracking_token: trackingToken
         })
         .select()
         .single()
@@ -338,7 +343,9 @@ export class OrderService {
           name: it.name,
           quantity: it.quantity,
           price_at_time: it.priceString
-        }))
+        })),
+        tracking_token: trackingToken,
+        tracking_url: `/pedido/${trackingToken}`
       }
 
       // 8. Marcar la llave de idempotencia como completada
@@ -841,6 +848,7 @@ export class OrderService {
       }
 
       const totalAmountString = centsToSoles(totalCents)
+      const trackingToken = generateOrderTrackingToken(crypto.randomUUID(), new Date().toISOString())
 
       // 5. Insertar cabecera de orden
       const { data: createdOrder, error: orderInsertError } = await supabase
@@ -856,7 +864,8 @@ export class OrderService {
           delivery_time: dto.delivery_time || null,
           notes: dto.notes || null,
           inventory_processed: false,
-          points_awarded: false
+          points_awarded: false,
+          tracking_token: trackingToken
         })
         .select()
         .single()
@@ -898,7 +907,9 @@ export class OrderService {
           name: it.name,
           quantity: it.quantity,
           price_at_time: it.priceString
-        }))
+        })),
+        tracking_token: trackingToken,
+        tracking_url: `/pedido/${trackingToken}`
       }
 
       // 7. Marcar idempotencia completada

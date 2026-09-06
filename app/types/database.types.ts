@@ -325,6 +325,7 @@ export type Database = {
           profile_id: string | null
           status: string | null
           total_amount: number
+          tracking_token: string | null
         }
         Insert: {
           address?: string | null
@@ -340,6 +341,7 @@ export type Database = {
           profile_id?: string | null
           status?: string | null
           total_amount: number
+          tracking_token?: string | null
         }
         Update: {
           address?: string | null
@@ -355,6 +357,7 @@ export type Database = {
           profile_id?: string | null
           status?: string | null
           total_amount?: number
+          tracking_token?: string | null
         }
         Relationships: [
           {
