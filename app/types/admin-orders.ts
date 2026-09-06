@@ -42,6 +42,9 @@ export interface AdminOrder {
   payment_status?: 'pending' | 'verified' | 'rejected' | null
   payment_verified_at?: string | null
   payment_verified_by?: string | null
+  total_cost_cents?: number | null
+  gross_margin_cents?: number | null
+  cost_snapshot?: unknown
   profiles?: AdminOrderProfile | null
   order_items?: AdminOrderItem[]
 }

@@ -9,6 +9,7 @@ import { solesToCents, centsToSoles, calculateLoyaltyPoints } from '../utils/mon
 import { requireAdmin } from '../utils/require-admin'
 import { generateOrderTrackingToken } from '../utils/crypto'
 import { InventoryService } from './inventory.service'
+import type { OrderCostSnapshot, CostSnapshotItem, CostSnapshotIngredient } from '~/types/cost-snapshot'
 
 export interface OrderResponseItem {
   product_id: number
@@ -605,6 +606,11 @@ export class OrderService {
       }
     }
 
+    // Congelar snapshot inmutable de escandallo al entrar a producción (ADR-008 / D8)
+    if (newStatus === 'processing') {
+      await this.freezeOrderCostSnapshot(event, orderId, requestId).catch(() => {})
+    }
+
     // 4. Transición a 'cancelled': Reversión de stock o declaración de merma (ADR-001 / D1)
     if (newStatus === 'cancelled' && (order.inventory_processed ?? false)) {
       const restoreStock = options?.restore_stock ?? true
@@ -1070,6 +1076,150 @@ export class OrderService {
         payment_verified_by: verifiedBy
       }
     }
+  }
+
+  /**
+   * Congela de forma inmutable el escandallo y costo de insumos (COGS) de una orden (ADR-008 / D8).
+   * Si ya existe un snapshot previo, no se sobreescribe para preservar la verdad histórica contable.
+   */
+  static async freezeOrderCostSnapshot(
+    event: H3Event,
+    orderId: string,
+    _requestId: string
+  ): Promise<OrderCostSnapshot | null> {
+    const supabase = serverSupabaseServiceRole<Database>(event)
+
+    const { data: order, error: orderErr } = await supabase
+      .from('orders')
+      .select(`
+        id,
+        total_amount,
+        cost_snapshot,
+        total_cost_cents,
+        gross_margin_cents,
+        order_items (
+          id,
+          product_id,
+          quantity,
+          products ( id, name )
+        )
+      `)
+      .eq('id', orderId)
+      .maybeSingle()
+
+    if (orderErr || !order) {
+      return null
+    }
+
+    if (order.cost_snapshot) {
+      return order.cost_snapshot as unknown as OrderCostSnapshot
+    }
+
+    const orderItems = (order.order_items || []) as Array<{
+      id: string
+      product_id: number | null
+      quantity: number
+      products: { id: number; name: string } | null
+    }>
+
+    const productIds = orderItems
+      .map((it) => it.product_id)
+      .filter((id): id is number => id !== null)
+
+    let recipeItems: Array<{
+      product_id: number
+      raw_material_id: number
+      quantity_used: number | null
+      raw_materials: {
+        id: number
+        name: string | null
+        unit: string | null
+        purchase_price: number | null
+        purchase_quantity: number | null
+      } | null
+    }> = []
+
+    if (productIds.length > 0) {
+      const { data: recipes } = await supabase
+        .from('recipe_items')
+        .select(`
+          product_id,
+          raw_material_id,
+          quantity_used,
+          raw_materials ( id, name, unit, purchase_price, purchase_quantity )
+        `)
+        .in('product_id', productIds)
+
+      recipeItems = (recipes || []) as unknown as typeof recipeItems
+    }
+
+    let totalOrderCostCents = 0
+    const snapshotItems: CostSnapshotItem[] = []
+
+    for (const item of orderItems) {
+      if (!item.product_id) continue
+
+      const productRecipes = recipeItems.filter((r) => r.product_id === item.product_id)
+      let productUnitCostCents = 0
+      const ingredientSnapshots: CostSnapshotIngredient[] = []
+
+      for (const rec of productRecipes) {
+        const mat = rec.raw_materials
+        const purchasePriceCents = solesToCents(mat?.purchase_price ?? 0)
+        const purchaseQty = Number(mat?.purchase_quantity ?? 1)
+        const costPerUnitCents = purchaseQty > 0 ? purchasePriceCents / purchaseQty : 0
+        const qtyUsed = Number(rec.quantity_used ?? 0)
+        const ingredientTotalCostCents = Math.round(costPerUnitCents * qtyUsed)
+
+        productUnitCostCents += ingredientTotalCostCents
+
+        ingredientSnapshots.push({
+          material_id: rec.raw_material_id,
+          material_name: mat?.name ?? 'Insumo',
+          unit: mat?.unit ?? 'g',
+          quantity_used: qtyUsed,
+          cost_per_unit_cents: Math.round(costPerUnitCents),
+          total_cost_cents: ingredientTotalCostCents
+        })
+      }
+
+      const itemTotalCostCents = productUnitCostCents * item.quantity
+      totalOrderCostCents += itemTotalCostCents
+
+      snapshotItems.push({
+        product_id: item.product_id,
+        product_name: item.products?.name ?? 'Producto',
+        quantity: item.quantity,
+        unit_cost_cents: productUnitCostCents,
+        total_cost_cents: itemTotalCostCents,
+        ingredients: ingredientSnapshots
+      })
+    }
+
+    const totalAmountCents = solesToCents(order.total_amount ?? 0)
+    const grossMarginCents = totalAmountCents - totalOrderCostCents
+    const grossMarginPercentage = totalAmountCents > 0 ? (grossMarginCents / totalAmountCents) * 100 : 0
+
+    const snapshot: OrderCostSnapshot = {
+      order_id: order.id,
+      calculated_at: new Date().toISOString(),
+      total_amount_cents: totalAmountCents,
+      total_cost_cents: totalOrderCostCents,
+      gross_margin_cents: grossMarginCents,
+      gross_margin_percentage: Math.round(grossMarginPercentage * 10) / 10,
+      items: snapshotItems
+    }
+
+    await supabase
+      .from('orders')
+      .update({
+        cost_snapshot: snapshot as unknown as Database['public']['Tables']['orders']['Insert']['cost_snapshot'],
+        total_cost_cents: totalOrderCostCents,
+        gross_margin_cents: grossMarginCents
+      })
+      .eq('id', orderId)
+
+    return snapshot
   }
 }
 

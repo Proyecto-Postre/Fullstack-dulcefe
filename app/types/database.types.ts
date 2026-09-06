@@ -313,11 +313,13 @@ export type Database = {
       orders: {
         Row: {
           address: string | null
+          cost_snapshot: Json | null
           created_at: string
           customer_name: string | null
           customer_phone: string | null
           delivery_date: string | null
           delivery_time: string | null
+          gross_margin_cents: number | null
           id: string
           inventory_processed: boolean
           notes: string | null
@@ -331,15 +333,18 @@ export type Database = {
           profile_id: string | null
           status: string | null
           total_amount: number
+          total_cost_cents: number | null
           tracking_token: string | null
         }
         Insert: {
           address?: string | null
+          cost_snapshot?: Json | null
           created_at?: string
           customer_name?: string | null
           customer_phone?: string | null
           delivery_date?: string | null
           delivery_time?: string | null
+          gross_margin_cents?: number | null
           id?: string
           inventory_processed?: boolean
           notes?: string | null
@@ -353,15 +358,18 @@ export type Database = {
           profile_id?: string | null
           status?: string | null
           total_amount: number
+          total_cost_cents?: number | null
           tracking_token?: string | null
         }
         Update: {
           address?: string | null
+          cost_snapshot?: Json | null
           created_at?: string
           customer_name?: string | null
           customer_phone?: string | null
           delivery_date?: string | null
           delivery_time?: string | null
+          gross_margin_cents?: number | null
           id?: string
           inventory_processed?: boolean
           notes?: string | null
@@ -375,6 +383,7 @@ export type Database = {
           profile_id?: string | null
           status?: string | null
           total_amount?: number
+          total_cost_cents?: number | null
           tracking_token?: string | null
         }
         Relationships: [

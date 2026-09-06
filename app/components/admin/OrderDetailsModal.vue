@@ -507,6 +507,40 @@ const openWhatsApp = (): void => {
               </div>
             </div>
           </div>
+
+          <!-- Resumen de Escandallo y Margen Bruto (ADR-008) -->
+          <div
+            v-if="order.total_cost_cents != null && order.gross_margin_cents != null"
+            class="p-4 rounded-xl border border-stone-200 bg-stone-50/80 shadow-xs space-y-2"
+          >
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-black text-stone-800 flex items-center gap-1.5">
+                <Icon name="lucide:calculator" class="w-4 h-4 text-[#4A5D23]" />
+                Escandallo Financiero (COGS Congelado)
+              </span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                Margen {{ (((order.gross_margin_cents) / ((order.total_amount ?? 1) * 100)) * 100).toFixed(1) }}%
+              </span>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+              <div>
+                <span class="text-[10px] text-stone-500 uppercase">Costo Insumos:</span>
+                <p class="font-mono font-bold text-stone-700">
+                  S/ {{ (order.total_cost_cents / 100).toFixed(2) }}
+                </p>
+              </div>
+              <div>
+                <span class="text-[10px] text-stone-500 uppercase">Margen Bruto:</span>
+                <p class="font-mono font-bold text-emerald-700">
+                  S/ {{ (order.gross_margin_cents / 100).toFixed(2) }}
+                </p>
+              </div>
+              <div class="col-span-2 sm:col-span-1">
+                <span class="text-[10px] text-stone-500 uppercase">Estado:</span>
+                <p class="font-bold text-stone-800">Snapshot Inmutable</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Footer del Modal -->
