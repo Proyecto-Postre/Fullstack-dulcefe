@@ -56,7 +56,7 @@ export class InventoryService {
 
     // Si nace con stock inicial mayor a cero, registrar movimiento inicial
     if (initialStock > 0) {
-      await supabase.from('inventory_movements' as any).insert({
+      await supabase.from('inventory_movements').insert({
         raw_material_id: data.id,
         type: 'manual_adjustment',
         quantity_delta: initialStock,
@@ -68,7 +68,7 @@ export class InventoryService {
       })
     }
 
-    await supabase.from('audit_events' as any).insert({
+    await supabase.from('audit_events').insert({
       actor_id: adminUser.user.id,
       action: 'material.write',
       entity: 'raw_materials',
@@ -105,7 +105,7 @@ export class InventoryService {
       })
     }
 
-    const updatePayload: Record<string, unknown> = {}
+    const updatePayload: Database['public']['Tables']['raw_materials']['Update'] = {}
     if (dto.name !== undefined) updatePayload.name = dto.name.trim()
     if (dto.purchase_price !== undefined) updatePayload.purchase_price = Number(dto.purchase_price)
     if (dto.purchase_quantity !== undefined) updatePayload.purchase_quantity = Number(dto.purchase_quantity)
@@ -122,7 +122,7 @@ export class InventoryService {
         isStockAdjusted = true
         const delta = newStock - stockBefore
 
-        await supabase.from('inventory_movements' as any).insert({
+        await supabase.from('inventory_movements').insert({
           raw_material_id: id,
           type: 'manual_adjustment',
           quantity_delta: delta,
@@ -137,7 +137,7 @@ export class InventoryService {
 
     const { data, error } = await supabase
       .from('raw_materials')
-      .update(updatePayload as any)
+      .update(updatePayload)
       .eq('id', id)
       .select()
       .single()
@@ -156,7 +156,7 @@ export class InventoryService {
       })
     }
 
-    await supabase.from('audit_events' as any).insert({
+    await supabase.from('audit_events').insert({
       actor_id: adminUser.user.id,
       action: isStockAdjusted ? 'stock.adjust' : 'material.write',
       entity: 'raw_materials',
@@ -191,7 +191,7 @@ export class InventoryService {
       })
     }
 
-    await supabase.from('audit_events' as any).insert({
+    await supabase.from('audit_events').insert({
       actor_id: adminUser.user.id,
       action: 'material.write',
       entity: 'raw_materials',

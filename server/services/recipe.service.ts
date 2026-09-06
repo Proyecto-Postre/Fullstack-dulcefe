@@ -37,8 +37,21 @@ export class RecipeService {
     }
 
     // 2. Calcular costos exactos en el servidor
+    interface RecipeItemJoin {
+      id: number
+      product_id: number
+      raw_material_id: number
+      quantity_used: number
+      raw_materials: {
+        name?: string | null
+        unit?: string | null
+        purchase_price?: number | null
+        purchase_quantity?: number | null
+      } | null
+    }
+
     let totalRecipeCostCents = 0
-    const calculatedItems = (recipeItems || []).map((item: any) => {
+    const calculatedItems = ((recipeItems || []) as unknown as RecipeItemJoin[]).map((item) => {
       const mat = item.raw_materials
       const purchasePriceCents = solesToCents(mat?.purchase_price ?? 0)
       const purchaseQty = Number(mat?.purchase_quantity ?? 1)
@@ -95,7 +108,7 @@ export class RecipeService {
       })
     }
 
-    await supabase.from('audit_events' as any).insert({
+    await supabase.from('audit_events').insert({
       actor_id: adminUser.user.id,
       action: 'recipe.write',
       entity: 'recipe_items',
@@ -130,7 +143,7 @@ export class RecipeService {
       })
     }
 
-    await supabase.from('audit_events' as any).insert({
+    await supabase.from('audit_events').insert({
       actor_id: adminUser.user.id,
       action: 'recipe.write',
       entity: 'recipe_items',

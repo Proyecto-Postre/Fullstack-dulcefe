@@ -13,5 +13,5 @@ defineEmits<{
 </script>
 
 <template>
-  <UiCustomDatePicker :modelValue="modelValue" :placeholder="placeholder" :bgClass="bgClass" @update:modelValue="$emit('update:modelValue', $event)" />
+  <UiCustomDatePicker :modelValue="modelValue" :placeholder="placeholder" :bgClass="bgClass" @update:model-value="$emit('update:modelValue', $event)" />
 </template>

@@ -1,4 +1,4 @@
-import { ref, computed, type Ref } from 'vue'
+import { ref } from 'vue'
 import type {
   AdminOrder,
   OrderStatus,
@@ -130,7 +130,7 @@ export function useAdminOrders() {
     }
   }
 
-  async function onDrop(columnId: OrderStatus, event: DragEvent): Promise<void> {
+  async function onDrop(columnId: OrderStatus, _event: DragEvent): Promise<void> {
     if (!draggedOrder.value) return
     const order = draggedOrder.value
     draggedOrder.value = null

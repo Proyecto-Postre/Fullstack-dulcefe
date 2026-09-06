@@ -1,4 +1,4 @@
-import { ref, computed, type Ref, type ComputedRef } from 'vue'
+import { ref, computed, type Ref } from 'vue'
 import type { RecipeItem, AdditionalCosts, NewRecipeItemInput, RecipeApiResponse } from '../../types/recipe'
 import type { ProductRow } from '../../types/catalog'
 

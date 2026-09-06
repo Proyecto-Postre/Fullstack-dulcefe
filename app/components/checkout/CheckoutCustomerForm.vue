@@ -8,7 +8,7 @@ defineProps<{
   formData: CheckoutFormData
 }>()
 
-const emit = defineEmits<{
+defineEmits<{
   (e: 'update:formData', val: CheckoutFormData): void
 }>()
 </script>

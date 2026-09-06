@@ -67,13 +67,13 @@ export class OrderService {
 
     try {
       const { data: rateRow, error: rateError } = await supabase
-        .from('checkout_rate_windows' as any)
+        .from('checkout_rate_windows')
         .select('hit_count')
         .eq('ip', clientIp)
         .eq('window_start', windowStart)
         .maybeSingle()
 
-      if (!rateError && rateRow && (rateRow as any).hit_count >= 10) {
+      if (!rateError && rateRow && rateRow.hit_count >= 10) {
         throw createError({
           statusCode: 429,
           statusMessage: 'RATE_LIMITED',
@@ -90,13 +90,13 @@ export class OrderService {
       // Incrementar o insertar ventana de rate limit
       if (rateRow) {
         await supabase
-          .from('checkout_rate_windows' as any)
-          .update({ hit_count: (rateRow as any).hit_count + 1 })
+          .from('checkout_rate_windows')
+          .update({ hit_count: rateRow.hit_count + 1 })
           .eq('ip', clientIp)
           .eq('window_start', windowStart)
       } else {
         await supabase
-          .from('checkout_rate_windows' as any)
+          .from('checkout_rate_windows')
           .insert({ ip: clientIp, window_start: windowStart, hit_count: 1 })
       }
     } catch (err: unknown) {
@@ -118,8 +118,8 @@ export class OrderService {
 
     // 4. Reclamo de Idempotencia
     const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString()
-    const { data: existingKey, error: keySelectError } = await supabase
-      .from('checkout_idempotency_keys' as any)
+    const { data: existingKey } = await supabase
+      .from('checkout_idempotency_keys')
       .select('*')
       .eq('operation', 'checkout.create')
       .eq('principal_scope', principalScope)
@@ -127,7 +127,7 @@ export class OrderService {
       .maybeSingle()
 
     if (existingKey) {
-      const row = existingKey as any
+      const row = existingKey
       if (row.request_hash !== requestHash) {
         throw createError({
           statusCode: 409,
@@ -160,7 +160,7 @@ export class OrderService {
       if (row.lifecycle === 'completed' && row.response_payload) {
         return {
           request_id: requestId,
-          order: row.response_payload as CheckoutResponseOrder
+          order: row.response_payload as unknown as CheckoutResponseOrder
         }
       }
     }
@@ -168,7 +168,7 @@ export class OrderService {
     // Registrar reclamo de la llave en estado 'processing'
     try {
       await supabase
-        .from('checkout_idempotency_keys' as any)
+        .from('checkout_idempotency_keys')
         .insert({
           operation: 'checkout.create',
           principal_scope: principalScope,
@@ -343,11 +343,11 @@ export class OrderService {
 
       // 8. Marcar la llave de idempotencia como completada
       await supabase
-        .from('checkout_idempotency_keys' as any)
+        .from('checkout_idempotency_keys')
         .update({
           lifecycle: 'completed',
           order_id: createdOrder.id,
-          response_payload: responseOrder
+          response_payload: responseOrder as unknown as Database['public']['Tables']['checkout_idempotency_keys']['Update']['response_payload']
         })
         .eq('operation', 'checkout.create')
         .eq('principal_scope', principalScope)
@@ -355,7 +355,7 @@ export class OrderService {
 
       // 9. Registrar auditoría sin PII
       await supabase
-        .from('audit_events' as any)
+        .from('audit_events')
         .insert({
           actor_id: user ? user.id : null,
           action: 'checkout.create',
@@ -372,7 +372,7 @@ export class OrderService {
     } catch (dbErr: unknown) {
       // Si falló, eliminar la llave en estado 'processing' para permitir reintento limpio
       await supabase
-        .from('checkout_idempotency_keys' as any)
+        .from('checkout_idempotency_keys')
         .delete()
         .eq('operation', 'checkout.create')
         .eq('principal_scope', principalScope)
@@ -563,7 +563,7 @@ export class OrderService {
 
               // Registrar en inventory_movements
               await supabase
-                .from('inventory_movements' as any)
+                .from('inventory_movements')
                 .insert({
                   raw_material_id: mat.id,
                   order_id: orderId,
@@ -604,10 +604,10 @@ export class OrderService {
           .eq('id', order.profile_id)
           .maybeSingle()
 
-        const currentPoints = profile && (profile as any).points ? Number((profile as any).points) : 0
+        const currentPoints = profile?.points ? Number(profile.points) : 0
         await supabase
           .from('profiles')
-          .update({ points: currentPoints + pointsToAward } as any)
+          .update({ points: currentPoints + pointsToAward })
           .eq('id', order.profile_id)
 
         pointsAwarded = true
@@ -615,7 +615,7 @@ export class OrderService {
     }
 
     // 5. Actualizar orden
-    const updateFields: Record<string, unknown> = { status: newStatus }
+    const updateFields: Database['public']['Tables']['orders']['Update'] = { status: newStatus }
     if (inventoryProcessed !== (order.inventory_processed ?? false)) {
       updateFields.inventory_processed = inventoryProcessed
     }
@@ -625,7 +625,7 @@ export class OrderService {
 
     const { error: updateErr } = await supabase
       .from('orders')
-      .update(updateFields as any)
+      .update(updateFields)
       .eq('id', orderId)
 
     if (updateErr) {
@@ -644,7 +644,7 @@ export class OrderService {
 
     // 6. Registrar en auditoría inmutable
     await supabase
-      .from('audit_events' as any)
+      .from('audit_events')
       .insert({
         actor_id: adminUser.user.id,
         action: 'order.status',
@@ -717,7 +717,7 @@ export class OrderService {
     const requestHash = crypto.createHash('sha256').update(canonicalPayload).digest('hex')
 
     const { data: existingKey } = await supabase
-      .from('checkout_idempotency_keys' as any)
+      .from('checkout_idempotency_keys')
       .select('*')
       .eq('operation', 'admin.order.create')
       .eq('principal_scope', principalScope)
@@ -725,7 +725,7 @@ export class OrderService {
       .maybeSingle()
 
     if (existingKey) {
-      const keyRow = existingKey as any
+      const keyRow = existingKey
       if (keyRow.request_hash !== requestHash) {
         throw createError({
           statusCode: 409,
@@ -758,7 +758,7 @@ export class OrderService {
       if (keyRow.lifecycle === 'completed' && keyRow.response_payload) {
         return {
           request_id: requestId,
-          order: keyRow.response_payload as CheckoutResponseOrder
+          order: keyRow.response_payload as unknown as CheckoutResponseOrder
         }
       }
     }
@@ -766,7 +766,7 @@ export class OrderService {
     // Registrar clave en 'processing'
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
     await supabase
-      .from('checkout_idempotency_keys' as any)
+      .from('checkout_idempotency_keys')
       .insert({
         operation: 'admin.order.create',
         principal_scope: principalScope,
@@ -850,7 +850,7 @@ export class OrderService {
           customer_name: dto.customer_name,
           customer_phone: dto.customer_phone || null,
           address: dto.address || null,
-          total_amount: totalAmountString as any,
+          total_amount: Number(totalAmountString),
           status: 'pending',
           delivery_date: dto.delivery_date || null,
           delivery_time: dto.delivery_time || null,
@@ -870,7 +870,7 @@ export class OrderService {
         order_id: createdOrder.id,
         product_id: it.product_id,
         quantity: it.quantity,
-        price_at_time: it.priceString as any
+        price_at_time: Number(it.priceString)
       }))
 
       const { error: itemsInsertError } = await supabase
@@ -903,11 +903,11 @@ export class OrderService {
 
       // 7. Marcar idempotencia completada
       await supabase
-        .from('checkout_idempotency_keys' as any)
+        .from('checkout_idempotency_keys')
         .update({
           lifecycle: 'completed',
           order_id: createdOrder.id,
-          response_payload: responseOrder
+          response_payload: responseOrder as unknown as Database['public']['Tables']['checkout_idempotency_keys']['Update']['response_payload']
         })
         .eq('operation', 'admin.order.create')
         .eq('principal_scope', principalScope)
@@ -915,7 +915,7 @@ export class OrderService {
 
       // 8. Auditoría
       await supabase
-        .from('audit_events' as any)
+        .from('audit_events')
         .insert({
           actor_id: adminUser.user.id,
           action: 'order.create_admin',
@@ -931,7 +931,7 @@ export class OrderService {
       }
     } catch (dbErr: unknown) {
       await supabase
-        .from('checkout_idempotency_keys' as any)
+        .from('checkout_idempotency_keys')
         .delete()
         .eq('operation', 'admin.order.create')
         .eq('principal_scope', principalScope)

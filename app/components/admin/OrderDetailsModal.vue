@@ -83,19 +83,6 @@ async function saveChanges(): Promise<void> {
   }
 }
 
-const formatDate = (dateString: string | null | undefined): string => {
-  if (!dateString) return "";
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return "";
-  return new Intl.DateTimeFormat("es-PE", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
-};
-
 const customerName = computed<string>(
   () => props.order?.profiles?.full_name || props.order?.customer_name || "Cliente sin nombre",
 );
@@ -134,8 +121,7 @@ const openWhatsApp = (): void => {
           <div>
             <span
               class="text-[10px] font-bold uppercase tracking-wider text-[#4A5D23]"
-              >Detalles del Pedido</span
-            >
+            >Detalles del Pedido</span>
             <h3 class="text-xl font-playfair font-black text-[#2A321B]">
               #{{ order.id.split("-")[0] }}
             </h3>
@@ -171,8 +157,7 @@ const openWhatsApp = (): void => {
               <div>
                 <label
                   class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-wider mb-1"
-                  >Nombre del Cliente</label
-                >
+                >Nombre del Cliente</label>
                 <input
                   v-model="editData.full_name"
                   type="text"
@@ -182,8 +167,7 @@ const openWhatsApp = (): void => {
               <div>
                 <label
                   class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-wider mb-1"
-                  >Teléfono (WhatsApp)</label
-                >
+                >Teléfono (WhatsApp)</label>
                 <input
                   v-model="editData.phone"
                   type="text"
@@ -196,8 +180,7 @@ const openWhatsApp = (): void => {
               <div>
                 <label
                   class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-wider mb-1"
-                  >Fecha de Entrega</label
-                >
+                >Fecha de Entrega</label>
                 <input
                   v-model="editData.delivery_date"
                   type="date"
@@ -207,8 +190,7 @@ const openWhatsApp = (): void => {
               <div>
                 <label
                   class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-wider mb-1"
-                  >Hora de Entrega</label
-                >
+                >Hora de Entrega</label>
                 <input
                   v-model="editData.delivery_time"
                   type="time"
@@ -220,8 +202,7 @@ const openWhatsApp = (): void => {
             <div>
               <label
                 class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-wider mb-1"
-                >Notas del Pedido</label
-              >
+              >Notas del Pedido</label>
               <textarea
                 v-model="editData.notes"
                 rows="2"
@@ -343,9 +324,7 @@ const openWhatsApp = (): void => {
               class="font-bold text-[#2A321B] text-sm mb-3 flex items-center justify-between"
             >
               <span>Productos Solicitados</span>
-              <span class="text-xs font-medium text-[#4A5D23]/70"
-                >{{ order.order_items?.length || 0 }} items</span
-              >
+              <span class="text-xs font-medium text-[#4A5D23]/70">{{ order.order_items?.length || 0 }} items</span>
             </h4>
             <div
               class="border border-[#4A5D23]/10 rounded-xl overflow-hidden divide-y divide-[#4A5D23]/10"
