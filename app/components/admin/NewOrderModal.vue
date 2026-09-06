@@ -1,11 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
-import { useSupabaseClient } from '#imports'
-import type { Database } from '~/types/database.types'
 import type { ProductRow } from '~/types/catalog'
 import type { SelectedProductItem } from '~/types/admin-orders'
-
-const supabase = useSupabaseClient<Database>()
 
 const props = defineProps<{
   show: boolean
@@ -41,8 +37,12 @@ const productOptions = computed(() => {
 })
 
 const fetchProducts = async (): Promise<void> => {
-  const { data } = await supabase.from('products').select('*').order('name')
-  if (data) products.value = data as ProductRow[]
+  try {
+    const res = await $fetch<{ success: boolean; data: ProductRow[] }>('/api/products')
+    if (res?.data) products.value = res.data
+  } catch {
+    // Si falla la consulta del catálogo, mantener array vacío
+  }
 }
 
 onMounted(() => {
