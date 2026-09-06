@@ -12,3 +12,25 @@ ALTER TABLE public.orders
 -- Índices de consulta rápida para búsqueda administrativa y conciliación
 CREATE INDEX IF NOT EXISTS idx_orders_payment_status ON public.orders(payment_status);
 CREATE INDEX IF NOT EXISTS idx_orders_payment_method ON public.orders(payment_method);
+
+-- Bucket de almacenamiento para comprobantes de pago (Yape/Plin)
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES ('payment-receipts', 'payment-receipts', true, 2097152, ARRAY['image/jpeg', 'image/png', 'image/webp'])
+ON CONFLICT (id) DO UPDATE SET public = true;
+
+-- Políticas RLS para storage.objects del bucket payment-receipts
+DROP POLICY IF EXISTS "Public Read Payment Receipts" ON storage.objects;
+CREATE POLICY "Public Read Payment Receipts"
+  ON storage.objects FOR SELECT
+  USING (bucket_id = 'payment-receipts');
+
+DROP POLICY IF EXISTS "Service Role Full Access Payment Receipts" ON storage.objects;
+CREATE POLICY "Service Role Full Access Payment Receipts"
+  ON storage.objects FOR ALL
+  USING (bucket_id = 'payment-receipts');
+
+-- Ampliar dominio de acciones auditables para pagos
+ALTER TABLE public.audit_events DROP CONSTRAINT IF EXISTS audit_events_action_check;
+ALTER TABLE public.audit_events ADD CONSTRAINT audit_events_action_check 
+  CHECK (action IN ('checkout.create', 'order.create_admin', 'order.status', 'product.write', 'material.write', 'recipe.write', 'upload.write', 'stock.adjust', 'payment.verify', 'payment.verified', 'payment.rejected'));
+

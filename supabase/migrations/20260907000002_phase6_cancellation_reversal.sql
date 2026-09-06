@@ -3,6 +3,14 @@
 
 BEGIN;
 
+-- 0. Ajuste de esquema: Soporte de tipos de movimiento y motivo de cancelación
+ALTER TABLE public.orders 
+  ADD COLUMN IF NOT EXISTS cancellation_reason TEXT DEFAULT NULL;
+
+ALTER TABLE public.inventory_movements DROP CONSTRAINT IF EXISTS inventory_movements_type_check;
+ALTER TABLE public.inventory_movements ADD CONSTRAINT inventory_movements_type_check 
+  CHECK (type IN ('order_consumption', 'manual_adjustment', 'cancellation_reversal', 'waste_declaration'));
+
 -- 1. Función atómica de reversión y registro de mermas
 CREATE OR REPLACE FUNCTION public.revert_order_inventory(
   p_order_id UUID,

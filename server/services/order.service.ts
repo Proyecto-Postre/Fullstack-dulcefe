@@ -1088,7 +1088,7 @@ export class OrderService {
         action: action === 'verify' ? 'payment.verified' : 'payment.rejected',
         entity: 'orders',
         entity_id: orderId,
-        result: 'success',
+        result: 'ok',
         request_id: requestId
       })
     } catch {

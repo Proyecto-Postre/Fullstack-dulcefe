@@ -103,6 +103,18 @@ Fase 6: Expansión de Producto, KDS & Ecosistema
 * **`npm run typecheck`:** 0 errores de compilación de tipos (`nuxt typecheck`).
 * **E2E Smoke Specs:** Playwright specs actualizadas para Guest Checkout, Admin Login, Guest Tracking y KDS.
 
+### 4.1 Verificación y Sincronización en Vivo de Base de Datos (Supabase)
+
+Se ejecutó una auditoría exhaustiva en vivo sobre la base de datos remota de Supabase (`rklxfrwzuwjvnfcdhmei`), con los siguientes resultados:
+* **Migraciones DDL Aplicadas y Registradas:**
+  * `phase6_guest_tracking`: Añade `tracking_token VARCHAR(64) UNIQUE` e índice.
+  * `phase6_cancellation_reversal`: Añade `cancellation_reason`, RPC `revert_order_inventory` y actualiza restricción `inventory_movements_type_check` para soportar `cancellation_reversal` y `waste_declaration`.
+  * `phase6_payment_receipts`: Añade columnas de pasarela, crea bucket `payment-receipts` (2 MB, Magic Bytes) con políticas RLS de lectura pública y escritura admin, y actualiza restricción `audit_events_action_check` para soportar `payment.verify`, `payment.verified` y `payment.rejected`.
+  * `phase6_cost_snapshots`: Añade `cost_snapshot JSONB`, `total_cost_cents` y `gross_margin_cents`.
+* **Sincronización SSOT de Tipos:** `app/types/database.types.ts` regenerado directamente desde el esquema vivo de Supabase.
+* **Prueba de Conexión en Vivo:** Script de verificación cliente ejecutado con éxito consultando `products`, `raw_materials`, `orders` (con columnas de Fase 6) y buckets de `storage`.
+* **Configuración Nitro/Nuxt:** `nuxt.config.ts` actualizado para mapear `SUPABASE_SERVICE_ROLE_KEY` al `serviceKey` del módulo `@nuxtjs/supabase`.
+
 ---
 
 ## 5. Próximos Pasos
