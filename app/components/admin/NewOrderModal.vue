@@ -1,11 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
-import { useSupabaseClient } from '#imports'
-import type { Database } from '~/types/database.types'
 import type { ProductRow } from '~/types/catalog'
 import type { SelectedProductItem } from '~/types/admin-orders'
-
-const supabase = useSupabaseClient<Database>()
 
 const props = defineProps<{
   show: boolean
@@ -41,8 +37,12 @@ const productOptions = computed(() => {
 })
 
 const fetchProducts = async (): Promise<void> => {
-  const { data } = await supabase.from('products').select('*').order('name')
-  if (data) products.value = data as ProductRow[]
+  try {
+    const res = await $fetch<{ success: boolean; data: ProductRow[] }>('/api/products')
+    if (res?.data) products.value = res.data
+  } catch {
+    // Si falla la consulta del catálogo, mantener array vacío
+  }
 }
 
 onMounted(() => {
@@ -129,14 +129,24 @@ const createOrder = async (): Promise<void> => {
     <div v-if="show" class="absolute inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto custom-scrollbar pointer-events-auto">
       <div class="absolute inset-0 bg-[#2A321B]/40 backdrop-blur-sm" @click="emit('close')"></div>
       
-      <div class="relative w-full max-w-2xl bg-white rounded-[2rem] shadow-2xl overflow-hidden animate-pop flex flex-col max-h-[85vh] border border-[#4A5D23]/10">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-new-order-title"
+        class="relative w-full max-w-2xl bg-white rounded-[2rem] shadow-2xl overflow-hidden animate-pop flex flex-col max-h-[85vh] border border-[#4A5D23]/10"
+      >
         <!-- Header -->
         <div class="p-5 sm:p-6 bg-[#F4F1E1]/30 border-b border-[#4A5D23]/10 flex items-center justify-between shrink-0">
-          <h3 class="text-xl font-playfair font-black text-[#2A321B] flex items-center gap-2">
+          <h3 id="modal-new-order-title" class="text-xl font-playfair font-black text-[#2A321B] flex items-center gap-2">
             <Icon name="lucide:plus-circle" class="w-5 h-5 text-[#4A5D23]" />
             Nuevo Pedido Manual
           </h3>
-          <button @click="emit('close')" type="button" class="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-[#4A5D23]/20 text-[#2A321B] hover:bg-[#e6e2cc] hover:scale-105 active:scale-95 transition-all shadow-sm cursor-pointer">
+          <button
+            @click="emit('close')"
+            type="button"
+            aria-label="Cerrar modal de nuevo pedido"
+            class="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-[#4A5D23]/20 text-[#2A321B] hover:bg-[#e6e2cc] hover:scale-105 active:scale-95 transition-all shadow-sm cursor-pointer"
+          >
             <Icon name="lucide:x" class="w-4 h-4" />
           </button>
         </div>

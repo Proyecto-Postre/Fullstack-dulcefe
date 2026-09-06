@@ -1,4 +1,4 @@
-import { ref, computed, type Ref, type ComputedRef } from 'vue'
+import { ref, computed, type Ref } from 'vue'
 import type { RawMaterialRow } from '../../types/inventory'
 
 export function getMaterialIcon(name: string | null | undefined): string {

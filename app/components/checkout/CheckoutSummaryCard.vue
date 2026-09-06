@@ -2,7 +2,7 @@
 import { useCartStore } from '~/stores/cart'
 import type { CheckoutMode } from '~/types/checkout'
 
-const props = defineProps<{
+defineProps<{
   mode: CheckoutMode
   isValid: boolean
   isSubmitting: boolean

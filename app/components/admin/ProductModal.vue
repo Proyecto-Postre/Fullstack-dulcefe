@@ -123,13 +123,23 @@ async function saveProduct(): Promise<void> {
     <div v-if="show" class="absolute inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto custom-scrollbar pointer-events-auto">
       <div class="absolute inset-0 bg-[#2A321B]/40 backdrop-blur-sm" @click="closeModal"></div>
       
-      <div class="relative w-full max-w-md bg-white rounded-[2rem] shadow-2xl overflow-hidden animate-pop border border-[#4A5D23]/10 max-h-[85vh] flex flex-col">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-product-title"
+        class="relative w-full max-w-md bg-white rounded-[2rem] shadow-2xl overflow-hidden animate-pop border border-[#4A5D23]/10 max-h-[85vh] flex flex-col"
+      >
         <div class="p-5 sm:p-6 overflow-y-auto custom-scrollbar flex-1">
           <div class="flex items-center justify-between mb-6">
-            <h3 class="text-xl font-playfair font-black text-[#2A321B]">
+            <h3 id="modal-product-title" class="text-xl font-playfair font-black text-[#2A321B]">
               {{ productToEdit ? 'Editar Producto' : 'Nuevo Producto' }}
             </h3>
-            <button @click="closeModal" class="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-[#4A5D23]/20 text-[#2A321B] hover:bg-[#e6e2cc] hover:scale-105 active:scale-95 transition-all shadow-sm">
+            <button
+              type="button"
+              aria-label="Cerrar modal de producto"
+              @click="closeModal"
+              class="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-[#4A5D23]/20 text-[#2A321B] hover:bg-[#e6e2cc] hover:scale-105 active:scale-95 transition-all shadow-sm cursor-pointer"
+            >
               <Icon name="lucide:x" class="w-4 h-4" />
             </button>
           </div>

@@ -284,7 +284,7 @@ onMounted(() => {
                 >
                   {{
                     columns.find((c) => c.id === order.status)?.title ||
-                    order.status
+                      order.status
                   }}
                 </span>
               </td>

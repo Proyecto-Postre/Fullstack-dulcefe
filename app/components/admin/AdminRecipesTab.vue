@@ -246,11 +246,11 @@ watch(() => props.modelValue, (newVal) => {
     <div class="lg:col-span-2 space-y-6">
       
       <div v-if="!activeProduct" class="h-full flex flex-col items-center justify-center py-20 bg-white rounded-[2rem] border border-[#4A5D23]/20 shadow-md transition-all duration-300">
-         <Icon name="lucide:pointer" class="w-12 h-12 text-[#4A5D23]/30 mx-auto mb-4" />
-         <h3 class="text-lg font-playfair font-bold text-[#2A321B] mb-2 tracking-tight">Ningún producto seleccionado</h3>
-         <p class="text-[#4A5D23]/80 font-medium text-sm max-w-sm mx-auto text-balance leading-relaxed text-center">
-           Selecciona un producto en el menú desplegable de la izquierda para comenzar su escandallo financiero.
-         </p>
+        <Icon name="lucide:pointer" class="w-12 h-12 text-[#4A5D23]/30 mx-auto mb-4" />
+        <h3 class="text-lg font-playfair font-bold text-[#2A321B] mb-2 tracking-tight">Ningún producto seleccionado</h3>
+        <p class="text-[#4A5D23]/80 font-medium text-sm max-w-sm mx-auto text-balance leading-relaxed text-center">
+          Selecciona un producto en el menú desplegable de la izquierda para comenzar su escandallo financiero.
+        </p>
       </div>
 
       <template v-else>
@@ -346,7 +346,7 @@ watch(() => props.modelValue, (newVal) => {
           <!-- Loading State -->
           <div v-if="pendingRecipe" class="flex-1 flex flex-col items-center justify-center py-16">
             <div class="relative w-12 h-12 mb-4 text-[#4A5D23]">
-               <Icon name="lucide:loader-2" class="w-full h-full animate-spin" />
+              <Icon name="lucide:loader-2" class="w-full h-full animate-spin" />
             </div>
             <p class="text-[11px] font-bold tracking-widest uppercase text-[#4A5D23] animate-pulse">Cargando receta...</p>
           </div>

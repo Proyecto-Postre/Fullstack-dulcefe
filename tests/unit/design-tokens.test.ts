@@ -1,9 +1,26 @@
 import { describe, it, expect } from 'vitest'
 import tailwindConfig from '../../tailwind.config'
 
+interface ThemeExtend {
+  colors?: {
+    brand?: {
+      primary?: string
+      secondary?: string
+      cream?: string
+      accent?: string
+    }
+    surface?: string
+  }
+  fontFamily?: {
+    sans?: string[]
+    playfair?: string[]
+  }
+}
+
 describe('Design System — Semantic Tokens Verification (PR-2 / §9.1 / §20.2 V15)', () => {
-  const colors = tailwindConfig.theme?.extend?.colors as any
-  const fontFamily = tailwindConfig.theme?.extend?.fontFamily as any
+  const extend = tailwindConfig.theme?.extend as ThemeExtend | undefined
+  const colors = extend?.colors
+  const fontFamily = extend?.fontFamily
 
   it('debe tener definido el color Brand Primary como #4A5D23', () => {
     expect(colors?.brand?.primary).toBe('#4A5D23')

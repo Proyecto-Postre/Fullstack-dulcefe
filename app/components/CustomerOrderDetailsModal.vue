@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { computed } from "vue";
 import type { ProfileOrder } from "~/types/profile";
 
-const props = defineProps<{
+defineProps<{
   show: boolean;
   order: ProfileOrder | null;
 }>();

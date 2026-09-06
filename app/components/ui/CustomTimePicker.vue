@@ -27,13 +27,6 @@ const cleanTime = computed(() => {
   return props.modelValue ? props.modelValue.replace(/\s*[AP]M/i, '').trim() : ''
 })
 
-const toggleTimePicker = () => {
-  if (!showTimePicker.value) {
-    openTimePicker()
-  } else {
-    showTimePicker.value = false
-  }
-}
 
 const openTimePicker = () => {
   if (timePickerContainer.value) {

@@ -1,13 +1,13 @@
 ---
 tipo: dashboard
 proyecto: Dulce Fe Fullstack
-stack: Nuxt 4, Vue 3.5, TypeScript, Tailwind CSS, Supabase, ExcelJS, n8n
-ultima_actualizacion: 2026-08-26
+stack: Nuxt 4, Vue 3.5, TypeScript, Tailwind CSS, Supabase, ExcelJS, n8n, Vitest, Playwright
+ultima_actualizacion: 2026-09-06
 ---
 
 # 🍰 Dulce Fe — Centro de Comando
 
-> **Estado:** 🟢 Fase 1 (Seguridad & RLS) | 🟢 Fase 2 (Shell Visual & Layouts) | 🟢 Fase 3 (Frontera de Dinero, Inventario, Corte S9 y Servicios Completados)
+> **Estado:** 🟢 Fase 1 (Seguridad & RLS) | 🟢 Fase 2 (Shell Visual & Layouts) | 🟢 Fase 3 (Dinero, S9 & Servicios) | 🟢 Fase 4 (Desacoplamiento Modular UI) | 🟢 Fase 5 (Disciplina & Gobernanza Enterprise)
 > **Vista Gráfica:** Presiona `Ctrl + G` en Obsidian para el mapa global.
 
 ---
@@ -98,8 +98,35 @@ flowchart TD
 * [[fase-3-pr-3c-informe-ejecucion]] — Transiciones de Estado, Pedidos de Administración y Quiebre de Inventario.
 * [[fase-3-pr-3d-informe-ejecucion]] — Corte de Seguridad S9 en PostgreSQL y Revocación de RPCs.
 * [[fase-3-pr-3e-informe-ejecucion]] — Servicios de Dominio de Catálogo, Insumos y Recetas con Auditoría.
+* [[fase-4-pr-4a-informe-ejecucion]] — Desacoplamiento de Perfil de Usuario y Direcciones.
+* [[fase-4-pr-4b-informe-ejecucion]] — Desacoplamiento de Catálogo y Carrito de Compras.
+* [[fase-4-pr-4c-informe-ejecucion]] — Desacoplamiento de Materias Primas e Inventario.
+* [[fase-4-pr-4d-informe-ejecucion]] — Desacoplamiento de Recetas y Costeo de Escandallo.
+* [[fase-4-pr-4e-informe-ejecucion]] — Desacoplamiento de Pedidos Administrativos (Kanban y Modales).
+* [[fase-4-pr-4f-checkout-y-refinamiento-10-10]] — Refinamiento Integral de Checkout UI y Certificación 10/10.
+* [[fase-5-subfase-5.1-eslint-informe]] — ESLint 10 Flat Config y Erradicación Total de `any`.
+* [[fase-5-subfase-5.2-limites-arquitectura-informe]] — Linter de Límites Arquitectónicos (§6.2).
+* [[fase-5-subfase-5.3-ci-type-drift-informe]] — Pipeline CI/CD en GitHub Actions y Type Drift Gate.
+* [[fase-5-subfase-5.4-adrs-informe]] — Formalización MADR 3.0.0 de Deudas Técnicas D1–D8.
+* [[fase-5-subfase-5.5-operaciones-informe]] — Playbook de Operaciones, Resiliencia y Telemetría.
+* [[fase-5-subfase-5.6-a11y-informe]] — Accesibilidad WCAG 2.1 AA en Formularios y Modales.
+* [[fase-5-disciplina-informe-ejecucion]] — **Informe Maestro Consolidado de Fase 5**.
 
-### 📁 05 - Decisiones Técnicas (ADR)
+### 📁 05 - Operaciones & Resiliencia
+* [[playbook-operaciones]] — Variables por entorno, rotación de claves, runbook de restore V44, Vercel Git-Ops y telemetría de alertas.
+
+### 📁 decisions/ (ADRs Enterprise MADR 3.0.0 — D1 a D8)
+* [[decisions/README|Índice de ADRs Enterprise]] — Registro formal de deudas técnicas (§20.5 D1–D8).
+* [[ADR-001-cancellation-stock-reversal]] — Reversión atómica de stock ante cancelaciones (D1).
+* [[ADR-002-guest-order-tracking]] — Tracking de pedidos de invitados vía token HMAC SHA-256 (D2).
+* [[ADR-003-pinia-cart-vs-db-cart]] — Carrito híbrido en Pinia con validación server-side (D3).
+* [[ADR-004-catalog-display-stock]] — Stock visual en catálogo vs. stock real deducido por recetas (D4).
+* [[ADR-005-payment-gateways]] — Modelo de pagos transaccionales (WhatsApp a pasarelas electrónicas) (D5).
+* [[ADR-006-external-integrations-scope]] — Límites modulares del monolito vs. n8n/KDS desacoplados (D6).
+* [[ADR-007-completed-order-immutability]] — Inmutabilidad contractual de pedidos completados (D7).
+* [[ADR-008-recipe-versioning]] — Versionado histórico de recetas y escandallos en pedidos pasados (D8).
+
+### 📁 05 - Decisiones Técnicas Fundacionales (ADR)
 * [[ADR-001-stack-nuxt4-fullstack]] — Monolito Modular Nuxt 4 vs Frontend/Backend separados.
 * [[ADR-002-guest-checkout-auth-hibrida]] — Guest Checkout (comprar sin contraseña) para maximizar conversión.
 * [[ADR-003-seguridad-rls-supabase-hardening]] — Seguridad RLS en PostgreSQL y blindaje `search_path`.
@@ -110,5 +137,6 @@ flowchart TD
 ---
 
 ## 🛠️ Plantillas del Sistema (`_system/templates/`)
+* `_system/templates/TPL-Feature-Review.md` — Plantilla para lista de control por feature (Definition of Done §10.6).
 * `_system/templates/TPL-Endpoint.md` — Plantilla para documentar nuevos endpoints.
 * `_system/templates/TPL-ADR.md` — Plantilla para registrar nuevos ADRs.

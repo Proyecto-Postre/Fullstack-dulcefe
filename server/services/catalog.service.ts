@@ -48,7 +48,7 @@ export class CatalogService {
       })
     }
 
-    await supabase.from('audit_events' as any).insert({
+    await supabase.from('audit_events').insert({
       actor_id: adminUser.user.id,
       action: 'product.write',
       entity: 'products',
@@ -64,7 +64,7 @@ export class CatalogService {
     const adminUser = await requireAdmin(event)
     const supabase = serverSupabaseServiceRole<Database>(event)
 
-    const updatePayload: Record<string, unknown> = {}
+    const updatePayload: Database['public']['Tables']['products']['Update'] = {}
     if (dto.name !== undefined) updatePayload.name = dto.name.trim()
     if (dto.price !== undefined) updatePayload.price = Number(dto.price)
     if (dto.stock !== undefined) updatePayload.stock = Number(dto.stock)
@@ -72,7 +72,7 @@ export class CatalogService {
 
     const { data, error } = await supabase
       .from('products')
-      .update(updatePayload as any)
+      .update(updatePayload)
       .eq('id', id)
       .select()
       .single()
@@ -91,7 +91,7 @@ export class CatalogService {
       })
     }
 
-    await supabase.from('audit_events' as any).insert({
+    await supabase.from('audit_events').insert({
       actor_id: adminUser.user.id,
       action: 'product.write',
       entity: 'products',
@@ -126,7 +126,7 @@ export class CatalogService {
       })
     }
 
-    await supabase.from('audit_events' as any).insert({
+    await supabase.from('audit_events').insert({
       actor_id: adminUser.user.id,
       action: 'product.write',
       entity: 'products',

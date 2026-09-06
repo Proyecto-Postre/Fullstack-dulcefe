@@ -61,7 +61,7 @@ function handleAddToCart(product: FeaturedProduct) {
           </div>
           
           <h2 class="text-5xl md:text-6xl lg:text-7xl font-playfair font-black text-brand-secondary leading-[1.1] tracking-tight text-balance">
-            El arte de crear <br/>
+            El arte de crear <br />
             <span class="italic text-brand-primary font-medium">momentos dulces</span>
           </h2>
           

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import type { RawMaterialRow, BaseUnit } from '~/types/inventory'
+import type { RawMaterialRow } from '~/types/inventory'
 import { useAdminMaterials } from '~/composables/admin/useAdminMaterials'
 import MaterialModal from './MaterialModal.vue'
 
@@ -13,23 +13,6 @@ const emit = defineEmits<{
   (e: 'refresh'): void
 }>()
 
-const newMaterial = ref<{
-  name: string
-  unit: BaseUnit | string
-  purchase_price: number | string
-  purchase_quantity: number | string
-  stock: number | string
-}>({ 
-  name: '', 
-  unit: 'g', 
-  purchase_price: '', 
-  purchase_quantity: '', 
-  stock: '' 
-})
-
-const editingMaterialId = ref<number | string | null>(null)
-const isSubmitting = ref(false)
-const errorMessage = ref('')
 
 // Local state for Optimistic UI
 const localMaterials = ref<RawMaterialRow[]>([])
@@ -64,56 +47,6 @@ watch(() => props.materials?.data?.length, () => {
   currentPage.value = 1
 })
 
-async function handleCreateMaterial(): Promise<void> {
-  if (!newMaterial.value.name || !newMaterial.value.purchase_price || !newMaterial.value.purchase_quantity) {
-    errorMessage.value = 'Completa el precio y la cantidad del paquete.'
-    return
-  }
-  isSubmitting.value = true
-  errorMessage.value = ''
-  try {
-    const method = editingMaterialId.value ? 'PUT' : 'POST'
-    const endpoint = editingMaterialId.value ? `/api/raw-materials/${editingMaterialId.value}` : '/api/raw-materials'
-
-    await $fetch(endpoint, {
-      method,
-      body: {
-        name: newMaterial.value.name,
-        unit: newMaterial.value.unit,
-        purchase_price: Number(newMaterial.value.purchase_price),
-        purchase_quantity: Number(newMaterial.value.purchase_quantity),
-        stock: Number(newMaterial.value.stock || 0)
-      }
-    })
-    
-    cancelEditMaterial()
-    emit('refresh')
-  } catch (err: unknown) {
-    const fetchErr = err as { data?: { statusMessage?: string }; message?: string }
-    errorMessage.value = fetchErr.data?.statusMessage || fetchErr.message || 'Error al guardar insumo.'
-  } finally {
-    isSubmitting.value = false
-  }
-}
-
-function handleEditMaterial(item: RawMaterialRow): void {
-  errorMessage.value = ''
-  editingMaterialId.value = item.id
-  newMaterial.value = { 
-    name: item.name || '', 
-    unit: (item.unit as BaseUnit) || 'g', 
-    purchase_price: item.purchase_price ?? '', 
-    purchase_quantity: item.purchase_quantity ?? '', 
-    stock: item.stock ?? '' 
-  }
-  window.scrollTo({ top: 0, behavior: 'smooth' })
-}
-
-function cancelEditMaterial(): void {
-  editingMaterialId.value = null
-  newMaterial.value = { name: '', unit: 'g', purchase_price: '', purchase_quantity: '', stock: '' }
-  errorMessage.value = ''
-}
 
 async function handleDeleteMaterial(id: number | string, name: string): Promise<void> {
   if (!confirm(`¿Estás seguro de eliminar "${name}" del inventario de insumos?`)) return

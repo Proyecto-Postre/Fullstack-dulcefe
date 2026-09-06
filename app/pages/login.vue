@@ -113,6 +113,7 @@ const handleSubmit = async () => {
               v-model="email"
               type="email" 
               required
+              autocomplete="email"
               placeholder="tu@correo.com"
               class="w-full bg-surface border border-brand-primary/20 rounded-xl px-4 py-3 text-brand-secondary font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent transition-all placeholder:text-brand-primary/40 shadow-soft-sm"
             >
@@ -127,11 +128,13 @@ const handleSubmit = async () => {
                 v-model="password"
                 :type="showPassword ? 'text' : 'password'" 
                 required
+                :autocomplete="isLogin ? 'current-password' : 'new-password'"
                 placeholder="••••••••"
                 class="w-full bg-surface border border-brand-primary/20 rounded-xl px-4 py-3 pr-12 text-brand-secondary font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent transition-all placeholder:text-brand-primary/40 shadow-soft-sm"
               >
               <button
                 type="button"
+                aria-label="Alternar visibilidad de contraseña"
                 @click="showPassword = !showPassword"
                 class="absolute right-4 top-1/2 -translate-y-1/2 text-brand-primary/50 hover:text-brand-secondary transition-colors cursor-pointer"
               >
@@ -141,7 +144,7 @@ const handleSubmit = async () => {
           </div>
 
           <!-- Mensaje de Error -->
-          <div v-if="errorMessage" class="p-3 bg-red-50 border border-status-danger/20 rounded-xl text-status-danger text-sm font-medium animate-pop shadow-soft-sm">
+          <div v-if="errorMessage" role="alert" aria-live="assertive" class="p-3 bg-red-50 border border-status-danger/20 rounded-xl text-status-danger text-sm font-medium animate-pop shadow-soft-sm">
             {{ errorMessage }}
           </div>
 

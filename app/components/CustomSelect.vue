@@ -15,5 +15,5 @@ defineEmits<{
 </script>
 
 <template>
-  <UiCustomSelect :options="options" :modelValue="modelValue" :placeholder="placeholder" :bgClass="bgClass" @update:modelValue="$emit('update:modelValue', $event)" @change="$emit('change', $event)" />
+  <UiCustomSelect :options="options" :modelValue="modelValue" :placeholder="placeholder" :bgClass="bgClass" @update:model-value="$emit('update:modelValue', $event)" @change="$emit('change', $event)" />
 </template>

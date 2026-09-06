@@ -64,7 +64,7 @@ export default defineEventHandler(async (event) => {
   const newName = body.customer_name !== undefined ? body.customer_name : body.full_name
   const newPhone = body.customer_phone !== undefined ? body.customer_phone : body.phone
 
-  const updatePayload: Record<string, unknown> = {}
+  const updatePayload: Database['public']['Tables']['orders']['Update'] = {}
   if (newName !== undefined) updatePayload.customer_name = typeof newName === 'string' ? newName.trim() : null
   if (newPhone !== undefined) updatePayload.customer_phone = typeof newPhone === 'string' ? newPhone.trim() : null
   if (body.delivery_date !== undefined) updatePayload.delivery_date = body.delivery_date || null
@@ -73,7 +73,7 @@ export default defineEventHandler(async (event) => {
 
   const { data: updatedOrder, error: updateErr } = await supabase
     .from('orders')
-    .update(updatePayload as any)
+    .update(updatePayload)
     .eq('id', orderId)
     .select()
     .single()
@@ -94,7 +94,7 @@ export default defineEventHandler(async (event) => {
 
   // Si tiene un perfil asociado y se editaron nombre o teléfono, sincronizar perfil
   if (existingOrder.profile_id && (body.full_name !== undefined || body.phone !== undefined || body.customer_name !== undefined || body.customer_phone !== undefined)) {
-    const profileUpdate: Record<string, unknown> = {}
+    const profileUpdate: Database['public']['Tables']['profiles']['Update'] = {}
     const newName = body.full_name || body.customer_name
     const newPhone = body.phone || body.customer_phone
     if (newName) profileUpdate.full_name = newName.trim()
@@ -103,13 +103,13 @@ export default defineEventHandler(async (event) => {
     if (Object.keys(profileUpdate).length > 0) {
       await supabase
         .from('profiles')
-        .update(profileUpdate as any)
+        .update(profileUpdate)
         .eq('id', existingOrder.profile_id)
     }
   }
 
   // Registrar auditoría
-  await supabase.from('audit_events' as any).insert({
+  await supabase.from('audit_events').insert({
     actor_id: adminUser.user.id,
     action: 'order.status',
     entity: 'orders',
