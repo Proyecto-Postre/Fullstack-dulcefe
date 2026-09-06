@@ -59,14 +59,15 @@ Registro cronológico inmutable de auditorías y entregas por fase:
 * **Fase 2:** Shell visual, Design System tokens y layouts `default` y `admin`.
 * **Fase 3 (PR 3a a 3e):** Dominio de dinero en céntimos, checkout concurrente idempotente, corte de seguridad S9 y servicios de dominio.
 * **Fase 4 (PR 4a a 4f):** Desacoplamiento modular de dominios UI (Perfil, Catálogo, Insumos, Recetas, Pedidos y Refinamiento 10/10).
-* **Fase 5:**
-  * [`fase-5-subfase-5.1-eslint-informe.md`](./04%20-%20Informes%20de%20Ejecucion/fase-5-subfase-5.1-eslint-informe.md) — ESLint 10 Flat Config y erradicación total de `any`.
-  * [`fase-5-subfase-5.2-limites-arquitectura-informe.md`](./04%20-%20Informes%20de%20Ejecucion/fase-5-subfase-5.2-limites-arquitectura-informe.md) — Linter de límites arquitectónicos (§6.2).
-  * [`fase-5-subfase-5.3-ci-type-drift-informe.md`](./04%20-%20Informes%20de%20Ejecucion/fase-5-subfase-5.3-ci-type-drift-informe.md) — Pipeline CI/CD en GitHub Actions y Type Drift Gate.
-  * [`fase-5-subfase-5.4-adrs-informe.md`](./04%20-%20Informes%20de%20Ejecucion/fase-5-subfase-5.4-adrs-informe.md) — Formalización de ADRs para las 8 deudas técnicas explícitas.
-  * [`fase-5-subfase-5.5-operaciones-informe.md`](./04%20-%20Informes%20de%20Ejecucion/fase-5-subfase-5.5-operaciones-informe.md) — Playbook de operaciones, resiliencia y telemetría.
-  * [`fase-5-subfase-5.6-a11y-informe.md`](./04%20-%20Informes%20de%20Ejecucion/fase-5-subfase-5.6-a11y-informe.md) — Accesibilidad WCAG 2.1 AA en formularios y modales.
-  * [`fase-5-disciplina-informe-ejecucion.md`](./04%20-%20Informes%20de%20Ejecucion/fase-5-disciplina-informe-ejecucion.md) — **Informe Maestro Consolidado de la Fase 5**.
+* **Fase 5:** Disciplina & Gobernanza Enterprise (ESLint 10 Flat Config, Limites Arquitectónicos, CI Type Drift Gate, Playbook Operativo, WCAG 2.1 AA y ADRs D1-D8).
+* **Fase 6:**
+  * [`fase-6-subfase-6.1-tracking-invitados-informe.md`](./04%20-%20Informes%20de%20Ejecucion/fase-6-subfase-6.1-tracking-invitados-informe.md) — Guest Tracking sin cuenta, Tokens HMAC-SHA256 y Protección Ley 29733 (ADR-002 / D2).
+  * [`fase-6-subfase-6.2-reversion-stock-mermas-informe.md`](./04%20-%20Informes%20de%20Ejecucion/fase-6-subfase-6.2-reversion-stock-mermas-informe.md) — Reversión Atómica de Stock y Declaración de Mermas (ADR-001 / D1).
+  * [`fase-6-subfase-6.3-kds-cocina-informe.md`](./04%20-%20Informes%20de%20Ejecucion/fase-6-subfase-6.3-kds-cocina-informe.md) — Kitchen Display System (KDS), Semáforos de Urgencia y Agregador de Lotes Mise en Place (Módulo C).
+  * [`fase-6-subfase-6.4-pagos-comprobantes-informe.md`](./04%20-%20Informes%20de%20Ejecucion/fase-6-subfase-6.4-pagos-comprobantes-informe.md) — Pasarela Yape/Plin, Carga de Vouchers con Magic Bytes y Validación 1-Click (ADR-005 / D5).
+  * [`fase-6-subfase-6.5-snapshot-escandallo-informe.md`](./04%20-%20Informes%20de%20Ejecucion/fase-6-subfase-6.5-snapshot-escandallo-informe.md) — Snapshot Inmutable de Escandallo y Freeze de COGS (ADR-008 / D8).
+  * [`fase-6-subfase-6.6-webhooks-n8n-informe.md`](./04%20-%20Informes%20de%20Ejecucion/fase-6-subfase-6.6-webhooks-n8n-informe.md) — Ecosistema de Webhooks Asíncronos Firmados con HMAC-SHA256 para n8n (ADR-006 / D6).
+  * [`fase-6-producto-kds-informe-ejecucion.md`](./04%20-%20Informes%20de%20Ejecucion/fase-6-producto-kds-informe-ejecucion.md) — **Informe Maestro Consolidado de la Fase 6**.
 
 ### 5. 🛡️ [05 - Operaciones](./05%20-%20Operaciones/)
 * [`playbook-operaciones.md`](./05%20-%20Operaciones/playbook-operaciones.md) — **Manual Operativo de Misión Crítica**:

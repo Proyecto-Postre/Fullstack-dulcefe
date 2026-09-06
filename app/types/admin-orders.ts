@@ -36,6 +36,15 @@ export interface AdminOrder {
   points_awarded?: boolean
   customer_name?: string
   customer_phone?: string
+  payment_method?: 'cash' | 'yape' | 'plin' | 'card' | null
+  payment_reference?: string | null
+  payment_receipt_url?: string | null
+  payment_status?: 'pending' | 'verified' | 'rejected' | null
+  payment_verified_at?: string | null
+  payment_verified_by?: string | null
+  total_cost_cents?: number | null
+  gross_margin_cents?: number | null
+  cost_snapshot?: unknown
   profiles?: AdminOrderProfile | null
   order_items?: AdminOrderItem[]
 }

@@ -83,6 +83,39 @@ async function saveChanges(): Promise<void> {
   }
 }
 
+const isVerifyingPayment = ref(false);
+
+async function handlePaymentAction(action: 'verify' | 'reject'): Promise<void> {
+  if (!props.order) return;
+  isVerifyingPayment.value = true;
+
+  try {
+    const res = await $fetch<{
+      success: boolean;
+      data: {
+        payment_status: 'verified' | 'rejected';
+        payment_verified_at: string | null;
+        payment_verified_by: string | null;
+      };
+    }>(`/api/admin/orders/${props.order.id}/verify-payment`, {
+      method: 'POST',
+      body: { action }
+    });
+
+    if (res.success && props.order) {
+      props.order.payment_status = res.data.payment_status;
+      props.order.payment_verified_at = res.data.payment_verified_at;
+      props.order.payment_verified_by = res.data.payment_verified_by;
+      emit('updated');
+    }
+  } catch (error: unknown) {
+    const fetchErr = error as { data?: { error?: { message?: string } }; message?: string };
+    alert(fetchErr.data?.error?.message || fetchErr.message || 'Error al actualizar estado del pago.');
+  } finally {
+    isVerifyingPayment.value = false;
+  }
+}
+
 const customerName = computed<string>(
   () => props.order?.profiles?.full_name || props.order?.customer_name || "Cliente sin nombre",
 );
@@ -318,6 +351,125 @@ const openWhatsApp = (): void => {
             </p>
           </div>
 
+          <!-- Información y Validación de Pago (ADR-005) -->
+          <div class="p-4 rounded-xl border border-[#4A5D23]/10 bg-white shadow-xs space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <Icon name="lucide:credit-card" class="w-4 h-4 text-[#4A5D23]" />
+                <h5 class="text-xs font-black text-[#2A321B] uppercase tracking-wider">
+                  Información de Pago
+                </h5>
+              </div>
+              <!-- Badge de Estado de Pago -->
+              <span
+                :class="[
+                  'px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider border flex items-center gap-1',
+                  order.payment_status === 'verified'
+                    ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                    : order.payment_status === 'rejected'
+                      ? 'bg-red-100 text-red-800 border-red-300'
+                      : 'bg-amber-100 text-amber-800 border-amber-300'
+                ]"
+              >
+                <Icon
+                  :name="
+                    order.payment_status === 'verified'
+                      ? 'lucide:check-circle'
+                      : order.payment_status === 'rejected'
+                        ? 'lucide:x-circle'
+                        : 'lucide:clock'
+                  "
+                  class="w-3 h-3"
+                />
+                {{
+                  order.payment_status === 'verified'
+                    ? 'Verificado'
+                    : order.payment_status === 'rejected'
+                      ? 'Rechazado'
+                      : 'Pendiente de Pago'
+                }}
+              </span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div>
+                <span class="text-[10px] font-bold text-stone-500 uppercase">Método:</span>
+                <p class="font-bold text-stone-800 capitalize">
+                  {{ order.payment_method || 'Efectivo contra entrega' }}
+                </p>
+              </div>
+
+              <div v-if="order.payment_reference">
+                <span class="text-[10px] font-bold text-stone-500 uppercase">N° Operación:</span>
+                <p class="font-mono font-bold text-stone-800">
+                  {{ order.payment_reference }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Voucher adjunto si existe -->
+            <div v-if="order.payment_receipt_url" class="pt-2 border-t border-stone-100">
+              <span class="text-[10px] font-bold text-stone-500 uppercase block mb-1">
+                Comprobante / Voucher:
+              </span>
+              <div class="flex items-center gap-3">
+                <a
+                  :href="order.payment_receipt_url"
+                  target="_blank"
+                  class="group relative block w-16 h-16 rounded-lg overflow-hidden border border-stone-200 shadow-xs hover:border-[#4A5D23] transition shrink-0"
+                >
+                  <img
+                    :src="order.payment_receipt_url"
+                    alt="Voucher de pago"
+                    class="w-full h-full object-cover group-hover:scale-105 transition"
+                  />
+                  <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition text-white">
+                    <Icon name="lucide:external-link" class="w-4 h-4" />
+                  </div>
+                </a>
+                <div class="flex-1">
+                  <a
+                    :href="order.payment_receipt_url"
+                    target="_blank"
+                    class="text-xs font-bold text-[#4A5D23] hover:underline flex items-center gap-1"
+                  >
+                    <span>Ver voucher completo</span>
+                    <Icon name="lucide:external-link" class="w-3 h-3" />
+                  </a>
+                  <p class="text-[10px] text-stone-400">Clic para abrir en tamaño completo</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Botones de Validación en 1-Click -->
+            <div
+              v-if="order.payment_method && order.payment_method !== 'cash'"
+              class="pt-2 flex items-center gap-2"
+            >
+              <button
+                v-if="order.payment_status !== 'verified'"
+                type="button"
+                :disabled="isVerifyingPayment"
+                @click="handlePaymentAction('verify')"
+                class="flex-1 py-2 px-3 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white rounded-xl text-xs font-bold transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Icon name="lucide:check-circle-2" class="w-3.5 h-3.5" />
+                <span>Confirmar Pago Válido</span>
+              </button>
+
+              <button
+                v-if="order.payment_status !== 'rejected'"
+                type="button"
+                :disabled="isVerifyingPayment"
+                @click="handlePaymentAction('reject')"
+                class="py-2 px-3 bg-red-100 hover:bg-red-200 active:scale-98 text-red-700 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Icon name="lucide:x-circle" class="w-3.5 h-3.5" />
+                <span>Rechazar Pago</span>
+              </button>
+            </div>
+          </div>
+
           <!-- Lista de Productos -->
           <div>
             <h4
@@ -352,6 +504,40 @@ const openWhatsApp = (): void => {
                 <p class="text-xs font-black text-[#2A321B]">
                   S/ {{ (item.quantity * item.price_at_time).toFixed(2) }}
                 </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Resumen de Escandallo y Margen Bruto (ADR-008) -->
+          <div
+            v-if="order.total_cost_cents != null && order.gross_margin_cents != null"
+            class="p-4 rounded-xl border border-stone-200 bg-stone-50/80 shadow-xs space-y-2"
+          >
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-black text-stone-800 flex items-center gap-1.5">
+                <Icon name="lucide:calculator" class="w-4 h-4 text-[#4A5D23]" />
+                Escandallo Financiero (COGS Congelado)
+              </span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                Margen {{ (((order.gross_margin_cents) / ((order.total_amount ?? 1) * 100)) * 100).toFixed(1) }}%
+              </span>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+              <div>
+                <span class="text-[10px] text-stone-500 uppercase">Costo Insumos:</span>
+                <p class="font-mono font-bold text-stone-700">
+                  S/ {{ (order.total_cost_cents / 100).toFixed(2) }}
+                </p>
+              </div>
+              <div>
+                <span class="text-[10px] text-stone-500 uppercase">Margen Bruto:</span>
+                <p class="font-mono font-bold text-emerald-700">
+                  S/ {{ (order.gross_margin_cents / 100).toFixed(2) }}
+                </p>
+              </div>
+              <div class="col-span-2 sm:col-span-1">
+                <span class="text-[10px] text-stone-500 uppercase">Estado:</span>
+                <p class="font-bold text-stone-800">Snapshot Inmutable</p>
               </div>
             </div>
           </div>

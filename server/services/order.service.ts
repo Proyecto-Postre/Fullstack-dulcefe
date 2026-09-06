@@ -7,6 +7,10 @@ import type { CheckoutBodyDTO } from '../utils/schemas/checkout'
 import type { AdminCreateOrderInput } from '../utils/schemas/admin-order'
 import { solesToCents, centsToSoles, calculateLoyaltyPoints } from '../utils/money'
 import { requireAdmin } from '../utils/require-admin'
+import { generateOrderTrackingToken } from '../utils/crypto'
+import { InventoryService } from './inventory.service'
+import { WebhookService } from './webhook.service'
+import type { OrderCostSnapshot, CostSnapshotItem, CostSnapshotIngredient } from '~/types/cost-snapshot'
 
 export interface OrderResponseItem {
   product_id: number
@@ -27,6 +31,8 @@ export interface CheckoutResponseOrder {
   delivery_time: string | null
   notes: string | null
   items: OrderResponseItem[]
+  tracking_token?: string | null
+  tracking_url?: string | null
 }
 
 export interface CheckoutResult {
@@ -273,6 +279,7 @@ export class OrderService {
     }
 
     const totalAmountString = centsToSoles(orderTotalCents)
+    const trackingToken = generateOrderTrackingToken(crypto.randomUUID(), now.toISOString())
 
     // 7. Inserción de orden y detalle
     try {
@@ -287,7 +294,12 @@ export class OrderService {
           status: 'pending',
           delivery_date: dto.delivery_date || null,
           delivery_time: dto.delivery_time || null,
-          notes: dto.notes || null
+          notes: dto.notes || null,
+          tracking_token: trackingToken,
+          payment_method: dto.payment_method || 'cash',
+          payment_reference: dto.payment_reference || null,
+          payment_receipt_url: dto.payment_receipt_url || null,
+          payment_status: 'pending'
         })
         .select()
         .single()
@@ -338,7 +350,9 @@ export class OrderService {
           name: it.name,
           quantity: it.quantity,
           price_at_time: it.priceString
-        }))
+        })),
+        tracking_token: trackingToken,
+        tracking_url: `/pedido/${trackingToken}`
       }
 
       // 8. Marcar la llave de idempotencia como completada
@@ -364,6 +378,21 @@ export class OrderService {
           result: 'ok',
           request_id: requestId
         })
+
+      // 10. Despachar webhook asíncrono a n8n (ADR-006 / D6)
+      WebhookService.dispatch(
+        'order.created',
+        {
+          order_id: responseOrder.id,
+          customer_name: responseOrder.customer_name,
+          customer_phone: responseOrder.customer_phone,
+          total_amount: responseOrder.total_amount,
+          tracking_url: responseOrder.tracking_url,
+          payment_method: dto.payment_method || 'cash',
+          payment_status: 'pending'
+        },
+        requestId
+      ).catch(() => {})
 
       return {
         request_id: requestId,
@@ -402,7 +431,8 @@ export class OrderService {
     event: H3Event,
     orderId: string,
     newStatus: string,
-    requestId: string
+    requestId: string,
+    options?: { cancellation_reason?: string; restore_stock?: boolean }
   ) {
     const adminUser = await requireAdmin(event)
     const supabase = serverSupabaseServiceRole<Database>(event)
@@ -592,7 +622,20 @@ export class OrderService {
       }
     }
 
-    // 4. Transición a 'completed': Otorgamiento de puntos de lealtad
+    // Congelar snapshot inmutable de escandallo al entrar a producción (ADR-008 / D8)
+    if (newStatus === 'processing') {
+      await this.freezeOrderCostSnapshot(event, orderId, requestId).catch(() => {})
+    }
+
+    // 4. Transición a 'cancelled': Reversión de stock o declaración de merma (ADR-001 / D1)
+    if (newStatus === 'cancelled' && (order.inventory_processed ?? false)) {
+      const restoreStock = options?.restore_stock ?? true
+      const reason = options?.cancellation_reason || 'Cancelación de pedido en administración'
+      await InventoryService.revertOrderInventory(event, orderId, reason, restoreStock, requestId)
+      inventoryProcessed = false
+    }
+
+    // 5. Transición a 'completed': Otorgamiento de puntos de lealtad
     if (newStatus === 'completed' && !pointsAwarded && order.profile_id) {
       const orderTotalCents = solesToCents(order.total_amount ?? 0)
       const pointsToAward = calculateLoyaltyPoints(orderTotalCents)
@@ -653,6 +696,18 @@ export class OrderService {
         result: 'ok',
         request_id: requestId
       })
+
+    // 7. Despachar webhook asíncrono a n8n (ADR-006 / D6)
+    WebhookService.dispatch(
+      newStatus === 'cancelled' ? 'order.cancelled' : 'order.status_updated',
+      {
+        order_id: orderId,
+        from_status: oldStatus,
+        to_status: newStatus,
+        customer_name: order.customer_name
+      },
+      requestId
+    ).catch(() => {})
 
     return {
       request_id: requestId,
@@ -841,6 +896,7 @@ export class OrderService {
       }
 
       const totalAmountString = centsToSoles(totalCents)
+      const trackingToken = generateOrderTrackingToken(crypto.randomUUID(), new Date().toISOString())
 
       // 5. Insertar cabecera de orden
       const { data: createdOrder, error: orderInsertError } = await supabase
@@ -856,7 +912,8 @@ export class OrderService {
           delivery_time: dto.delivery_time || null,
           notes: dto.notes || null,
           inventory_processed: false,
-          points_awarded: false
+          points_awarded: false,
+          tracking_token: trackingToken
         })
         .select()
         .single()
@@ -898,7 +955,9 @@ export class OrderService {
           name: it.name,
           quantity: it.quantity,
           price_at_time: it.priceString
-        }))
+        })),
+        tracking_token: trackingToken,
+        tracking_url: `/pedido/${trackingToken}`
       }
 
       // 7. Marcar idempotencia completada
@@ -952,5 +1011,255 @@ export class OrderService {
       })
     }
   }
+
+  /**
+   * Verifica o rechaza el pago de una orden (ADR-005 / D5).
+   */
+  static async verifyPayment(
+    event: H3Event,
+    orderId: string,
+    action: 'verify' | 'reject',
+    notes: string | undefined,
+    requestId: string
+  ): Promise<{
+    success: boolean
+    data: {
+      order_id: string
+      payment_status: 'verified' | 'rejected'
+      payment_verified_at: string | null
+      payment_verified_by: string | null
+    }
+  }> {
+    const adminCtx = await requireAdmin(event)
+    const supabase = serverSupabaseServiceRole<Database>(event)
+
+    const { data: order, error: findError } = await supabase
+      .from('orders')
+      .select('id, payment_status, payment_method')
+      .eq('id', orderId)
+      .maybeSingle()
+
+    if (findError || !order) {
+      throw createError({
+        statusCode: 404,
+        statusMessage: 'ORDER_NOT_FOUND',
+        data: {
+          error: {
+            code: 'ORDER_NOT_FOUND',
+            message: `La orden con ID ${orderId} no existe.`,
+            request_id: requestId
+          }
+        }
+      })
+    }
+
+    const newPaymentStatus = action === 'verify' ? 'verified' : 'rejected'
+    const nowIso = new Date().toISOString()
+    const verifiedBy = action === 'verify' ? adminCtx.user.id : null
+    const verifiedAt = action === 'verify' ? nowIso : null
+
+    const { error: updateError } = await supabase
+      .from('orders')
+      .update({
+        payment_status: newPaymentStatus,
+        payment_verified_at: verifiedAt,
+        payment_verified_by: verifiedBy
+      })
+      .eq('id', orderId)
+
+    if (updateError) {
+      throw createError({
+        statusCode: 500,
+        statusMessage: 'INTERNAL_ERROR',
+        data: {
+          error: {
+            code: 'INTERNAL_ERROR',
+            message: `Error al actualizar estado de pago: ${updateError.message}`,
+            request_id: requestId
+          }
+        }
+      })
+    }
+
+    // Registro de auditoría
+    try {
+      await supabase.from('audit_events').insert({
+        actor_id: adminCtx.user.id,
+        action: action === 'verify' ? 'payment.verified' : 'payment.rejected',
+        entity: 'orders',
+        entity_id: orderId,
+        result: 'ok',
+        request_id: requestId
+      })
+    } catch {
+      // Ignorar fallos no críticos de auditoría secundaria
+    }
+
+    // Despachar webhook asíncrono a n8n (ADR-006 / D6)
+    WebhookService.dispatch(
+      action === 'verify' ? 'payment.verified' : 'payment.rejected',
+      {
+        order_id: orderId,
+        payment_status: newPaymentStatus,
+        payment_method: order.payment_method
+      },
+      requestId
+    ).catch(() => {})
+
+    return {
+      success: true,
+      data: {
+        order_id: orderId,
+        payment_status: newPaymentStatus,
+        payment_verified_at: verifiedAt,
+        payment_verified_by: verifiedBy
+      }
+    }
+  }
+
+  /**
+   * Congela de forma inmutable el escandallo y costo de insumos (COGS) de una orden (ADR-008 / D8).
+   * Si ya existe un snapshot previo, no se sobreescribe para preservar la verdad histórica contable.
+   */
+  static async freezeOrderCostSnapshot(
+    event: H3Event,
+    orderId: string,
+    _requestId: string
+  ): Promise<OrderCostSnapshot | null> {
+    const supabase = serverSupabaseServiceRole<Database>(event)
+
+    const { data: order, error: orderErr } = await supabase
+      .from('orders')
+      .select(`
+        id,
+        total_amount,
+        cost_snapshot,
+        total_cost_cents,
+        gross_margin_cents,
+        order_items (
+          id,
+          product_id,
+          quantity,
+          products ( id, name )
+        )
+      `)
+      .eq('id', orderId)
+      .maybeSingle()
+
+    if (orderErr || !order) {
+      return null
+    }
+
+    if (order.cost_snapshot) {
+      return order.cost_snapshot as unknown as OrderCostSnapshot
+    }
+
+    const orderItems = (order.order_items || []) as Array<{
+      id: string
+      product_id: number | null
+      quantity: number
+      products: { id: number; name: string } | null
+    }>
+
+    const productIds = orderItems
+      .map((it) => it.product_id)
+      .filter((id): id is number => id !== null)
+
+    let recipeItems: Array<{
+      product_id: number
+      raw_material_id: number
+      quantity_used: number | null
+      raw_materials: {
+        id: number
+        name: string | null
+        unit: string | null
+        purchase_price: number | null
+        purchase_quantity: number | null
+      } | null
+    }> = []
+
+    if (productIds.length > 0) {
+      const { data: recipes } = await supabase
+        .from('recipe_items')
+        .select(`
+          product_id,
+          raw_material_id,
+          quantity_used,
+          raw_materials ( id, name, unit, purchase_price, purchase_quantity )
+        `)
+        .in('product_id', productIds)
+
+      recipeItems = (recipes || []) as unknown as typeof recipeItems
+    }
+
+    let totalOrderCostCents = 0
+    const snapshotItems: CostSnapshotItem[] = []
+
+    for (const item of orderItems) {
+      if (!item.product_id) continue
+
+      const productRecipes = recipeItems.filter((r) => r.product_id === item.product_id)
+      let productUnitCostCents = 0
+      const ingredientSnapshots: CostSnapshotIngredient[] = []
+
+      for (const rec of productRecipes) {
+        const mat = rec.raw_materials
+        const purchasePriceCents = solesToCents(mat?.purchase_price ?? 0)
+        const purchaseQty = Number(mat?.purchase_quantity ?? 1)
+        const costPerUnitCents = purchaseQty > 0 ? purchasePriceCents / purchaseQty : 0
+        const qtyUsed = Number(rec.quantity_used ?? 0)
+        const ingredientTotalCostCents = Math.round(costPerUnitCents * qtyUsed)
+
+        productUnitCostCents += ingredientTotalCostCents
+
+        ingredientSnapshots.push({
+          material_id: rec.raw_material_id,
+          material_name: mat?.name ?? 'Insumo',
+          unit: mat?.unit ?? 'g',
+          quantity_used: qtyUsed,
+          cost_per_unit_cents: Math.round(costPerUnitCents),
+          total_cost_cents: ingredientTotalCostCents
+        })
+      }
+
+      const itemTotalCostCents = productUnitCostCents * item.quantity
+      totalOrderCostCents += itemTotalCostCents
+
+      snapshotItems.push({
+        product_id: item.product_id,
+        product_name: item.products?.name ?? 'Producto',
+        quantity: item.quantity,
+        unit_cost_cents: productUnitCostCents,
+        total_cost_cents: itemTotalCostCents,
+        ingredients: ingredientSnapshots
+      })
+    }
+
+    const totalAmountCents = solesToCents(order.total_amount ?? 0)
+    const grossMarginCents = totalAmountCents - totalOrderCostCents
+    const grossMarginPercentage = totalAmountCents > 0 ? (grossMarginCents / totalAmountCents) * 100 : 0
+
+    const snapshot: OrderCostSnapshot = {
+      order_id: order.id,
+      calculated_at: new Date().toISOString(),
+      total_amount_cents: totalAmountCents,
+      total_cost_cents: totalOrderCostCents,
+      gross_margin_cents: grossMarginCents,
+      gross_margin_percentage: Math.round(grossMarginPercentage * 10) / 10,
+      items: snapshotItems
+    }
+
+    await supabase
+      .from('orders')
+      .update({
+        cost_snapshot: snapshot as unknown as Database['public']['Tables']['orders']['Insert']['cost_snapshot'],
+        total_cost_cents: totalOrderCostCents,
+        gross_margin_cents: grossMarginCents
+      })
+      .eq('id', orderId)
+
+    return snapshot
+  }
 }
+
 

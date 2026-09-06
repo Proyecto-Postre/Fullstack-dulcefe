@@ -105,6 +105,16 @@ function goToRecipeTab(product: ProductItem) {
           <Icon name="lucide:clipboard-list" :class="['w-5 h-5 transition-transform duration-300', currentTab === 'orders' ? 'scale-110' : 'group-hover:scale-110']" />
           Gestión de Pedidos
         </button>
+
+        <NuxtLink
+          to="/admin/kds"
+          target="_blank"
+          class="flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold text-amber-700 bg-amber-50 hover:bg-amber-100/80 border border-amber-300/40 text-left w-full relative overflow-hidden group cursor-pointer text-sm transition-all shadow-soft-sm mt-2"
+        >
+          <Icon name="lucide:chef-hat" class="w-5 h-5 text-amber-600 transition-transform duration-300 group-hover:scale-110" />
+          <span>KDS Cocina / Taller</span>
+          <Icon name="lucide:external-link" class="w-3.5 h-3.5 ml-auto text-amber-500" />
+        </NuxtLink>
       </div>
     </aside>
 
@@ -180,6 +190,15 @@ function goToRecipeTab(product: ProductItem) {
           <Icon name="lucide:clipboard-list" class="w-4 h-4" />
           Pedidos
         </button>
+
+        <NuxtLink
+          to="/admin/kds"
+          target="_blank"
+          class="flex items-center gap-2 py-2 px-3.5 font-bold text-xs rounded-xl transition-all duration-300 border border-amber-300/40 bg-amber-50 text-amber-700 whitespace-nowrap cursor-pointer hover:bg-amber-100"
+        >
+          <Icon name="lucide:chef-hat" class="w-4 h-4 text-amber-600" />
+          KDS Taller
+        </NuxtLink>
       </div>
     </div>
 

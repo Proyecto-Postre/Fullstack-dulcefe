@@ -13,6 +13,8 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
@@ -313,50 +315,90 @@ export type Database = {
       orders: {
         Row: {
           address: string | null
+          cancellation_reason: string | null
+          cost_snapshot: Json | null
           created_at: string
           customer_name: string | null
           customer_phone: string | null
           delivery_date: string | null
           delivery_time: string | null
+          gross_margin_cents: number | null
           id: string
           inventory_processed: boolean
           notes: string | null
+          payment_method: string | null
+          payment_receipt_url: string | null
+          payment_reference: string | null
+          payment_status: string | null
+          payment_verified_at: string | null
+          payment_verified_by: string | null
           points_awarded: boolean | null
           profile_id: string | null
           status: string | null
           total_amount: number
+          total_cost_cents: number | null
+          tracking_token: string | null
         }
         Insert: {
           address?: string | null
+          cancellation_reason?: string | null
+          cost_snapshot?: Json | null
           created_at?: string
           customer_name?: string | null
           customer_phone?: string | null
           delivery_date?: string | null
           delivery_time?: string | null
+          gross_margin_cents?: number | null
           id?: string
           inventory_processed?: boolean
           notes?: string | null
+          payment_method?: string | null
+          payment_receipt_url?: string | null
+          payment_reference?: string | null
+          payment_status?: string | null
+          payment_verified_at?: string | null
+          payment_verified_by?: string | null
           points_awarded?: boolean | null
           profile_id?: string | null
           status?: string | null
           total_amount: number
+          total_cost_cents?: number | null
+          tracking_token?: string | null
         }
         Update: {
           address?: string | null
+          cancellation_reason?: string | null
+          cost_snapshot?: Json | null
           created_at?: string
           customer_name?: string | null
           customer_phone?: string | null
           delivery_date?: string | null
           delivery_time?: string | null
+          gross_margin_cents?: number | null
           id?: string
           inventory_processed?: boolean
           notes?: string | null
+          payment_method?: string | null
+          payment_receipt_url?: string | null
+          payment_reference?: string | null
+          payment_status?: string | null
+          payment_verified_at?: string | null
+          payment_verified_by?: string | null
           points_awarded?: boolean | null
           profile_id?: string | null
           status?: string | null
           total_amount?: number
+          total_cost_cents?: number | null
+          tracking_token?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "orders_payment_verified_by_fkey"
+            columns: ["payment_verified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "orders_profile_id_fkey"
             columns: ["profile_id"]
@@ -505,6 +547,16 @@ export type Database = {
       process_order_inventory: {
         Args: { order_uuid: string }
         Returns: undefined
+      }
+      revert_order_inventory: {
+        Args: {
+          p_actor_id?: string
+          p_order_id: string
+          p_reason: string
+          p_request_id?: string
+          p_restore_stock: boolean
+        }
+        Returns: Json
       }
     }
     Enums: {

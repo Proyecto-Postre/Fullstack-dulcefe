@@ -7,7 +7,7 @@ ultima_actualizacion: 2026-09-06
 
 # 🍰 Dulce Fe — Centro de Comando
 
-> **Estado:** 🟢 Fase 1 (Seguridad & RLS) | 🟢 Fase 2 (Shell Visual & Layouts) | 🟢 Fase 3 (Dinero, S9 & Servicios) | 🟢 Fase 4 (Desacoplamiento Modular UI) | 🟢 Fase 5 (Disciplina & Gobernanza Enterprise)
+> **Estado:** 🟢 Fase 1 (Seguridad & RLS) | 🟢 Fase 2 (Shell Visual & Layouts) | 🟢 Fase 3 (Dinero, S9 & Servicios) | 🟢 Fase 4 (Desacoplamiento Modular UI) | 🟢 Fase 5 (Disciplina & Gobernanza Enterprise) | 🟢 Fase 6 (Expansión de Producto, KDS Taller, Pagos Digitales & Webhooks)
 > **Vista Gráfica:** Presiona `Ctrl + G` en Obsidian para el mapa global.
 
 ---
@@ -111,6 +111,13 @@ flowchart TD
 * [[fase-5-subfase-5.5-operaciones-informe]] — Playbook de Operaciones, Resiliencia y Telemetría.
 * [[fase-5-subfase-5.6-a11y-informe]] — Accesibilidad WCAG 2.1 AA en Formularios y Modales.
 * [[fase-5-disciplina-informe-ejecucion]] — **Informe Maestro Consolidado de Fase 5**.
+* [[fase-6-subfase-6.1-tracking-invitados-informe]] — Guest Tracking sin cuenta, Tokens HMAC-SHA256 y Ley 29733 (ADR-002 / D2).
+* [[fase-6-subfase-6.2-reversion-stock-mermas-informe]] — Reversión Atómica de Stock y Declaración de Mermas (ADR-001 / D1).
+* [[fase-6-subfase-6.3-kds-cocina-informe]] — Kitchen Display System (KDS), Semáforos de Urgencia y Agregador de Lotes (Módulo C).
+* [[fase-6-subfase-6.4-pagos-comprobantes-informe]] — Pasarela Yape/Plin, Carga de Vouchers con Magic Bytes y Validación 1-Click (ADR-005 / D5).
+* [[fase-6-subfase-6.5-snapshot-escandallo-informe]] — Snapshot Inmutable de Escandallo y Freeze de COGS (ADR-008 / D8).
+* [[fase-6-subfase-6.6-webhooks-n8n-informe]] — Ecosistema de Webhooks Asíncronos Firmados con HMAC-SHA256 para n8n (ADR-006 / D6).
+* [[fase-6-producto-kds-informe-ejecucion]] — **Informe Maestro Consolidado de Fase 6**.
 
 ### 📁 05 - Operaciones & Resiliencia
 * [[playbook-operaciones]] — Variables por entorno, rotación de claves, runbook de restore V44, Vercel Git-Ops y telemetría de alertas.

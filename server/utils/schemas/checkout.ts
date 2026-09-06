@@ -21,6 +21,9 @@ export const CheckoutBodySchema = z.object({
   delivery_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha inválido (YYYY-MM-DD)').optional().nullable(),
   delivery_time: z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/, 'Formato de hora inválido (HH:mm)').optional().nullable(),
   notes: z.string().trim().max(500, 'Las notas no pueden exceder 500 caracteres').optional().nullable(),
+  payment_method: z.enum(['cash', 'yape', 'plin', 'card']).optional().default('cash'),
+  payment_reference: z.string().trim().max(100, 'La referencia no puede exceder 100 caracteres').optional().nullable(),
+  payment_receipt_url: z.string().url('La URL del comprobante debe ser válida').max(1000).optional().nullable(),
   items: z.array(CheckoutItemSchema).min(1, 'El pedido debe contener al menos 1 producto').max(30, 'El pedido no puede superar 30 líneas')
 }).superRefine((data, ctx) => {
   if (data.channel === 'direct') {

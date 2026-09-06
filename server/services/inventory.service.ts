@@ -202,4 +202,63 @@ export class InventoryService {
 
     return { success: true }
   }
+
+  /**
+   * Ejecuta la reversión atómica de stock o declaración de mermas al cancelar un pedido procesado (ADR-001 / D1).
+   */
+  static async revertOrderInventory(
+    event: H3Event,
+    orderId: string,
+    reason: string,
+    restoreStock: boolean,
+    requestId: string
+  ) {
+    const adminUser = await requireAdmin(event)
+    const supabase = serverSupabaseServiceRole<Database>(event)
+
+    // Llamada segura a la RPC atómica revert_order_inventory
+    const rpcCaller = supabase.rpc as unknown as (
+      name: string,
+      params: {
+        p_order_id: string
+        p_reason: string
+        p_restore_stock: boolean
+        p_actor_id: string
+        p_request_id: string
+      }
+    ) => Promise<{ data: { success: boolean; restored_stock: boolean; items_affected: number } | null; error: Error | null }>
+
+    const { data, error } = await rpcCaller('revert_order_inventory', {
+      p_order_id: orderId,
+      p_reason: reason,
+      p_restore_stock: restoreStock,
+      p_actor_id: adminUser.user.id,
+      p_request_id: requestId
+    })
+
+    if (error) {
+      throw createError({
+        statusCode: 500,
+        statusMessage: 'INVENTORY_REVERSION_FAILED',
+        data: {
+          error: {
+            code: 'INVENTORY_REVERSION_FAILED',
+            message: `Error al revertir inventario de la orden: ${error.message}`,
+            request_id: requestId
+          }
+        }
+      })
+    }
+
+    await supabase.from('audit_events').insert({
+      actor_id: adminUser.user.id,
+      action: restoreStock ? 'inventory.reversal' : 'inventory.waste',
+      entity: 'orders',
+      entity_id: orderId,
+      result: 'ok',
+      request_id: requestId
+    })
+
+    return data
+  }
 }

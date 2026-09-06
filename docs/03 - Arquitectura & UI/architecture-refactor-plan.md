@@ -1196,3 +1196,15 @@ Cada fila es un punto que hay que **ver y marcar**. Crítica = no se avanza de f
 | D8 | Snapshot / versionado de receta al vender | El costeo histórico no es bloqueo de Fase 3; se usa la receta vigente en `processing` | ADR de recetas |
 
 Nada de D1–D8 se implementa “de paso” en un PR de refactor. Si urge, se abre ADR y se trata como feature, con API + servicio. `cancellation_reversal` no existe en el DDL hasta D1.
+
+### 20.6 Fase 6 — Expansión de Producto, KDS de Taller, Trazabilidad Financiera & Ecosistema de Eventos
+
+| ID | Qué validar | Cómo | Crítica | Estado |
+|---|---|---|---|:---:|
+| V51 | Guest Tracking sin login | `/pedido/[token]` con token HMAC-SHA256, stepper reactivo y anonimización Ley 29733 (D2) | sí | ✅ 10/10 |
+| V52 | Reversión atómica y mermas | RPC `revert_order_inventory`, bandera `restore_stock` en PATCH status y trazabilidad en libro (D1) | sí | ✅ 10/10 |
+| V53 | KDS Cocina & Taller | `/admin/kds` pantalla completa, semáforos de urgencia en hora oficial de Lima y agregador de lotes | sí | ✅ 10/10 |
+| V54 | Pagos Yape/Plin y Vouchers | Upload seguro con Magic Bytes (JPEG/PNG/WebP, max 2MB) y validación administrativa en 1-click (D5) | sí | ✅ 10/10 |
+| V55 | Freeze de COGS / Escandallo | Snapshot inmutable de receta al pasar a `processing` y cálculo de margen bruto sin recálculo futuro (D8) | sí | ✅ 10/10 |
+| V56 | Webhooks Seguros n8n | Despacho asíncrono fire-and-forget con cabecera `X-DulceFe-Signature` HMAC-SHA256 y timeout de 4s (D6) | sí | ✅ 10/10 |
+

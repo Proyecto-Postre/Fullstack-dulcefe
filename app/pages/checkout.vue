@@ -8,6 +8,7 @@ import type { CheckoutMode, CheckoutFormData, CheckoutPayload } from '~/types/ch
 import { buildWhatsAppOrderMessage, buildWhatsAppUrl } from '~/utils/whatsapp'
 import CheckoutModeSelector from '~/components/checkout/CheckoutModeSelector.vue'
 import CheckoutCustomerForm from '~/components/checkout/CheckoutCustomerForm.vue'
+import CheckoutPaymentSection from '~/components/checkout/CheckoutPaymentSection.vue'
 import CheckoutItemsList from '~/components/checkout/CheckoutItemsList.vue'
 import CheckoutSummaryCard from '~/components/checkout/CheckoutSummaryCard.vue'
 import CheckoutErrorAlert from '~/components/checkout/CheckoutErrorAlert.vue'
@@ -25,7 +26,10 @@ const formData = ref<CheckoutFormData>({
   address: '',
   deliveryDate: '',
   deliveryTime: '',
-  notes: ''
+  notes: '',
+  paymentMethod: 'cash',
+  paymentReference: '',
+  paymentReceiptUrl: ''
 })
 
 onMounted(() => {
@@ -64,6 +68,9 @@ async function processCheckout(): Promise<void> {
     delivery_date: formData.value.deliveryDate || undefined,
     delivery_time: formData.value.deliveryTime || undefined,
     notes: formData.value.notes.trim() || undefined,
+    payment_method: formData.value.paymentMethod || 'cash',
+    payment_reference: formData.value.paymentReference?.trim() || undefined,
+    payment_receipt_url: formData.value.paymentReceiptUrl?.trim() || undefined,
     items: cartStore.items.map(item => ({
       product_id: Number(item.product_id),
       quantity: item.quantity
@@ -125,10 +132,18 @@ async function processCheckout(): Promise<void> {
 
       <!-- Layout en 2 Columnas -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        <!-- Columna Izquierda: Modalidad + Formulario + Ítems -->
+        <!-- Columna Izquierda: Modalidad + Formulario + Pago + Ítems -->
         <div class="lg:col-span-2 space-y-6">
           <CheckoutModeSelector v-model="checkoutMode" />
           <CheckoutCustomerForm :mode="checkoutMode" :form-data="formData" />
+          <CheckoutPaymentSection
+            :payment-method="formData.paymentMethod || 'cash'"
+            :payment-reference="formData.paymentReference || ''"
+            :payment-receipt-url="formData.paymentReceiptUrl || ''"
+            @update:payment-method="formData.paymentMethod = $event"
+            @update:payment-reference="formData.paymentReference = $event"
+            @update:payment-receipt-url="formData.paymentReceiptUrl = $event"
+          />
           <CheckoutItemsList />
         </div>
 
