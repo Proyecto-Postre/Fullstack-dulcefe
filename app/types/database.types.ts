@@ -1,3 +1,9 @@
+/**
+ * DO NOT EDIT DIRECTLY — AUTOMATICALLY GENERATED FROM SUPABASE SCHEMA
+ * Command: npm run db:types
+ * SSOT: docs/03 - Arquitectura & UI/architecture-refactor-plan.md (§5.3 / V50)
+ */
+
 export type Json =
   | string
   | number
