@@ -27,3 +27,25 @@ export function generateOrderTrackingToken(orderId: string, createdAt: string, c
 export function isValidTrackingTokenFormat(token: string): boolean {
   return typeof token === 'string' && /^[a-f0-9]{64}$/.test(token)
 }
+
+/**
+ * Genera la firma HMAC-SHA256 para webhooks de salida hacia n8n/Make (ADR-006 / D6).
+ */
+export function generateWebhookSignature(payload: string, secret: string): string {
+  return crypto.createHmac('sha256', secret).update(payload).digest('hex')
+}
+
+/**
+ * Valida la firma HMAC-SHA256 usando tiempo constante para prevenir timing attacks.
+ */
+export function verifyWebhookSignature(payload: string, secret: string, receivedSignature: string): boolean {
+  const expectedSignature = generateWebhookSignature(payload, secret)
+  if (expectedSignature.length !== receivedSignature.length) {
+    return false
+  }
+  return crypto.timingSafeEqual(
+    Buffer.from(expectedSignature, 'utf-8'),
+    Buffer.from(receivedSignature, 'utf-8')
+  )
+}
+

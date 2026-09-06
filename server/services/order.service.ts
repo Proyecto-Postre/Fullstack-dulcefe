@@ -9,6 +9,7 @@ import { solesToCents, centsToSoles, calculateLoyaltyPoints } from '../utils/mon
 import { requireAdmin } from '../utils/require-admin'
 import { generateOrderTrackingToken } from '../utils/crypto'
 import { InventoryService } from './inventory.service'
+import { WebhookService } from './webhook.service'
 import type { OrderCostSnapshot, CostSnapshotItem, CostSnapshotIngredient } from '~/types/cost-snapshot'
 
 export interface OrderResponseItem {
@@ -378,6 +379,21 @@ export class OrderService {
           request_id: requestId
         })
 
+      // 10. Despachar webhook asíncrono a n8n (ADR-006 / D6)
+      WebhookService.dispatch(
+        'order.created',
+        {
+          order_id: responseOrder.id,
+          customer_name: responseOrder.customer_name,
+          customer_phone: responseOrder.customer_phone,
+          total_amount: responseOrder.total_amount,
+          tracking_url: responseOrder.tracking_url,
+          payment_method: dto.payment_method || 'cash',
+          payment_status: 'pending'
+        },
+        requestId
+      ).catch(() => {})
+
       return {
         request_id: requestId,
         order: responseOrder
@@ -680,6 +696,18 @@ export class OrderService {
         result: 'ok',
         request_id: requestId
       })
+
+    // 7. Despachar webhook asíncrono a n8n (ADR-006 / D6)
+    WebhookService.dispatch(
+      newStatus === 'cancelled' ? 'order.cancelled' : 'order.status_updated',
+      {
+        order_id: orderId,
+        from_status: oldStatus,
+        to_status: newStatus,
+        customer_name: order.customer_name
+      },
+      requestId
+    ).catch(() => {})
 
     return {
       request_id: requestId,
@@ -1066,6 +1094,17 @@ export class OrderService {
     } catch {
       // Ignorar fallos no críticos de auditoría secundaria
     }
+
+    // Despachar webhook asíncrono a n8n (ADR-006 / D6)
+    WebhookService.dispatch(
+      action === 'verify' ? 'payment.verified' : 'payment.rejected',
+      {
+        order_id: orderId,
+        payment_status: newPaymentStatus,
+        payment_method: order.payment_method
+      },
+      requestId
+    ).catch(() => {})
 
     return {
       success: true,
