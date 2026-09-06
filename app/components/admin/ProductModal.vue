@@ -1,17 +1,25 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import type { ProductRow, ProductUploadResponse } from '~/types/catalog'
 
 const props = defineProps<{
   show: boolean
-  productToEdit?: any | null
+  productToEdit?: ProductRow | null
 }>()
 
 const emit = defineEmits<{
   (e: 'close'): void
-  (e: 'saved', product: any, isNew: boolean): void
+  (e: 'saved', product: ProductRow, isNew: boolean): void
 }>()
 
-const newProduct = ref({ id: '', name: '', price: '', stock: '', image_url: '' })
+const newProduct = ref<{
+  id: number | string
+  name: string
+  price: number | string
+  stock: number | string
+  image_url: string
+}>({ id: '', name: '', price: '', stock: '', image_url: '' })
+
 const isSubmitting = ref(false)
 const errorMessage = ref('')
 const selectedFile = ref<File | null>(null)
@@ -24,8 +32,8 @@ watch(() => props.show, (newVal) => {
       newProduct.value = { 
         id: props.productToEdit.id,
         name: props.productToEdit.name, 
-        price: props.productToEdit.price, 
-        stock: props.productToEdit.stock,
+        price: props.productToEdit.price ?? '', 
+        stock: props.productToEdit.stock ?? '',
         image_url: props.productToEdit.image_url || ''
       }
       previewUrl.value = props.productToEdit.image_url || null
@@ -38,12 +46,13 @@ watch(() => props.show, (newVal) => {
   }
 })
 
-function closeModal() {
+function closeModal(): void {
   emit('close')
 }
 
-function handleFileChange(event: any) {
-  const file = event.target.files?.[0]
+function handleFileChange(event: Event): void {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
   if (file) {
     selectedFile.value = file
     previewUrl.value = URL.createObjectURL(file)
@@ -53,11 +62,7 @@ function handleFileChange(event: any) {
   }
 }
 
-function triggerFileInput() {
-  document.getElementById('productImageInputModal')?.click()
-}
-
-async function saveProduct() {
+async function saveProduct(): Promise<void> {
   if (!newProduct.value.name || (props.productToEdit && !newProduct.value.price)) {
     errorMessage.value = 'Faltan campos obligatorios.'
     return
@@ -69,11 +74,11 @@ async function saveProduct() {
     if (selectedFile.value) {
       const formData = new FormData()
       formData.append('file', selectedFile.value)
-      const uploadRes: any = await $fetch('/api/products/upload', {
+      const uploadRes = await $fetch<ProductUploadResponse>('/api/products/upload', {
         method: 'POST',
         body: formData
       })
-      if (uploadRes.success && uploadRes.url) {
+      if (uploadRes?.success && uploadRes.url) {
         uploadedImageUrl = uploadRes.url
       }
     }
@@ -81,7 +86,7 @@ async function saveProduct() {
     const method = props.productToEdit ? 'PUT' : 'POST'
     const endpoint = props.productToEdit ? `/api/products/${props.productToEdit.id}` : '/api/products'
     
-    const res: any = await $fetch(endpoint, {
+    const res = await $fetch<{ success: boolean, data?: ProductRow[] }>(endpoint, {
       method,
       body: {
         name: newProduct.value.name,
@@ -91,11 +96,22 @@ async function saveProduct() {
       }
     })
     
-    const savedProduct = res.data && res.data[0] ? res.data[0] : newProduct.value
+    const savedProduct: ProductRow = (res?.data && res.data[0]) 
+      ? res.data[0] 
+      : {
+          id: Number(newProduct.value.id) || 0,
+          name: newProduct.value.name,
+          price: Number(newProduct.value.price || 0),
+          stock: Number(newProduct.value.stock || 0),
+          image_url: uploadedImageUrl || null,
+          created_at: new Date().toISOString()
+        }
+
     emit('saved', savedProduct, !props.productToEdit)
     closeModal()
-  } catch (err: any) {
-    errorMessage.value = err.data?.statusMessage || 'Error al guardar producto.'
+  } catch (err: unknown) {
+    const fetchErr = err as { data?: { statusMessage?: string }; message?: string }
+    errorMessage.value = fetchErr.data?.statusMessage || fetchErr.message || 'Error al guardar producto.'
   } finally {
     isSubmitting.value = false
   }
@@ -138,75 +154,40 @@ async function saveProduct() {
                     <Icon name="lucide:upload" class="w-3.5 h-3.5" />
                     {{ previewUrl ? 'Cambiar Foto' : 'Subir Foto' }}
                   </button>
-                  <p class="text-[10px] text-[#4A5D23]/60 font-medium mt-1">Formatos JPG, PNG o WEBP (máx. 2MB)</p>
                 </div>
               </div>
             </div>
 
             <!-- Nombre -->
             <div>
-              <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest mb-1.5">Nombre del Producto</label>
-              <input 
-                v-model="newProduct.name"
-                type="text" 
-                required
-                placeholder="Ej: Torta de Chocolate Artesanal"
-                class="w-full px-3 py-2.5 bg-[#F4F1E1]/30 rounded-xl border border-[#4A5D23]/20 focus:outline-none focus:bg-white focus:border-[#4A5D23] focus:ring-2 focus:ring-[#4A5D23]/10 text-sm font-bold text-[#2A321B] shadow-sm transition-all placeholder:text-[#4A5D23]/30"
-              />
+              <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest mb-1.5">Nombre</label>
+              <input v-model="newProduct.name" type="text" required placeholder="Ej. Torta de Chocolate" class="w-full bg-[#F4F1E1]/30 border border-[#4A5D23]/20 rounded-xl px-4 py-2.5 text-sm font-bold text-[#2A321B] focus:outline-none focus:border-[#4A5D23] transition-colors" />
             </div>
 
+            <!-- Precio & Stock -->
             <div class="grid grid-cols-2 gap-4">
-              <!-- Precio -->
               <div>
-                <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest mb-1.5">Precio de Venta</label>
-                <div class="relative">
-                  <span class="absolute left-3 top-1/2 -translate-y-1/2 text-[#4A5D23]/50 font-black text-sm">S/</span>
-                  <input 
-                    v-model="newProduct.price"
-                    type="number" 
-                    step="0.10"
-                    required
-                    placeholder="0.00"
-                    class="w-full pl-8 pr-3 py-2.5 bg-[#F4F1E1]/30 rounded-xl border border-[#4A5D23]/20 focus:outline-none focus:bg-white focus:border-[#4A5D23] focus:ring-2 focus:ring-[#4A5D23]/10 text-sm font-bold text-[#2A321B] shadow-sm transition-all placeholder:text-[#4A5D23]/30 [&::-webkit-inner-spin-button]:appearance-none"
-                  />
-                </div>
+                <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest mb-1.5">Precio (S/)</label>
+                <input v-model="newProduct.price" type="number" step="0.01" min="0" placeholder="0.00" class="w-full bg-[#F4F1E1]/30 border border-[#4A5D23]/20 rounded-xl px-4 py-2.5 text-sm font-bold text-[#2A321B] focus:outline-none focus:border-[#4A5D23] transition-colors" />
               </div>
-
-              <!-- Stock -->
               <div>
-                <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest mb-1.5">Stock Inicial</label>
-                <input 
-                  v-model="newProduct.stock"
-                  type="number" 
-                  min="0"
-                  placeholder="0"
-                  class="w-full px-3 py-2.5 bg-[#F4F1E1]/30 rounded-xl border border-[#4A5D23]/20 focus:outline-none focus:bg-white focus:border-[#4A5D23] focus:ring-2 focus:ring-[#4A5D23]/10 text-sm font-bold text-[#2A321B] shadow-sm transition-all placeholder:text-[#4A5D23]/30 [&::-webkit-inner-spin-button]:appearance-none"
-                />
+                <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest mb-1.5">Stock</label>
+                <input v-model="newProduct.stock" type="number" min="0" placeholder="0" class="w-full bg-[#F4F1E1]/30 border border-[#4A5D23]/20 rounded-xl px-4 py-2.5 text-sm font-bold text-[#2A321B] focus:outline-none focus:border-[#4A5D23] transition-colors" />
               </div>
             </div>
 
-            <button 
-              type="submit" 
-              :disabled="isSubmitting" 
-              class="w-full bg-[#4A5D23] border border-transparent text-white font-bold py-3 rounded-xl mt-4 shadow-sm transition-all duration-300 active:translate-y-0.5 active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 hover:bg-[#3C4A1C] text-sm"
-            >
-              <Icon v-if="isSubmitting" name="lucide:loader-2" class="w-4 h-4 animate-spin" />
-              {{ isSubmitting ? 'Guardando...' : (productToEdit ? 'Guardar Cambios' : 'Crear y Costear') }}
-              <Icon v-if="!isSubmitting && !productToEdit" name="lucide:arrow-right" class="w-4 h-4" />
-            </button>
+            <div class="pt-4 flex justify-end gap-3 border-t border-[#4A5D23]/10">
+              <button type="button" @click="closeModal" class="px-5 py-2.5 rounded-xl border border-[#4A5D23]/20 text-xs font-bold text-[#2A321B] hover:bg-[#F4F1E1] transition-all">
+                Cancelar
+              </button>
+              <button type="submit" :disabled="isSubmitting" class="px-6 py-2.5 rounded-xl bg-[#4A5D23] text-white text-xs font-bold hover:bg-[#3C4A1C] transition-all shadow-sm flex items-center gap-2">
+                <Icon v-if="isSubmitting" name="lucide:loader-2" class="w-4 h-4 animate-spin" />
+                <span>{{ isSubmitting ? 'Guardando...' : (productToEdit ? 'Actualizar' : 'Crear Producto') }}</span>
+              </button>
+            </div>
           </form>
         </div>
       </div>
     </div>
   </Teleport>
 </template>
-
-<style scoped>
-.animate-pop {
-  animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-}
-@keyframes pop {
-  0% { opacity: 0; transform: scale(0.95); }
-  100% { opacity: 1; transform: scale(1); }
-}
-</style>
