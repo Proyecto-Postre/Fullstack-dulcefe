@@ -1,4 +1,4 @@
-﻿---
+---
 tipo: api-endpoint
 metodo: POST
 ruta: /api/v1/ejemplo

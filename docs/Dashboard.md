@@ -7,7 +7,7 @@ ultima_actualizacion: 2026-08-26
 
 # 🍰 Dulce Fe — Centro de Comando
 
-> **Estado:** 🟢 Fase 1 (Seguridad & RLS) | 🟡 Fase 2 (E-Commerce & ERP)  
+> **Estado:** 🟢 Fase 1 (Seguridad & RLS) | 🟢 Fase 2 (Shell Visual & Layouts) | 🟢 Fase 3 (Frontera de Dinero, Inventario, Corte S9 y Servicios Completados)
 > **Vista Gráfica:** Presiona `Ctrl + G` en Obsidian para el mapa global.
 
 ---
@@ -74,7 +74,8 @@ flowchart TD
   * **Productos:** [[GET-api-products]], [[POST-api-products]], [[GET-api-products-id]], [[PUT-api-products-id]], [[DELETE-api-products-id]], [[POST-api-products-upload]].
   * **Materias Primas:** [[GET-api-raw-materials]], [[POST-api-raw-materials]], [[PUT-api-raw-materials-id]], [[DELETE-api-raw-materials-id]].
   * **Recetas & Excel:** [[GET-api-recipes-productId]], [[POST-api-recipes]], [[DELETE-api-recipes-id]], [[GET-api-recipes-export]].
-  * **Carrito:** [[GET-api-cart]], [[POST-api-cart]], [[DELETE-api-cart-productId]].
+  * **Carrito (Desactivado 410):** [[GET-api-cart]], [[POST-api-cart]], [[DELETE-api-cart-productId]].
+  * **Checkout & Pedidos:** [[POST-api-checkout]], [[GET-api-admin-orders]], [[GET-api-admin-orders-id]], [[PATCH-api-admin-orders-id]], [[PATCH-api-admin-orders-id-status]], [[POST-api-admin-orders]].
 * [[esquema-base-datos]] — Esquema relacional oficial, tablas `products`, `raw_materials`, `recipe_items`, `orders`, `profiles` y RLS.
 * [[sql/README]] — Gobernanza de base de datos y archivo histórico.
 
@@ -92,6 +93,11 @@ flowchart TD
 * [[fase-1-pr-1c-informe-ejecucion]] — Blindaje de `isAdmin` en Pinia y migración SQL de RLS en Supabase.
 * [[fase-1-pr-1d-informe-ejecucion]] — Upload seguro con Magic Bytes, script `db:types` y suite de tests Vitest.
 * [[fase-2-informe-ejecucion]] — Shell Visual, Design System, Layouts `default`/`admin` y Componentes Atómicos UI.
+* [[fase-3-pr-3a-informe-ejecucion]] — Checkout Seguro, Idempotencia Concurrente, Dinero en Céntimos y Tablas de Apoyo.
+* [[fase-3-pr-3b-informe-ejecucion]] — Frontend Seguro de Checkout, Composable `useCheckout` y Enlace Inviolable de WhatsApp.
+* [[fase-3-pr-3c-informe-ejecucion]] — Transiciones de Estado, Pedidos de Administración y Quiebre de Inventario.
+* [[fase-3-pr-3d-informe-ejecucion]] — Corte de Seguridad S9 en PostgreSQL y Revocación de RPCs.
+* [[fase-3-pr-3e-informe-ejecucion]] — Servicios de Dominio de Catálogo, Insumos y Recetas con Auditoría.
 
 ### 📁 05 - Decisiones Técnicas (ADR)
 * [[ADR-001-stack-nuxt4-fullstack]] — Monolito Modular Nuxt 4 vs Frontend/Backend separados.

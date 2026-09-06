@@ -21,8 +21,10 @@ export default defineEventHandler(async (event) => {
 
   // Dividimos el precio total entre la cantidad del paquete para obtener el costo exacto por gramo/ml/und
   const enrichedData = rawMaterials?.map(item => {
-    const costPerUnit = item.purchase_quantity > 0 
-      ? Number(item.purchase_price) / Number(item.purchase_quantity) 
+    const qty = item.purchase_quantity ?? 0
+    const price = item.purchase_price ?? 0
+    const costPerUnit = qty > 0 
+      ? Number(price) / Number(qty) 
       : 0
 
     return {

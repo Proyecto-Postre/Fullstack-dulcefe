@@ -3,12 +3,15 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { navigateTo } from 'nuxt/app'
 import { useCartStore } from '~/stores/cart'
 import { useAuthStore } from '~/stores/auth'
+import { useCheckout } from '~/composables/useCheckout'
+import type { CheckoutBodyDTO } from '~~/server/utils/schemas/checkout'
 import CustomDatePicker from '~/components/ui/CustomDatePicker.vue'
 import CustomTimePicker from '~/components/ui/CustomTimePicker.vue'
 
 const cartStore = useCartStore()
 const authStore = useAuthStore()
 const config = useRuntimeConfig()
+const { isSubmitting, errorMessage, errorDetails, submitCheckout } = useCheckout()
 
 const checkoutMode = ref<'direct' | 'chat'>('direct')
 const editingItemId = ref<string | number | null>(null)
@@ -48,45 +51,60 @@ const isFormValid = computed(() => {
   }
 })
 
-const generateWhatsAppLink = async () => {
-  if (!isFormValid.value) return
+const processCheckout = async () => {
+  if (!isFormValid.value || isSubmitting.value) return
 
-  try {
-    let message = `¡Hola Dulce Fe! Deseo realizar un pedido:\n\n`
-    message += `*Cliente:* ${formData.value.name.trim()}\n`
-    if (formData.value.phone.trim()) message += `*Teléfono:* ${formData.value.phone.trim()}\n`
-    
-    if (checkoutMode.value === 'direct') {
-      message += `*Tipo de Entrega:* Envío a Domicilio\n`
-      message += `*Dirección:* ${formData.value.address.trim()}\n`
-      if (formData.value.deliveryDate) message += `*Fecha:* ${formData.value.deliveryDate}\n`
-      if (formData.value.deliveryTime) message += `*Hora:* ${formData.value.deliveryTime}\n`
-      if (formData.value.notes.trim()) message += `*Notas:* ${formData.value.notes.trim()}\n`
-    } else {
-      message += `(Detalles de entrega a coordinar por chat)\n`
-    }
-    
-    message += `\n*Detalle de Productos:*\n`
-    cartStore.items.forEach(item => {
-      message += `- ${item.quantity}x ${item.name} (S/ ${(item.price * item.quantity).toFixed(2)})\n`
-    })
-    
-    message += `\n*Total a Pagar:* S/ ${cartStore.cartTotal.toFixed(2)}`
-
-    const encodedMessage = encodeURIComponent(message)
-    const whatsappNumber = config.public.whatsappNumber || '51998265700'
-    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`
-
-    // Abrir WhatsApp
-    window.open(whatsappUrl, '_blank')
-
-    // Limpiar carrito y redirigir
-    cartStore.clearCart()
-    navigateTo('/')
-  } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : 'Error al procesar pedido'
-    alert(`Hubo un problema al procesar tu pedido: ${msg}. Por favor contáctanos directamente.`)
+  const payload: CheckoutBodyDTO = {
+    channel: checkoutMode.value === 'direct' ? 'direct' : 'whatsapp_chat',
+    customer_name: formData.value.name.trim(),
+    customer_phone: formData.value.phone.trim() || undefined,
+    address: checkoutMode.value === 'direct' ? formData.value.address.trim() : undefined,
+    delivery_date: formData.value.deliveryDate || undefined,
+    delivery_time: formData.value.deliveryTime || undefined,
+    notes: formData.value.notes.trim() || undefined,
+    items: cartStore.items.map(item => ({
+      product_id: Number(item.product_id),
+      quantity: item.quantity
+    }))
   }
+
+  const result = await submitCheckout(payload)
+  if (!result) return
+
+  const { order } = result
+
+  // Construir mensaje de WhatsApp con los datos oficiales devueltos por el servidor
+  let message = `¡Hola Dulce Fe! Deseo coordinar el pedido *#${order.id.slice(0, 8)}*:\n\n`
+  message += `*Cliente:* ${order.customer_name}\n`
+  if (order.customer_phone) message += `*Teléfono:* ${order.customer_phone}\n`
+
+  if (checkoutMode.value === 'direct') {
+    message += `*Tipo de Entrega:* Envío a Domicilio\n`
+    if (order.address) message += `*Dirección:* ${order.address}\n`
+    if (order.delivery_date) message += `*Fecha:* ${order.delivery_date}\n`
+    if (order.delivery_time) message += `*Hora:* ${order.delivery_time}\n`
+    if (order.notes) message += `*Notas:* ${order.notes}\n`
+  } else {
+    message += `(Detalles de entrega a coordinar por chat)\n`
+  }
+
+  message += `\n*Detalle de Productos:*\n`
+  order.items.forEach(item => {
+    message += `- ${item.quantity}x ${item.name} (S/ ${item.price_at_time})\n`
+  })
+
+  message += `\n*Total a Pagar Oficial:* S/ ${order.total_amount}`
+
+  const encodedMessage = encodeURIComponent(message)
+  const whatsappNumber = config.public.whatsappNumber || '51998265700'
+  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`
+
+  // Abrir WhatsApp en pestaña nueva
+  window.open(whatsappUrl, '_blank')
+
+  // Limpiar el carrito de compras y navegar al inicio
+  cartStore.clearCart()
+  navigateTo('/')
 }
 </script>
 
@@ -290,13 +308,25 @@ const generateWhatsAppLink = async () => {
               <span class="text-2xl font-black font-inter text-status-success">S/ {{ cartStore.cartTotal.toFixed(2) }}</span>
             </div>
 
+            <!-- Banner de Error API -->
+            <div v-if="errorMessage" class="bg-status-danger/20 border border-status-danger/40 rounded-xl p-3 text-brand-cream text-xs flex items-start gap-2">
+              <Icon name="lucide:alert-circle" class="w-4 h-4 text-status-danger shrink-0 mt-0.5" />
+              <div>
+                <p class="font-bold">{{ errorMessage }}</p>
+                <ul v-if="errorDetails.length > 0" class="list-disc list-inside mt-1 space-y-0.5 text-brand-cream/80">
+                  <li v-for="(detail, idx) in errorDetails" :key="idx">{{ detail.message }}</li>
+                </ul>
+              </div>
+            </div>
+
             <button 
-              @click="generateWhatsAppLink"
-              :disabled="!isFormValid"
+              @click="processCheckout"
+              :disabled="!isFormValid || isSubmitting"
               class="w-full bg-status-success text-brand-secondary font-black py-4 rounded-xl shadow-soft-md hover:shadow-soft-lg transition-all active:translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 uppercase tracking-wider text-sm cursor-pointer mt-6"
             >
-              <Icon name="lucide:send" class="w-5 h-5" />
-              Enviar Pedido por WhatsApp
+              <Icon v-if="isSubmitting" name="lucide:loader-2" class="w-5 h-5 animate-spin" />
+              <Icon v-else name="lucide:send" class="w-5 h-5" />
+              {{ isSubmitting ? 'Procesando Pedido Oficial...' : 'Confirmar y Abrir WhatsApp' }}
             </button>
           </div>
         </div>

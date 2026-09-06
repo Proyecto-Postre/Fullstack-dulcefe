@@ -92,56 +92,29 @@ const createOrder = async () => {
   
   try {
     // 1. Create a dummy profile for the manual order (or find existing by phone if we wanted to be fancy)
-    // For simplicity, we'll create an order without a user_id, but we need to store the name/phone.
-    // Wait, the current schema expects a user_id for profiles.
-    // If it's a manual order, we can create a profile with a dummy UUID, or we can just store the name in a new table.
-    // Let's check how orders are structured. They have a user_id.
-    // If we can't create a user easily, we might need to use a generic "Guest" user or create an auth user.
-    // Actually, we can just call an RPC or create a profile directly if RLS allows it.
-    // Let's try to insert a profile directly. If it fails due to RLS, we'll need an RPC.
-    
-    // Let's use a generic UUID for manual orders, or generate a random one.
-    const dummyUserId = crypto.randomUUID()
-    
-    const { error: profileError } = await (supabase as any).from('profiles').insert({
-      id: dummyUserId,
-      full_name: orderData.value.customerName,
-      phone: orderData.value.customerPhone || null,
-      role: 'customer'
-    })
-    
-    if (profileError) {
-      console.warn('Could not create profile, might be RLS. Proceeding without user_id if possible.', profileError)
+    const payload = {
+      channel: 'admin',
+      customer_name: orderData.value.customerName.trim(),
+      customer_phone: orderData.value.customerPhone?.trim() || undefined,
+      delivery_date: orderData.value.deliveryDate || undefined,
+      delivery_time: orderData.value.deliveryTime || undefined,
+      notes: orderData.value.notes?.trim() || undefined,
+      items: selectedProducts.value.map(p => ({
+        product_id: p.product_id,
+        quantity: p.quantity
+      }))
     }
 
-    // 2. Create the order
-    const { data: orderRes, error: orderError } = await (supabase as any).from('orders').insert({
-      user_id: profileError ? null : dummyUserId, // If profile creation failed, try null (if allowed)
-      total_amount: totalAmount.value,
-      status: 'pending',
-      delivery_date: orderData.value.deliveryDate || null,
-      delivery_time: orderData.value.deliveryTime || null,
-      notes: orderData.value.notes || null
-    }).select().single()
-
-    if (orderError) throw orderError
-
-    // 3. Create order items
-    const orderItems = selectedProducts.value.map(p => ({
-      order_id: orderRes.id,
-      product_id: p.product_id,
-      quantity: p.quantity,
-      price_at_time: p.price
-    }))
-
-    const { error: itemsError } = await (supabase as any).from('order_items').insert(orderItems)
-    if (itemsError) throw itemsError
+    await $fetch('/api/admin/orders', {
+      method: 'POST',
+      body: payload
+    })
 
     emit('created')
     emit('close')
   } catch (err: any) {
     console.error('Error creating manual order:', err)
-    errorMessage.value = err.message || 'Error al crear el pedido manual.'
+    errorMessage.value = err?.data?.error?.message || err.message || 'Error al crear el pedido manual.'
   } finally {
     isSubmitting.value = false
   }

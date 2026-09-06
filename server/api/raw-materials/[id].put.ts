@@ -1,11 +1,8 @@
-import { serverSupabaseClient } from '#supabase/server'
-import type { Database } from '~/types/database.types'
+import { getOrCreateRequestId } from '../../utils/request-id'
+import { InventoryService } from '../../services/inventory.service'
 
 export default defineEventHandler(async (event) => {
-  // 🔒 Validación de privilegios de administrador (Fase 1 - PR-1b)
-  await requireAdmin(event)
-
-  // 1. Extraemos el ID de la URL
+  const requestId = getOrCreateRequestId(event)
   const id = getRouterParam(event, 'id')
 
   if (!id) {
@@ -15,38 +12,20 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // 2. Capturamos los datos nuevos
   const body = await readBody(event)
-  const { name, unit, purchase_price, purchase_quantity, stock } = body
+  const { name, unit, purchase_price, purchase_quantity, stock, reason } = body || {}
 
-  // 3. Conectamos con Supabase
-  const supabase = await serverSupabaseClient<Database>(event)
+  const data = await InventoryService.updateMaterial(
+    event,
+    Number(id),
+    { name, unit, purchase_price, purchase_quantity, stock, reason },
+    requestId
+  )
 
-  // 4. Actualizamos el insumo
-  const { data, error } = await supabase
-    .from('raw_materials')
-    .update({ 
-      name: name,
-      unit: unit,
-      purchase_price: purchase_price !== undefined ? Number(purchase_price) : undefined, 
-      purchase_quantity: purchase_quantity !== undefined ? Number(purchase_quantity) : undefined,
-      stock: stock !== undefined ? Number(stock) : undefined
-    })
-    .eq('id', Number(id))
-    .select()
-
-  // 5. Manejo de errores
-  if (error) {
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Error al actualizar el insumo: ' + error.message
-    })
-  }
-
-  // 6. Respuesta exitosa
   return {
     success: true,
     message: 'Insumo actualizado correctamente en el inventario.',
-    data: data
+    data: [data]
   }
 })
+

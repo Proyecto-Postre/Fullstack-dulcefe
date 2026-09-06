@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
-import { useSupabaseClient } from "#imports";
-
-const supabase = useSupabaseClient();
 
 const orders = ref<any[]>([]);
 const isLoading = ref(true);
@@ -57,22 +54,8 @@ const columns = [
 const fetchOrders = async () => {
   isLoading.value = true;
   try {
-    const { data, error } = await supabase
-      .from("orders")
-      .select(
-        `
-        *,
-        profiles ( full_name, phone ),
-        order_items (
-          quantity,
-          products ( name )
-        )
-      `,
-      )
-      .order("created_at", { ascending: false });
-
-    if (error) throw error;
-    orders.value = data || [];
+    const res = await $fetch<{ success: boolean; data: any[] }>("/api/admin/orders");
+    orders.value = res.data || [];
   } catch (err) {
     console.error("Error fetching orders:", err);
   } finally {
@@ -111,50 +94,29 @@ const onDrop = async (columnId: string, event: DragEvent) => {
   }
 
   try {
-    // 1. Actualizar estado en la BD
-    const { error } = await supabase
-      .from("orders")
-      .update({ status: newStatus })
-      .eq("id", orderId);
+    const result = await $fetch<{
+      order_id: string
+      from: string
+      to: string
+      inventory_processed: boolean
+      points_awarded: boolean
+    }>(`/api/admin/orders/${orderId}/status`, {
+      method: 'PATCH',
+      body: { status: newStatus }
+    })
 
-    if (error) throw error;
-
-    // 2. Si pasa a "Horneando" (processing), ejecutar el trigger de inventario
-    if (newStatus === "processing" && oldStatus === "pending") {
-      const { error: rpcError } = await supabase.rpc(
-        "process_order_inventory",
-        {
-          order_uuid: orderId,
-        },
-      );
-      if (rpcError) {
-        console.error("Error al descontar inventario:", rpcError);
-        alert(
-          "El pedido se movió a Horneando, pero hubo un error al descontar el inventario. Revisa la consola.",
-        );
-      }
+    if (orderIndex !== -1 && result) {
+      orders.value[orderIndex].inventory_processed = result.inventory_processed
+      orders.value[orderIndex].points_awarded = result.points_awarded
     }
-
-    // 3. Si pasa a "Entregado" (completed), otorgar puntos de lealtad
-    if (newStatus === "completed" && oldStatus !== "completed") {
-      const { error: pointsError } = await supabase.rpc(
-        "award_loyalty_points",
-        {
-          order_uuid: orderId,
-        },
-      );
-      if (pointsError) {
-        console.error("Error al otorgar puntos de lealtad:", pointsError);
-        // No mostramos alert para no interrumpir el flujo, pero queda registrado
-      }
-    }
-  } catch (err) {
+  } catch (err: any) {
     console.error("Error updating order status:", err);
     // Revertir cambio en UI si falla
     if (orderIndex !== -1) {
       orders.value[orderIndex].status = oldStatus;
     }
-    alert("Hubo un error al mover el pedido.");
+    const apiMsg = err?.data?.error?.message || err?.message || "Hubo un error al mover el pedido.";
+    alert(apiMsg);
   } finally {
     draggedOrder.value = null;
   }

@@ -1,12 +1,11 @@
-import { serverSupabaseClient } from '#supabase/server'
-import type { Database } from '~/types/database.types'
+import { getOrCreateRequestId } from '../../utils/request-id'
+import { InventoryService } from '../../services/inventory.service'
 
 export default defineEventHandler(async (event) => {
-  // 🔒 Validación de privilegios de administrador (Fase 1 - PR-1b)
-  await requireAdmin(event)
+  const requestId = getOrCreateRequestId(event)
 
   const body = await readBody(event)
-  const { name, unit, purchase_price, purchase_quantity, stock } = body
+  const { name, unit, purchase_price, purchase_quantity, stock } = body || {}
 
   if (!name || !unit || !purchase_price || !purchase_quantity) {
     throw createError({
@@ -15,30 +14,14 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const supabase = await serverSupabaseClient<Database>(event)
-
-  const { data, error } = await supabase
-    .from('raw_materials')
-    .insert([
-      {
-        name: name,
-        unit: unit,
-        purchase_price: Number(purchase_price),
-        purchase_quantity: Number(purchase_quantity),
-        stock: Number(stock || 0)
-      }
-    ])
-    .select()
-
-  if (error) {
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Error al registrar el insumo: ' + error.message
-    })
-  }
+  const data = await InventoryService.createMaterial(
+    event,
+    { name, unit, purchase_price, purchase_quantity, stock },
+    requestId
+  )
 
   return {
     success: true,
-    data: data
+    data: [data]
   }
-})
+})
