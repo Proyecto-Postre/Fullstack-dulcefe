@@ -110,16 +110,21 @@ async function saveMaterial(): Promise<void> {
       ></div>
 
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-material-title"
         class="relative w-full max-w-md bg-white rounded-[2rem] shadow-2xl overflow-hidden animate-pop border border-[#4A5D23]/10 max-h-[85vh] flex flex-col"
       >
         <div class="p-5 sm:p-6 overflow-y-auto custom-scrollbar flex-1">
           <div class="flex items-center justify-between mb-6">
-            <h3 class="text-xl font-playfair font-black text-[#2A321B]">
+            <h3 id="modal-material-title" class="text-xl font-playfair font-black text-[#2A321B]">
               {{ materialToEdit ? "Editar Insumo" : "Nuevo Insumo" }}
             </h3>
             <button
+              type="button"
+              aria-label="Cerrar modal de insumo"
               @click="closeModal"
-              class="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-[#4A5D23]/20 text-[#2A321B] hover:bg-[#e6e2cc] hover:scale-105 active:scale-95 transition-all shadow-sm"
+              class="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-[#4A5D23]/20 text-[#2A321B] hover:bg-[#e6e2cc] hover:scale-105 active:scale-95 transition-all shadow-sm cursor-pointer"
             >
               <Icon name="lucide:x" class="w-4 h-4" />
             </button>

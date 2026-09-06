@@ -31,8 +31,10 @@ defineEmits<{
           v-model="formData.name"
           type="text"
           required
+          aria-required="true"
+          autocomplete="name"
           placeholder="Ej: Lucía Benavides"
-          class="w-full px-4 py-3 bg-[#F4F1E1]/40 border border-[#4A5D23]/20 rounded-xl text-sm font-bold text-[#2A321B] placeholder:text-[#4A5D23]/30 focus:outline-none focus:border-[#4A5D23] focus:bg-white transition-all shadow-xs"
+          class="w-full px-4 py-3 bg-[#F4F1E1]/40 border border-[#4A5D23]/20 rounded-xl text-sm font-bold text-[#2A321B] placeholder:text-[#4A5D23]/30 focus:outline-none focus:border-[#4A5D23] focus-visible:ring-2 focus-visible:ring-[#4A5D23] focus:bg-white transition-all shadow-xs"
         />
       </div>
 
@@ -44,8 +46,9 @@ defineEmits<{
           id="checkout-customer-phone"
           v-model="formData.phone"
           type="tel"
+          autocomplete="tel"
           placeholder="Ej: 987654321"
-          class="w-full px-4 py-3 bg-[#F4F1E1]/40 border border-[#4A5D23]/20 rounded-xl text-sm font-bold text-[#2A321B] placeholder:text-[#4A5D23]/30 focus:outline-none focus:border-[#4A5D23] focus:bg-white transition-all shadow-xs"
+          class="w-full px-4 py-3 bg-[#F4F1E1]/40 border border-[#4A5D23]/20 rounded-xl text-sm font-bold text-[#2A321B] placeholder:text-[#4A5D23]/30 focus:outline-none focus:border-[#4A5D23] focus-visible:ring-2 focus-visible:ring-[#4A5D23] focus:bg-white transition-all shadow-xs"
         />
       </div>
     </div>
@@ -60,8 +63,10 @@ defineEmits<{
         v-model="formData.address"
         type="text"
         required
+        aria-required="true"
+        autocomplete="street-address"
         placeholder="Ej: Av. Larco 450, Dpto 302, Miraflores"
-        class="w-full px-4 py-3 bg-[#F4F1E1]/40 border border-[#4A5D23]/20 rounded-xl text-sm font-bold text-[#2A321B] placeholder:text-[#4A5D23]/30 focus:outline-none focus:border-[#4A5D23] focus:bg-white transition-all shadow-xs"
+        class="w-full px-4 py-3 bg-[#F4F1E1]/40 border border-[#4A5D23]/20 rounded-xl text-sm font-bold text-[#2A321B] placeholder:text-[#4A5D23]/30 focus:outline-none focus:border-[#4A5D23] focus-visible:ring-2 focus-visible:ring-[#4A5D23] focus:bg-white transition-all shadow-xs"
       />
     </div>
 
