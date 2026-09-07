@@ -1,4 +1,4 @@
-import { serverSupabaseClient } from '#supabase/server'
+import { serverSupabaseClient, serverSupabaseServiceRole } from '#supabase/server'
 import type { H3Event } from 'h3'
 import type { User } from '@supabase/supabase-js'
 import type { Database } from '~/types/database.types'
@@ -27,8 +27,14 @@ export async function requireAdmin(event: H3Event): Promise<AdminAuthContext> {
     }
   }
 
-  // 3. Consultar la tabla profiles en PostgreSQL con el cliente Supabase
-  const supabase = await serverSupabaseClient<Database>(event)
+  // 3. Consultar la tabla profiles en PostgreSQL
+  // Se prioriza Service Role para evitar dependencias circulares de RLS en profiles
+  let supabase
+  try {
+    supabase = serverSupabaseServiceRole<Database>(event)
+  } catch {
+    supabase = await serverSupabaseClient<Database>(event)
+  }
 
   const { data: profile, error } = await supabase
     .from('profiles')

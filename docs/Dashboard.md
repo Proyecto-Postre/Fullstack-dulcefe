@@ -7,7 +7,7 @@ ultima_actualizacion: 2026-09-06
 
 # 🍰 Dulce Fe — Centro de Comando
 
-> **Estado:** 🟢 Fase 1 (Seguridad & RLS) | 🟢 Fase 2 (Shell Visual & Layouts) | 🟢 Fase 3 (Dinero, S9 & Servicios) | 🟢 Fase 4 (Desacoplamiento Modular UI) | 🟢 Fase 5 (Disciplina & Gobernanza Enterprise) | 🟢 Fase 6 (Expansión de Producto, KDS Taller, Pagos Digitales & Webhooks)
+> **Estado:** 🟢 Fase 1 (Seguridad & RLS) | 🟢 Fase 2 (Shell Visual & Layouts) | 🟢 Fase 3 (Dinero, S9 & Servicios) | 🟢 Fase 4 (Desacoplamiento Modular UI) | 🟢 Fase 5 (Disciplina & Gobernanza Enterprise) | 🟢 Fase 6 (Expansión de Producto, KDS Taller, Pagos Digitales & Webhooks) | 🟢 Hardening & Estabilidad (Fix Modales, RLS Service Role & Sesiones Zombi)
 > **Vista Gráfica:** Presiona `Ctrl + G` en Obsidian para el mapa global.
 
 ---
@@ -118,6 +118,7 @@ flowchart TD
 * [[fase-6-subfase-6.5-snapshot-escandallo-informe]] — Snapshot Inmutable de Escandallo y Freeze de COGS (ADR-008 / D8).
 * [[fase-6-subfase-6.6-webhooks-n8n-informe]] — Ecosistema de Webhooks Asíncronos Firmados con HMAC-SHA256 para n8n (ADR-006 / D6).
 * [[fase-6-producto-kds-informe-ejecucion]] — **Informe Maestro Consolidado de Fase 6**.
+* [[hardening-estabilidad-informe-ejecucion]] — **Informe de Hardening & Estabilidad del Sistema (Fix Modales, RLS Service Role & Sesiones Zombi)**.
 
 ### 📁 05 - Operaciones & Resiliencia
 * [[playbook-operaciones]] — Variables por entorno, rotación de claves, runbook de restore V44, Vercel Git-Ops y telemetría de alertas.

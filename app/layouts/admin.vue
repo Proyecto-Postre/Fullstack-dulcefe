@@ -74,5 +74,8 @@ async function handleLogout() {
       <slot />
     </main>
 
+    <!-- Portal para Modales de Administración (Teleport Target) -->
+    <div id="admin-modal-portal" class="fixed inset-0 z-[100] pointer-events-none empty:hidden"></div>
+
   </div>
 </template>

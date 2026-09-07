@@ -1,11 +1,16 @@
-import { serverSupabaseClient } from '#supabase/server'
+import { serverSupabaseClient, serverSupabaseServiceRole } from '#supabase/server'
 import type { Database } from '~/types/database.types'
 
 export default defineEventHandler(async (event) => {
   // 🔒 Validación de privilegios de administrador (Fase 1 - PR-1b)
   await requireAdmin(event)
 
-  const supabase = await serverSupabaseClient<Database>(event)
+  let supabase
+  try {
+    supabase = serverSupabaseServiceRole<Database>(event)
+  } catch {
+    supabase = await serverSupabaseClient<Database>(event)
+  }
 
   const { data: rawMaterials, error } = await supabase
     .from('raw_materials')
