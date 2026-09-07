@@ -17,7 +17,7 @@ describe('Admin Hardening & Stability Regression Guards (PR Fix / Master Plan)',
       expect(appContent).toContain('id="admin-modal-portal"')
     })
 
-    it('Todos los modales de administración deben teleportarse a #admin-modal-portal', () => {
+    it('Todos los modales de administración deben estar en ClientOnly y teleportarse a #admin-modal-portal', () => {
       const adminModals = [
         'components/admin/MaterialModal.vue',
         'components/admin/ProductModal.vue',
@@ -33,22 +33,46 @@ describe('Admin Hardening & Stability Regression Guards (PR Fix / Master Plan)',
           content.includes('to="#admin-modal-portal"'),
           `El modal ${modalRelPath} debe usar <Teleport to="#admin-modal-portal">`
         ).toBe(true)
+        expect(
+          content.includes('<ClientOnly>'),
+          `El modal ${modalRelPath} debe estar envuelto en <ClientOnly> para evitar Hydration Mismatches`
+        ).toBe(true)
       }
+    })
+
+    it('public/placeholder-cake.png debe existir para prevenir errores 404 en vitrina y checkout', () => {
+      const publicDir = path.resolve(__dirname, '../../public')
+      const placeholderFile = path.join(publicDir, 'placeholder-cake.png')
+      expect(fs.existsSync(placeholderFile), 'placeholder-cake.png debe existir en public/').toBe(true)
     })
   })
 
   describe('2. Server Guards & RLS Deadlock Prevention', () => {
-    it('server/utils/require-admin.ts debe utilizar serverSupabaseServiceRole para verificar perfil sin ciclos RLS', () => {
+    it('server/utils/require-user.ts debe normalizar id y sub desde JwtPayload', () => {
+      const requireUserContent = fs.readFileSync(path.join(rootServerDir, 'utils/require-user.ts'), 'utf-8')
+      expect(requireUserContent).toContain('sub')
+      expect(requireUserContent).toContain('userId')
+    })
+
+    it('server/utils/require-admin.ts debe utilizar getAdminSupabaseClient y userId normalizado', () => {
       const requireAdminContent = fs.readFileSync(path.join(rootServerDir, 'utils/require-admin.ts'), 'utf-8')
-      expect(requireAdminContent).toContain('serverSupabaseServiceRole')
+      expect(requireAdminContent).toContain('getAdminSupabaseClient')
       expect(requireAdminContent).toContain('.from(\'profiles\')')
       expect(requireAdminContent).toContain('.select(\'*\')')
+      expect(requireAdminContent).toContain('userId')
       expect(requireAdminContent).toContain('profile.is_admin')
     })
 
-    it('server/api/raw-materials/index.get.ts debe consultar insumos con permisos de servicio para evitar listas vacías', () => {
+    it('server/utils/server-supabase.ts debe proveer getAdminSupabaseClient con fallback limpio ante ausencia de service key', () => {
+      const serverSupabaseContent = fs.readFileSync(path.join(rootServerDir, 'utils/server-supabase.ts'), 'utf-8')
+      expect(serverSupabaseContent).toContain('serverSupabaseServiceRole')
+      expect(serverSupabaseContent).toContain('serverSupabaseClient')
+      expect(serverSupabaseContent).toContain('getAdminSupabaseClient')
+    })
+
+    it('server/api/raw-materials/index.get.ts debe consultar insumos mediante getAdminSupabaseClient', () => {
       const rawMaterialsGet = fs.readFileSync(path.join(rootServerDir, 'api/raw-materials/index.get.ts'), 'utf-8')
-      expect(rawMaterialsGet).toContain('serverSupabaseServiceRole')
+      expect(rawMaterialsGet).toContain('getAdminSupabaseClient')
       expect(rawMaterialsGet).toContain('.from(\'raw_materials\')')
     })
   })

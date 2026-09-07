@@ -1,4 +1,3 @@
-import { serverSupabaseClient, serverSupabaseServiceRole } from '#supabase/server'
 import type { H3Event } from 'h3'
 import type { User } from '@supabase/supabase-js'
 import type { Database } from '~/types/database.types'
@@ -18,6 +17,19 @@ export interface AdminAuthContext {
 export async function requireAdmin(event: H3Event): Promise<AdminAuthContext> {
   // 1. Validar autenticación base (lanza 401 si no hay sesión)
   const user = await requireUser(event)
+  const userId = user.id || (user as unknown as { sub?: string }).sub || ''
+  if (!userId) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: 'Unauthorized',
+      data: {
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'Identificador de usuario no válido.'
+        }
+      }
+    })
+  }
 
   // 2. Reutilizar perfil si ya fue resuelto en este request
   if (event.context.profile) {
@@ -28,18 +40,13 @@ export async function requireAdmin(event: H3Event): Promise<AdminAuthContext> {
   }
 
   // 3. Consultar la tabla profiles en PostgreSQL
-  // Se prioriza Service Role para evitar dependencias circulares de RLS en profiles
-  let supabase
-  try {
-    supabase = serverSupabaseServiceRole<Database>(event)
-  } catch {
-    supabase = await serverSupabaseClient<Database>(event)
-  }
+  // Se prioriza Service Role si está configurado, con fallback limpio a cliente de sesión
+  const supabase = await getAdminSupabaseClient(event)
 
   const { data: profile, error } = await supabase
     .from('profiles')
     .select('*')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   // 4. Si el perfil no existe o ocurre un error al consultar

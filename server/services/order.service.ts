@@ -1,6 +1,7 @@
 import type { H3Event } from 'h3'
 import { createError, getRequestIP, setResponseHeader } from 'h3'
-import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
+import { serverSupabaseUser } from '#supabase/server'
+import { getAdminSupabaseClient } from '../utils/server-supabase'
 import crypto from 'node:crypto'
 import type { Database } from '~/types/database.types'
 import type { CheckoutBodyDTO } from '../utils/schemas/checkout'
@@ -54,7 +55,7 @@ export class OrderService {
     idempotencyKey: string,
     requestId: string
   ): Promise<CheckoutResult> {
-    const supabase = serverSupabaseServiceRole<Database>(event)
+    const supabase = await getAdminSupabaseClient(event)
 
     // 1. Detección de sesión (opcional para checkout público)
     let user = null
@@ -435,7 +436,7 @@ export class OrderService {
     options?: { cancellation_reason?: string; restore_stock?: boolean }
   ) {
     const adminUser = await requireAdmin(event)
-    const supabase = serverSupabaseServiceRole<Database>(event)
+    const supabase = await getAdminSupabaseClient(event)
 
     // 1. Consultar orden existente junto a sus ítems
     const { data: order, error: orderErr } = await supabase
@@ -730,7 +731,7 @@ export class OrderService {
     requestId: string
   ): Promise<CheckoutResult> {
     const adminUser = await requireAdmin(event)
-    const supabase = serverSupabaseServiceRole<Database>(event)
+    const supabase = await getAdminSupabaseClient(event)
 
     // 1. Validar profile_id si viene especificado
     if (dto.profile_id) {
@@ -1031,7 +1032,7 @@ export class OrderService {
     }
   }> {
     const adminCtx = await requireAdmin(event)
-    const supabase = serverSupabaseServiceRole<Database>(event)
+    const supabase = await getAdminSupabaseClient(event)
 
     const { data: order, error: findError } = await supabase
       .from('orders')
@@ -1126,7 +1127,7 @@ export class OrderService {
     orderId: string,
     _requestId: string
   ): Promise<OrderCostSnapshot | null> {
-    const supabase = serverSupabaseServiceRole<Database>(event)
+    const supabase = await getAdminSupabaseClient(event)
 
     const { data: order, error: orderErr } = await supabase
       .from('orders')

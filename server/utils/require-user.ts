@@ -13,9 +13,9 @@ export async function requireUser(event: H3Event): Promise<User> {
   }
 
   // 2. Resolver usuario desde la sesión de Supabase
-  const user = await serverSupabaseUser(event)
+  const rawUser = await serverSupabaseUser(event)
 
-  if (!user) {
+  if (!rawUser) {
     throw createError({
       statusCode: 401,
       statusMessage: 'Unauthorized',
@@ -28,9 +28,17 @@ export async function requireUser(event: H3Event): Promise<User> {
     })
   }
 
+  // Normalizar id vs sub para interoperabilidad con JwtPayload de @nuxtjs/supabase v2
+  const userId = (rawUser as { id?: string; sub?: string }).id || (rawUser as { sub?: string }).sub || ''
+  const user = {
+    ...rawUser,
+    id: userId,
+    sub: userId
+  } as unknown as User
+
   // 3. Cachear en el contexto del evento
   if (event.context) {
     event.context.user = user
   }
-  return user as unknown as User
+  return user
 }
