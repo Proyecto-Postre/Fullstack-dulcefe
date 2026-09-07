@@ -1,7 +1,5 @@
 import { defineEventHandler, readMultipartFormData, createError } from 'h3'
-import { serverSupabaseServiceRole } from '#supabase/server'
 import { randomUUID } from 'node:crypto'
-import type { Database } from '~/types/database.types'
 import { validateImageBuffer } from '../../utils/image-validator'
 import { getOrCreateRequestId } from '../../utils/request-id'
 
@@ -9,7 +7,7 @@ export default defineEventHandler(async (event) => {
   const requestId = getOrCreateRequestId(event)
 
   try {
-    const supabase = serverSupabaseServiceRole<Database>(event)
+    const supabase = await getAdminSupabaseClient(event)
     const formData = await readMultipartFormData(event)
 
     if (!formData || formData.length === 0) {

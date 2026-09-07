@@ -41,7 +41,7 @@ export default defineNuxtConfig({
     cookieOptions: {
       sameSite: 'lax',
     },
-    storage: 'cookies'
+    storage: 'localStorage'
   },
   
   supabase: {

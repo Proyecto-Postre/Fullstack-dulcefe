@@ -7,13 +7,14 @@ export default defineNuxtRouteMiddleware(async (to) => {
     const user = useSupabaseUser()
     const authStore = useAuthStore()
     
-    // Si no hay usuario en la sesión de Supabase, redirigir al login
+    // Si no hay usuario en la sesión de Supabase, purgar store y redirigir al login
     if (!user.value) {
+      authStore.clearSession()
       return navigateTo('/login')
     }
 
-    // Asegurarnos de que el perfil esté cargado en el store
-    if (!authStore.profile) {
+    // Asegurarnos de que el perfil esté cargado y pertenezca al usuario autenticado
+    if (!authStore.profile || authStore.profile.id !== user.value.id) {
       await authStore.fetchProfile()
     }
 
