@@ -119,6 +119,7 @@ flowchart TD
 * [[fase-6-subfase-6.6-webhooks-n8n-informe]] — Ecosistema de Webhooks Asíncronos Firmados con HMAC-SHA256 para n8n (ADR-006 / D6).
 * [[fase-6-producto-kds-informe-ejecucion]] — **Informe Maestro Consolidado de Fase 6**.
 * [[hardening-estabilidad-informe-ejecucion]] — **Informe de Hardening & Estabilidad del Sistema (Fix Modales, RLS Service Role & Sesiones Zombi)**.
+* [[elevacion-certificacion-10-10-informe-ejecucion]] — **Informe de Elevación Integral a Calificación 10/10 Enterprise y Cierre Arquitectónico**.
 
 ### 📁 05 - Operaciones & Resiliencia
 * [[playbook-operaciones]] — Variables por entorno, rotación de claves, runbook de restore V44, Vercel Git-Ops y telemetría de alertas.
