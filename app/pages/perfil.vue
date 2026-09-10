@@ -2,7 +2,6 @@
 import { ref, onMounted } from 'vue'
 import { navigateTo } from 'nuxt/app'
 import { useAuthStore, type UserAddress } from '~/stores/auth'
-import { useSupabaseClient } from '#imports'
 import { useCartStore } from '~/stores/cart'
 import type { ProfileAddressItem, ProfileTab } from '~/types/profile'
 import { useProfileOrders } from '~/composables/useProfileOrders'
@@ -16,7 +15,6 @@ import ProfileLoyaltyTab from '~/components/profile/ProfileLoyaltyTab.vue'
 import CustomerOrderDetailsModal from '~/components/CustomerOrderDetailsModal.vue'
 
 const authStore = useAuthStore()
-const supabase = useSupabaseClient()
 const cartStore = useCartStore()
 
 // Redirigir si no está logueado
@@ -109,7 +107,7 @@ const handleSaveAddress = async () => {
 }
 
 const logout = async () => {
-  await supabase.auth.signOut()
+  await authStore.signOut()
   cartStore.clearCart()
   navigateTo('/login')
 }

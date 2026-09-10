@@ -39,4 +39,29 @@ describe('Aritmética Monetaria Exacta (server/utils/money.ts)', () => {
     const formatted = formatPEN(4250)
     expect(formatted).toContain('42.50')
   })
+
+  it('lanza error con valores monetarios no numéricos o vacíos', () => {
+    expect(() => solesToCents('no-un-numero')).toThrow(/Monto inválido/)
+    expect(() => solesToCents(NaN)).toThrow(/Monto inválido/)
+  })
+
+  it('aplica redondeo half-up correctamente en montos con 3 decimales', () => {
+    expect(solesToCents('42.505')).toBe(4251)
+    expect(solesToCents('42.504')).toBe(4250)
+    expect(solesToCents('0.005')).toBe(1)
+    expect(solesToCents('0.004')).toBe(0)
+  })
+
+  it('maneja valores en cero y números grandes sin desbordamiento ni pérdida', () => {
+    expect(solesToCents('0.00')).toBe(0)
+    expect(centsToSoles(0)).toBe('0.00')
+    expect(calculateLoyaltyPoints(0)).toBe(0)
+
+    // Montos grandes (1 millón de soles = 100,000,000 céntimos)
+    const granMonto = '1000000.00'
+    const granCentimos = solesToCents(granMonto)
+    expect(granCentimos).toBe(100_000_000)
+    expect(centsToSoles(granCentimos)).toBe('1000000.00')
+    expect(calculateLoyaltyPoints(granCentimos)).toBe(1_000_000)
+  })
 })

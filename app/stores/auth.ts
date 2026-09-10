@@ -205,6 +205,18 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function signOut(): Promise<void> {
+    if (import.meta.client) {
+      try {
+        const supabase = useSupabaseClient<Database>()
+        await supabase.auth.signOut()
+      } catch (err) {
+        console.error('Error al cerrar sesión en Supabase:', err)
+      }
+    }
+    clearSession()
+  }
+
   return {
     user,
     profile,
@@ -214,6 +226,7 @@ export const useAuthStore = defineStore('auth', () => {
     isAdmin,
     setUser,
     clearSession,
+    signOut,
     initAuth,
     fetchProfile,
     fetchAddresses,

@@ -1,9 +1,9 @@
 # Plan maestro de arquitectura — Dulce Fe
 
 **Estado:** SSOT de arquitectura de código (sustituye cualquier borrador previo de este archivo y a `docs/architecture-refactor-addendum-10-10.md`).  
-**Ámbito:** refactor del monolito Nuxt 4 existente. No es un segundo plan de producto.  
-**Fuera de alcance:** KDS, n8n, BI, Custom Cake Builder, Redis, Meilisearch, microservicios, RBAC de cuatro roles.  
-**Operación:** los contratos para ejecutar sin inventar (secretos, DTOs, stock, corte S9, dinero exacto, idempotencia, inventario auditable, red, tipos, Storage, PII, tests, PRs y checklist) viven en §14–§20. No son un segundo plan; son el cierre de este.
+**Ámbito:** refactor integral y expansión de producción del monolito Nuxt 4 existente (Fases 0 a 6 + Hardening).  
+**Fuera de alcance de este plan (Roadmap futuro de producto):** Custom Cake Builder interactivo, Analítica BCG / BI avanzada, Meilisearch, Redis, microservicios y RBAC de cuatro roles granulares.  
+**Operación:** los contratos para ejecutar sin inventar (secretos, DTOs, stock, corte S9, dinero exacto, idempotencia, inventario auditable, red, tipos, Storage, PII, tests, PRs, checklist y reglas anti-regresión) viven en §14–§21. No son un segundo plan; son el cierre integral de este.
 
 Este documento es el único lugar donde se decide *cómo se organiza el código*. El producto vive en `docs/plan-maestro.md`. El diseño visual vive en `docs/design-system-tokens.md`. El costeo vive en `docs/formulas-costeo.md`. `docs/architecture-refactor-addendum-10-10.md` es historial; no se ejecuta.
 
@@ -26,11 +26,11 @@ Los `any`, estilos repetidos, componentes extensos y consultas directas son sín
 - Estructura por dominio adoptada módulo a módulo.
 - Contratos tipados y una sola fuente de verdad por decisión.
 
-**Qué no cierra**
+**Qué no cierra (Perteneciente al roadmap futuro de producto)**
 
-- Nuevas features de producto (KDS, n8n, pasteles a medida, analítica BCG).
+- Features futuras de producto (Custom Cake Builder 3D, Analítica BCG / BI avanzada en dashboard).
 - Rediseño visual completo; solo tokens y layouts mientras se toca cada pantalla.
-- Migración a otra base de datos o a un API Gateway separado.
+- Migración a otra base de datos o a un API Gateway separado (se preserva Monolito Modular Nitro).
 
 ---
 
@@ -1182,20 +1182,20 @@ Cada fila es un punto que hay que **ver y marcar**. Crítica = no se avanza de f
 | V44 | Backup / rollback | dump de Supabase restaurado en staging al menos una vez | sí |
 | V50 | Drift de tipos | editar `database.types.ts` a mano falla CI | sí |
 
-### 20.5 Deuda explícita (no se “olvida”: se nombra)
+### 20.5 Deuda explícita (Matriz Oficial de Cierre y Contratos Inmutables)
 
-| ID | Deuda | Por qué no entra ahora | Se reabre cuando |
-|---|---|---|---|
-| D1 | Revertir stock al cancelar después de `processing` | Requiere RPC de compensación y decisión de negocio (¿insumo ya usado?) | ADR + dueño de pastelería |
-| D2 | Tracking de invitado `/pedido/[token]` | plan-maestro lo pide; no bloquea dinero | Feature de producto |
-| D3 | Carrito en DB (`carts` / `cart_items`) | Pinia+cookie basta | ADR |
-| D4 | `products.stock` | No es el inventario real | ADR de catálogo |
-| D5 | Pagos Yape / Plin / tarjeta | plan-maestro; hoy el cobro es WhatsApp | Feature de producto |
-| D6 | n8n, KDS, RBAC 4 roles, pasteles a medida, Meilisearch | Fuera de alcance de este archivo | plan-maestro |
-| D7 | Reversión de puntos si se “des-completa” | completed es terminal | Nunca, salvo ADR que abra el estado |
-| D8 | Snapshot / versionado de receta al vender | El costeo histórico no es bloqueo de Fase 3; se usa la receta vigente en `processing` | ADR de recetas |
+| ID | Deuda / Característica | Estado Oficial | Resolución Arquitectónica |
+|---|---|:---:|---|
+| D1 | Revertir stock al cancelar después de `processing` | ✅ **RESUELTA** | Resuelta en Fase 6.2 mediante RPC `revert_order_inventory` y bandera `restore_stock` (reversión física vs merma contable). |
+| D2 | Tracking de invitado `/pedido/[token]` | ✅ **RESUELTA** | Resuelta en Fase 6.1 con tokens HMAC-SHA256, vista reactiva y anonimización según Ley 29733. |
+| D3 | Carrito en DB (`carts` / `cart_items`) | 🔒 **CONTRATO DEFINITIVO** | ADR-003 ratificado: Carrito en Pinia + Cookie para máxima velocidad, 0 I/O en DB y conversión sin fricción. |
+| D4 | `products.stock` de catálogo | 🔒 **CONTRATO DEFINITIVO** | ADR-004 ratificado: El catálogo refleja disponibilidad comercial; el stock real se deduce y descuenta de `raw_materials` en recetas. |
+| D5 | Pagos Yape / Plin / tarjeta | ✅ **RESUELTA** | Resuelta en Fase 6.4 con upload de vouchers con Magic Bytes (JPEG/PNG/WebP, max 2MB) y validación 1-clic. |
+| D6 | Ecosistema n8n y KDS Taller | ✅ **RESUELTA** | Resuelta en Fases 6.3 (KDS pantalla completa táctil) y 6.6 (Webhooks firmados HMAC-SHA256 para n8n). |
+| D7 | Reversión de puntos si se “des-completa” | 🔒 **CONTRATO DEFINITIVO** | ADR-007 ratificado: El estado `completed` es estrictamente terminal e inmutable por contrato. |
+| D8 | Snapshot / versionado de receta al vender | ✅ **RESUELTA** | Resuelta en Fase 6.5 mediante Freeze de COGS (`cost_snapshot JSONB`) al entrar a `processing`. |
 
-Nada de D1–D8 se implementa “de paso” en un PR de refactor. Si urge, se abre ADR y se trata como feature, con API + servicio. `cancellation_reversal` no existe en el DDL hasta D1.
+Todas las deudas de refactor y expansión operacional D1 a D8 han sido completamente saldadas o selladas bajo decisiones arquitectónicas definitivas (ADRs).
 
 ### 20.6 Fase 6 — Expansión de Producto, KDS de Taller, Trazabilidad Financiera & Ecosistema de Eventos
 
