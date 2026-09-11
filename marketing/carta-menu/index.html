@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dulce Fe | Carta de Productos y Bocaditos</title>
+  <link rel="stylesheet" href="css/menu.css">
+  <!-- Librería ligera para exportar PNG con nitidez 2x -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+
+  <!-- BARRA DE HERRAMIENTAS INTERACTIVA -->
+  <header class="toolbar">
+    <span class="brand-badge">Dulce Fe</span>
+
+    <!-- Pestañas de Láminas -->
+    <nav class="nav-tabs" aria-label="Selector de láminas">
+      <button class="active" data-target="all">Ver Todas</button>
+      <button data-target="1">1: Postres</button>
+      <button data-target="2">2: Bocaditos</button>
+      <button data-target="3">3: Bizcochos</button>
+      <button data-target="4">4: Tradicionales</button>
+    </nav>
+
+    <!-- Botones de Acción -->
+    <div class="actions-group">
+      <button class="btn-action btn-edit" id="btnToggleEdit" title="Edita textos o precios con un clic">
+        ✏️ Modo Edición Rápida
+      </button>
+      <button class="btn-action btn-png" id="btnExportPng" title="Descargar como imagen para WhatsApp">
+        📷 Descargar PNG
+      </button>
+      <button class="btn-action btn-pdf" id="btnExportPdf" title="Imprimir o guardar como PDF Vectorial">
+        📄 Imprimir / PDF
+      </button>
+    </div>
+  </header>
+
+  <!-- CONTENEDOR DE LÁMINAS DEL MENÚ -->
+  <main class="sheets-container" id="sheetsContainer">
+    <!-- Se inyectan las 4 láminas mediante JavaScript -->
+  </main>
+
+  <!-- SCRIPTS -->
+  <script src="js/menu-data.js"></script>
+  <script src="js/menu-icons.js"></script>
+  <script src="js/export.js"></script>
+</body>
+</html>
