@@ -1,5 +1,6 @@
 /**
- * DULCE FE - RENDERIZADO Y EXPORTACIÓN DEL MENÚ
+ * DULCE FE - RENDERIZADO DE ALTA FIDELIDAD
+ * 100% libre de emojis, con colores e ilustraciones idénticas a la imagen original.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -7,7 +8,6 @@ document.addEventListener('DOMContentLoaded', () => {
   setupToolbarEvents();
 });
 
-// Renderizado de las 4 láminas
 function renderAllSheets() {
   const container = document.getElementById('sheetsContainer');
   if (!container) return;
@@ -20,7 +20,7 @@ function renderAllSheets() {
   `;
 }
 
-// LÁMINA 1: Postres 1 (Galletería y Cuchareables)
+// LÁMINA 1: Menú de Postres (Galletería y Cuchareables)
 function renderSheet1() {
   const d = window.DULCE_FE_MENU.sheet1;
   const icons = window.DULCE_FE_ICONS;
@@ -45,57 +45,55 @@ function renderSheet1() {
 
   return `
     <div class="menu-sheet" id="sheet-1" data-sheet="1">
-      <!-- Capas de Fondo y Ondas Verdes Laterales -->
+      <!-- Ondas Verdes Laterales en SVG con Pespunte Exacto -->
       <div class="bg-wave-layer">
-        <!-- Onda lateral derecha con pespunte -->
-        <svg viewBox="0 0 680 1200" width="100%" height="100%" preserveAspectRatio="none">
-          <path d="M 450,0 C 490,180 580,260 520,440 C 480,560 610,720 640,880 C 660,980 620,1100 680,1200 L 680,0 Z" fill="#2E3E2B" />
-          <path d="M 465,0 C 505,180 595,260 535,440 C 495,560 625,720 655,880 C 675,980 635,1100 680,1190" fill="none" stroke="#F4F1E1" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.8" />
+        <svg viewBox="0 0 576 1024" width="100%" height="100%" preserveAspectRatio="none">
+          <!-- Onda derecha verde olivo -->
+          <path d="M 390,0 C 420,150 490,220 440,380 C 400,480 515,620 540,750 C 560,840 525,940 576,1024 L 576,0 Z" fill="#4D4D29" />
+          <path d="M 405,0 C 435,150 505,220 455,380 C 415,480 530,620 555,750 C 575,840 540,940 576,1015" fill="none" stroke="#E4D4BC" stroke-width="1.4" stroke-dasharray="3.5,3.5" opacity="0.85" />
           
           <!-- Onda inferior izquierda -->
-          <path d="M 0,980 C 40,1050 80,1100 150,1200 L 0,1200 Z" fill="#2E3E2B" />
-          <path d="M 0,965 C 45,1035 90,1085 165,1200" fill="none" stroke="#F4F1E1" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.8" />
+          <path d="M 0,830 C 35,890 70,940 130,1024 L 0,1024 Z" fill="#4D4D29" />
+          <path d="M 0,815 C 40,875 75,925 140,1024" fill="none" stroke="#E4D4BC" stroke-width="1.4" stroke-dasharray="3.5,3.5" opacity="0.85" />
         </svg>
       </div>
 
-      <!-- Hojas Botánicas en Esquinas -->
-      <img src="assets/botanical_olive_branch.jpg" class="botanical-leaves leaves-top-left" style="mix-blend-mode: multiply; transform: scaleX(-1) rotate(20deg);" alt="Olivo"/>
-      <img src="assets/botanical_olive_branch.jpg" class="botanical-leaves leaves-bottom-right" style="mix-blend-mode: multiply; transform: rotate(190deg);" alt="Olivo"/>
+      <!-- Ilustraciones Botánicas Originales Transparentes -->
+      <img src="assets/orig_leaves_top_left.png" class="botanical-leaves leaves-top-left" alt="Ramas de Olivo"/>
+      <img src="assets/orig_leaves_bottom_right.png" class="botanical-leaves leaves-bottom-right" alt="Ramas de Olivo"/>
 
       <!-- Sello Superior Derecho -->
       <div class="stamp-container stamp-pos-top-right">
         ${icons.stamp('light')}
       </div>
 
-      <!-- Texto Lateral -->
+      <!-- Frase Vertical Lateral -->
       <div class="side-quote side-quote-top-right light">
         ENDULZA<br>TU DÍA,<br>COMPARTE<br>FELICIDAD.
       </div>
 
       <!-- Contenido Central -->
       <div class="sheet-content">
-        <!-- Puntos ornamentales a la izquierda -->
         <div class="header-dots">
           <span></span><span></span><span></span><span></span><span></span>
         </div>
 
         <div class="menu-header">
-          <div style="margin-bottom: 4px;">${icons.topOrnament()}</div>
+          <div style="margin-bottom: 2px;">${icons.topOrnament()}</div>
           <h1 class="menu-title-main editable-field" contenteditable="false">${d.title}</h1>
           <span class="menu-subtitle-script editable-field" contenteditable="false">${d.subtitle}</span>
-          <div>
-            <div class="brush-banner">
-              <span class="brush-banner-text editable-field" contenteditable="false">${d.tagline}</span>
-            </div>
-          </div>
-          <div class="header-bottom-heart">${icons.sectionLeaves()}</div>
+          
+          <!-- Banner Pincelada Original -->
+          <div class="brush-banner-exact"></div>
+          
+          <div class="header-bottom-heart">${icons.heartSprigs()}</div>
         </div>
 
         <!-- SECCIÓN 1: GALLETERÍA -->
         <div class="menu-section">
           <div class="section-title-wrap">
             <h2 class="section-title editable-field" contenteditable="false">${d.sections[0].title}</h2>
-            <div style="margin-top: 4px;">${icons.sectionLeaves()}</div>
+            <div style="margin-top: 3px;">${icons.sectionLeaves()}</div>
           </div>
           <div class="product-items-list">
             ${galleteriaItems}
@@ -105,9 +103,9 @@ function renderSheet1() {
         <!-- SECCIÓN 2: POSTRES DE CUCHARA -->
         <div class="menu-section">
           <div class="section-title-wrap">
-            <div style="margin-bottom: 4px;">${icons.sectionLeaves()}</div>
+            <div style="margin-bottom: 3px;">${icons.heartSprigs()}</div>
             <h2 class="section-title editable-field" contenteditable="false">${d.sections[1].title}</h2>
-            <div style="margin-top: 4px;">${icons.sectionLeaves()}</div>
+            <div style="margin-top: 3px;">${icons.sectionLeaves()}</div>
             <div class="section-sub-brush editable-field" contenteditable="false">${d.sections[1].badge}</div>
           </div>
           <div class="product-items-list">
@@ -115,7 +113,7 @@ function renderSheet1() {
           </div>
         </div>
 
-        <!-- FOOTER -->
+        <!-- PIE DE PÁGINA -->
         <div class="menu-footer">
           <div>${icons.footerOrnament()}</div>
           <p class="footer-phrase editable-field" contenteditable="false">• ${d.footerText} •</p>
@@ -125,12 +123,66 @@ function renderSheet1() {
   `;
 }
 
-// LÁMINA 2: Bocaditos Dulces
+// LÁMINA 2: Dulce Fe Bocaditos
 function renderSheet2() {
   const d = window.DULCE_FE_MENU.sheet2;
   const icons = window.DULCE_FE_ICONS;
 
-  const categoriesHtml = d.categories.map(cat => {
+  const categories = [
+    {
+      title: "ROLES DE CANELA",
+      img: "assets/orig_rol_canela.png",
+      tables: {
+        regular: [
+          { label: "Paquete de 4 un", price: "S/ 24.00" },
+          { label: "Paquete de 6 un", price: "S/ 34.00" }
+        ],
+        mini: [
+          { label: "Paquete de 12 un", price: "S/ 24.00" },
+          { label: "Paquete de 25 un", price: "S/ 48.00" }
+        ]
+      }
+    },
+    {
+      title: "GALLETITAS",
+      img: "assets/orig_galletita.png",
+      note: "Sabores disponibles:<br>Chips de chocolate,<br>Limón y Avena.",
+      tables: {
+        regular: [
+          { label: "Paquete de 12 un", price: "S/ 15.00" }
+        ],
+        mini: [
+          { label: "Paquete de 25 un", price: "S/ 15.00" },
+          { label: "Paquete de 50 un", price: "S/ 28.00" }
+        ]
+      }
+    },
+    {
+      title: "MINI BROWNIES",
+      img: "assets/orig_brownie.png",
+      tables: {
+        regular: [
+          { label: "Paquete de 4 un", price: "S/ 22.00" },
+          { label: "Paquete de 9 un", price: "S/ 45.00" }
+        ],
+        mini: [
+          { label: "Paquete de 25 un", price: "S/ 25.00" },
+          { label: "Paquete de 50 un", price: "S/ 48.00" }
+        ]
+      }
+    },
+    {
+      title: "TARTALETITAS Y MINI PAI DE MANZANA",
+      img: "assets/orig_tartaleta.png",
+      singleTable: [
+        { label: "Paquete de 12 un", price: "S/ 25.00" },
+        { label: "Paquete de 25 un", price: "S/ 48.00" },
+        { label: "Paquete de 50 un", price: "S/ 92.00" }
+      ]
+    }
+  ];
+
+  const categoriesHtml = categories.map(cat => {
     if (cat.singleTable) {
       const rows = cat.singleTable.map(r => `
         <div class="tier-row">
@@ -145,7 +197,7 @@ function renderSheet2() {
           <div class="bocadito-header-badge editable-field" contenteditable="false">${cat.title}</div>
           <div class="bocadito-content-grid single-col">
             <div class="bocadito-left-art">
-              <div class="bocadito-large-icon">${icons.getIcon(cat.icon)}</div>
+              <img src="${cat.img}" class="bocadito-art-img" alt="${cat.title}"/>
             </div>
             <div>${rows}</div>
           </div>
@@ -174,7 +226,7 @@ function renderSheet2() {
         <div class="bocadito-header-badge editable-field" contenteditable="false">${cat.title}</div>
         <div class="bocadito-content-grid">
           <div class="bocadito-left-art">
-            <div class="bocadito-large-icon">${icons.getIcon(cat.icon)}</div>
+            <img src="${cat.img}" class="bocadito-art-img" alt="${cat.title}"/>
             ${cat.note ? `<span class="bocadito-subnote editable-field" contenteditable="false">${cat.note}</span>` : ''}
           </div>
           <div>
@@ -194,28 +246,29 @@ function renderSheet2() {
     <div class="menu-sheet" id="sheet-2" data-sheet="2">
       <!-- Ondas Verdes en Esquinas Opuestas -->
       <div class="bg-wave-layer">
-        <svg viewBox="0 0 680 1200" width="100%" height="100%" preserveAspectRatio="none">
-          <path d="M 0,0 L 220,0 C 180,100 120,180 0,240 Z" fill="#2E3E2B" />
-          <path d="M 0,0 L 235,0 C 195,100 135,180 0,255" fill="none" stroke="#F4F1E1" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.8" />
+        <svg viewBox="0 0 576 1024" width="100%" height="100%" preserveAspectRatio="none">
+          <path d="M 0,0 L 190,0 C 150,90 100,160 0,210 Z" fill="#4D4D29" />
+          <path d="M 0,0 L 205,0 C 165,90 115,160 0,225" fill="none" stroke="#E4D4BC" stroke-width="1.4" stroke-dasharray="3.5,3.5" opacity="0.85" />
           
-          <path d="M 680,820 C 560,940 500,1050 680,1200 Z" fill="#2E3E2B" />
-          <path d="M 680,800 C 545,935 485,1055 680,1200" fill="none" stroke="#F4F1E1" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.8" />
+          <path d="M 576,700 C 470,800 420,900 576,1024 Z" fill="#4D4D29" />
+          <path d="M 576,680 C 455,795 405,895 576,1024" fill="none" stroke="#E4D4BC" stroke-width="1.4" stroke-dasharray="3.5,3.5" opacity="0.85" />
         </svg>
       </div>
 
-      <img src="assets/botanical_olive_branch.jpg" class="botanical-leaves leaves-top-left" style="mix-blend-mode: multiply; transform: scaleX(-1);" alt="Olivo"/>
-      <img src="assets/botanical_olive_branch.jpg" class="botanical-leaves leaves-bottom-right" style="mix-blend-mode: multiply; transform: rotate(180deg);" alt="Olivo"/>
+      <img src="assets/orig_leaves_top_left.png" class="botanical-leaves leaves-top-left" style="transform: scale(0.9);" alt="Olivo"/>
+      <img src="assets/orig_leaves_bottom_right.png" class="botanical-leaves leaves-bottom-right" style="transform: scale(0.9) rotate(180deg);" alt="Olivo"/>
 
+      <!-- Sello Original sobre fondo Crema -->
       <div class="stamp-container stamp-pos-top-right">
-        ${icons.stamp('dark')}
+        <img src="assets/orig_stamp_light.png" style="width: 100%; height: 100%; object-fit: contain;" alt="Sello Dedicación"/>
       </div>
 
       <div class="sheet-content">
         <div class="menu-header">
-          <div style="margin-bottom: 4px;">${icons.topOrnament()}</div>
-          <h1 class="menu-title-main editable-field" contenteditable="false" style="font-size: 4rem;">${d.title}</h1>
-          <span class="menu-subtitle-script editable-field" contenteditable="false" style="font-size: 4.2rem;">${d.subtitle}</span>
-          <p style="font-family: var(--font-serif); font-style: italic; color: #556645; font-size: 0.95rem;">— ${d.tagline} —</p>
+          <div style="margin-bottom: 2px;">${icons.topOrnament()}</div>
+          <h1 class="menu-title-main editable-field" contenteditable="false" style="font-size: 3.8rem;">${d.title}</h1>
+          <span class="menu-subtitle-script editable-field" contenteditable="false" style="font-size: 4rem;">${d.subtitle}</span>
+          <p style="font-family: var(--font-serif); font-style: italic; color: #736429; font-size: 0.92rem;">— ${d.tagline} —</p>
         </div>
 
         <div>
@@ -231,7 +284,7 @@ function renderSheet2() {
   `;
 }
 
-// LÁMINA 3: Postres 2 (Bizcochos y Tartas)
+// LÁMINA 3: Menú de Postres 2 (Bizcochos y Tartas)
 function renderSheet3() {
   const d = window.DULCE_FE_MENU.sheet3;
   const icons = window.DULCE_FE_ICONS;
@@ -258,17 +311,17 @@ function renderSheet3() {
     <div class="menu-sheet" id="sheet-3" data-sheet="3">
       <!-- Onda lateral izquierda -->
       <div class="bg-wave-layer">
-        <svg viewBox="0 0 680 1200" width="100%" height="100%" preserveAspectRatio="none">
-          <path d="M 0,0 L 230,0 C 190,180 100,260 160,440 C 200,560 70,720 40,880 C 20,980 60,1100 0,1200 Z" fill="#2E3E2B" />
-          <path d="M 0,0 L 245,0 C 205,180 115,260 175,440 C 215,560 85,720 55,880 C 35,980 75,1100 0,1190" fill="none" stroke="#F4F1E1" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.8" />
+        <svg viewBox="0 0 576 1024" width="100%" height="100%" preserveAspectRatio="none">
+          <path d="M 0,0 L 200,0 C 160,150 90,220 140,380 C 180,480 60,620 35,750 C 15,840 50,940 0,1024 Z" fill="#4D4D29" />
+          <path d="M 0,0 L 215,0 C 175,150 105,220 155,380 C 195,480 75,620 50,750 C 30,840 65,940 0,1015" fill="none" stroke="#E4D4BC" stroke-width="1.4" stroke-dasharray="3.5,3.5" opacity="0.85" />
           
-          <path d="M 680,980 C 640,1050 600,1100 530,1200 L 680,1200 Z" fill="#2E3E2B" />
-          <path d="M 680,965 C 635,1035 590,1085 515,1200" fill="none" stroke="#F4F1E1" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.8" />
+          <path d="M 576,830 C 540,890 505,940 445,1024 L 576,1024 Z" fill="#4D4D29" />
+          <path d="M 576,815 C 535,875 500,925 435,1024" fill="none" stroke="#E4D4BC" stroke-width="1.4" stroke-dasharray="3.5,3.5" opacity="0.85" />
         </svg>
       </div>
 
-      <img src="assets/botanical_olive_branch.jpg" class="botanical-leaves leaves-top-right" style="mix-blend-mode: multiply;" alt="Olivo"/>
-      <img src="assets/botanical_olive_branch.jpg" class="botanical-leaves leaves-bottom-left" style="mix-blend-mode: multiply; transform: scaleX(-1) rotate(190deg);" alt="Olivo"/>
+      <img src="assets/orig_leaves_top_left.png" class="botanical-leaves leaves-top-right" style="transform: scaleX(-1);" alt="Olivo"/>
+      <img src="assets/orig_leaves_bottom_right.png" class="botanical-leaves leaves-bottom-left" alt="Olivo"/>
 
       <div class="stamp-container stamp-pos-top-left">
         ${icons.stamp('light')}
@@ -279,35 +332,31 @@ function renderSheet3() {
       </div>
 
       <div class="sheet-content">
-        <div class="menu-header" style="margin-left: 60px;">
-          <div style="margin-bottom: 4px;">${icons.topOrnament()}</div>
+        <div class="menu-header" style="margin-left: 50px;">
+          <div style="margin-bottom: 2px;">${icons.topOrnament()}</div>
           <h1 class="menu-title-main editable-field" contenteditable="false">${d.title}</h1>
           <span class="menu-subtitle-script editable-field" contenteditable="false">${d.subtitle}</span>
-          <div>
-            <div class="brush-banner">
-              <span class="brush-banner-text editable-field" contenteditable="false">${d.tagline}</span>
-            </div>
-          </div>
-          <div class="header-bottom-heart">${icons.sectionLeaves()}</div>
+          <div class="brush-banner-exact"></div>
+          <div class="header-bottom-heart">${icons.heartSprigs()}</div>
         </div>
 
-        <!-- SECCIÓN 1: BIZCOCHOS Y HORNEADOS -->
+        <!-- SECCIÓN 1: BIZCOCHOS -->
         <div class="menu-section">
           <div class="section-title-wrap">
             <h2 class="section-title editable-field" contenteditable="false">${d.sections[0].title}</h2>
-            <div style="margin-top: 4px;">${icons.sectionLeaves()}</div>
+            <div style="margin-top: 3px;">${icons.sectionLeaves()}</div>
           </div>
           <div class="product-items-list">
             ${bizcochosItems}
           </div>
         </div>
 
-        <!-- SECCIÓN 2: MASAS QUEBRADAS / TARTAS -->
+        <!-- SECCIÓN 2: MASAS QUEBRADAS -->
         <div class="menu-section">
           <div class="section-title-wrap">
-            <div style="margin-bottom: 4px;">${icons.sectionLeaves()}</div>
+            <div style="margin-bottom: 3px;">${icons.heartSprigs()}</div>
             <h2 class="section-title editable-field" contenteditable="false">${d.sections[1].title}</h2>
-            <div style="margin-top: 4px;">${icons.sectionLeaves()}</div>
+            <div style="margin-top: 3px;">${icons.sectionLeaves()}</div>
           </div>
           <div class="product-items-list">
             ${tartasItems}
@@ -328,100 +377,109 @@ function renderSheet4() {
   const d = window.DULCE_FE_MENU.sheet4;
   const icons = window.DULCE_FE_ICONS;
 
-  const bocaditosCards = d.tradicionales.items.map(item => `
+  const tradicionalItems = [
+    { name: "MIL HOJITAS", img: "assets/orig_milhojas.png", tiers: [{ l: "Paquete de 25 un", p: "S/ 28.00" }, { l: "Paquete de 50 un", p: "S/ 52.00" }] },
+    { name: "OREJITAS", img: "assets/orig_orejitas.png", tiers: [{ l: "Paquete de 25 un", p: "S/ 22.00" }, { l: "Paquete de 50 un", p: "S/ 40.00" }] },
+    { name: "EMPANADITAS MIXTAS", img: "assets/orig_empanadita.png", tiers: [{ l: "Paquete de 25 un", p: "S/ 28.00" }, { l: "Paquete de 50 un", p: "S/ 52.00" }] },
+    { name: "EMPANADITAS DE CARNE Y POLLO", img: "assets/orig_empanadita_carne.png", tiers: [{ l: "Paquete de 25 un", p: "S/ 32.00" }, { l: "Paquete de 50 un", p: "S/ 60.00" }] },
+    { name: "CANASTILLAS DE ACEITUNAS", img: "assets/orig_canastilla.png", tiers: [{ l: "Paquete de 25 un", p: "S/ 28.00" }, { l: "Paquete de 50 un", p: "S/ 52.00" }] },
+    { name: "ENROLLADITOS DE HOT DOG", img: "assets/orig_enrolladito.png", tiers: [{ l: "Paquete de 25 un", p: "S/ 28.00" }, { l: "Paquete de 50 un", p: "S/ 52.00" }] }
+  ];
+
+  const bocaditosCards = tradicionalItems.map(item => `
     <div class="tradicional-item-card">
-      <div class="product-icon">${icons.getIcon(item.icon)}</div>
+      <img src="${item.img}" class="tradicional-item-img" alt="${item.name}"/>
       <div class="tradicional-info">
         <div class="tradicional-title editable-field" contenteditable="false">${item.name}</div>
         ${item.tiers.map(t => `
           <div class="tier-row">
-            <span class="tier-label editable-field" contenteditable="false">${t.label}</span>
+            <span class="tier-label editable-field" contenteditable="false">${icons.boxPackage()} ${t.l}</span>
             <span class="tier-dots"></span>
-            <span class="tier-price editable-field" contenteditable="false">${t.price}</span>
+            <span class="tier-price editable-field" contenteditable="false">${t.p}</span>
           </div>
         `).join('')}
       </div>
     </div>
   `).join('');
 
-  const combo = d.tradicionales.combo;
-
   return `
     <div class="menu-sheet" id="sheet-4" data-sheet="4">
       <div class="bg-wave-layer">
-        <svg viewBox="0 0 680 1200" width="100%" height="100%" preserveAspectRatio="none">
-          <path d="M 680,880 C 560,980 500,1070 680,1200 Z" fill="#2E3E2B" />
-          <path d="M 680,860 C 545,965 485,1065 680,1200" fill="none" stroke="#F4F1E1" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.8" />
+        <svg viewBox="0 0 576 1024" width="100%" height="100%" preserveAspectRatio="none">
+          <path d="M 576,750 C 470,850 420,930 576,1024 Z" fill="#4D4D29" />
+          <path d="M 576,730 C 455,835 405,925 576,1024" fill="none" stroke="#E4D4BC" stroke-width="1.4" stroke-dasharray="3.5,3.5" opacity="0.85" />
         </svg>
       </div>
 
-      <img src="assets/botanical_olive_branch.jpg" class="botanical-leaves leaves-top-left" style="mix-blend-mode: multiply; transform: scaleX(-1);" alt="Olivo"/>
-      <img src="assets/botanical_olive_branch.jpg" class="botanical-leaves leaves-bottom-right" style="mix-blend-mode: multiply; transform: rotate(180deg);" alt="Olivo"/>
+      <img src="assets/orig_leaves_top_left.png" class="botanical-leaves leaves-top-left" style="transform: scale(0.85);" alt="Olivo"/>
+      <img src="assets/orig_leaves_bottom_right.png" class="botanical-leaves leaves-bottom-right" style="transform: scale(0.85) rotate(180deg);" alt="Olivo"/>
 
       <div class="stamp-container stamp-pos-top-right">
-        ${icons.stamp('dark')}
+        <img src="assets/orig_stamp_light.png" style="width: 100%; height: 100%; object-fit: contain;" alt="Sello"/>
       </div>
 
       <div class="sheet-content">
         <div class="menu-header">
-          <div style="margin-bottom: 4px;">${icons.topOrnament()}</div>
-          <h1 class="menu-title-main editable-field" contenteditable="false" style="font-size: 3.8rem;">${d.title}</h1>
-          <span class="menu-subtitle-script editable-field" contenteditable="false" style="font-size: 4rem;">${d.subtitle}</span>
-          <p style="font-family: var(--font-serif); font-style: italic; color: #556645; font-size: 0.95rem;">— ${d.tagline} —</p>
+          <div style="margin-bottom: 2px;">${icons.topOrnament()}</div>
+          <h1 class="menu-title-main editable-field" contenteditable="false" style="font-size: 3.6rem;">${d.title}</h1>
+          <span class="menu-subtitle-script editable-field" contenteditable="false" style="font-size: 3.8rem;">${d.subtitle}</span>
+          <p style="font-family: var(--font-serif); font-style: italic; color: #736429; font-size: 0.9rem;">— ${d.tagline} —</p>
         </div>
 
-        <!-- BOCADITOS TRADICIONALES -->
         <div>
-          <div style="text-align: center; margin-bottom: 12px;">
+          <div style="text-align: center; margin-bottom: 10px;">
             <div class="bocadito-header-badge editable-field" contenteditable="false">${d.tradicionales.title}</div>
           </div>
           <div class="tradicionales-grid">
             ${bocaditosCards}
-            <!-- Recuadro Combo Surtido -->
+
+            <!-- Recuadro Combo Surtido con ilustraciones originales -->
             <div class="combo-surtido-box">
-              <div class="combo-title editable-field" contenteditable="false">🌿 ${combo.title} 🌿</div>
-              <div class="combo-subtitle editable-field" contenteditable="false">${combo.subtitle}</div>
+              <div class="combo-title editable-field" contenteditable="false">
+                ${icons.sectionLeaves()} COMBO SURTIDO ${icons.sectionLeaves()}
+              </div>
+              <div class="combo-subtitle editable-field" contenteditable="false">Combina hasta 4 variedades</div>
               <div class="combo-icons-strip">
-                <div class="combo-icon-unit">${icons.getIcon('canastilla')}<br>Canastillas</div>
+                <div class="combo-icon-unit"><img src="assets/orig_canastilla.png"/><br>Canastillas</div>
                 <span>+</span>
-                <div class="combo-icon-unit">${icons.getIcon('enrolladito')}<br>Enrolladitos</div>
+                <div class="combo-icon-unit"><img src="assets/orig_enrolladito.png"/><br>Enrolladitos</div>
                 <span>+</span>
-                <div class="combo-icon-unit">${icons.getIcon('milhojas')}<br>Mil Hojitas</div>
+                <div class="combo-icon-unit"><img src="assets/orig_milhojas.png"/><br>Mil Hojitas</div>
                 <span>+</span>
-                <div class="combo-icon-unit">${icons.getIcon('empanada')}<br>Empanaditas</div>
+                <div class="combo-icon-unit"><img src="assets/orig_empanadita.png"/><br>Empanaditas</div>
               </div>
               <div class="tier-row" style="max-width: 320px; margin: 0 auto;">
-                <span class="tier-label editable-field" contenteditable="false">${combo.badge}</span>
+                <span class="tier-label editable-field" contenteditable="false">${icons.boxPackage()} Paquete de 50 un (hasta 4 variedades)</span>
                 <span class="tier-dots"></span>
-                <span class="tier-price editable-field" contenteditable="false">${combo.price}</span>
+                <span class="tier-price editable-field" contenteditable="false">S/ 55.00</span>
               </div>
             </div>
           </div>
         </div>
 
         <!-- ALFAJORCITOS & TRIPLES -->
-        <div style="margin-top: 10px;">
-          <div style="text-align: center; margin-bottom: 8px;">
+        <div style="margin-top: 8px;">
+          <div style="text-align: center; margin-bottom: 6px;">
             <div class="bocadito-header-badge editable-field" contenteditable="false">${d.alfajorcitos.title}</div>
           </div>
           <div class="tradicionales-grid">
             <!-- Alfajores Regulares -->
             <div class="tradicional-item-card">
-              <div class="product-icon">${icons.getIcon('alfajor-reg')}</div>
+              <img src="assets/orig_alfajor_reg.png" class="tradicional-item-img" alt="Alfajorcitos"/>
               <div class="tradicional-info">
                 <div class="tradicional-title editable-field" contenteditable="false">ALFAJORCITOS REGULARES</div>
                 <div class="tier-row">
-                  <span class="tier-label editable-field" contenteditable="false">Paquete de 12 un</span>
+                  <span class="tier-label editable-field" contenteditable="false">${icons.boxPackage()} Paquete de 12 un</span>
                   <span class="tier-dots"></span>
                   <span class="tier-price editable-field" contenteditable="false">S/ 15.00</span>
                 </div>
                 <div class="tier-row">
-                  <span class="tier-label editable-field" contenteditable="false">Minis 25 un</span>
+                  <span class="tier-label editable-field" contenteditable="false">${icons.boxPackage()} Minis 25 un</span>
                   <span class="tier-dots"></span>
                   <span class="tier-price editable-field" contenteditable="false">S/ 20.00</span>
                 </div>
                 <div class="tier-row">
-                  <span class="tier-label editable-field" contenteditable="false">Minis 50 un</span>
+                  <span class="tier-label editable-field" contenteditable="false">${icons.boxPackage()} Minis 50 un</span>
                   <span class="tier-dots"></span>
                   <span class="tier-price editable-field" contenteditable="false">S/ 38.00</span>
                 </div>
@@ -430,21 +488,21 @@ function renderSheet4() {
 
             <!-- Alfajores Chips -->
             <div class="tradicional-item-card">
-              <div class="product-icon">${icons.getIcon('alfajor-chips')}</div>
+              <img src="assets/orig_alfajor_chips.png" class="tradicional-item-img" alt="Alfajorcitos Chips"/>
               <div class="tradicional-info">
                 <div class="tradicional-title editable-field" contenteditable="false">ALFAJORCITOS CHIPS</div>
                 <div class="tier-row">
-                  <span class="tier-label editable-field" contenteditable="false">Paquete de 12 un</span>
+                  <span class="tier-label editable-field" contenteditable="false">${icons.boxPackage()} Paquete de 12 un</span>
                   <span class="tier-dots"></span>
                   <span class="tier-price editable-field" contenteditable="false">S/ 18.00</span>
                 </div>
                 <div class="tier-row">
-                  <span class="tier-label editable-field" contenteditable="false">Minis 25 un</span>
+                  <span class="tier-label editable-field" contenteditable="false">${icons.boxPackage()} Minis 25 un</span>
                   <span class="tier-dots"></span>
                   <span class="tier-price editable-field" contenteditable="false">S/ 23.00</span>
                 </div>
                 <div class="tier-row">
-                  <span class="tier-label editable-field" contenteditable="false">Minis 50 un</span>
+                  <span class="tier-label editable-field" contenteditable="false">${icons.boxPackage()} Minis 50 un</span>
                   <span class="tier-dots"></span>
                   <span class="tier-price editable-field" contenteditable="false">S/ 42.00</span>
                 </div>
@@ -462,7 +520,6 @@ function renderSheet4() {
   `;
 }
 
-// Configuración de la barra de herramientas
 function setupToolbarEvents() {
   const tabButtons = document.querySelectorAll('.nav-tabs button');
   const sheets = document.querySelectorAll('.menu-sheet');
@@ -483,21 +540,16 @@ function setupToolbarEvents() {
     });
   });
 
-  // Botón Exportar PDF
   const btnPdf = document.getElementById('btnExportPdf');
   if (btnPdf) {
-    btnPdf.addEventListener('click', () => {
-      window.print();
-    });
+    btnPdf.addEventListener('click', () => window.print());
   }
 
-  // Botón Exportar PNG
   const btnPng = document.getElementById('btnExportPng');
   if (btnPng) {
     btnPng.addEventListener('click', exportActiveSheetAsPng);
   }
 
-  // Botón Modo Editor
   const btnEdit = document.getElementById('btnToggleEdit');
   let isEditing = false;
   if (btnEdit) {
@@ -506,36 +558,34 @@ function setupToolbarEvents() {
       const editableFields = document.querySelectorAll('.editable-field');
       editableFields.forEach(el => {
         el.contentEditable = isEditing ? "true" : "false";
-        el.style.outline = isEditing ? "1px dashed #C5A059" : "none";
+        el.style.outline = isEditing ? "1px dashed #736429" : "none";
         el.style.cursor = isEditing ? "text" : "default";
       });
 
       btnEdit.innerText = isEditing ? '💾 Finalizar Edición' : '✏️ Modo Edición Rápida';
-      btnEdit.style.background = isEditing ? '#C5A059' : '#FFFFFF';
-      btnEdit.style.color = isEditing ? '#FFFFFF' : '#2D3E2B';
+      btnEdit.style.background = isEditing ? '#736429' : '#FFFFFF';
+      btnEdit.style.color = isEditing ? '#FFFFFF' : '#353916';
     });
   }
 }
 
-// Exportación a imagen PNG usando html2canvas
 function exportActiveSheetAsPng() {
   const visibleSheets = Array.from(document.querySelectorAll('.menu-sheet')).filter(s => s.style.display !== 'none');
   const sheetToExport = visibleSheets[0] || document.querySelector('.menu-sheet');
-
   if (!sheetToExport) return;
 
   const originalTransform = sheetToExport.style.transform;
   sheetToExport.style.transform = 'none';
 
   if (typeof html2canvas === 'undefined') {
-    alert('Cargando librería de captura, por favor intente en 2 segundos...');
+    alert('Cargando librería de exportación...');
     return;
   }
 
   html2canvas(sheetToExport, {
-    scale: 2, // 2x para nitidez Retina / WhatsApp
+    scale: 2,
     useCORS: true,
-    backgroundColor: '#FAF6ED'
+    backgroundColor: '#F1E2CD'
   }).then(canvas => {
     sheetToExport.style.transform = originalTransform;
     const link = document.createElement('a');
@@ -544,7 +594,7 @@ function exportActiveSheetAsPng() {
     link.href = canvas.toDataURL('image/png');
     link.click();
   }).catch(err => {
-    console.error('Error al exportar imagen:', err);
-    alert('Hubo un inconveniente al exportar la imagen. Puedes usar la opción de PDF.');
+    console.error('Error:', err);
+    alert('Error al exportar PNG. Puedes usar Imprimir / PDF.');
   });
 }

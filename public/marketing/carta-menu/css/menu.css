@@ -1,18 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;500;600;700&display=swap');
 
 /* ==========================================================================
-   RESET & VARIABLES GLOBALES
+   PALETA EXACTA EXTRAÍDA PÍXEL A PÍXEL DE LAS IMÁGENES ORIGINALES
    ========================================================================== */
 :root {
-  --color-primary: #2D3E2B;       /* Verde Olivo Profundo Dulce Fe */
-  --color-primary-light: #3D5039; /* Verde Salvia Oscuro */
-  --color-accent: #C5A059;        /* Dorado / Miel Pastelero */
-  --color-cream-bg: #F9F5EC;      /* Crema Pergamino Cálido */
-  --color-cream-card: #FAF6EE;    /* Crema Suave */
-  --color-text-dark: #222B20;     /* Texto Principal Oscuro */
-  --color-text-muted: #5A6956;    /* Texto Secundario / Detalles */
-  --color-dots: #A4B29E;          /* Puntos Suspensivos */
-  --color-badge: #2D3E2B;         /* Fondo Badges de Precios */
+  --color-primary: #353916;       /* Verde Olivo Profundo (Título MENÚ y Dulce Fe) */
+  --color-primary-wave: #4D4D29;  /* Verde Onda Lateral Orgánica */
+  --color-accent-script: #736429; /* Dorado/Oliva Cálido ('de Postres' y 'Bocaditos') */
+  --color-cream-bg: #F1E2CD;      /* Fondo Crema Pergamino Real */
+  --color-text-dark: #2B3014;     /* Texto Principal de Productos */
+  --color-text-muted: #6B6846;    /* Texto Secundario y Notas */
+  --color-dots: #B0A382;          /* Puntos Suspensivos */
+  --color-badge: #333415;         /* Badges de Precios Verde Oscuro */
   --color-badge-text: #FFFFFF;    /* Texto de Badges */
   
   --font-serif: 'Playfair Display', Georgia, serif;
@@ -28,7 +27,7 @@
 
 body {
   font-family: var(--font-sans);
-  background-color: #E7E3D8;
+  background-color: #D3C7B3;
   color: var(--color-text-dark);
   min-height: 100vh;
   display: flex;
@@ -38,22 +37,22 @@ body {
 }
 
 /* ==========================================================================
-   BARRA DE HERRAMIENTAS SUPERIOR (UI DE CONTROL)
+   BARRA DE CONTROL SUPERIOR
    ========================================================================== */
 .toolbar {
   position: sticky;
   top: 12px;
   z-index: 100;
-  background: rgba(255, 255, 255, 0.94);
+  background: rgba(241, 226, 205, 0.95);
   backdrop-filter: blur(12px);
-  padding: 10px 20px;
+  padding: 10px 22px;
   border-radius: 40px;
-  box-shadow: 0 8px 30px rgba(45, 62, 43, 0.15);
+  box-shadow: 0 8px 30px rgba(53, 57, 22, 0.2);
   display: flex;
   gap: 14px;
   align-items: center;
   margin-bottom: 24px;
-  border: 1px solid rgba(45, 62, 43, 0.1);
+  border: 1px solid rgba(115, 100, 41, 0.25);
   flex-wrap: wrap;
   justify-content: center;
 }
@@ -62,7 +61,7 @@ body {
   font-family: var(--font-serif);
   font-weight: 700;
   color: var(--color-primary);
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   letter-spacing: 0.5px;
   margin-right: 8px;
 }
@@ -70,7 +69,7 @@ body {
 .nav-tabs {
   display: flex;
   gap: 6px;
-  background: #EFEBE0;
+  background: #E3D2BA;
   padding: 4px;
   border-radius: 30px;
 }
@@ -82,7 +81,7 @@ body {
   font-family: var(--font-sans);
   font-size: 0.84rem;
   font-weight: 600;
-  color: var(--color-text-muted);
+  color: var(--color-primary);
   cursor: pointer;
   border-radius: 20px;
   transition: all 0.2s ease;
@@ -91,7 +90,7 @@ body {
 .nav-tabs button.active {
   background: var(--color-primary);
   color: #fff;
-  box-shadow: 0 2px 8px rgba(45, 62, 43, 0.25);
+  box-shadow: 0 2px 8px rgba(53, 57, 22, 0.35);
 }
 
 .actions-group {
@@ -120,31 +119,31 @@ body {
 .btn-pdf {
   background: var(--color-primary);
   color: #fff;
-  box-shadow: 0 4px 12px rgba(45, 62, 43, 0.25);
+  box-shadow: 0 4px 12px rgba(53, 57, 22, 0.3);
 }
 
 .btn-pdf:hover {
-  background: #233122;
+  background: #25280E;
 }
 
 .btn-png {
-  background: #C5A059;
+  background: var(--color-accent-script);
   color: #fff;
-  box-shadow: 0 4px 12px rgba(197, 160, 89, 0.25);
+  box-shadow: 0 4px 12px rgba(115, 100, 41, 0.3);
 }
 
 .btn-png:hover {
-  background: #B38E46;
+  background: #605321;
 }
 
 .btn-edit {
   background: #FFFFFF;
   color: var(--color-primary);
-  border: 1px solid rgba(45, 62, 43, 0.2);
+  border: 1px solid rgba(53, 57, 22, 0.25);
 }
 
 /* ==========================================================================
-   CONTENEDOR DE LA LÁMINA (PROPORCIÓN EXACTA FLYER VERTICAL / A4)
+   LÁMINA DEL MENÚ (DIMENSIONES EXACTAS 9:16 / FLYER)
    ========================================================================== */
 .sheets-container {
   display: flex;
@@ -155,24 +154,24 @@ body {
 }
 
 .menu-sheet {
-  width: 680px;
-  height: 1200px;
+  width: 576px;
+  height: 1024px;
   position: relative;
   background-color: var(--color-cream-bg);
-  background-image: 
-    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.5) 0%, rgba(240, 233, 218, 0.6) 100%),
-    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.035'/%3E%3C/svg%3E");
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15), 0 2px 10px rgba(0, 0, 0, 0.08);
+  background-image: url('../assets/orig_parchment_exact.jpg');
+  background-repeat: repeat;
+  background-size: 250px 250px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.22), 0 2px 12px rgba(0, 0, 0, 0.12);
   border-radius: 4px;
   overflow: hidden;
-  padding: 40px 50px;
+  padding: 30px 38px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   transform-origin: top center;
 }
 
-/* Decoraciones y Ondas SVG de Fondo */
+/* Ondas Verdes Laterales en SVG con Pespunte Exacto */
 .bg-wave-layer {
   position: absolute;
   top: 0;
@@ -183,91 +182,73 @@ body {
   z-index: 1;
 }
 
+/* Ilustraciones Botánicas Originales Transparentes */
 .botanical-leaves {
   position: absolute;
   pointer-events: none;
   z-index: 2;
-  filter: drop-shadow(0 2px 6px rgba(45, 62, 43, 0.12));
 }
 
 .leaves-top-left {
   top: 0;
   left: 0;
-  width: 180px;
-  height: 220px;
+  width: 155px;
+  height: 255px;
+  object-fit: contain;
 }
 
 .leaves-bottom-right {
   bottom: 0;
   right: 0;
-  width: 190px;
-  height: 230px;
+  width: 106px;
+  height: 380px;
+  object-fit: contain;
 }
 
-.leaves-top-right {
-  top: 0;
-  right: 0;
-  width: 180px;
-  height: 220px;
-}
-
-.leaves-bottom-left {
-  bottom: 0;
-  left: 0;
-  width: 180px;
-  height: 220px;
-}
-
-/* Sello "Hechos con Dedicación" */
+/* Sellos Circulares */
 .stamp-container {
   position: absolute;
-  width: 110px;
-  height: 110px;
+  width: 95px;
+  height: 95px;
   z-index: 5;
 }
 
 .stamp-pos-top-right {
   top: 45px;
-  right: 40px;
+  right: 28px;
 }
 
 .stamp-pos-top-left {
   top: 45px;
-  left: 40px;
+  left: 28px;
 }
 
-/* Texto vertical de inspiración al lado de la onda */
 .side-quote {
   position: absolute;
   font-family: var(--font-sans);
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   letter-spacing: 2px;
   line-height: 1.6;
   text-transform: uppercase;
   z-index: 5;
   text-align: center;
-  max-width: 120px;
+  max-width: 100px;
 }
 
 .side-quote.light {
-  color: rgba(255, 255, 255, 0.88);
-}
-
-.side-quote.dark {
-  color: var(--color-primary);
+  color: #EBDDC8;
 }
 
 .side-quote-top-right {
-  top: 175px;
-  right: 35px;
+  top: 155px;
+  right: 25px;
 }
 
 .side-quote-top-left {
-  top: 175px;
-  left: 35px;
+  top: 155px;
+  left: 25px;
 }
 
-/* Contenido Principal de la Lámina */
 .sheet-content {
   position: relative;
   z-index: 10;
@@ -282,14 +263,14 @@ body {
    ========================================================================== */
 .menu-header {
   text-align: center;
-  margin-top: 10px;
-  margin-bottom: 24px;
+  margin-top: 4px;
+  margin-bottom: 14px;
 }
 
 .header-dots {
   position: absolute;
-  left: 50px;
-  top: 240px;
+  left: 28px;
+  top: 220px;
   display: flex;
   flex-direction: column;
   gap: 7px;
@@ -298,141 +279,110 @@ body {
 .header-dots span {
   width: 3.5px;
   height: 3.5px;
-  background-color: #8D9E88;
+  background-color: var(--color-primary-wave);
   border-radius: 50%;
+  opacity: 0.7;
 }
 
 .menu-title-main {
   font-family: var(--font-serif);
-  font-size: 4.6rem;
+  font-size: 4.2rem;
   font-weight: 700;
-  letter-spacing: 5px;
+  letter-spacing: 5.5px;
   color: var(--color-primary);
   line-height: 0.95;
-  margin-top: 6px;
+  margin-top: 2px;
   text-transform: uppercase;
 }
 
 .menu-subtitle-script {
   font-family: var(--font-script);
-  font-size: 4.8rem;
-  color: #556645;
+  font-size: 4.4rem;
+  color: var(--color-accent-script);
   line-height: 0.85;
   margin-top: -6px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   transform: rotate(-3deg);
   display: block;
 }
 
-/* Banner de trazo de pincel / Brocha */
-.brush-banner {
+/* Banner de Pincelada Exacto de la Imagen */
+.brush-banner-exact {
   display: inline-block;
-  background-color: var(--color-primary);
-  color: #ffffff;
-  padding: 8px 36px;
-  border-radius: 20px 8px 24px 6px;
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
-  margin-top: 4px;
-  position: relative;
-}
-
-.brush-banner::before,
-.brush-banner::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 14px;
-  background: var(--color-primary);
-  opacity: 0.7;
-}
-
-.brush-banner::before {
-  left: -8px;
-  border-radius: 12px 0 0 14px;
-  transform: skewX(-10deg);
-}
-
-.brush-banner::after {
-  right: -8px;
-  border-radius: 0 14px 12px 0;
-  transform: skewX(10deg);
-}
-
-.brush-banner-text {
-  font-family: var(--font-sans);
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 2.2px;
-  text-transform: uppercase;
+  width: 350px;
+  height: 58px;
+  background-image: url('../assets/orig_brush_banner.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  margin: 2px auto 0 auto;
 }
 
 .header-bottom-heart {
-  margin-top: 10px;
+  margin-top: 4px;
 }
 
 /* ==========================================================================
-   SECCIONES DE PRODUCTOS
+   SECCIONES Y PRODUCTOS
    ========================================================================== */
 .menu-section {
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 .section-title-wrap {
   text-align: center;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .section-title {
   font-family: var(--font-serif);
-  font-size: 1.35rem;
-  letter-spacing: 3.5px;
+  font-size: 1.25rem;
+  letter-spacing: 3.2px;
   color: var(--color-primary);
   text-transform: uppercase;
   font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .section-title::before,
 .section-title::after {
   content: "—";
-  color: #7B8D75;
+  color: var(--color-primary-wave);
   font-weight: 300;
 }
 
 .section-sub-brush {
   display: inline-block;
-  background-color: #43543E;
+  background-color: var(--color-primary-wave);
   color: #F8F5EE;
   font-family: var(--font-script);
-  font-size: 1.45rem;
-  padding: 3px 26px;
-  border-radius: 15px;
-  margin-top: 5px;
+  font-size: 1.4rem;
+  padding: 2px 24px;
+  border-radius: 14px;
+  margin-top: 4px;
   letter-spacing: 0.5px;
 }
 
-/* Lista de ítems estándar (Láminas 1 y 3) */
 .product-items-list {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 0 10px;
+  gap: 11px;
+  padding: 0 8px;
 }
 
 .product-item-row {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
 }
 
 .product-icon {
   flex-shrink: 0;
-  width: 44px;
-  height: 44px;
+  width: 38px;
+  height: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -440,7 +390,7 @@ body {
 
 .product-name {
   font-family: var(--font-serif);
-  font-size: 1.05rem;
+  font-size: 0.96rem;
   font-weight: 500;
   color: var(--color-text-dark);
   white-space: nowrap;
@@ -449,7 +399,7 @@ body {
 .product-dots {
   flex-grow: 1;
   border-bottom: 1.5px dotted var(--color-dots);
-  margin: 0 6px;
+  margin: 0 5px;
   height: 1px;
 }
 
@@ -457,50 +407,46 @@ body {
   flex-shrink: 0;
   background: var(--color-badge);
   color: var(--color-badge-text);
-  padding: 4px 16px;
-  border-radius: 20px;
+  padding: 3px 14px;
+  border-radius: 16px;
   font-family: var(--font-sans);
-  font-size: 0.88rem;
+  font-size: 0.84rem;
   font-weight: 700;
   letter-spacing: 0.5px;
-  box-shadow: 0 2px 4px rgba(45, 62, 43, 0.15);
 }
 
 /* ==========================================================================
-   FORMATO BOCADITOS (LÁMINA 2 Y 4 - GRID Y COLUMNAS)
+   FORMATO BOCADITOS (LÁMINA 2 Y 4 - ILUSTRACIONES ORIGINALES TRANSPARENTES)
    ========================================================================== */
 .bocadito-block {
-  margin-bottom: 20px;
-  background: rgba(255, 255, 255, 0.35);
-  border-radius: 8px;
-  padding: 8px 12px;
+  margin-bottom: 14px;
 }
 
 .bocadito-header-badge {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   background-color: var(--color-primary);
   color: #fff;
-  padding: 6px 20px;
+  padding: 4px 18px;
   border-radius: 6px;
   font-family: var(--font-serif);
-  font-size: 0.95rem;
-  letter-spacing: 2px;
+  font-size: 0.88rem;
+  letter-spacing: 1.8px;
   font-weight: 600;
   text-transform: uppercase;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .bocadito-content-grid {
   display: grid;
-  grid-template-columns: 100px 1fr 1fr;
-  gap: 16px;
+  grid-template-columns: 85px 1fr 1fr;
+  gap: 14px;
   align-items: center;
 }
 
 .bocadito-content-grid.single-col {
-  grid-template-columns: 100px 1fr;
+  grid-template-columns: 85px 1fr;
 }
 
 .bocadito-left-art {
@@ -510,76 +456,81 @@ body {
   text-align: center;
 }
 
-.bocadito-large-icon {
+.bocadito-art-img {
   width: 76px;
   height: 76px;
-  border-radius: 50%;
-  border: 1.5px solid var(--color-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 6px;
+  object-fit: contain;
 }
 
 .bocadito-subnote {
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   color: var(--color-text-muted);
-  line-height: 1.3;
+  line-height: 1.25;
+  margin-top: 3px;
 }
 
 .tier-column-title {
   font-family: var(--font-serif);
-  font-size: 0.95rem;
+  font-size: 0.88rem;
   font-weight: 600;
   color: var(--color-primary);
   display: flex;
   align-items: center;
-  gap: 6px;
-  border-bottom: 1px solid rgba(45, 62, 43, 0.15);
-  padding-bottom: 4px;
-  margin-bottom: 8px;
+  gap: 4px;
+  border-bottom: 1px solid rgba(53, 57, 22, 0.15);
+  padding-bottom: 3px;
+  margin-bottom: 6px;
 }
 
 .tier-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 6px;
-  font-size: 0.85rem;
+  margin-bottom: 5px;
+  font-size: 0.82rem;
 }
 
 .tier-label {
   font-family: var(--font-sans);
   font-weight: 500;
   color: var(--color-text-dark);
+  display: flex;
+  align-items: center;
 }
 
 .tier-dots {
   flex-grow: 1;
   border-bottom: 1px dotted var(--color-dots);
-  margin: 0 8px;
+  margin: 0 6px;
 }
 
 .tier-price {
   background: var(--color-badge);
   color: #fff;
-  padding: 2px 10px;
+  padding: 2px 9px;
   border-radius: 12px;
   font-weight: 700;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
 }
 
-/* Lámina 4: Bocaditos Tradicionales Grid */
+/* Lámina 4 Grid */
 .tradicionales-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 12px;
 }
 
 .tradicional-item-card {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   align-items: flex-start;
+}
+
+.tradicional-item-img {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .tradicional-info {
@@ -588,73 +539,82 @@ body {
 
 .tradicional-title {
   font-family: var(--font-serif);
-  font-size: 0.9rem;
+  font-size: 0.86rem;
   font-weight: 700;
-  letter-spacing: 1px;
+  letter-spacing: 0.8px;
   color: var(--color-primary);
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 
-/* Recuadro Combo Surtido */
 .combo-surtido-box {
   grid-column: span 2;
   border: 1px dashed var(--color-primary);
-  background: rgba(255, 255, 255, 0.5);
-  border-radius: 10px;
-  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.35);
+  border-radius: 8px;
+  padding: 10px 14px;
   text-align: center;
-  margin: 8px 0;
+  margin: 4px 0;
 }
 
 .combo-title {
   font-family: var(--font-serif);
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: var(--color-primary);
-  letter-spacing: 2px;
+  letter-spacing: 1.8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .combo-subtitle {
-  font-size: 0.8rem;
+  font-size: 0.76rem;
   color: var(--color-text-muted);
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .combo-icons-strip {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 14px;
-  margin-bottom: 10px;
+  gap: 12px;
+  margin-bottom: 8px;
 }
 
 .combo-icon-unit {
-  font-size: 0.7rem;
+  font-size: 0.66rem;
   color: var(--color-primary);
   text-align: center;
 }
 
+.combo-icon-unit img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
 /* ==========================================================================
-   PIE DE PÁGINA ORNAMENTAL
+   FOOTER
    ========================================================================== */
 .menu-footer {
   text-align: center;
-  margin-top: 10px;
-  margin-bottom: 12px;
+  margin-top: 6px;
+  margin-bottom: 6px;
 }
 
 .footer-phrase {
   font-family: var(--font-sans);
-  font-size: 0.68rem;
-  letter-spacing: 3.5px;
+  font-size: 0.65rem;
+  letter-spacing: 3px;
   color: var(--color-primary);
   text-transform: uppercase;
   font-weight: 600;
-  margin-top: 4px;
+  margin-top: 3px;
 }
 
 /* ==========================================================================
-   ESTILOS DE IMPRESIÓN (PDF EXACTO 100% VECTORIAL)
+   IMPRESIÓN (PDF EXACTO)
    ========================================================================== */
 @media print {
   body {
