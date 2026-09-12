@@ -49,8 +49,8 @@ function renderSheet1() {
       <!-- Ondas Verdes Laterales con Pespunte Exacto -->
       <div class="bg-wave-layer">
         <svg viewBox="0 0 660 1173" width="100%" height="100%" preserveAspectRatio="none">
-          <path d="M 380,0 C 430,160 550,220 500,430 C 455,560 580,690 615,830 C 640,930 610,1040 660,1173 L 660,0 Z" fill="#3D411F" />
-          <path d="M 395,0 C 445,160 565,220 515,430 C 470,560 595,690 630,830 C 655,930 625,1040 660,1155" fill="none" stroke="#E8DAC4" stroke-width="1.5" stroke-dasharray="5,4" opacity="0.85" />
+          <path d="M 445,0 C 475,160 550,240 515,430 C 470,560 580,690 615,830 C 640,930 620,1040 660,1173 L 660,0 Z" fill="#3D411F" />
+          <path d="M 460,0 C 490,160 565,240 530,430 C 485,560 595,690 630,830 C 655,930 635,1040 660,1155" fill="none" stroke="#E8DAC4" stroke-width="1.5" stroke-dasharray="5,4" opacity="0.85" />
           
           <path d="M 0,930 C 50,1010 90,1070 170,1173 L 0,1173 Z" fill="#3D411F" />
           <path d="M 0,915 C 55,995 95,1055 180,1173" fill="none" stroke="#E8DAC4" stroke-width="1.5" stroke-dasharray="5,4" opacity="0.85" />
@@ -75,7 +75,7 @@ function renderSheet1() {
       </div>
 
       <!-- Contenido Central -->
-      <div class="sheet-content">
+      <div class="sheet-content" style="padding-right: 48px;">
         <div class="header-dots">
           <span></span><span></span><span></span><span></span><span></span>
         </div>
@@ -85,9 +85,7 @@ function renderSheet1() {
           <h1 class="menu-title-main editable-field" contenteditable="false">${d.title}</h1>
           <span class="menu-subtitle-script editable-field" contenteditable="false">${d.subtitle}</span>
           
-          <div class="brush-banner-box">
-            <img src="assets/exact_original_banner.png" class="brush-banner-img" alt="${d.tagline}"/>
-          </div>
+          ${icons.brushBanner('INGREDIENTES DE CALIDAD,', 'SABORES QUE ENAMORAN')}
           
           <div class="header-bottom-heart">${icons.heartSprigs()}</div>
         </div>
@@ -109,9 +107,7 @@ function renderSheet1() {
             <div style="margin-bottom: 3px;">${icons.heartSprigs()}</div>
             <h2 class="section-title editable-field" contenteditable="false">${d.sections[1].title}</h2>
             <div style="margin-top: 3px;">${icons.sectionLeaves()}</div>
-            <div class="cuchara-banner-box">
-              <img src="assets/orig_cuchara_banner.png" class="cuchara-banner-img" alt="${d.sections[1].badge}"/>
-            </div>
+            ${icons.cucharaBanner('Los postres húmedos, armados en capas')}
           </div>
           <div class="product-items-list">
             ${cuchareablesItems}
@@ -520,9 +516,7 @@ function renderSheet4() {
           <h1 class="menu-title-main editable-field" contenteditable="false">${d.title}</h1>
           <span class="menu-subtitle-script editable-field" contenteditable="false">${d.subtitle}</span>
           
-          <div class="brush-banner-box">
-            <img src="assets/exact_original_banner.png" class="brush-banner-img" alt="${d.tagline}"/>
-          </div>
+          ${icons.brushBanner('INGREDIENTES DE CALIDAD,', 'SABORES QUE ENAMORAN')}
           
           <div class="header-bottom-heart">${icons.heartSprigs()}</div>
         </div>

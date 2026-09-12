@@ -114,6 +114,62 @@ window.DULCE_FE_ICONS = {
     `;
   },
 
+  // Banner de Pincelada Verde 100% Vectorial Editorial (Nítido, limpio, idéntico al avance)
+  brushBanner: function(line1 = 'INGREDIENTES DE CALIDAD,', line2 = 'SABORES QUE ENAMORAN') {
+    return `
+      <div class="clean-brush-banner">
+        <svg viewBox="0 0 340 40" width="100%" height="100%">
+          <g fill="#3B482A">
+            <!-- Rectángulo redondeado base -->
+            <rect x="22" y="5" width="296" height="30" rx="8" />
+            <!-- Cerdas rasgadas a la izquierda -->
+            <path d="M 24,8 C 16,9 10,11 4,15 C 12,18 18,19 24,20 Z" />
+            <path d="M 24,18 C 14,20 6,23 2,27 C 10,29 18,30 24,31 Z" />
+            <line x1="22" y1="7" x2="8" y2="7" stroke="#3B482A" stroke-width="1.3" stroke-linecap="round" />
+            <line x1="22" y1="13" x2="3" y2="14" stroke="#3B482A" stroke-width="1.3" stroke-linecap="round" />
+            <line x1="22" y1="23" x2="6" y2="24" stroke="#3B482A" stroke-width="1.3" stroke-linecap="round" />
+            <line x1="22" y1="31" x2="11" y2="32" stroke="#3B482A" stroke-width="1.3" stroke-linecap="round" />
+            <!-- Cerdas rasgadas a la derecha -->
+            <path d="M 316,8 C 324,9 330,11 336,15 C 328,18 322,19 316,20 Z" />
+            <path d="M 316,18 C 326,20 334,23 338,27 C 330,29 322,30 316,31 Z" />
+            <line x1="318" y1="7" x2="332" y2="7" stroke="#3B482A" stroke-width="1.3" stroke-linecap="round" />
+            <line x1="318" y1="13" x2="337" y2="14" stroke="#3B482A" stroke-width="1.3" stroke-linecap="round" />
+            <line x1="318" y1="23" x2="334" y2="24" stroke="#3B482A" stroke-width="1.3" stroke-linecap="round" />
+            <line x1="318" y1="31" x2="329" y2="32" stroke="#3B482A" stroke-width="1.3" stroke-linecap="round" />
+            <!-- Pequeños trazos de textura seca -->
+            <rect x="16" y="3" width="5" height="1" rx="0.5" />
+            <rect x="320" y="36" width="6" height="1" rx="0.5" />
+          </g>
+          <!-- Tipografía Vectorial Nítida y Proporcional -->
+          <text x="170" y="18" text-anchor="middle" fill="#FFFFFF" font-family="'Montserrat', sans-serif" font-size="9" font-weight="600" letter-spacing="2.2">${line1}</text>
+          <text x="170" y="29" text-anchor="middle" fill="#FFFFFF" font-family="'Montserrat', sans-serif" font-size="9" font-weight="600" letter-spacing="2.2">${line2}</text>
+        </svg>
+      </div>
+    `;
+  },
+
+  // Banner de Cuchara 100% Vectorial Limpio
+  cucharaBanner: function(text = 'Los postres húmedos, armados en capas') {
+    return `
+      <div class="clean-cuchara-banner">
+        <svg viewBox="0 0 340 34" width="100%" height="100%">
+          <g fill="#3B482A">
+            <rect x="22" y="4" width="296" height="26" rx="13" />
+            <!-- Cerdas sutiles en extremos -->
+            <path d="M 24,7 C 16,9 10,12 4,16 C 12,19 18,20 24,21 Z" />
+            <line x1="22" y1="6" x2="7" y2="6" stroke="#3B482A" stroke-width="1.2" stroke-linecap="round" />
+            <line x1="22" y1="24" x2="8" y2="25" stroke="#3B482A" stroke-width="1.2" stroke-linecap="round" />
+            <path d="M 316,7 C 324,9 330,12 336,16 C 328,19 322,20 316,21 Z" />
+            <line x1="318" y1="6" x2="333" y2="6" stroke="#3B482A" stroke-width="1.2" stroke-linecap="round" />
+            <line x1="318" y1="24" x2="332" y2="25" stroke="#3B482A" stroke-width="1.2" stroke-linecap="round" />
+          </g>
+          <!-- Caligrafía Cursiva Vectorial Blanca Nítida -->
+          <text x="170" y="21" text-anchor="middle" fill="#FFFFFF" font-family="'Great Vibes', cursive" font-size="18" letter-spacing="0.5">${text}</text>
+        </svg>
+      </div>
+    `;
+  },
+
   // Icono lineal fino de la cajita de repostería (para los paquetes de bocaditos)
   boxPackage: function() {
     return `

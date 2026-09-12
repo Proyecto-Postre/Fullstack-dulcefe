@@ -310,9 +310,9 @@ body {
 
 .menu-title-main {
   font-family: var(--font-serif);
-  font-size: 4.6rem;
+  font-size: 4.2rem;
   font-weight: 700;
-  letter-spacing: 6px;
+  letter-spacing: 5px;
   color: var(--color-primary);
   line-height: 1;
   margin-top: 4px;
@@ -321,7 +321,7 @@ body {
 
 .menu-subtitle-script {
   font-family: var(--font-script);
-  font-size: 4.8rem;
+  font-size: 4.5rem;
   color: var(--color-script);
   line-height: 0.9;
   margin-top: -8px;
@@ -330,32 +330,25 @@ body {
   display: block;
 }
 
-/* Banner de Pincelada Verde Original Nítido */
-.brush-banner-box {
+/* Banner de Pincelada Verde 100% Vectorial Editorial */
+.clean-brush-banner {
+  width: 325px;
+  height: 38px;
+  margin: 3px auto 5px auto;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 0 auto;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
-.brush-banner-img {
-  width: 380px;
-  height: auto;
-  display: block;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.12));
-}
-
-.cuchara-banner-box {
+.clean-cuchara-banner {
+  width: 335px;
+  height: 32px;
+  margin: 4px auto 10px auto;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 2px auto 8px auto;
-}
-
-.cuchara-banner-img {
-  width: 350px;
-  height: auto;
-  display: block;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
 }
 
 .header-bottom-heart {
