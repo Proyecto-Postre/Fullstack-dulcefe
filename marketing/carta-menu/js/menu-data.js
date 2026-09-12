@@ -1,10 +1,10 @@
 /**
  * DATOS EDITABLES DE LA CARTA / MENÚ - DULCE FE
- * Puedes modificar nombres, descripciones y precios aquí directamente.
+ * 4 Láminas completas idénticas al catálogo original.
  */
 
 window.DULCE_FE_MENU = {
-  // LÁMINA 1: Menú de Postres (Galletería y Postres de Cuchara)
+  // LÁMINA 1: Menú de Postres 1 (Galletería y Postres de Cuchara)
   sheet1: {
     title: "MENÚ",
     subtitle: "de Postres",
@@ -36,7 +36,7 @@ window.DULCE_FE_MENU = {
     ]
   },
 
-  // LÁMINA 2: Bocaditos Dulces (Roles, Galletitas, Mini Brownies, Tartaletas)
+  // LÁMINA 2: Dulce Fe Bocaditos 1 (Roles, Galletitas, Mini Brownies, Tartaletitas)
   sheet2: {
     title: "Dulce Fe",
     subtitle: "Bocaditos",
@@ -46,7 +46,7 @@ window.DULCE_FE_MENU = {
       {
         id: "roles",
         title: "ROLES DE CANELA",
-        icon: "cinnamon-roll",
+        img: "assets/orig_rol_canela.png",
         tables: {
           regular: [
             { label: "Paquete de 4 un", price: "S/ 24.00" },
@@ -61,7 +61,7 @@ window.DULCE_FE_MENU = {
       {
         id: "galletitas",
         title: "GALLETITAS",
-        icon: "cookie-bite",
+        img: "assets/orig_galletita.png",
         note: "Sabores disponibles:<br>Chips de chocolate, Limón y Avena.",
         tables: {
           regular: [
@@ -76,7 +76,7 @@ window.DULCE_FE_MENU = {
       {
         id: "brownies",
         title: "MINI BROWNIES",
-        icon: "brownie-cube",
+        img: "assets/orig_brownie.png",
         tables: {
           regular: [
             { label: "Paquete de 4 un", price: "S/ 22.00" },
@@ -91,7 +91,7 @@ window.DULCE_FE_MENU = {
       {
         id: "tartaletitas",
         title: "TARTALETITAS Y MINI PAI DE MANZANA",
-        icon: "tartlet",
+        img: "assets/orig_tartaleta.png",
         singleTable: [
           { label: "Paquete de 12 un", price: "S/ 25.00" },
           { label: "Paquete de 25 un", price: "S/ 48.00" },
@@ -101,8 +101,124 @@ window.DULCE_FE_MENU = {
     ]
   },
 
-  // LÁMINA 3: Menú de Postres (Bizcochos y Tartas)
+  // LÁMINA 3: Dulce Fe Bocaditos 2 (Tradicionales, Combos, Alfajorcitos & Triples)
   sheet3: {
+    title: "Dulce Fe",
+    subtitle: "Bocaditos",
+    tagline: "Sabores que acompañan tus mejores momentos.",
+    footerText: "INGREDIENTES DE CALIDAD, SABORES QUE ENAMORAN.",
+    tradicionales: {
+      title: "BOCADITOS TRADICIONALES",
+      leftItems: [
+        {
+          name: "MIL HOJITAS",
+          img: "assets/orig_milhojas.png",
+          tiers: [
+            { label: "Paquete de 25 un", price: "S/ 28.00" },
+            { label: "Paquete de 50 un", price: "S/ 52.00" }
+          ]
+        },
+        {
+          name: "EMPANADITAS MIXTAS",
+          img: "assets/orig_empanada_mix.png",
+          tiers: [
+            { label: "Paquete de 25 un", price: "S/ 28.00" },
+            { label: "Paquete de 50 un", price: "S/ 52.00" }
+          ]
+        },
+        {
+          name: "CANASTILLAS DE ACEITUNAS",
+          img: "assets/orig_canastilla.png",
+          tiers: [
+            { label: "Paquete de 25 un", price: "S/ 28.00" },
+            { label: "Paquete de 50 un", price: "S/ 52.00" }
+          ]
+        },
+        {
+          name: "ENROLLADITOS DE HOT DOG",
+          img: "assets/orig_enrolladito.png",
+          tiers: [
+            { label: "Paquete de 25 un", price: "S/ 28.00" },
+            { label: "Paquete de 50 un", price: "S/ 52.00" }
+          ]
+        }
+      ],
+      rightItems: [
+        {
+          name: "OREJITAS",
+          img: "assets/orig_orejitas.png",
+          tiers: [
+            { label: "Paquete de 25 un", price: "S/ 22.00" },
+            { label: "Paquete de 50 un", price: "S/ 40.00" }
+          ]
+        },
+        {
+          name: "EMPANADITAS DE CARNE Y POLLO",
+          img: "assets/orig_empanada_carne.png",
+          tiers: [
+            { label: "Paquete de 25 un", price: "S/ 32.00" },
+            { label: "Paquete de 50 un", price: "S/ 60.00" }
+          ]
+        }
+      ],
+      combo: {
+        title: "COMBO SURTIDO",
+        subtitle: "Combina hasta 4 variedades",
+        badge: "Paquete de 50 un (hasta 4 variedades)",
+        price: "S/ 55.00",
+        itemsList: [
+          { name: "Canastillas de Aceitunas", img: "assets/orig_canastilla.png" },
+          { name: "Enrolladitos de Hot Dog", img: "assets/orig_enrolladito.png" },
+          { name: "Mil Hojitas", img: "assets/orig_milhojas.png" },
+          { name: "Empanaditas Mixtas", img: "assets/orig_empanada_mix.png" }
+        ]
+      }
+    },
+    alfajorcitos: {
+      title: "ALFAJORCITOS",
+      leftBlock: {
+        title: "ALFAJORCITOS REGULARES",
+        img: "assets/orig_alfajor_reg.png",
+        regularSubtitle: "REGULARES (12 UNIDADES POR PAQUETE)",
+        regularTiers: [{ label: "Paquete de 12 un", price: "S/ 15.00" }],
+        minisSubtitle: "MINIS",
+        minisTiers: [
+          { label: "Paquete de 25 un", price: "S/ 20.00" },
+          { label: "Paquete de 50 un", price: "S/ 38.00" },
+          { label: "Paquete de 100 un", price: "S/ 70.00" }
+        ],
+        extraTitle: "MINI TRIPLES",
+        extraImg: "assets/orig_triple.png",
+        extraTiers: [
+          { label: "Paquete de 25 un", price: "S/ 40.00" },
+          { label: "Paquete de 50 un", price: "S/ 75.00" },
+          { label: "Paquete de 100 un", price: "S/ 140.00" }
+        ]
+      },
+      rightBlock: {
+        title: "ALFAJORCITOS CHIPS",
+        img: "assets/orig_alfajor_chips.png",
+        regularSubtitle: "REGULARES (12 UNIDADES POR PAQUETE)",
+        regularTiers: [{ label: "Paquete de 12 un", price: "S/ 18.00" }],
+        minisSubtitle: "MINIS",
+        minisTiers: [
+          { label: "Paquete de 25 un", price: "S/ 23.00" },
+          { label: "Paquete de 50 un", price: "S/ 42.00" },
+          { label: "Paquete de 100 un", price: "S/ 80.00" }
+        ],
+        extraTitle: "MINI TRIPLES PREMIUM",
+        extraImg: "assets/orig_triple_prem.png",
+        extraTiers: [
+          { label: "Paquete de 25 un", price: "S/ 50.00" },
+          { label: "Paquete de 50 un", price: "S/ 95.00" },
+          { label: "Paquete de 100 un", price: "S/ 180.00" }
+        ]
+      }
+    }
+  },
+
+  // LÁMINA 4: Menú de Postres 2 (Bizcochos y Masas Quebradas / Tartas)
+  sheet4: {
     title: "MENÚ",
     subtitle: "de Postres",
     tagline: "INGREDIENTES DE CALIDAD, SABORES QUE ENAMORAN",
@@ -129,120 +245,5 @@ window.DULCE_FE_MENU = {
         ]
       }
     ]
-  },
-
-  // LÁMINA 4: Bocaditos Tradicionales & Alfajorcitos
-  sheet4: {
-    title: "Dulce Fe",
-    subtitle: "Bocaditos",
-    tagline: "Sabores que acompañan tus mejores momentos.",
-    footerText: "INGREDIENTES DE CALIDAD, SABORES QUE ENAMORAN.",
-    tradicionales: {
-      title: "BOCADITOS TRADICIONALES",
-      items: [
-        {
-          name: "MIL HOJITAS",
-          icon: "milhojas",
-          tiers: [
-            { label: "Paquete de 25 un", price: "S/ 28.00" },
-            { label: "Paquete de 50 un", price: "S/ 52.00" }
-          ]
-        },
-        {
-          name: "OREJITAS",
-          icon: "orejitas",
-          tiers: [
-            { label: "Paquete de 25 un", price: "S/ 22.00" },
-            { label: "Paquete de 50 un", price: "S/ 40.00" }
-          ]
-        },
-        {
-          name: "EMPANADITAS MIXTAS",
-          icon: "empanada",
-          tiers: [
-            { label: "Paquete de 25 un", price: "S/ 28.00" },
-            { label: "Paquete de 50 un", price: "S/ 52.00" }
-          ]
-        },
-        {
-          name: "EMPANADITAS DE CARNE Y POLLO",
-          icon: "empanada-dark",
-          tiers: [
-            { label: "Paquete de 25 un", price: "S/ 32.00" },
-            { label: "Paquete de 50 un", price: "S/ 60.00" }
-          ]
-        },
-        {
-          name: "CANASTILLAS DE ACEITUNAS",
-          icon: "canastilla",
-          tiers: [
-            { label: "Paquete de 25 un", price: "S/ 28.00" },
-            { label: "Paquete de 50 un", price: "S/ 52.00" }
-          ]
-        },
-        {
-          name: "ENROLLADITOS DE HOT DOG",
-          icon: "enrolladito",
-          tiers: [
-            { label: "Paquete de 25 un", price: "S/ 28.00" },
-            { label: "Paquete de 50 un", price: "S/ 52.00" }
-          ]
-        }
-      ],
-      combo: {
-        title: "COMBO SURTIDO",
-        subtitle: "Combina hasta 4 variedades",
-        badge: "Paquete de 50 un (hasta 4 variedades)",
-        price: "S/ 55.00",
-        itemsList: ["Canastillas de Aceitunas", "Enrolladitos de Hot Dog", "Mil Hojitas", "Empanaditas Mixtas"]
-      }
-    },
-    alfajorcitos: {
-      title: "ALFAJORCITOS",
-      items: [
-        {
-          name: "ALFAJORCITOS REGULARES",
-          icon: "alfajor-reg",
-          subtitle: "REGULARES (12 UNIDADES POR PAQUETE)",
-          regularTier: { label: "Paquete de 12 un", price: "S/ 15.00" },
-          minisTitle: "MINIS",
-          miniTiers: [
-            { label: "Paquete de 25 un", price: "S/ 20.00" },
-            { label: "Paquete de 50 un", price: "S/ 38.00" },
-            { label: "Paquete de 100 un", price: "S/ 70.00" }
-          ]
-        },
-        {
-          name: "ALFAJORCITOS CHIPS",
-          icon: "alfajor-chips",
-          subtitle: "REGULARES (12 UNIDADES POR PAQUETE)",
-          regularTier: { label: "Paquete de 12 un", price: "S/ 18.00" },
-          minisTitle: "MINIS",
-          miniTiers: [
-            { label: "Paquete de 25 un", price: "S/ 23.00" },
-            { label: "Paquete de 50 un", price: "S/ 42.00" },
-            { label: "Paquete de 100 un", price: "S/ 80.00" }
-          ]
-        },
-        {
-          name: "MINI TRIPLES",
-          icon: "triple",
-          tiers: [
-            { label: "Paquete de 25 un", price: "S/ 40.00" },
-            { label: "Paquete de 50 un", price: "S/ 75.00" },
-            { label: "Paquete de 100 un", price: "S/ 140.00" }
-          ]
-        },
-        {
-          name: "MINI TRIPLES PREMIUM",
-          icon: "triple-premium",
-          tiers: [
-            { label: "Paquete de 25 un", price: "S/ 50.00" },
-            { label: "Paquete de 50 un", price: "S/ 95.00" },
-            { label: "Paquete de 100 un", price: "S/ 180.00" }
-          ]
-        }
-      ]
-    }
   }
 };

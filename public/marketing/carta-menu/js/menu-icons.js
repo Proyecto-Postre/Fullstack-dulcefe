@@ -5,38 +5,41 @@
 
 window.DULCE_FE_ICONS = {
   // Sello Circular "HECHOS CON DEDICACIÓN" con Batidor
+  // Con texto inferior al derecho y legible (antihorario)
   stamp: function(variant = 'dark') {
-    const color = variant === 'light' ? '#ffffff' : '#2D3E2B';
+    const color = variant === 'light' ? '#FFFFFF' : '#333A18';
     const subColor = variant === 'light' ? 'rgba(255,255,255,0.85)' : '#4A5D23';
     return `
       <svg class="stamp-svg" viewBox="0 0 200 200" width="100%" height="100%">
         <defs>
-          <path id="circle-top" d="M 30,100 A 70,70 0 0,1 170,100" fill="none" />
-          <path id="circle-bottom" d="M 170,100 A 70,70 0 0,1 30,100" fill="none" />
+          <!-- Semicírculo superior en sentido horario -->
+          <path id="circle-top" d="M 28,100 A 72,72 0 0,1 172,100" fill="none" />
+          <!-- Semicírculo inferior en sentido antihorario para que el texto DEDICACIÓN quede al derecho -->
+          <path id="circle-bottom" d="M 28,100 A 72,72 0 0,0 172,100" fill="none" />
         </defs>
         <!-- Círculos concéntricos ornamentales -->
-        <circle cx="100" cy="100" r="92" fill="none" stroke="${color}" stroke-width="1.5" stroke-dasharray="3,3" opacity="0.75"/>
+        <circle cx="100" cy="100" r="92" fill="none" stroke="${color}" stroke-width="1.5" stroke-dasharray="3,3" opacity="0.8"/>
         <circle cx="100" cy="100" r="85" fill="none" stroke="${color}" stroke-width="1.2" />
         <circle cx="100" cy="100" r="58" fill="none" stroke="${color}" stroke-width="1" stroke-dasharray="2,3" opacity="0.6"/>
         
         <!-- Texto superior arqueado -->
-        <text fill="${color}" font-family="'Playfair Display', serif" font-size="14" font-weight="600" letter-spacing="3.5">
+        <text fill="${color}" font-family="'Playfair Display', Georgia, serif" font-size="14" font-weight="600" letter-spacing="3.5">
           <textPath href="#circle-top" startOffset="50%" text-anchor="middle">HECHOS CON</textPath>
         </text>
 
-        <!-- Texto inferior arqueado -->
-        <text fill="${color}" font-family="'Playfair Display', serif" font-size="13" font-weight="600" letter-spacing="4">
+        <!-- Texto inferior arqueado (al derecho) -->
+        <text fill="${color}" font-family="'Playfair Display', Georgia, serif" font-size="13" font-weight="600" letter-spacing="4">
           <textPath href="#circle-bottom" startOffset="50%" text-anchor="middle">DEDICACIÓN</textPath>
         </text>
 
         <!-- Puntitos laterales -->
-        <circle cx="28" cy="100" r="2.5" fill="${subColor}" />
-        <circle cx="172" cy="100" r="2.5" fill="${subColor}" />
+        <circle cx="27" cy="100" r="2.5" fill="${subColor}" />
+        <circle cx="173" cy="100" r="2.5" fill="${subColor}" />
 
         <!-- Batidor manual central ilustrado -->
         <g transform="translate(85, 62) scale(0.65)" stroke="${color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none">
           <rect x="21" y="2" width="6" height="32" rx="3" fill="${color}"/>
-          <circle cx="24" cy="5" r="2" fill="${variant === 'light' ? '#2D3E2B' : '#ffffff'}"/>
+          <circle cx="24" cy="5" r="2" fill="${variant === 'light' ? '#333A18' : '#ffffff'}"/>
           <line x1="19" y1="34" x2="29" y2="34" stroke-width="3"/>
           <path d="M 24,35 C 10,48 5,65 14,84 C 20,96 28,96 34,84 C 43,65 38,48 24,35 Z" stroke-width="2"/>
           <path d="M 24,35 C 15,50 12,68 18,82 C 22,90 26,90 30,82 C 36,68 33,50 24,35 Z" stroke-width="1.6"/>
@@ -49,7 +52,7 @@ window.DULCE_FE_ICONS = {
   // Ornamento superior con corazón y hojitas
   topOrnament: function() {
     return `
-      <svg class="ornament-svg" viewBox="0 0 160 30" width="120" height="24" fill="#3D4F37">
+      <svg class="ornament-svg" viewBox="0 0 160 30" width="130" height="25" fill="#3D4F37">
         <path d="M80,18 C78,13 71,11 68,16 C65,21 78,28 80,30 C82,28 95,21 92,16 C89,11 82,13 80,18 Z" fill="#4A5D23"/>
         <path d="M66,19 C55,18 42,16 30,14" stroke="#4A5D23" stroke-width="1.2" fill="none" stroke-linecap="round"/>
         <path d="M58,18 C57,14 52,13 50,16 C53,18 57,18 58,18 Z"/>
@@ -68,7 +71,7 @@ window.DULCE_FE_ICONS = {
   // Corazón con dos ramitas laterales (exacto al de debajo del banner de pincelada)
   heartSprigs: function() {
     return `
-      <svg viewBox="0 0 100 24" width="75" height="18" fill="#586749">
+      <svg viewBox="0 0 100 24" width="80" height="20" fill="#586749">
         <!-- Corazón central -->
         <path d="M50,16 C48,11 43,9 41,13 C39,17 48,22 50,24 C52,22 61,17 59,13 C57,9 52,11 50,16 Z" fill="#586749"/>
         <!-- Ramita izquierda con 2 hojas -->
@@ -103,7 +106,7 @@ window.DULCE_FE_ICONS = {
   // Pequeño ramo de 3 hojitas
   sectionLeaves: function() {
     return `
-      <svg viewBox="0 0 60 20" width="36" height="13" fill="#4A5D23">
+      <svg viewBox="0 0 60 20" width="38" height="14" fill="#4A5D23">
         <path d="M30,12 C28,7 20,6 18,10 C16,14 28,19 30,20 C32,19 44,14 42,10 C40,6 32,7 30,12 Z"/>
         <path d="M20,12 C14,8 8,11 11,15 C14,15 18,13 20,12 Z"/>
         <path d="M40,12 C46,8 52,11 49,15 C46,15 42,13 40,12 Z"/>
@@ -114,7 +117,7 @@ window.DULCE_FE_ICONS = {
   // Icono lineal fino de la cajita de repostería (para los paquetes de bocaditos)
   boxPackage: function() {
     return `
-      <svg viewBox="0 0 24 24" width="16" height="16" stroke="#4A5D23" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;">
+      <svg viewBox="0 0 24 24" width="16" height="16" stroke="#353916" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 5px;">
         <path d="M12 3 L21 7.5 L12 12 L3 7.5 Z"></path>
         <path d="M3 7.5 L3 16.5 L12 21 L12 12"></path>
         <path d="M21 7.5 L21 16.5 L12 21"></path>
@@ -123,10 +126,10 @@ window.DULCE_FE_ICONS = {
     `;
   },
 
-  // Colección de Íconos Lineales Ilustrados en Circulito
+  // Colección de Íconos Lineales Ilustrados en Circulito para Postres (Láminas 1 y 4)
   getIcon: function(name) {
-    const stroke = "#2D3E2B";
-    const bgCircle = `<circle cx="28" cy="28" r="26" fill="none" stroke="${stroke}" stroke-width="1.3" opacity="0.6"/>`;
+    const stroke = "#353916";
+    const bgCircle = `<circle cx="28" cy="28" r="26" fill="none" stroke="${stroke}" stroke-width="1.4" opacity="0.65"/>`;
     
     let inner = '';
     switch(name) {
@@ -168,22 +171,23 @@ window.DULCE_FE_ICONS = {
         `;
         break;
       case 'alfajor-box':
-      case 'alfajor-reg':
         inner = `
-          <ellipse cx="28" cy="22" rx="14" ry="4" fill="none" stroke="${stroke}" stroke-width="1.5"/>
-          <path d="M14,22 C14,24 16,27 28,27 C40,27 42,24 42,22" fill="none" stroke="${stroke}" stroke-width="1.5"/>
-          <path d="M15,25 Q28,29 41,25" stroke="${stroke}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-          <ellipse cx="28" cy="30" rx="14" ry="4" fill="none" stroke="${stroke}" stroke-width="1.5"/>
-          <path d="M14,30 C14,32 16,35 28,35 C40,35 42,32 42,30" fill="none" stroke="${stroke}" stroke-width="1.5"/>
+          <ellipse cx="28" cy="23" rx="13" ry="4" fill="none" stroke="${stroke}" stroke-width="1.5"/>
+          <path d="M15,23 C15,25 17,28 28,28 C39,28 41,25 41,23" fill="none" stroke="${stroke}" stroke-width="1.5"/>
+          <path d="M16,26 Q28,30 40,26" stroke="${stroke}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <ellipse cx="28" cy="31" rx="13" ry="4" fill="none" stroke="${stroke}" stroke-width="1.5"/>
+          <path d="M15,31 C15,33 17,35 28,35 C39,35 41,33 41,31" fill="none" stroke="${stroke}" stroke-width="1.5"/>
         `;
         break;
       case 'cup-dessert':
         inner = `
-          <path d="M20,22 L22,39 C22,41 24,42 28,42 C32,42 34,41 34,39 L36,22 Z" fill="none" stroke="${stroke}" stroke-width="1.5"/>
-          <path d="M21,27 Q28,29 35,27" stroke="${stroke}" stroke-width="1.2" fill="none"/>
-          <path d="M21.5,33 Q28,35 34.5,33" stroke="${stroke}" stroke-width="1.2" fill="none"/>
-          <path d="M20,22 C20,17 25,16 28,16 C31,16 36,17 36,22" fill="none" stroke="${stroke}" stroke-width="1.5"/>
-          <circle cx="28" cy="14" r="2.2" fill="${stroke}"/>
+          <!-- Copita / Vaso Cuchareable Facetado con Capas y Crema -->
+          <path d="M19,23 L22,39 C22,41.5 24,42.5 28,42.5 C32,42.5 34,41.5 34,39 L37,23 Z" fill="none" stroke="${stroke}" stroke-width="1.6"/>
+          <path d="M20,28 Q28,30 36,28" stroke="${stroke}" stroke-width="1.2" fill="none"/>
+          <path d="M21,34 Q28,36 35,34" stroke="${stroke}" stroke-width="1.2" fill="none"/>
+          <!-- Espuma / crema superior con cereza -->
+          <path d="M19,23 C18,18 23,17 28,17 C33,17 38,18 37,23" fill="none" stroke="${stroke}" stroke-width="1.5"/>
+          <circle cx="28" cy="14.5" r="2.2" fill="${stroke}"/>
         `;
         break;
       case 'cake-slice':
@@ -202,6 +206,11 @@ window.DULCE_FE_ICONS = {
           <line x1="28" y1="27" x2="28" y2="40" stroke="${stroke}" stroke-width="1"/>
           <line x1="32" y1="27" x2="31" y2="40" stroke="${stroke}" stroke-width="1"/>
           <path d="M18,27 C15,24 17,19 22,18 C25,14 31,14 34,18 C39,19 41,24 38,27 Z" fill="none" stroke="${stroke}" stroke-width="1.6"/>
+          ${name === 'muffin-chips' ? `
+            <circle cx="25" cy="21" r="1.2" fill="${stroke}"/>
+            <circle cx="31" cy="22" r="1.2" fill="${stroke}"/>
+            <circle cx="28" cy="24" r="1.2" fill="${stroke}"/>
+          ` : ''}
         `;
         break;
       case 'cupcake-frosting':
@@ -215,7 +224,6 @@ window.DULCE_FE_ICONS = {
         `;
         break;
       case 'brownies-box':
-      case 'brownie-cube':
         inner = `
           <path d="M16,24 L28,18 L40,24 L28,30 Z" fill="none" stroke="${stroke}" stroke-width="1.6"/>
           <path d="M16,24 L16,33 L28,39 L28,30 Z" fill="none" stroke="${stroke}" stroke-width="1.6"/>
@@ -226,7 +234,6 @@ window.DULCE_FE_ICONS = {
         `;
         break;
       case 'apple-pie':
-      case 'tartlet':
         inner = `
           <ellipse cx="28" cy="30" rx="14" ry="6" fill="none" stroke="${stroke}" stroke-width="1.5"/>
           <path d="M14,30 C14,34 18,37 28,37 C38,37 42,34 42,30" fill="none" stroke="${stroke}" stroke-width="1.5"/>
@@ -240,47 +247,6 @@ window.DULCE_FE_ICONS = {
           <path d="M15,31 C15,35 18,37 28,37 C38,37 41,35 41,31" fill="none" stroke="${stroke}" stroke-width="1.5"/>
           <path d="M28,17 C25,21 23,26 28,28 C33,26 31,21 28,17 Z" fill="none" stroke="${stroke}" stroke-width="1.5"/>
           <path d="M26,17 C27,15 29,15 30,17" stroke="${stroke}" stroke-width="1.2" fill="none"/>
-        `;
-        break;
-      case 'canastilla':
-        inner = `
-          <path d="M17,26 L20,38 L36,38 L39,26 Z" fill="none" stroke="${stroke}" stroke-width="1.5"/>
-          <line x1="22" y1="26" x2="24" y2="38" stroke="${stroke}" stroke-width="1"/>
-          <line x1="28" y1="26" x2="28" y2="38" stroke="${stroke}" stroke-width="1"/>
-          <line x1="34" y1="26" x2="32" y2="38" stroke="${stroke}" stroke-width="1"/>
-          <circle cx="24" cy="22" r="3.2" fill="none" stroke="${stroke}" stroke-width="1.4"/>
-          <circle cx="32" cy="22" r="3.2" fill="none" stroke="${stroke}" stroke-width="1.4"/>
-          <circle cx="28" cy="18" r="3" fill="${stroke}"/>
-        `;
-        break;
-      case 'enrolladito':
-        inner = `
-          <ellipse cx="20" cy="30" rx="4" ry="7" fill="none" stroke="${stroke}" stroke-width="1.5"/>
-          <path d="M20,23 L36,20 C38,20 40,24 40,27 C40,30 38,34 36,34 L20,37" fill="none" stroke="${stroke}" stroke-width="1.5"/>
-          <ellipse cx="20" cy="30" rx="2" ry="4" fill="${stroke}"/>
-          <path d="M26,22 C28,24 28,33 26,36" stroke="${stroke}" stroke-width="1.2" fill="none"/>
-          <path d="M32,21 C34,23 34,31 32,35" stroke="${stroke}" stroke-width="1.2" fill="none"/>
-        `;
-        break;
-      case 'triple':
-      case 'triple-premium':
-        inner = `
-          <path d="M18,22 L38,18 L38,36 L18,40 Z" fill="none" stroke="${stroke}" stroke-width="1.6"/>
-          <line x1="18" y1="28" x2="38" y2="24" stroke="${stroke}" stroke-width="1.3"/>
-          <line x1="18" y1="34" x2="38" y2="30" stroke="${stroke}" stroke-width="1.3"/>
-          <circle cx="28" cy="14" r="2" fill="${stroke}"/>
-          <path d="M28,16 L28,19" stroke="${stroke}" stroke-width="1.5"/>
-        `;
-        break;
-      case 'alfajor-chips':
-        inner = `
-          <ellipse cx="28" cy="22" rx="14" ry="4" fill="none" stroke="${stroke}" stroke-width="1.5"/>
-          <path d="M15,25 Q28,29 41,25" stroke="${stroke}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-          <ellipse cx="28" cy="30" rx="14" ry="4" fill="none" stroke="${stroke}" stroke-width="1.5"/>
-          <path d="M14,30 C14,32 16,35 28,35 C40,35 42,32 42,30" fill="none" stroke="${stroke}" stroke-width="1.5"/>
-          <circle cx="24" cy="21" r="1.2" fill="${stroke}"/>
-          <circle cx="32" cy="22" r="1.2" fill="${stroke}"/>
-          <circle cx="28" cy="30" r="1.2" fill="${stroke}"/>
         `;
         break;
       default:

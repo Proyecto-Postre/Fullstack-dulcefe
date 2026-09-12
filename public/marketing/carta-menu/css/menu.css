@@ -1,19 +1,22 @@
 @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;500;600;700&display=swap');
 
 /* ==========================================================================
-   PALETA EXACTA EXTRAÍDA PÍXEL A PÍXEL DE LAS IMÁGENES ORIGINALES
+   PALETA EXACTA ORIGINAL (DULCE FE)
    ========================================================================== */
 :root {
-  --color-primary: #353916;       /* Verde Olivo Profundo (Título MENÚ y Dulce Fe) */
-  --color-primary-wave: #4D4D29;  /* Verde Onda Lateral Orgánica */
-  --color-accent-script: #736429; /* Dorado/Oliva Cálido ('de Postres' y 'Bocaditos') */
-  --color-cream-bg: #F1E2CD;      /* Fondo Crema Pergamino Real */
-  --color-text-dark: #2B3014;     /* Texto Principal de Productos */
-  --color-text-muted: #6B6846;    /* Texto Secundario y Notas */
-  --color-dots: #B0A382;          /* Puntos Suspensivos */
-  --color-badge: #333415;         /* Badges de Precios Verde Oscuro */
+  --color-primary: #353916;       /* Verde Olivo Profundo (Títulos MENÚ y Dulce Fe) */
+  --color-wave: #454724;          /* Verde Olivo Ondas Laterales */
+  --color-wave-dark: #353916;     /* Verde Onda Segunda Capa */
+  --color-script: #7A692C;        /* Dorado/Oliva Cálido ('de Postres' y 'Bocaditos') */
+  --color-cream-bg: #F3E7D6;      /* Fondo Crema Pergamino Suave y Limpio */
+  --color-cream-card: #F8EFE4;    /* Crema Tarjetas */
+  --color-text-dark: #2A2E12;     /* Texto de Productos */
+  --color-text-muted: #6B6745;    /* Texto Secundario y Descripciones */
+  --color-dots: #B8AA8C;          /* Línea de Puntos Suspensivos */
+  --color-stitch: #E8DAC4;        /* Pespunte Punteado sobre Verde */
+  --color-badge: #333415;         /* Badges de Precios */
   --color-badge-text: #FFFFFF;    /* Texto de Badges */
-  
+
   --font-serif: 'Playfair Display', Georgia, serif;
   --font-script: 'Great Vibes', cursive;
   --font-sans: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -27,7 +30,7 @@
 
 body {
   font-family: var(--font-sans);
-  background-color: #D3C7B3;
+  background-color: #BDB29F;
   color: var(--color-text-dark);
   min-height: 100vh;
   display: flex;
@@ -43,16 +46,16 @@ body {
   position: sticky;
   top: 12px;
   z-index: 100;
-  background: rgba(241, 226, 205, 0.95);
+  background: rgba(243, 231, 214, 0.96);
   backdrop-filter: blur(12px);
-  padding: 10px 22px;
+  padding: 10px 24px;
   border-radius: 40px;
   box-shadow: 0 8px 30px rgba(53, 57, 22, 0.2);
   display: flex;
   gap: 14px;
   align-items: center;
   margin-bottom: 24px;
-  border: 1px solid rgba(115, 100, 41, 0.25);
+  border: 1px solid rgba(122, 105, 44, 0.35);
   flex-wrap: wrap;
   justify-content: center;
 }
@@ -61,7 +64,7 @@ body {
   font-family: var(--font-serif);
   font-weight: 700;
   color: var(--color-primary);
-  font-size: 1.15rem;
+  font-size: 1.25rem;
   letter-spacing: 0.5px;
   margin-right: 8px;
 }
@@ -69,7 +72,7 @@ body {
 .nav-tabs {
   display: flex;
   gap: 6px;
-  background: #E3D2BA;
+  background: #E2D3BE;
   padding: 4px;
   border-radius: 30px;
 }
@@ -79,7 +82,7 @@ body {
   background: transparent;
   padding: 7px 16px;
   font-family: var(--font-sans);
-  font-size: 0.84rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: var(--color-primary);
   cursor: pointer;
@@ -127,13 +130,13 @@ body {
 }
 
 .btn-png {
-  background: var(--color-accent-script);
+  background: var(--color-script);
   color: #fff;
   box-shadow: 0 4px 12px rgba(115, 100, 41, 0.3);
 }
 
 .btn-png:hover {
-  background: #605321;
+  background: #5E511F;
 }
 
 .btn-edit {
@@ -143,7 +146,7 @@ body {
 }
 
 /* ==========================================================================
-   LÁMINA DEL MENÚ (DIMENSIONES EXACTAS 9:16 / FLYER)
+   LÁMINA DEL MENÚ (PROPORCIÓN EXACTA FLYER EDITORIAL / 660px x 1173px)
    ========================================================================== */
 .sheets-container {
   display: flex;
@@ -154,24 +157,22 @@ body {
 }
 
 .menu-sheet {
-  width: 576px;
-  height: 1024px;
+  width: 660px;
+  height: 1173px;
   position: relative;
   background-color: var(--color-cream-bg);
-  background-image: url('../assets/orig_parchment_exact.jpg');
-  background-repeat: repeat;
-  background-size: 250px 250px;
+  background-image: 
+    radial-gradient(circle at 50% 30%, #F8EFE4 0%, #EFE1CE 70%, #E6D4BD 100%);
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.22), 0 2px 12px rgba(0, 0, 0, 0.12);
   border-radius: 4px;
   overflow: hidden;
-  padding: 30px 38px;
+  padding: 34px 42px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  transform-origin: top center;
 }
 
-/* Ondas Verdes Laterales en SVG con Pespunte Exacto */
+/* Capa de Ondas Orgánicas en SVG (Bordes exactos) */
 .bg-wave-layer {
   position: absolute;
   top: 0;
@@ -182,7 +183,7 @@ body {
   z-index: 1;
 }
 
-/* Ilustraciones Botánicas Originales Transparentes */
+/* Hojas Botánicas en PNG Transparente Real */
 .botanical-leaves {
   position: absolute;
   pointer-events: none;
@@ -192,61 +193,78 @@ body {
 .leaves-top-left {
   top: 0;
   left: 0;
-  width: 155px;
-  height: 255px;
+  width: 180px;
+  height: 290px;
   object-fit: contain;
 }
 
 .leaves-bottom-right {
   bottom: 0;
   right: 0;
-  width: 106px;
-  height: 380px;
+  width: 130px;
+  height: 440px;
   object-fit: contain;
 }
 
-/* Sellos Circulares */
+.leaves-top-right {
+  top: 0;
+  right: 0;
+  width: 180px;
+  height: 290px;
+  object-fit: contain;
+}
+
+.leaves-bottom-left {
+  bottom: 0;
+  left: 0;
+  width: 130px;
+  height: 440px;
+  object-fit: contain;
+}
+
+/* Sello Circular con Batidor */
 .stamp-container {
   position: absolute;
-  width: 95px;
-  height: 95px;
+  width: 104px;
+  height: 104px;
   z-index: 5;
 }
 
 .stamp-pos-top-right {
-  top: 45px;
-  right: 28px;
+  top: 48px;
+  right: 36px;
 }
 
 .stamp-pos-top-left {
-  top: 45px;
-  left: 28px;
+  top: 48px;
+  left: 36px;
 }
 
 .side-quote {
   position: absolute;
   font-family: var(--font-sans);
   font-size: 0.62rem;
+  font-weight: 600;
   letter-spacing: 2px;
   line-height: 1.6;
   text-transform: uppercase;
   z-index: 5;
   text-align: center;
-  max-width: 100px;
+  max-width: 115px;
 }
 
 .side-quote.light {
-  color: #EBDDC8;
+  color: #EFE3D0;
 }
 
 .side-quote-top-right {
-  top: 155px;
-  right: 25px;
+  top: 174px;
+  right: 30px;
 }
 
 .side-quote-top-left {
-  top: 155px;
-  left: 25px;
+  top: 174px;
+  left: 30px;
 }
 
 .sheet-content {
@@ -264,66 +282,88 @@ body {
 .menu-header {
   text-align: center;
   margin-top: 4px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
+  position: relative;
 }
 
 .header-dots {
   position: absolute;
-  left: 28px;
-  top: 220px;
+  left: 18px;
+  top: 250px;
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 8px;
+}
+
+.header-dots.right-side {
+  left: auto;
+  right: 18px;
 }
 
 .header-dots span {
   width: 3.5px;
   height: 3.5px;
-  background-color: var(--color-primary-wave);
+  background-color: var(--color-wave);
   border-radius: 50%;
   opacity: 0.7;
 }
 
 .menu-title-main {
   font-family: var(--font-serif);
-  font-size: 4.2rem;
+  font-size: 4.6rem;
   font-weight: 700;
-  letter-spacing: 5.5px;
+  letter-spacing: 6px;
   color: var(--color-primary);
-  line-height: 0.95;
-  margin-top: 2px;
+  line-height: 1;
+  margin-top: 4px;
   text-transform: uppercase;
 }
 
 .menu-subtitle-script {
   font-family: var(--font-script);
-  font-size: 4.4rem;
-  color: var(--color-accent-script);
-  line-height: 0.85;
-  margin-top: -6px;
-  margin-bottom: 10px;
+  font-size: 4.8rem;
+  color: var(--color-script);
+  line-height: 0.9;
+  margin-top: -8px;
+  margin-bottom: 6px;
   transform: rotate(-3deg);
   display: block;
 }
 
-/* Banner de Pincelada Exacto de la Imagen */
-.brush-banner-exact {
-  display: inline-block;
+/* Banner de Pincelada Verde Original Nítido */
+.brush-banner-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+}
+
+.brush-banner-img {
+  width: 380px;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.12));
+}
+
+.cuchara-banner-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 2px auto 8px auto;
+}
+
+.cuchara-banner-img {
   width: 350px;
-  height: 58px;
-  background-image: url('../assets/orig_brush_banner.png');
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  margin: 2px auto 0 auto;
+  height: auto;
+  display: block;
 }
 
 .header-bottom-heart {
-  margin-top: 4px;
+  margin-top: 5px;
 }
 
 /* ==========================================================================
-   SECCIONES Y PRODUCTOS
+   SECCIONES DE PRODUCTOS (LÁMINAS 1 Y 4)
    ========================================================================== */
 .menu-section {
   margin-bottom: 16px;
@@ -336,53 +376,43 @@ body {
 
 .section-title {
   font-family: var(--font-serif);
-  font-size: 1.25rem;
-  letter-spacing: 3.2px;
+  font-size: 1.28rem;
+  letter-spacing: 3.5px;
   color: var(--color-primary);
   text-transform: uppercase;
   font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .section-title::before,
 .section-title::after {
   content: "—";
-  color: var(--color-primary-wave);
+  color: var(--color-wave);
   font-weight: 300;
 }
 
-.section-sub-brush {
-  display: inline-block;
-  background-color: var(--color-primary-wave);
-  color: #F8F5EE;
-  font-family: var(--font-script);
-  font-size: 1.4rem;
-  padding: 2px 24px;
-  border-radius: 14px;
-  margin-top: 4px;
-  letter-spacing: 0.5px;
-}
-
+/* Lista de ítems (Láminas 1 y 4) */
 .product-items-list {
   display: flex;
   flex-direction: column;
   gap: 11px;
-  padding: 0 8px;
+  padding: 0 16px;
+  max-width: 530px;
 }
 
 .product-item-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
 .product-icon {
   flex-shrink: 0;
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -390,16 +420,17 @@ body {
 
 .product-name {
   font-family: var(--font-serif);
-  font-size: 0.96rem;
+  font-size: 0.98rem;
   font-weight: 500;
   color: var(--color-text-dark);
-  white-space: nowrap;
+  line-height: 1.25;
+  max-width: 320px;
 }
 
 .product-dots {
   flex-grow: 1;
   border-bottom: 1.5px dotted var(--color-dots);
-  margin: 0 5px;
+  margin: 0 6px;
   height: 1px;
 }
 
@@ -407,32 +438,33 @@ body {
   flex-shrink: 0;
   background: var(--color-badge);
   color: var(--color-badge-text);
-  padding: 3px 14px;
-  border-radius: 16px;
+  padding: 4px 16px;
+  border-radius: 18px;
   font-family: var(--font-sans);
-  font-size: 0.84rem;
+  font-size: 0.86rem;
   font-weight: 700;
   letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(45, 62, 43, 0.15);
 }
 
 /* ==========================================================================
-   FORMATO BOCADITOS (LÁMINA 2 Y 4 - ILUSTRACIONES ORIGINALES TRANSPARENTES)
+   FORMATO BOCADITOS 1 (LÁMINA 2 - ROLES, GALLETITAS, BROWNIES, TARTAS)
    ========================================================================== */
 .bocadito-block {
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .bocadito-header-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   background-color: var(--color-primary);
   color: #fff;
-  padding: 4px 18px;
+  padding: 5px 22px;
   border-radius: 6px;
   font-family: var(--font-serif);
-  font-size: 0.88rem;
-  letter-spacing: 1.8px;
+  font-size: 0.92rem;
+  letter-spacing: 2px;
   font-weight: 600;
   text-transform: uppercase;
   margin-bottom: 8px;
@@ -440,13 +472,13 @@ body {
 
 .bocadito-content-grid {
   display: grid;
-  grid-template-columns: 85px 1fr 1fr;
-  gap: 14px;
+  grid-template-columns: 105px 1fr 1fr;
+  gap: 18px;
   align-items: center;
 }
 
 .bocadito-content-grid.single-col {
-  grid-template-columns: 85px 1fr;
+  grid-template-columns: 105px 1fr;
 }
 
 .bocadito-left-art {
@@ -457,29 +489,29 @@ body {
 }
 
 .bocadito-art-img {
-  width: 76px;
-  height: 76px;
+  width: 84px;
+  height: 84px;
   object-fit: contain;
 }
 
 .bocadito-subnote {
-  font-size: 0.62rem;
+  font-size: 0.65rem;
   color: var(--color-text-muted);
-  line-height: 1.25;
-  margin-top: 3px;
+  line-height: 1.3;
+  margin-top: 4px;
 }
 
 .tier-column-title {
   font-family: var(--font-serif);
-  font-size: 0.88rem;
+  font-size: 0.92rem;
   font-weight: 600;
   color: var(--color-primary);
   display: flex;
   align-items: center;
-  gap: 4px;
-  border-bottom: 1px solid rgba(53, 57, 22, 0.15);
+  gap: 6px;
+  border-bottom: 1px solid rgba(53, 57, 22, 0.2);
   padding-bottom: 3px;
-  margin-bottom: 6px;
+  margin-bottom: 7px;
 }
 
 .tier-row {
@@ -487,7 +519,7 @@ body {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 5px;
-  font-size: 0.82rem;
+  font-size: 0.85rem;
 }
 
 .tier-label {
@@ -501,36 +533,77 @@ body {
 .tier-dots {
   flex-grow: 1;
   border-bottom: 1px dotted var(--color-dots);
-  margin: 0 6px;
+  margin: 0 8px;
 }
 
 .tier-price {
   background: var(--color-badge);
   color: #fff;
-  padding: 2px 9px;
+  padding: 2px 10px;
   border-radius: 12px;
   font-weight: 700;
-  font-size: 0.75rem;
+  font-size: 0.78rem;
 }
 
-/* Lámina 4 Grid */
-.tradicionales-grid {
+.bocaditos-divider-line {
+  border-bottom: 1px dotted rgba(176, 163, 130, 0.6);
+  margin: 8px 0;
+}
+
+/* ==========================================================================
+   FORMATO BOCADITOS 2 (LÁMINA 3 - TRADICIONALES, COMBO SURTIDO, ALFAJORES, TRIPLES)
+   ========================================================================== */
+.tradicionales-section-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background-color: var(--color-primary);
+  color: #fff;
+  padding: 6px 26px;
+  border-radius: 15px;
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  letter-spacing: 2px;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin: 0 auto 10px auto;
+}
+
+.tradicionales-layout-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 16px;
+  align-items: start;
+}
+
+.tradicional-column {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .tradicional-item-card {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   align-items: flex-start;
 }
 
-.tradicional-item-img {
+.trad-circle-icon {
   width: 52px;
   height: 52px;
-  object-fit: contain;
+  border-radius: 50%;
+  border: 1px solid rgba(53, 57, 22, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.trad-circle-icon img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
 }
 
 .tradicional-info {
@@ -539,21 +612,21 @@ body {
 
 .tradicional-title {
   font-family: var(--font-serif);
-  font-size: 0.86rem;
+  font-size: 0.88rem;
   font-weight: 700;
   letter-spacing: 0.8px;
   color: var(--color-primary);
   margin-bottom: 3px;
 }
 
+/* Combo Surtido Box (en la columna derecha) */
 .combo-surtido-box {
-  grid-column: span 2;
-  border: 1px dashed var(--color-primary);
-  background: rgba(255, 255, 255, 0.35);
-  border-radius: 8px;
-  padding: 10px 14px;
+  background: rgba(248, 239, 228, 0.85);
+  border: 1.2px solid rgba(53, 57, 22, 0.35);
+  border-radius: 10px;
+  padding: 10px 12px;
   text-align: center;
-  margin: 4px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .combo-title {
@@ -569,29 +642,68 @@ body {
 }
 
 .combo-subtitle {
-  font-size: 0.76rem;
+  font-size: 0.74rem;
   color: var(--color-text-muted);
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .combo-icons-strip {
   display: flex;
-  justify-content: center;
+  justify-content: space-around;
   align-items: center;
-  gap: 12px;
+  gap: 4px;
   margin-bottom: 8px;
 }
 
 .combo-icon-unit {
-  font-size: 0.66rem;
+  font-size: 0.62rem;
   color: var(--color-primary);
   text-align: center;
+  max-width: 60px;
+  line-height: 1.2;
 }
 
-.combo-icon-unit img {
-  width: 32px;
-  height: 32px;
+.combo-mini-circle {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid rgba(53, 57, 22, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 3px auto;
+  background: #FFF;
+}
+
+.combo-mini-circle img {
+  width: 30px;
+  height: 30px;
   object-fit: contain;
+}
+
+.combo-plus {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+/* Sección Alfajorcitos & Triples */
+.alfajores-block-header {
+  font-family: var(--font-serif);
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: var(--color-primary);
+  margin-bottom: 2px;
+}
+
+.alfajores-sub-header {
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  letter-spacing: 0.5px;
+  margin-bottom: 3px;
 }
 
 /* ==========================================================================
@@ -600,27 +712,33 @@ body {
 .menu-footer {
   text-align: center;
   margin-top: 6px;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .footer-phrase {
   font-family: var(--font-sans);
-  font-size: 0.65rem;
-  letter-spacing: 3px;
+  font-size: 0.66rem;
+  letter-spacing: 3.5px;
   color: var(--color-primary);
   text-transform: uppercase;
   font-weight: 600;
-  margin-top: 3px;
+  margin-top: 4px;
 }
 
 /* ==========================================================================
    IMPRESIÓN (PDF EXACTO)
    ========================================================================== */
 @media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
   body {
-    background: none;
-    padding: 0;
-    margin: 0;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
   }
 
   .toolbar {
@@ -628,20 +746,22 @@ body {
   }
 
   .sheets-container {
-    gap: 0;
+    gap: 0 !important;
+    display: block !important;
   }
 
   .menu-sheet {
-    width: 100vw;
-    height: 100vh;
-    box-shadow: none;
-    border-radius: 0;
-    page-break-after: always;
-    page-break-inside: avoid;
+    width: 660px !important;
+    height: 1173px !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    page-break-after: always !important;
+    page-break-inside: avoid !important;
+    margin: 0 auto !important;
   }
 
   @page {
-    size: A4 portrait;
+    size: 660px 1173px;
     margin: 0;
   }
 }
