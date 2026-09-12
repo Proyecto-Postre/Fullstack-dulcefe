@@ -1,5 +1,4 @@
 import { defineEventHandler, getRouterParam, readBody, createError } from 'h3'
-import { serverSupabaseServiceRole } from '#supabase/server'
 import type { Database } from '~/types/database.types'
 import { requireAdmin } from '../../../utils/require-admin'
 import { getOrCreateRequestId } from '../../../utils/request-id'
@@ -38,7 +37,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const supabase = serverSupabaseServiceRole<Database>(event)
+  const supabase = await getAdminSupabaseClient(event)
 
   // Consultar orden existente
   const { data: existingOrder, error: fetchErr } = await supabase

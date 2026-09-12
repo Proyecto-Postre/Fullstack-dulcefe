@@ -115,6 +115,16 @@ function goToRecipeTab(product: ProductItem) {
           <span>KDS Cocina / Taller</span>
           <Icon name="lucide:external-link" class="w-3.5 h-3.5 ml-auto text-amber-500" />
         </NuxtLink>
+
+        <a
+          href="/marketing/carta-menu/index.html"
+          target="_blank"
+          class="flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-300/40 text-left w-full relative overflow-hidden group cursor-pointer text-sm transition-all shadow-soft-sm mt-1"
+        >
+          <Icon name="lucide:book-open" class="w-5 h-5 text-emerald-700 transition-transform duration-300 group-hover:scale-110" />
+          <span>Carta Digital / Menú</span>
+          <Icon name="lucide:external-link" class="w-3.5 h-3.5 ml-auto text-emerald-600" />
+        </a>
       </div>
     </aside>
 
@@ -199,6 +209,15 @@ function goToRecipeTab(product: ProductItem) {
           <Icon name="lucide:chef-hat" class="w-4 h-4 text-amber-600" />
           KDS Taller
         </NuxtLink>
+
+        <a
+          href="/marketing/carta-menu/index.html"
+          target="_blank"
+          class="flex items-center gap-2 py-2 px-3.5 font-bold text-xs rounded-xl transition-all duration-300 border border-emerald-300/40 bg-emerald-50 text-emerald-800 whitespace-nowrap cursor-pointer hover:bg-emerald-100"
+        >
+          <Icon name="lucide:book-open" class="w-4 h-4 text-emerald-700" />
+          Carta Menú
+        </a>
       </div>
     </div>
 

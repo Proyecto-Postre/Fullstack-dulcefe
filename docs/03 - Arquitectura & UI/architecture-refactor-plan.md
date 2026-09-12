@@ -1208,3 +1208,53 @@ Nada de D1–D8 se implementa “de paso” en un PR de refactor. Si urge, se ab
 | V55 | Freeze de COGS / Escandallo | Snapshot inmutable de receta al pasar a `processing` y cálculo de margen bruto sin recálculo futuro (D8) | sí | ✅ 10/10 |
 | V56 | Webhooks Seguros n8n | Despacho asíncrono fire-and-forget con cabecera `X-DulceFe-Signature` HMAC-SHA256 y timeout de 4s (D6) | sí | ✅ 10/10 |
 
+---
+
+## 21. Reglas Anti-Regresión: Hardening, Portales de Modales, Service Role en Admin y Sesiones Zombi (Branch `fix/system-hardening-and-stability`)
+
+### 21.1 Contexto y Diagnóstico del Incidente
+Durante la validación integral del ERP Administrativo previa a la Fase 7, se identificaron cuatro síntomas críticos de regresión operativa:
+1. **Modales y Botones Administrativos Inertes**: Los botones "Nuevo Insumo", "Nuevo Producto", "Crear Pedido Manual" y "Ver Detalle" no abrían sus modales en pantalla a pesar de cambiar los estados reactivos `showModal = true`.
+2. **Almacén de Insumos Vacío (0 items)**: La pantalla `/admin` pestaña "Almacén" mostraba el estado vacío a pesar de que la base de datos Supabase contenía 20 materias primas en la tabla `raw_materials`.
+3. **KDS 403 Forbidden y Ciclos de Polling**: La pantalla de cocina `/admin/kds` mostraba un banner rojo de error `[GET] "/api/admin/kds/orders": 403 Forbidden` y realizaba polling recursivo cada 15 segundos spameando el servidor.
+4. **Sesión Zombi en Pinia**: Tras expirar o perderse el token JWT de Supabase, la UI administrativa seguía mostrando al usuario en el encabezado (*"jafethworren@gmail.com - Acceso Total"*) debido a que el estado en `localStorage` no se purgaba reactivamente ante desincronizaciones de `useSupabaseUser()`.
+
+### 21.2 Causas Raíz Identificadas
+1. **Portal Teleport Inexistente en el DOM**:
+   - Los componentes `MaterialModal.vue`, `ProductModal.vue`, `NewOrderModal.vue` y `OrderDetailsModal.vue` utilizaban la directiva de Vue `<Teleport to="#admin-modal-portal">`.
+   - El nodo `<div id="admin-modal-portal">` **no existía en ningún archivo de la aplicación** (ni en `admin.vue` ni en `app.vue`). Vue fallaba silenciosamente o no renderizaba el nodo destino, dejando la UI completamente inerte.
+2. **Dependencia Circular en Políticas RLS y Uso Erróneo de `serverSupabaseClient` en Guards de Servidor**:
+   - `requireAdmin(event)` consultaba la tabla `public.profiles` con `serverSupabaseClient`.
+   - La tabla `profiles` tiene RLS habilitado con la política: `USING (public.is_admin())` y `USING (auth.uid() = id)`.
+   - A su vez, `public.is_admin()` ejecuta: `SELECT is_admin FROM public.profiles WHERE id = auth.uid()`.
+   - Si las cookies de sesión fallaban en propagarse en llamadas SSR o la sesión expiraba, `serverSupabaseClient` no disponía de contexto seguro, provocando que la consulta devolviera un error o fila vacía, lanzando `403 FORBIDDEN (PROFILE_NOT_FOUND)`.
+   - Igualmente, `/api/raw-materials/index.get.ts` consultaba con `serverSupabaseClient`. Al no tener contexto admin bajo RLS, PostgreSQL devolvía una lista vacía silenciosamente `[]`.
+3. **Desincronización de Pinia y `useSupabaseUser`**:
+   - Pinia Auth persistía el perfil en `localStorage`. Al refrescar la pestaña tras expirar el token de Supabase, el store mantenía los datos antiguos en memoria mientras que las llamadas a la API fallaban por falta de JWT válido.
+
+### 21.3 Reglas de Arquitectura Mandatorias (Anti-Patrones Prohibidos)
+
+#### Regla AR-1: Portales de Modales Globales Obligatorios
+- **Regla**: Todo layout que soporte vistas con modales desacoplados (`<Teleport to="#admin-modal-portal">`) DEBE incluir explícitamente el contenedor portal:
+  ```html
+  <div id="admin-modal-portal" class="fixed inset-0 z-[100] pointer-events-none empty:hidden"></div>
+  ```
+- **Fallback**: `app/app.vue` DEBE mantener una instancia de respaldo para garantizar que ningún modal quede sin montar en vistas sin layout o en layouts alternativos.
+- **Guard Automatizado**: El test suite `tests/unit/admin-hardening-stability.test.ts` verifica la existencia del ID en los layouts y el target en todos los modales.
+
+#### Regla AR-2: Uso Estricto de `serverSupabaseServiceRole` en Verificación de Permisos Administrativos
+- **Regla**: En el backend de Nitro/Nuxt, la validación de identidad se bifurca estrictamente en dos capas:
+  1. **Autenticación (Quién es)**: Se valida el token JWT criptográficamente con `serverSupabaseUser(event)` / `requireUser(event)`. Si falla → `401 UNAUTHORIZED`.
+  2. **Autorización (Qué rol tiene)**: Una vez verificado el `user.id`, la consulta a `public.profiles` para verificar `is_admin === true` DEBE realizarse mediante `serverSupabaseServiceRole(event)`. Esto previene dependencias circulares de RLS en Postgres y garantiza idempotencia y velocidad.
+- **Endpoints de Lectura/Escritura Administrativos**: Todo endpoint `/api/admin/*` y de gestión interna de inventario (`/api/raw-materials/*`) debe usar `serverSupabaseServiceRole` tras validar `requireAdmin(event)`.
+
+#### Regla AR-3: Sincronización Reactiva de Auth y Erradicación de Sesiones Zombi
+- **Regla**: El cliente Nuxt DEBE suscribirse a `supabase.auth.onAuthStateChange`.
+- Si el evento es `SIGNED_OUT` o `useSupabaseUser().value` es `null`, el store de Pinia DEBE invocar inmediatamente `clearSession()` para purgar `user`, `profile` y `localStorage`.
+- El middleware `admin-only.ts` DEBE verificar activamente la presencia de `user.value` real de Supabase antes de autorizar el renderizado, purgando el store si detecta desincronización y redirigiendo a `/login`.
+
+#### Regla AR-4: Tolerancia a Fallos y Cancelación de Polling en KDS
+- **Regla**: En vistas con refresco periódico en segundo plano (polling como KDS):
+  - Ante respuestas `401` o `403`, el temporizador `pollTimer` DEBE cancelarse de inmediato (`clearInterval`) para no saturar los logs del servidor ni consumir CPU.
+  - La interfaz DEBE mostrar un mensaje claro con botón de acción para reautenticarse (`/login`), reactivando el polling de forma transparente una vez recuperada la sesión válida.
+

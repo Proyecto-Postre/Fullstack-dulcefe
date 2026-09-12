@@ -21,7 +21,15 @@ const showMiseEnPlaceModal = ref<boolean>(false)
 const activeFilter = ref<'all' | 'pending' | 'processing' | 'ready'>('all')
 const lastUpdated = ref<string>('')
 
+const isAuthError = ref<boolean>(false)
+
 let pollTimer: ReturnType<typeof setInterval> | null = null
+
+function startPolling() {
+  if (!pollTimer) {
+    pollTimer = setInterval(fetchKdsOrders, 15000)
+  }
+}
 
 async function fetchKdsOrders() {
   try {
@@ -33,9 +41,27 @@ async function fetchKdsOrders() {
       second: '2-digit'
     })
     errorMsg.value = null
+    isAuthError.value = false
+    startPolling()
   } catch (err: unknown) {
-    const fetchErr = err as { data?: { error?: { message?: string } }; message?: string }
-    errorMsg.value = fetchErr.data?.error?.message || fetchErr.message || 'Error al conectar con la cocina.'
+    const fetchErr = err as {
+      statusCode?: number
+      status?: number
+      response?: { status?: number }
+      data?: { error?: { message?: string } }
+      message?: string
+    }
+    const statusCode = fetchErr.statusCode || fetchErr.status || fetchErr.response?.status
+    if (statusCode === 401 || statusCode === 403) {
+      isAuthError.value = true
+      errorMsg.value = 'Sesión expirada o sin permisos de administrador.'
+      if (pollTimer) {
+        clearInterval(pollTimer)
+        pollTimer = null
+      }
+    } else {
+      errorMsg.value = fetchErr.data?.error?.message || fetchErr.message || 'Error al conectar con la cocina.'
+    }
   } finally {
     isLoading.value = false
   }
@@ -198,7 +224,19 @@ onUnmounted(() => {
         <Icon name="lucide:alert-triangle" class="w-5 h-5 text-red-300" />
         <span>{{ errorMsg }}</span>
       </div>
-      <button @click="fetchKdsOrders" class="underline font-bold text-white">Reintentar</button>
+      <div class="flex items-center gap-3">
+        <NuxtLink
+          v-if="isAuthError"
+          to="/login"
+          class="px-3 py-1 bg-red-750 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5"
+        >
+          <Icon name="lucide:log-in" class="w-3.5 h-3.5" />
+          <span>Iniciar Sesión</span>
+        </NuxtLink>
+        <button v-else @click="fetchKdsOrders" class="underline font-bold text-white cursor-pointer">
+          Reintentar
+        </button>
+      </div>
     </div>
 
     <!-- Tablero de Comandas -->
