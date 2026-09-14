@@ -1,8 +1,8 @@
 import type { H3Event } from 'h3'
 import { createError } from 'h3'
-import { serverSupabaseServiceRole } from '#supabase/server'
 import type { Database } from '~/types/database.types'
 import { requireAdmin } from '../utils/require-admin'
+import { getAdminSupabaseClient } from '../utils/server-supabase'
 
 export interface CreateMaterialInput {
   name: string
@@ -24,7 +24,7 @@ export interface UpdateMaterialInput {
 export class InventoryService {
   static async createMaterial(event: H3Event, dto: CreateMaterialInput, requestId: string) {
     const adminUser = await requireAdmin(event)
-    const supabase = serverSupabaseServiceRole<Database>(event)
+    const supabase = await getAdminSupabaseClient(event)
 
     const initialStock = Number(dto.stock ?? 0)
 
@@ -82,7 +82,7 @@ export class InventoryService {
 
   static async updateMaterial(event: H3Event, id: number, dto: UpdateMaterialInput, requestId: string) {
     const adminUser = await requireAdmin(event)
-    const supabase = serverSupabaseServiceRole<Database>(event)
+    const supabase = await getAdminSupabaseClient(event)
 
     // Consultar stock previo
     const { data: existing, error: existErr } = await supabase
@@ -170,7 +170,7 @@ export class InventoryService {
 
   static async deleteMaterial(event: H3Event, id: number, requestId: string) {
     const adminUser = await requireAdmin(event)
-    const supabase = serverSupabaseServiceRole<Database>(event)
+    const supabase = await getAdminSupabaseClient(event)
 
     const { error } = await supabase
       .from('raw_materials')
@@ -214,7 +214,7 @@ export class InventoryService {
     requestId: string
   ) {
     const adminUser = await requireAdmin(event)
-    const supabase = serverSupabaseServiceRole<Database>(event)
+    const supabase = await getAdminSupabaseClient(event)
 
     // Llamada segura a la RPC atómica revert_order_inventory
     const rpcCaller = supabase.rpc as unknown as (

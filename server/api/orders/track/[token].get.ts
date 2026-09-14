@@ -1,6 +1,4 @@
 import { defineEventHandler, getRouterParam, createError } from 'h3'
-import { serverSupabaseServiceRole } from '#supabase/server'
-import type { Database } from '~/types/database.types'
 import { isValidTrackingTokenFormat } from '../../../utils/crypto'
 import type { PublicOrderTrackingDTO, PublicTrackingItem, PublicTimelineStep } from '~/types/tracking'
 
@@ -23,7 +21,7 @@ export default defineEventHandler(async (event): Promise<PublicOrderTrackingDTO>
     })
   }
 
-  const supabase = serverSupabaseServiceRole<Database>(event)
+  const supabase = await getAdminSupabaseClient(event)
 
   // 2. Consultar la orden por token único usando Service Role
   const { data: order, error: orderError } = await supabase

@@ -1,6 +1,4 @@
 import { defineEventHandler } from 'h3'
-import { serverSupabaseServiceRole } from '#supabase/server'
-import type { Database } from '~/types/database.types'
 import { requireAdmin } from '../../../utils/require-admin'
 import { getOrCreateRequestId } from '../../../utils/request-id'
 
@@ -8,7 +6,7 @@ export default defineEventHandler(async (event) => {
   const requestId = getOrCreateRequestId(event)
   await requireAdmin(event)
 
-  const supabase = serverSupabaseServiceRole<Database>(event)
+  const supabase = await getAdminSupabaseClient(event)
 
   const { data: orders, error } = await supabase
     .from('orders')

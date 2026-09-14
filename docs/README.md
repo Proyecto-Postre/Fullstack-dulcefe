@@ -68,6 +68,8 @@ Registro cronológico inmutable de auditorías y entregas por fase:
   * [`fase-6-subfase-6.5-snapshot-escandallo-informe.md`](./04%20-%20Informes%20de%20Ejecucion/fase-6-subfase-6.5-snapshot-escandallo-informe.md) — Snapshot Inmutable de Escandallo y Freeze de COGS (ADR-008 / D8).
   * [`fase-6-subfase-6.6-webhooks-n8n-informe.md`](./04%20-%20Informes%20de%20Ejecucion/fase-6-subfase-6.6-webhooks-n8n-informe.md) — Ecosistema de Webhooks Asíncronos Firmados con HMAC-SHA256 para n8n (ADR-006 / D6).
   * [`fase-6-producto-kds-informe-ejecucion.md`](./04%20-%20Informes%20de%20Ejecucion/fase-6-producto-kds-informe-ejecucion.md) — **Informe Maestro Consolidado de la Fase 6**.
+* **Hardening & Estabilidad:**
+  * [`hardening-estabilidad-informe-ejecucion.md`](./04%20-%20Informes%20de%20Ejecucion/hardening-estabilidad-informe-ejecucion.md) — **Informe de Hardening & Estabilidad del Sistema (Fix Modales, RLS Service Role & Sesiones Zombi)**.
 
 ### 5. 🛡️ [05 - Operaciones](./05%20-%20Operaciones/)
 * [`playbook-operaciones.md`](./05%20-%20Operaciones/playbook-operaciones.md) — **Manual Operativo de Misión Crítica**:

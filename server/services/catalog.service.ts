@@ -1,8 +1,8 @@
 import type { H3Event } from 'h3'
 import { createError } from 'h3'
-import { serverSupabaseServiceRole } from '#supabase/server'
 import type { Database } from '~/types/database.types'
 import { requireAdmin } from '../utils/require-admin'
+import { getAdminSupabaseClient } from '../utils/server-supabase'
 
 export interface CreateProductInput {
   name: string
@@ -21,7 +21,7 @@ export interface UpdateProductInput {
 export class CatalogService {
   static async createProduct(event: H3Event, dto: CreateProductInput, requestId: string) {
     const adminUser = await requireAdmin(event)
-    const supabase = serverSupabaseServiceRole<Database>(event)
+    const supabase = await getAdminSupabaseClient(event)
 
     const { data, error } = await supabase
       .from('products')
@@ -62,7 +62,7 @@ export class CatalogService {
 
   static async updateProduct(event: H3Event, id: number, dto: UpdateProductInput, requestId: string) {
     const adminUser = await requireAdmin(event)
-    const supabase = serverSupabaseServiceRole<Database>(event)
+    const supabase = await getAdminSupabaseClient(event)
 
     const updatePayload: Database['public']['Tables']['products']['Update'] = {}
     if (dto.name !== undefined) updatePayload.name = dto.name.trim()
@@ -105,7 +105,7 @@ export class CatalogService {
 
   static async deleteProduct(event: H3Event, id: number, requestId: string) {
     const adminUser = await requireAdmin(event)
-    const supabase = serverSupabaseServiceRole<Database>(event)
+    const supabase = await getAdminSupabaseClient(event)
 
     const { error } = await supabase
       .from('products')

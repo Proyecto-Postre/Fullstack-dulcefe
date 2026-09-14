@@ -26,8 +26,9 @@ onMounted(() => {
           border: '1px solid rgba(74, 93, 35, 0.2)',
           boxShadow: '0 4px 16px -4px rgba(42, 50, 27, 0.1)'
         }
-      }" 
+      }"
     />
+    <div id="admin-modal-portal" class="fixed inset-0 z-[100] pointer-events-none empty:hidden"></div>
   </div>
 </template>
 

@@ -1,7 +1,5 @@
 import { getOrCreateRequestId } from '../../utils/request-id'
 import { InventoryService } from '../../services/inventory.service'
-import { serverSupabaseServiceRole } from '#supabase/server'
-import type { Database } from '~/types/database.types'
 
 export default defineEventHandler(async (event) => {
   const requestId = getOrCreateRequestId(event)
@@ -14,8 +12,8 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Eliminar recetas que usan este insumo con service role
-  const supabase = serverSupabaseServiceRole<Database>(event)
+  // Eliminar recetas que usan este insumo con service role o admin client
+  const supabase = await getAdminSupabaseClient(event)
   await supabase
     .from('recipe_items')
     .delete()

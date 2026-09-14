@@ -1,8 +1,7 @@
 import type { H3Event } from 'h3'
 import { createError } from 'h3'
-import { serverSupabaseServiceRole } from '#supabase/server'
-import type { Database } from '~/types/database.types'
 import { requireAdmin } from '../utils/require-admin'
+import { getAdminSupabaseClient } from '../utils/server-supabase'
 import { solesToCents, centsToSoles } from '../utils/money'
 
 export interface SaveRecipeItemInput {
@@ -14,7 +13,7 @@ export interface SaveRecipeItemInput {
 export class RecipeService {
   static async getRecipeWithCosts(event: H3Event, productId: number, requestId: string) {
     await requireAdmin(event)
-    const supabase = serverSupabaseServiceRole<Database>(event)
+    const supabase = await getAdminSupabaseClient(event)
 
     // 1. Consultar receta
     const { data: recipeItems, error: recipeErr } = await supabase
@@ -82,7 +81,7 @@ export class RecipeService {
 
   static async saveRecipeItem(event: H3Event, dto: SaveRecipeItemInput, requestId: string) {
     const adminUser = await requireAdmin(event)
-    const supabase = serverSupabaseServiceRole<Database>(event)
+    const supabase = await getAdminSupabaseClient(event)
 
     const { data, error } = await supabase
       .from('recipe_items')
@@ -122,7 +121,7 @@ export class RecipeService {
 
   static async deleteRecipeItem(event: H3Event, id: number, requestId: string) {
     const adminUser = await requireAdmin(event)
-    const supabase = serverSupabaseServiceRole<Database>(event)
+    const supabase = await getAdminSupabaseClient(event)
 
     const { error } = await supabase
       .from('recipe_items')

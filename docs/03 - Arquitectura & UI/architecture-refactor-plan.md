@@ -1,9 +1,9 @@
 # Plan maestro de arquitectura — Dulce Fe
 
 **Estado:** SSOT de arquitectura de código (sustituye cualquier borrador previo de este archivo y a `docs/architecture-refactor-addendum-10-10.md`).  
-**Ámbito:** refactor del monolito Nuxt 4 existente. No es un segundo plan de producto.  
-**Fuera de alcance:** KDS, n8n, BI, Custom Cake Builder, Redis, Meilisearch, microservicios, RBAC de cuatro roles.  
-**Operación:** los contratos para ejecutar sin inventar (secretos, DTOs, stock, corte S9, dinero exacto, idempotencia, inventario auditable, red, tipos, Storage, PII, tests, PRs y checklist) viven en §14–§20. No son un segundo plan; son el cierre de este.
+**Ámbito:** refactor integral y expansión de producción del monolito Nuxt 4 existente (Fases 0 a 6 + Hardening).  
+**Fuera de alcance de este plan (Roadmap futuro de producto):** Custom Cake Builder interactivo, Analítica BCG / BI avanzada, Meilisearch, Redis, microservicios y RBAC de cuatro roles granulares.  
+**Operación:** los contratos para ejecutar sin inventar (secretos, DTOs, stock, corte S9, dinero exacto, idempotencia, inventario auditable, red, tipos, Storage, PII, tests, PRs, checklist y reglas anti-regresión) viven en §14–§21. No son un segundo plan; son el cierre integral de este.
 
 Este documento es el único lugar donde se decide *cómo se organiza el código*. El producto vive en `docs/plan-maestro.md`. El diseño visual vive en `docs/design-system-tokens.md`. El costeo vive en `docs/formulas-costeo.md`. `docs/architecture-refactor-addendum-10-10.md` es historial; no se ejecuta.
 
@@ -26,11 +26,11 @@ Los `any`, estilos repetidos, componentes extensos y consultas directas son sín
 - Estructura por dominio adoptada módulo a módulo.
 - Contratos tipados y una sola fuente de verdad por decisión.
 
-**Qué no cierra**
+**Qué no cierra (Perteneciente al roadmap futuro de producto)**
 
-- Nuevas features de producto (KDS, n8n, pasteles a medida, analítica BCG).
+- Features futuras de producto (Custom Cake Builder 3D, Analítica BCG / BI avanzada en dashboard).
 - Rediseño visual completo; solo tokens y layouts mientras se toca cada pantalla.
-- Migración a otra base de datos o a un API Gateway separado.
+- Migración a otra base de datos o a un API Gateway separado (se preserva Monolito Modular Nitro).
 
 ---
 
@@ -1182,20 +1182,20 @@ Cada fila es un punto que hay que **ver y marcar**. Crítica = no se avanza de f
 | V44 | Backup / rollback | dump de Supabase restaurado en staging al menos una vez | sí |
 | V50 | Drift de tipos | editar `database.types.ts` a mano falla CI | sí |
 
-### 20.5 Deuda explícita (no se “olvida”: se nombra)
+### 20.5 Deuda explícita (Matriz Oficial de Cierre y Contratos Inmutables)
 
-| ID | Deuda | Por qué no entra ahora | Se reabre cuando |
-|---|---|---|---|
-| D1 | Revertir stock al cancelar después de `processing` | Requiere RPC de compensación y decisión de negocio (¿insumo ya usado?) | ADR + dueño de pastelería |
-| D2 | Tracking de invitado `/pedido/[token]` | plan-maestro lo pide; no bloquea dinero | Feature de producto |
-| D3 | Carrito en DB (`carts` / `cart_items`) | Pinia+cookie basta | ADR |
-| D4 | `products.stock` | No es el inventario real | ADR de catálogo |
-| D5 | Pagos Yape / Plin / tarjeta | plan-maestro; hoy el cobro es WhatsApp | Feature de producto |
-| D6 | n8n, KDS, RBAC 4 roles, pasteles a medida, Meilisearch | Fuera de alcance de este archivo | plan-maestro |
-| D7 | Reversión de puntos si se “des-completa” | completed es terminal | Nunca, salvo ADR que abra el estado |
-| D8 | Snapshot / versionado de receta al vender | El costeo histórico no es bloqueo de Fase 3; se usa la receta vigente en `processing` | ADR de recetas |
+| ID | Deuda / Característica | Estado Oficial | Resolución Arquitectónica |
+|---|---|:---:|---|
+| D1 | Revertir stock al cancelar después de `processing` | ✅ **RESUELTA** | Resuelta en Fase 6.2 mediante RPC `revert_order_inventory` y bandera `restore_stock` (reversión física vs merma contable). |
+| D2 | Tracking de invitado `/pedido/[token]` | ✅ **RESUELTA** | Resuelta en Fase 6.1 con tokens HMAC-SHA256, vista reactiva y anonimización según Ley 29733. |
+| D3 | Carrito en DB (`carts` / `cart_items`) | 🔒 **CONTRATO DEFINITIVO** | ADR-003 ratificado: Carrito en Pinia + Cookie para máxima velocidad, 0 I/O en DB y conversión sin fricción. |
+| D4 | `products.stock` de catálogo | 🔒 **CONTRATO DEFINITIVO** | ADR-004 ratificado: El catálogo refleja disponibilidad comercial; el stock real se deduce y descuenta de `raw_materials` en recetas. |
+| D5 | Pagos Yape / Plin / tarjeta | ✅ **RESUELTA** | Resuelta en Fase 6.4 con upload de vouchers con Magic Bytes (JPEG/PNG/WebP, max 2MB) y validación 1-clic. |
+| D6 | Ecosistema n8n y KDS Taller | ✅ **RESUELTA** | Resuelta en Fases 6.3 (KDS pantalla completa táctil) y 6.6 (Webhooks firmados HMAC-SHA256 para n8n). |
+| D7 | Reversión de puntos si se “des-completa” | 🔒 **CONTRATO DEFINITIVO** | ADR-007 ratificado: El estado `completed` es estrictamente terminal e inmutable por contrato. |
+| D8 | Snapshot / versionado de receta al vender | ✅ **RESUELTA** | Resuelta en Fase 6.5 mediante Freeze de COGS (`cost_snapshot JSONB`) al entrar a `processing`. |
 
-Nada de D1–D8 se implementa “de paso” en un PR de refactor. Si urge, se abre ADR y se trata como feature, con API + servicio. `cancellation_reversal` no existe en el DDL hasta D1.
+Todas las deudas de refactor y expansión operacional D1 a D8 han sido completamente saldadas o selladas bajo decisiones arquitectónicas definitivas (ADRs).
 
 ### 20.6 Fase 6 — Expansión de Producto, KDS de Taller, Trazabilidad Financiera & Ecosistema de Eventos
 
@@ -1207,4 +1207,54 @@ Nada de D1–D8 se implementa “de paso” en un PR de refactor. Si urge, se ab
 | V54 | Pagos Yape/Plin y Vouchers | Upload seguro con Magic Bytes (JPEG/PNG/WebP, max 2MB) y validación administrativa en 1-click (D5) | sí | ✅ 10/10 |
 | V55 | Freeze de COGS / Escandallo | Snapshot inmutable de receta al pasar a `processing` y cálculo de margen bruto sin recálculo futuro (D8) | sí | ✅ 10/10 |
 | V56 | Webhooks Seguros n8n | Despacho asíncrono fire-and-forget con cabecera `X-DulceFe-Signature` HMAC-SHA256 y timeout de 4s (D6) | sí | ✅ 10/10 |
+
+---
+
+## 21. Reglas Anti-Regresión: Hardening, Portales de Modales, Service Role en Admin y Sesiones Zombi (Branch `fix/system-hardening-and-stability`)
+
+### 21.1 Contexto y Diagnóstico del Incidente
+Durante la validación integral del ERP Administrativo previa a la Fase 7, se identificaron cuatro síntomas críticos de regresión operativa:
+1. **Modales y Botones Administrativos Inertes**: Los botones "Nuevo Insumo", "Nuevo Producto", "Crear Pedido Manual" y "Ver Detalle" no abrían sus modales en pantalla a pesar de cambiar los estados reactivos `showModal = true`.
+2. **Almacén de Insumos Vacío (0 items)**: La pantalla `/admin` pestaña "Almacén" mostraba el estado vacío a pesar de que la base de datos Supabase contenía 20 materias primas en la tabla `raw_materials`.
+3. **KDS 403 Forbidden y Ciclos de Polling**: La pantalla de cocina `/admin/kds` mostraba un banner rojo de error `[GET] "/api/admin/kds/orders": 403 Forbidden` y realizaba polling recursivo cada 15 segundos spameando el servidor.
+4. **Sesión Zombi en Pinia**: Tras expirar o perderse el token JWT de Supabase, la UI administrativa seguía mostrando al usuario en el encabezado (*"jafethworren@gmail.com - Acceso Total"*) debido a que el estado en `localStorage` no se purgaba reactivamente ante desincronizaciones de `useSupabaseUser()`.
+
+### 21.2 Causas Raíz Identificadas
+1. **Portal Teleport Inexistente en el DOM**:
+   - Los componentes `MaterialModal.vue`, `ProductModal.vue`, `NewOrderModal.vue` y `OrderDetailsModal.vue` utilizaban la directiva de Vue `<Teleport to="#admin-modal-portal">`.
+   - El nodo `<div id="admin-modal-portal">` **no existía en ningún archivo de la aplicación** (ni en `admin.vue` ni en `app.vue`). Vue fallaba silenciosamente o no renderizaba el nodo destino, dejando la UI completamente inerte.
+2. **Dependencia Circular en Políticas RLS y Uso Erróneo de `serverSupabaseClient` en Guards de Servidor**:
+   - `requireAdmin(event)` consultaba la tabla `public.profiles` con `serverSupabaseClient`.
+   - La tabla `profiles` tiene RLS habilitado con la política: `USING (public.is_admin())` y `USING (auth.uid() = id)`.
+   - A su vez, `public.is_admin()` ejecuta: `SELECT is_admin FROM public.profiles WHERE id = auth.uid()`.
+   - Si las cookies de sesión fallaban en propagarse en llamadas SSR o la sesión expiraba, `serverSupabaseClient` no disponía de contexto seguro, provocando que la consulta devolviera un error o fila vacía, lanzando `403 FORBIDDEN (PROFILE_NOT_FOUND)`.
+   - Igualmente, `/api/raw-materials/index.get.ts` consultaba con `serverSupabaseClient`. Al no tener contexto admin bajo RLS, PostgreSQL devolvía una lista vacía silenciosamente `[]`.
+3. **Desincronización de Pinia y `useSupabaseUser`**:
+   - Pinia Auth persistía el perfil en `localStorage`. Al refrescar la pestaña tras expirar el token de Supabase, el store mantenía los datos antiguos en memoria mientras que las llamadas a la API fallaban por falta de JWT válido.
+
+### 21.3 Reglas de Arquitectura Mandatorias (Anti-Patrones Prohibidos)
+
+#### Regla AR-1: Portales de Modales Globales Obligatorios
+- **Regla**: Todo layout que soporte vistas con modales desacoplados (`<Teleport to="#admin-modal-portal">`) DEBE incluir explícitamente el contenedor portal:
+  ```html
+  <div id="admin-modal-portal" class="fixed inset-0 z-[100] pointer-events-none empty:hidden"></div>
+  ```
+- **Fallback**: `app/app.vue` DEBE mantener una instancia de respaldo para garantizar que ningún modal quede sin montar en vistas sin layout o en layouts alternativos.
+- **Guard Automatizado**: El test suite `tests/unit/admin-hardening-stability.test.ts` verifica la existencia del ID en los layouts y el target en todos los modales.
+
+#### Regla AR-2: Uso Estricto de `serverSupabaseServiceRole` en Verificación de Permisos Administrativos
+- **Regla**: En el backend de Nitro/Nuxt, la validación de identidad se bifurca estrictamente en dos capas:
+  1. **Autenticación (Quién es)**: Se valida el token JWT criptográficamente con `serverSupabaseUser(event)` / `requireUser(event)`. Si falla → `401 UNAUTHORIZED`.
+  2. **Autorización (Qué rol tiene)**: Una vez verificado el `user.id`, la consulta a `public.profiles` para verificar `is_admin === true` DEBE realizarse mediante `serverSupabaseServiceRole(event)`. Esto previene dependencias circulares de RLS en Postgres y garantiza idempotencia y velocidad.
+- **Endpoints de Lectura/Escritura Administrativos**: Todo endpoint `/api/admin/*` y de gestión interna de inventario (`/api/raw-materials/*`) debe usar `serverSupabaseServiceRole` tras validar `requireAdmin(event)`.
+
+#### Regla AR-3: Sincronización Reactiva de Auth y Erradicación de Sesiones Zombi
+- **Regla**: El cliente Nuxt DEBE suscribirse a `supabase.auth.onAuthStateChange`.
+- Si el evento es `SIGNED_OUT` o `useSupabaseUser().value` es `null`, el store de Pinia DEBE invocar inmediatamente `clearSession()` para purgar `user`, `profile` y `localStorage`.
+- El middleware `admin-only.ts` DEBE verificar activamente la presencia de `user.value` real de Supabase antes de autorizar el renderizado, purgando el store si detecta desincronización y redirigiendo a `/login`.
+
+#### Regla AR-4: Tolerancia a Fallos y Cancelación de Polling en KDS
+- **Regla**: En vistas con refresco periódico en segundo plano (polling como KDS):
+  - Ante respuestas `401` o `403`, el temporizador `pollTimer` DEBE cancelarse de inmediato (`clearInterval`) para no saturar los logs del servidor ni consumir CPU.
+  - La interfaz DEBE mostrar un mensaje claro con botón de acción para reautenticarse (`/login`), reactivando el polling de forma transparente una vez recuperada la sesión válida.
 

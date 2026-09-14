@@ -1,6 +1,4 @@
 import { defineEventHandler, createError } from 'h3'
-import { serverSupabaseServiceRole } from '#supabase/server'
-import type { Database } from '~/types/database.types'
 import { requireAdmin } from '../../../utils/require-admin'
 import { getOrCreateRequestId } from '../../../utils/request-id'
 import type { KdsOrder } from '~/utils/kds'
@@ -9,7 +7,7 @@ export default defineEventHandler(async (event) => {
   const requestId = getOrCreateRequestId(event)
   await requireAdmin(event)
 
-  const supabase = serverSupabaseServiceRole<Database>(event)
+  const supabase = await getAdminSupabaseClient(event)
 
   // Consultar pedidos activos para cocina (pending, processing, ready)
   const { data: rawOrders, error: ordersError } = await supabase

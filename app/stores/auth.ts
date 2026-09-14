@@ -155,25 +155,66 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  function clearSession(): void {
+    user.value = null
+    profile.value = null
+    addresses.value = []
+  }
+
   function setUser(newUser: User | null): void {
     user.value = newUser
     if (newUser) {
       fetchProfile()
       fetchAddresses()
     } else {
-      profile.value = null
-      addresses.value = []
+      clearSession()
     }
   }
 
-  // Sincronización automática en cliente si existe sesión
+  // Sincronización automática en cliente con Supabase Auth
+  let authListenerSubscribed = false
+
   function initAuth(): void {
     if (import.meta.client) {
+      const supabase = useSupabaseClient<Database>()
       const supabaseUser = useSupabaseUser()
-      if (supabaseUser.value && !user.value) {
-        setUser(supabaseUser.value as unknown as User)
+      
+      // Sincronización inicial con el estado real de Supabase
+      if (supabaseUser.value) {
+        if (!user.value || user.value.id !== supabaseUser.value.id) {
+          setUser(supabaseUser.value as unknown as User)
+        } else if (!profile.value) {
+          fetchProfile()
+        }
+      } else {
+        // Purgar sesión zombi si Supabase no tiene usuario activo
+        clearSession()
+      }
+
+      // Escuchar cambios de autenticación en tiempo real
+      if (!authListenerSubscribed) {
+        authListenerSubscribed = true
+        supabase.auth.onAuthStateChange((event, session) => {
+          if (event === 'SIGNED_OUT' || !session?.user) {
+            clearSession()
+          } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+            setUser(session.user as unknown as User)
+          }
+        })
       }
     }
+  }
+
+  async function signOut(): Promise<void> {
+    if (import.meta.client) {
+      try {
+        const supabase = useSupabaseClient<Database>()
+        await supabase.auth.signOut()
+      } catch (err) {
+        console.error('Error al cerrar sesión en Supabase:', err)
+      }
+    }
+    clearSession()
   }
 
   return {
@@ -184,6 +225,8 @@ export const useAuthStore = defineStore('auth', () => {
     isLoggedIn,
     isAdmin,
     setUser,
+    clearSession,
+    signOut,
     initAuth,
     fetchProfile,
     fetchAddresses,
