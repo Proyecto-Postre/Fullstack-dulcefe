@@ -34,12 +34,34 @@ const formData = ref<CheckoutFormData>({
   paymentReceiptUrl: ''
 })
 
-onMounted(() => {
-  if (authStore.isLoggedIn && authStore.user) {
-    formData.value.name = authStore.user.user_metadata?.full_name || authStore.profile?.full_name || ''
-    formData.value.phone = authStore.profile?.phone || ''
+function autoFillUserData() {
+  if (!authStore.isLoggedIn) return
+  if (!formData.value.name) {
+    formData.value.name = authStore.profile?.full_name || authStore.user?.user_metadata?.full_name || ''
+  }
+  if (!formData.value.phone) {
+    const rawPhone = authStore.profile?.phone || authStore.user?.user_metadata?.phone || ''
+    formData.value.phone = rawPhone.replace(/\D/g, '').slice(0, 9)
+  }
+  if (!formData.value.address && authStore.addresses && authStore.addresses.length > 0) {
+    const def = authStore.addresses.find(a => a.is_default) || authStore.addresses[0]
+    if (def?.address_line) {
+      formData.value.address = def.address_line
+    }
+  }
+}
+
+onMounted(async () => {
+  if (authStore.isLoggedIn) {
+    if (!authStore.profile) await authStore.fetchProfile()
+    if (!authStore.addresses || authStore.addresses.length === 0) await authStore.fetchAddresses()
+    autoFillUserData()
   }
 })
+
+watch(() => [authStore.profile, authStore.addresses], () => {
+  autoFillUserData()
+}, { deep: true })
 
 // Redirigir al inicio si el carrito está vacío
 if (import.meta.client && cartStore.items.length === 0) {

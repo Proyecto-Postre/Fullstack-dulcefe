@@ -121,7 +121,7 @@ function removeReceipt() {
       >
         <div class="flex items-center gap-2.5 min-w-0">
           <img
-            src="/images/payments/logo_yape.webp"
+            src="/images/payments/logo_yape.png"
             alt="Logo Yape"
             class="w-8 h-8 rounded-lg object-cover shrink-0 shadow-xs"
           />

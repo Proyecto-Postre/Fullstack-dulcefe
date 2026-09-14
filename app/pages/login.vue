@@ -15,8 +15,10 @@ const isLogin = ref(true)
 const email = ref('')
 const password = ref('')
 const fullName = ref('')
+const phone = ref('')
 const isLoading = ref(false)
 const errorMessage = ref('')
+const successMessage = ref('')
 const showPassword = ref(false)
 
 // Si ya está logueado, redirigir según el rol
@@ -31,32 +33,63 @@ if (import.meta.client && authStore.isLoggedIn) {
 const toggleMode = () => {
   isLogin.value = !isLogin.value
   errorMessage.value = ''
+  successMessage.value = ''
+}
+
+const handlePhoneInput = (e: Event) => {
+  const target = e.target as HTMLInputElement
+  const sanitized = target.value.replace(/\D/g, '').slice(0, 9)
+  phone.value = sanitized
+  target.value = sanitized
 }
 
 const handleSubmit = async () => {
   isLoading.value = true
   errorMessage.value = ''
+  successMessage.value = ''
   
   try {
     if (isLogin.value) {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.value,
+        email: email.value.trim(),
         password: password.value,
       })
       if (error) throw error
       authStore.setUser(data.user)
     } else {
+      // Validar teléfono para registro en Perú
+      const cleanPhone = phone.value.trim()
+      if (!cleanPhone.startsWith('9') || cleanPhone.length !== 9) {
+        throw new Error('Ingresa un número de celular peruano válido (9 dígitos comenzando con 9).')
+      }
+
       const { data, error } = await supabase.auth.signUp({
-        email: email.value,
+        email: email.value.trim(),
         password: password.value,
         options: {
           data: {
-            full_name: fullName.value
+            full_name: fullName.value.trim(),
+            phone: cleanPhone
           }
         }
       })
       if (error) throw error
-      authStore.setUser(data.user)
+      
+      if (data.user) {
+        authStore.setUser(data.user)
+        // Sincronizar teléfono y nombre en profiles si la sesión fue creada
+        try {
+          await supabase
+            .from('profiles')
+            .update({
+              full_name: fullName.value.trim(),
+              phone: cleanPhone
+            })
+            .eq('id', data.user.id)
+        } catch {
+          // Si el trigger de BD ya lo procesó, continuar limpiamente
+        }
+      }
     }
 
     // Esperar a que el perfil se cargue para saber si es admin
@@ -78,97 +111,275 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <div class="w-full max-w-md my-auto">
-    <!-- Header -->
-    <div class="text-center mb-6">
-      <h1 class="text-3xl font-playfair font-black text-brand-secondary">
-        {{ isLogin ? 'Bienvenido de vuelta' : 'Crea tu Cuenta' }}
-      </h1>
-      <p class="text-brand-primary text-sm font-medium mt-1.5">
-        {{ isLogin ? 'Ingresa para ver tus pedidos y acumular puntos' : 'Únete a nuestra familia dulce y disfruta postres de autor' }}
-      </p>
-    </div>
+  <div class="w-full max-w-5xl my-auto">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch bg-surface/90 backdrop-blur-md border border-brand-primary/10 rounded-[2.5rem] shadow-soft-lg overflow-hidden">
+      
+      <!-- Columna Izquierda: Experiencia de Marca & Beneficios (Visible en escritorio) -->
+      <div class="lg:col-span-5 bg-gradient-to-br from-brand-secondary via-[#1b2f1f] to-[#122015] text-brand-cream p-8 sm:p-10 flex flex-col justify-between relative overflow-hidden">
+        <!-- Decoraciones sutiles de fondo -->
+        <div class="absolute top-0 right-0 translate-x-8 -translate-y-8 w-44 h-44 bg-brand-primary/15 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="absolute bottom-0 left-0 -translate-x-8 translate-y-8 w-52 h-52 bg-brand-primary/10 rounded-full blur-3xl pointer-events-none"></div>
 
-    <!-- Tarjeta de Formulario Premium Soft -->
-    <div class="bg-surface/95 backdrop-blur-md border border-brand-primary/10 rounded-[2rem] p-7 sm:p-8 shadow-soft-lg">
-        
-      <form @submit.prevent="handleSubmit" class="space-y-5">
-          
-        <!-- Nombre (Solo Registro) -->
-        <div v-if="!isLogin" class="space-y-2 animate-pop">
-          <label for="fullName" class="block text-sm font-bold text-brand-secondary uppercase tracking-wider">Nombre Completo</label>
-          <input 
-            id="fullName"
-            v-model="fullName"
-            type="text" 
-            required
-            placeholder="Ej. María Pérez"
-            class="w-full bg-surface border border-brand-primary/20 rounded-xl px-4 py-3 text-brand-secondary font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent transition-all placeholder:text-brand-primary/40 shadow-soft-sm"
-          >
-        </div>
+        <div class="relative z-10">
+          <!-- Badge -->
+          <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/15 text-xs font-semibold text-brand-cream/90 mb-6">
+            <Icon name="lucide:sparkles" class="w-3.5 h-3.5 text-amber-300" />
+            <span>Repostería Fina Artesanal</span>
+          </div>
 
-        <!-- Email -->
-        <div class="space-y-2">
-          <label for="email" class="block text-sm font-bold text-brand-secondary uppercase tracking-wider">Correo Electrónico</label>
-          <input 
-            id="email"
-            v-model="email"
-            type="email" 
-            required
-            autocomplete="email"
-            placeholder="tu@correo.com"
-            class="w-full bg-surface border border-brand-primary/20 rounded-xl px-4 py-3 text-brand-secondary font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent transition-all placeholder:text-brand-primary/40 shadow-soft-sm"
-          >
-        </div>
+          <!-- Título Heroico -->
+          <h2 class="text-3xl sm:text-4xl font-playfair font-black leading-tight text-white mb-3">
+            Momentos dulces que alegran el corazón
+          </h2>
+          <p class="text-brand-cream/75 text-sm leading-relaxed mb-8">
+            Ingredientes seleccionados, horneados a mano con amor, técnica y devoción por cada detalle.
+          </p>
 
-        <!-- Contraseña -->
-        <div class="space-y-2">
-          <label for="password" class="block text-sm font-bold text-brand-secondary uppercase tracking-wider">Contraseña</label>
-          <div class="relative">
-            <input 
-              id="password"
-              v-model="password"
-              :type="showPassword ? 'text' : 'password'" 
-              required
-              :autocomplete="isLogin ? 'current-password' : 'new-password'"
-              placeholder="••••••••"
-              class="w-full bg-surface border border-brand-primary/20 rounded-xl px-4 py-3 pr-12 text-brand-secondary font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent transition-all placeholder:text-brand-primary/40 shadow-soft-sm"
-            >
-            <button
-              type="button"
-              aria-label="Alternar visibilidad de contraseña"
-              @click="showPassword = !showPassword"
-              class="absolute right-4 top-1/2 -translate-y-1/2 text-brand-primary/50 hover:text-brand-secondary transition-colors cursor-pointer"
-            >
-              <Icon :name="showPassword ? 'lucide:eye-off' : 'lucide:eye'" class="w-5 h-5" />
-            </button>
+          <!-- Lista de Beneficios Exclusivos -->
+          <div class="space-y-4">
+            <div class="flex items-start gap-3.5 p-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xs">
+              <div class="w-9 h-9 rounded-xl bg-brand-primary/20 text-brand-cream flex items-center justify-center shrink-0">
+                <Icon name="lucide:cake" class="w-5 h-5 text-amber-300" />
+              </div>
+              <div>
+                <p class="text-xs font-bold text-white leading-snug">Lotes Pequeños & Frescura</p>
+                <p class="text-[11px] text-brand-cream/70 leading-relaxed mt-0.5">Elaboración diaria sin conservantes artificiales.</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3.5 p-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xs">
+              <div class="w-9 h-9 rounded-xl bg-brand-primary/20 text-brand-cream flex items-center justify-center shrink-0">
+                <Icon name="lucide:award" class="w-5 h-5 text-amber-300" />
+              </div>
+              <div>
+                <p class="text-xs font-bold text-white leading-snug">Club Dulce Fe</p>
+                <p class="text-[11px] text-brand-cream/70 leading-relaxed mt-0.5">Acumula puntos con cada compra y canjea delicias.</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3.5 p-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xs">
+              <div class="w-9 h-9 rounded-xl bg-brand-primary/20 text-brand-cream flex items-center justify-center shrink-0">
+                <Icon name="lucide:message-circle" class="w-5 h-5 text-emerald-300" />
+              </div>
+              <div>
+                <p class="text-xs font-bold text-white leading-snug">Coordinación por WhatsApp</p>
+                <p class="text-[11px] text-brand-cream/70 leading-relaxed mt-0.5">Notificaciones y seguimiento transparente de tu pedido.</p>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Mensaje de Error -->
-        <div v-if="errorMessage" role="alert" aria-live="assertive" class="p-3 bg-red-50 border border-status-danger/20 rounded-xl text-status-danger text-sm font-medium animate-pop shadow-soft-sm">
-          {{ errorMessage }}
+        <!-- Cita Testimonial -->
+        <div class="relative z-10 mt-8 pt-6 border-t border-white/10">
+          <p class="text-xs italic text-brand-cream/80 leading-relaxed">
+            "El sabor de lo casero llevado al nivel de alta pastelería. Inolvidable."
+          </p>
+          <div class="flex items-center gap-1.5 mt-2 text-amber-300">
+            <Icon v-for="i in 5" :key="i" name="lucide:star" class="w-3 h-3 fill-amber-300" />
+            <span class="text-[10px] font-semibold text-brand-cream/60 ml-1.5">Clientes Verificados</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Columna Derecha: Tarjeta de Formulario (Login / Registro) -->
+      <div class="lg:col-span-7 p-7 sm:p-10 flex flex-col justify-center">
+        <!-- Switcher Píldora Superior -->
+        <div class="flex items-center p-1 bg-brand-primary/5 rounded-2xl border border-brand-primary/10 mb-6">
+          <button
+            type="button"
+            @click="isLogin = true; errorMessage = ''"
+            :class="[
+              'flex-1 py-2.5 text-xs font-black rounded-xl transition-all cursor-pointer text-center',
+              isLogin 
+                ? 'bg-brand-secondary text-brand-cream shadow-soft-sm' 
+                : 'text-brand-secondary/70 hover:text-brand-secondary'
+            ]"
+          >
+            Iniciar Sesión
+          </button>
+          <button
+            type="button"
+            @click="isLogin = false; errorMessage = ''"
+            :class="[
+              'flex-1 py-2.5 text-xs font-black rounded-xl transition-all cursor-pointer text-center',
+              !isLogin 
+                ? 'bg-brand-secondary text-brand-cream shadow-soft-sm' 
+                : 'text-brand-secondary/70 hover:text-brand-secondary'
+            ]"
+          >
+            Crear Cuenta
+          </button>
         </div>
 
-        <!-- Botón Submit -->
-        <button 
-          type="submit"
-          :disabled="isLoading"
-          class="w-full bg-brand-primary text-white font-bold py-4 rounded-xl shadow-soft-md hover:shadow-soft-lg hover:-translate-y-0.5 hover:bg-brand-secondary active:translate-y-0 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm uppercase tracking-widest mt-4 cursor-pointer"
-        >
-          <Icon v-if="isLoading" name="lucide:loader-2" class="w-6 h-6 animate-spin" />
-          <span v-else>{{ isLogin ? 'Iniciar Sesión' : 'Crear Cuenta' }}</span>
-        </button>
-      </form>
+        <!-- Encabezado del Formulario -->
+        <div class="mb-6">
+          <h1 class="text-2xl sm:text-3xl font-playfair font-black text-brand-secondary">
+            {{ isLogin ? 'Bienvenido a Dulce Fe' : 'Únete a nuestra familia' }}
+          </h1>
+          <p class="text-brand-primary text-xs sm:text-sm font-medium mt-1">
+            {{ isLogin ? 'Ingresa tus credenciales para gestionar tus pedidos.' : 'Crea tu cuenta en 1 minuto y empieza a acumular puntos.' }}
+          </p>
+        </div>
 
-      <!-- Toggle Mode -->
-      <div class="mt-6 text-center">
-        <button 
-          @click.prevent="toggleMode"
-          class="text-brand-primary font-bold hover:text-brand-secondary transition-colors underline decoration-2 underline-offset-4 cursor-pointer text-sm"
-        >
-          {{ isLogin ? '¿No tienes cuenta? Regístrate aquí' : '¿Ya tienes cuenta? Inicia sesión' }}
-        </button>
+        <!-- Formulario -->
+        <form @submit.prevent="handleSubmit" class="space-y-4">
+          
+          <!-- Nombre Completo (Solo Registro) -->
+          <div v-if="!isLogin" class="space-y-1.5 animate-pop">
+            <label for="fullName" class="block text-xs font-bold text-brand-secondary uppercase tracking-wider">
+              Nombre Completo
+            </label>
+            <div class="relative">
+              <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-primary/50">
+                <Icon name="lucide:user" class="w-4 h-4" />
+              </span>
+              <input 
+                id="fullName"
+                v-model="fullName"
+                type="text" 
+                required
+                autocomplete="name"
+                placeholder="Ej. María Pérez"
+                class="w-full bg-surface border border-brand-primary/20 rounded-xl pl-10 pr-4 py-2.5 text-sm text-brand-secondary font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent transition-all placeholder:text-brand-primary/40 shadow-soft-sm"
+              >
+            </div>
+          </div>
+
+          <!-- Teléfono / WhatsApp (Solo Registro) -->
+          <div v-if="!isLogin" class="space-y-1.5 animate-pop">
+            <div class="flex items-center justify-between">
+              <label for="phone" class="block text-xs font-bold text-brand-secondary uppercase tracking-wider">
+                Celular / WhatsApp (Perú)
+              </label>
+              <span class="text-[11px] font-bold" :class="phone.length === 9 && phone.startsWith('9') ? 'text-emerald-700' : 'text-stone-400'">
+                {{ phone.length }}/9
+              </span>
+            </div>
+            <div class="relative flex items-center">
+              <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-primary/70 text-xs font-bold flex items-center gap-1 select-none pointer-events-none">
+                🇵🇪 +51
+              </span>
+              <input 
+                id="phone"
+                :value="phone"
+                @input="handlePhoneInput"
+                type="tel" 
+                required
+                inputmode="numeric"
+                maxlength="9"
+                autocomplete="tel"
+                placeholder="987654321"
+                class="w-full bg-surface border border-brand-primary/20 rounded-xl pl-18 pr-4 py-2.5 text-sm text-brand-secondary font-semibold focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent transition-all placeholder:text-brand-primary/40 shadow-soft-sm"
+              >
+            </div>
+            <p class="text-[10px] text-stone-500">
+              Coordinaremos el estado de tus pedidos y la entrega por este número.
+            </p>
+          </div>
+
+          <!-- Email -->
+          <div class="space-y-1.5">
+            <label for="email" class="block text-xs font-bold text-brand-secondary uppercase tracking-wider">
+              Correo Electrónico
+            </label>
+            <div class="relative">
+              <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-primary/50">
+                <Icon name="lucide:mail" class="w-4 h-4" />
+              </span>
+              <input 
+                id="email"
+                v-model="email"
+                type="email" 
+                required
+                autocomplete="email"
+                placeholder="tu@correo.com"
+                class="w-full bg-surface border border-brand-primary/20 rounded-xl pl-10 pr-4 py-2.5 text-sm text-brand-secondary font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent transition-all placeholder:text-brand-primary/40 shadow-soft-sm"
+              >
+            </div>
+          </div>
+
+          <!-- Contraseña -->
+          <div class="space-y-1.5">
+            <label for="password" class="block text-xs font-bold text-brand-secondary uppercase tracking-wider">
+              Contraseña
+            </label>
+            <div class="relative">
+              <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-primary/50">
+                <Icon name="lucide:lock" class="w-4 h-4" />
+              </span>
+              <input 
+                id="password"
+                v-model="password"
+                :type="showPassword ? 'text' : 'password'" 
+                required
+                :autocomplete="isLogin ? 'current-password' : 'new-password'"
+                placeholder="••••••••"
+                class="w-full bg-surface border border-brand-primary/20 rounded-xl pl-10 pr-11 py-2.5 text-sm text-brand-secondary font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent transition-all placeholder:text-brand-primary/40 shadow-soft-sm"
+              >
+              <button
+                type="button"
+                aria-label="Alternar visibilidad de contraseña"
+                @click="showPassword = !showPassword"
+                class="absolute right-3.5 top-1/2 -translate-y-1/2 text-brand-primary/50 hover:text-brand-secondary transition-colors cursor-pointer"
+              >
+                <Icon :name="showPassword ? 'lucide:eye-off' : 'lucide:eye'" class="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          <!-- Mensaje de Error -->
+          <div 
+            v-if="errorMessage" 
+            role="alert" 
+            aria-live="assertive" 
+            class="p-3 bg-red-50 border border-status-danger/20 rounded-xl text-status-danger text-xs font-medium flex items-center gap-2 animate-pop"
+          >
+            <Icon name="lucide:alert-circle" class="w-4 h-4 shrink-0" />
+            <span>{{ errorMessage }}</span>
+          </div>
+
+          <!-- Mensaje de Éxito -->
+          <div 
+            v-if="successMessage" 
+            role="status" 
+            class="p-3 bg-emerald-50 border border-emerald-500/20 rounded-xl text-emerald-800 text-xs font-medium flex items-center gap-2 animate-pop"
+          >
+            <Icon name="lucide:check-circle" class="w-4 h-4 shrink-0 text-emerald-600" />
+            <span>{{ successMessage }}</span>
+          </div>
+
+          <!-- Botón de Envío -->
+          <button 
+            type="submit" 
+            :disabled="isLoading"
+            class="w-full bg-brand-primary hover:bg-brand-secondary text-brand-cream font-bold py-3 px-6 rounded-xl transition-all shadow-soft-sm hover:shadow-soft-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer mt-2"
+          >
+            <Icon v-if="isLoading" name="lucide:loader-2" class="w-4 h-4 animate-spin" />
+            <span>{{ isLogin ? 'Iniciar Sesión' : 'Crear mi Cuenta' }}</span>
+          </button>
+
+        </form>
+
+        <!-- Alternar entre Login y Registro -->
+        <div class="text-center mt-5 pt-4 border-t border-brand-primary/10">
+          <p class="text-xs text-brand-secondary/80">
+            {{ isLogin ? '¿Aún no tienes cuenta?' : '¿Ya eres parte de Dulce Fe?' }}
+            <button 
+              type="button"
+              @click="toggleMode" 
+              class="font-black text-brand-primary hover:underline ml-1 cursor-pointer"
+            >
+              {{ isLogin ? 'Regístrate gratis aquí' : 'Inicia sesión aquí' }}
+            </button>
+          </p>
+        </div>
+
+        <!-- Sello de Seguridad -->
+        <div class="flex items-center justify-center gap-1.5 text-[11px] text-stone-400 mt-4">
+          <Icon name="lucide:shield-check" class="w-3.5 h-3.5 text-brand-primary/60" />
+          <span>Tus datos están protegidos con cifrado SSL</span>
+        </div>
+
       </div>
 
     </div>
