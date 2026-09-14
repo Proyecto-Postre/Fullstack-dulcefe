@@ -115,7 +115,7 @@ const handleSubmit = async () => {
     <div class="grid grid-cols-1 lg:grid-cols-12 items-stretch bg-surface/95 backdrop-blur-md border border-brand-primary/10 rounded-[2rem] shadow-soft-lg overflow-hidden">
       
       <!-- Columna Izquierda: Experiencia de Marca & Beneficios -->
-      <div class="lg:col-span-5 bg-gradient-to-br from-brand-secondary via-[#1b2f1f] to-[#122015] text-brand-cream px-7 sm:px-8 lg:px-9 py-14 sm:py-16 lg:py-[75px] flex flex-col justify-between relative overflow-hidden">
+      <div class="lg:col-span-5 bg-gradient-to-br from-brand-secondary via-[#1b2f1f] to-[#122015] text-brand-cream px-7 sm:px-8 lg:px-9 py-[90px] sm:py-[105px] lg:py-[125px] flex flex-col justify-between relative overflow-hidden">
         <!-- Decoraciones sutiles de fondo -->
         <div class="absolute top-0 right-0 translate-x-8 -translate-y-8 w-44 h-44 bg-brand-primary/15 rounded-full blur-2xl pointer-events-none"></div>
         <div class="absolute bottom-0 left-0 -translate-x-8 translate-y-8 w-48 h-48 bg-brand-primary/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -181,7 +181,7 @@ const handleSubmit = async () => {
       </div>
 
       <!-- Columna Derecha: Tarjeta de Formulario -->
-      <div class="lg:col-span-7 px-7 sm:px-8 lg:px-9 py-14 sm:py-16 lg:py-[75px] flex flex-col justify-center">
+      <div class="lg:col-span-7 px-7 sm:px-8 lg:px-9 py-[90px] sm:py-[105px] lg:py-[125px] flex flex-col justify-center">
         <!-- Switcher Píldora Superior -->
         <div class="flex items-center p-1 bg-brand-primary/5 rounded-2xl border border-brand-primary/10 mb-5">
           <button
