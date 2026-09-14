@@ -111,84 +111,84 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <div class="w-full max-w-4xl my-auto">
-    <div class="grid grid-cols-1 lg:grid-cols-12 items-stretch bg-surface/90 backdrop-blur-md border border-brand-primary/10 rounded-3xl shadow-soft-lg overflow-hidden">
+  <div class="w-full max-w-5xl my-auto">
+    <div class="grid grid-cols-1 lg:grid-cols-12 items-stretch bg-surface/95 backdrop-blur-md border border-brand-primary/10 rounded-[2rem] shadow-soft-lg overflow-hidden">
       
       <!-- Columna Izquierda: Experiencia de Marca & Beneficios -->
-      <div class="lg:col-span-5 bg-gradient-to-br from-brand-secondary via-[#1b2f1f] to-[#122015] text-brand-cream p-6 sm:p-7 flex flex-col justify-between relative overflow-hidden">
+      <div class="lg:col-span-5 bg-gradient-to-br from-brand-secondary via-[#1b2f1f] to-[#122015] text-brand-cream px-7 sm:px-8 lg:px-9 py-14 sm:py-16 lg:py-[75px] flex flex-col justify-between relative overflow-hidden">
         <!-- Decoraciones sutiles de fondo -->
-        <div class="absolute top-0 right-0 translate-x-8 -translate-y-8 w-36 h-36 bg-brand-primary/15 rounded-full blur-2xl pointer-events-none"></div>
-        <div class="absolute bottom-0 left-0 -translate-x-8 translate-y-8 w-40 h-40 bg-brand-primary/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute top-0 right-0 translate-x-8 -translate-y-8 w-44 h-44 bg-brand-primary/15 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="absolute bottom-0 left-0 -translate-x-8 translate-y-8 w-48 h-48 bg-brand-primary/10 rounded-full blur-3xl pointer-events-none"></div>
 
         <div class="relative z-10">
           <!-- Badge -->
-          <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/15 text-[11px] font-semibold text-brand-cream/90 mb-3">
-            <Icon name="lucide:sparkles" class="w-3 h-3 text-amber-300" />
+          <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/15 text-xs font-semibold text-brand-cream/90 mb-4">
+            <Icon name="lucide:sparkles" class="w-3.5 h-3.5 text-amber-300" />
             <span>Repostería Fina Artesanal</span>
           </div>
 
           <!-- Título Heroico -->
-          <h2 class="text-2xl sm:text-3xl font-playfair font-black leading-snug text-white mb-2">
+          <h2 class="text-3xl lg:text-[2rem] font-playfair font-black leading-tight text-white mb-2.5">
             Momentos dulces que alegran el corazón
           </h2>
-          <p class="text-brand-cream/75 text-xs leading-relaxed mb-4">
-            Ingredientes seleccionados, horneados a mano con amor y devoción por cada detalle.
+          <p class="text-brand-cream/80 text-xs sm:text-sm leading-relaxed mb-6">
+            Ingredientes seleccionados, horneados a mano con amor, técnica y devoción por cada detalle.
           </p>
 
-          <!-- Lista de Beneficios Compacta -->
-          <div class="space-y-2">
-            <div class="flex items-center gap-2.5 p-2 rounded-xl bg-white/5 border border-white/10">
-              <div class="w-7 h-7 rounded-lg bg-brand-primary/20 text-brand-cream flex items-center justify-center shrink-0">
+          <!-- Lista de Beneficios -->
+          <div class="space-y-3">
+            <div class="flex items-center gap-3 p-2.5 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xs">
+              <div class="w-8 h-8 rounded-lg bg-brand-primary/20 text-brand-cream flex items-center justify-center shrink-0">
                 <Icon name="lucide:cake" class="w-4 h-4 text-amber-300" />
               </div>
               <div class="min-w-0">
-                <p class="text-xs font-bold text-white leading-tight">Lotes Pequeños & Frescura</p>
-                <p class="text-[10px] text-brand-cream/70 leading-tight mt-0.5 truncate">Elaboración diaria sin conservantes.</p>
+                <p class="text-xs font-bold text-white leading-snug">Lotes Pequeños & Frescura</p>
+                <p class="text-[11px] text-brand-cream/70 leading-tight mt-0.5">Elaboración diaria sin conservantes.</p>
               </div>
             </div>
 
-            <div class="flex items-center gap-2.5 p-2 rounded-xl bg-white/5 border border-white/10">
-              <div class="w-7 h-7 rounded-lg bg-brand-primary/20 text-brand-cream flex items-center justify-center shrink-0">
+            <div class="flex items-center gap-3 p-2.5 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xs">
+              <div class="w-8 h-8 rounded-lg bg-brand-primary/20 text-brand-cream flex items-center justify-center shrink-0">
                 <Icon name="lucide:award" class="w-4 h-4 text-amber-300" />
               </div>
               <div class="min-w-0">
-                <p class="text-xs font-bold text-white leading-tight">Club Dulce Fe</p>
-                <p class="text-[10px] text-brand-cream/70 leading-tight mt-0.5 truncate">Acumula puntos y canjea postres gratis.</p>
+                <p class="text-xs font-bold text-white leading-snug">Club Dulce Fe</p>
+                <p class="text-[11px] text-brand-cream/70 leading-tight mt-0.5">Acumula puntos y canjea postres gratis.</p>
               </div>
             </div>
 
-            <div class="flex items-center gap-2.5 p-2 rounded-xl bg-white/5 border border-white/10">
-              <div class="w-7 h-7 rounded-lg bg-brand-primary/20 text-brand-cream flex items-center justify-center shrink-0">
+            <div class="flex items-center gap-3 p-2.5 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xs">
+              <div class="w-8 h-8 rounded-lg bg-brand-primary/20 text-brand-cream flex items-center justify-center shrink-0">
                 <Icon name="lucide:message-circle" class="w-4 h-4 text-emerald-300" />
               </div>
               <div class="min-w-0">
-                <p class="text-xs font-bold text-white leading-tight">Coordinación por WhatsApp</p>
-                <p class="text-[10px] text-brand-cream/70 leading-tight mt-0.5 truncate">Seguimiento en vivo y entrega puntual.</p>
+                <p class="text-xs font-bold text-white leading-snug">Coordinación por WhatsApp</p>
+                <p class="text-[11px] text-brand-cream/70 leading-tight mt-0.5">Seguimiento en vivo y entrega puntual.</p>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Cita Testimonial Compacta -->
-        <div class="relative z-10 mt-4 pt-3 border-t border-white/10 flex items-center justify-between">
-          <p class="text-[11px] italic text-brand-cream/80 truncate">
+        <!-- Cita Testimonial con Estrellas Doradas Llenas -->
+        <div class="relative z-10 mt-6 pt-4 border-t border-white/10 flex items-center justify-between">
+          <p class="text-xs italic text-brand-cream/85">
             "Alta pastelería con sabor auténtico."
           </p>
-          <div class="flex items-center gap-0.5 text-amber-300 shrink-0">
-            <Icon v-for="i in 5" :key="i" name="lucide:star" class="w-2.5 h-2.5 fill-amber-300" />
+          <div class="flex items-center gap-1 text-amber-400 shrink-0">
+            <Icon v-for="i in 5" :key="i" name="lucide:star" class="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
           </div>
         </div>
       </div>
 
       <!-- Columna Derecha: Tarjeta de Formulario -->
-      <div class="lg:col-span-7 p-6 sm:p-7 flex flex-col justify-center">
-        <!-- Switcher Píldora Superior Compacto -->
-        <div class="flex items-center p-1 bg-brand-primary/5 rounded-xl border border-brand-primary/10 mb-3.5">
+      <div class="lg:col-span-7 px-7 sm:px-8 lg:px-9 py-14 sm:py-16 lg:py-[75px] flex flex-col justify-center">
+        <!-- Switcher Píldora Superior -->
+        <div class="flex items-center p-1 bg-brand-primary/5 rounded-2xl border border-brand-primary/10 mb-5">
           <button
             type="button"
             @click="isLogin = true; errorMessage = ''"
             :class="[
-              'flex-1 py-1.5 text-xs font-black rounded-lg transition-all cursor-pointer text-center',
+              'flex-1 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer text-center',
               isLogin 
                 ? 'bg-brand-secondary text-brand-cream shadow-soft-sm' 
                 : 'text-brand-secondary/70 hover:text-brand-secondary'
@@ -200,7 +200,7 @@ const handleSubmit = async () => {
             type="button"
             @click="isLogin = false; errorMessage = ''"
             :class="[
-              'flex-1 py-1.5 text-xs font-black rounded-lg transition-all cursor-pointer text-center',
+              'flex-1 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer text-center',
               !isLogin 
                 ? 'bg-brand-secondary text-brand-cream shadow-soft-sm' 
                 : 'text-brand-secondary/70 hover:text-brand-secondary'
@@ -211,25 +211,25 @@ const handleSubmit = async () => {
         </div>
 
         <!-- Encabezado del Formulario -->
-        <div class="mb-3">
-          <h1 class="text-xl sm:text-2xl font-playfair font-black text-brand-secondary leading-tight">
+        <div class="mb-4">
+          <h1 class="text-2xl sm:text-3xl font-playfair font-black text-brand-secondary leading-tight">
             {{ isLogin ? 'Bienvenido a Dulce Fe' : 'Únete a nuestra familia' }}
           </h1>
-          <p class="text-brand-primary text-xs font-medium mt-0.5">
+          <p class="text-brand-primary text-xs sm:text-sm font-medium mt-1">
             {{ isLogin ? 'Ingresa tus credenciales para gestionar tus pedidos.' : 'Crea tu cuenta en 1 minuto y empieza a acumular puntos.' }}
           </p>
         </div>
 
         <!-- Formulario -->
-        <form @submit.prevent="handleSubmit" class="space-y-2.5">
+        <form @submit.prevent="handleSubmit" class="space-y-3.5">
           
           <!-- Nombre Completo (Solo Registro) -->
-          <div v-if="!isLogin" class="space-y-1 animate-pop">
-            <label for="fullName" class="block text-[11px] font-bold text-brand-secondary uppercase tracking-wider">
+          <div v-if="!isLogin" class="space-y-1.5 animate-pop">
+            <label for="fullName" class="block text-xs font-bold text-brand-secondary uppercase tracking-wider">
               Nombre Completo
             </label>
             <div class="relative">
-              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-brand-primary/50">
+              <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-primary/50">
                 <Icon name="lucide:user" class="w-4 h-4" />
               </span>
               <input 
@@ -239,23 +239,23 @@ const handleSubmit = async () => {
                 required
                 autocomplete="name"
                 placeholder="Ej. María Pérez"
-                class="w-full bg-surface border border-brand-primary/20 rounded-xl pl-9 pr-3 py-2 text-xs sm:text-sm text-brand-secondary font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent transition-all placeholder:text-brand-primary/40 shadow-soft-sm"
+                class="w-full bg-surface border border-brand-primary/20 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-brand-secondary font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent transition-all placeholder:text-brand-primary/40 shadow-soft-sm"
               >
             </div>
           </div>
 
-          <!-- Celular / WhatsApp (Solo Registro) con grupo de entrada limpio sin solapamiento -->
-          <div v-if="!isLogin" class="space-y-1 animate-pop">
+          <!-- Celular / WhatsApp (Solo Registro) con grupo de entrada integrado y sin solapamientos -->
+          <div v-if="!isLogin" class="space-y-1.5 animate-pop">
             <div class="flex items-center justify-between">
-              <label for="phone" class="block text-[11px] font-bold text-brand-secondary uppercase tracking-wider">
+              <label for="phone" class="block text-xs font-bold text-brand-secondary uppercase tracking-wider">
                 Celular / WhatsApp (Perú)
               </label>
-              <span class="text-[10px] font-bold" :class="phone.length === 9 && phone.startsWith('9') ? 'text-emerald-700' : 'text-stone-400'">
+              <span class="text-[11px] font-bold" :class="phone.length === 9 && phone.startsWith('9') ? 'text-emerald-700' : 'text-stone-400'">
                 {{ phone.length }}/9
               </span>
             </div>
             <div class="flex rounded-xl border border-brand-primary/20 bg-surface overflow-hidden shadow-soft-sm focus-within:ring-2 focus-within:ring-brand-primary focus-within:border-transparent">
-              <div class="inline-flex items-center gap-1 px-3 bg-brand-primary/5 text-brand-secondary text-xs font-bold border-r border-brand-primary/15 select-none shrink-0">
+              <div class="inline-flex items-center gap-1.5 px-3.5 bg-brand-primary/5 text-brand-secondary text-xs font-bold border-r border-brand-primary/15 select-none shrink-0">
                 <span>🇵🇪</span>
                 <span>+51</span>
               </div>
@@ -269,18 +269,18 @@ const handleSubmit = async () => {
                 maxlength="9"
                 autocomplete="tel"
                 placeholder="987 654 321"
-                class="w-full bg-transparent px-3 py-2 text-xs sm:text-sm text-brand-secondary font-semibold focus:outline-none placeholder:text-brand-primary/40"
+                class="w-full bg-transparent px-3.5 py-2.5 text-sm text-brand-secondary font-semibold focus:outline-none placeholder:text-brand-primary/40"
               >
             </div>
           </div>
 
           <!-- Email -->
-          <div class="space-y-1">
-            <label for="email" class="block text-[11px] font-bold text-brand-secondary uppercase tracking-wider">
+          <div class="space-y-1.5">
+            <label for="email" class="block text-xs font-bold text-brand-secondary uppercase tracking-wider">
               Correo Electrónico
             </label>
             <div class="relative">
-              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-brand-primary/50">
+              <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-primary/50">
                 <Icon name="lucide:mail" class="w-4 h-4" />
               </span>
               <input 
@@ -290,18 +290,18 @@ const handleSubmit = async () => {
                 required
                 autocomplete="email"
                 placeholder="tu@correo.com"
-                class="w-full bg-surface border border-brand-primary/20 rounded-xl pl-9 pr-3 py-2 text-xs sm:text-sm text-brand-secondary font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent transition-all placeholder:text-brand-primary/40 shadow-soft-sm"
+                class="w-full bg-surface border border-brand-primary/20 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-brand-secondary font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent transition-all placeholder:text-brand-primary/40 shadow-soft-sm"
               >
             </div>
           </div>
 
           <!-- Contraseña -->
-          <div class="space-y-1">
-            <label for="password" class="block text-[11px] font-bold text-brand-secondary uppercase tracking-wider">
+          <div class="space-y-1.5">
+            <label for="password" class="block text-xs font-bold text-brand-secondary uppercase tracking-wider">
               Contraseña
             </label>
             <div class="relative">
-              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-brand-primary/50">
+              <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-primary/50">
                 <Icon name="lucide:lock" class="w-4 h-4" />
               </span>
               <input 
@@ -311,13 +311,13 @@ const handleSubmit = async () => {
                 required
                 :autocomplete="isLogin ? 'current-password' : 'new-password'"
                 placeholder="••••••••"
-                class="w-full bg-surface border border-brand-primary/20 rounded-xl pl-9 pr-10 py-2 text-xs sm:text-sm text-brand-secondary font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent transition-all placeholder:text-brand-primary/40 shadow-soft-sm"
+                class="w-full bg-surface border border-brand-primary/20 rounded-xl pl-10 pr-11 py-2.5 text-sm text-brand-secondary font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent transition-all placeholder:text-brand-primary/40 shadow-soft-sm"
               >
               <button
                 type="button"
                 aria-label="Alternar visibilidad de contraseña"
                 @click="showPassword = !showPassword"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-brand-primary/50 hover:text-brand-secondary transition-colors cursor-pointer"
+                class="absolute right-3.5 top-1/2 -translate-y-1/2 text-brand-primary/50 hover:text-brand-secondary transition-colors cursor-pointer"
               >
                 <Icon :name="showPassword ? 'lucide:eye-off' : 'lucide:eye'" class="w-4 h-4" />
               </button>
@@ -329,7 +329,7 @@ const handleSubmit = async () => {
             v-if="errorMessage" 
             role="alert" 
             aria-live="assertive" 
-            class="p-2.5 bg-red-50 border border-status-danger/20 rounded-xl text-status-danger text-xs font-medium flex items-center gap-2 animate-pop"
+            class="p-3 bg-red-50 border border-status-danger/20 rounded-xl text-status-danger text-xs font-medium flex items-center gap-2 animate-pop"
           >
             <Icon name="lucide:alert-circle" class="w-4 h-4 shrink-0" />
             <span>{{ errorMessage }}</span>
@@ -339,7 +339,7 @@ const handleSubmit = async () => {
           <div 
             v-if="successMessage" 
             role="status" 
-            class="p-2.5 bg-emerald-50 border border-emerald-500/20 rounded-xl text-emerald-800 text-xs font-medium flex items-center gap-2 animate-pop"
+            class="p-3 bg-emerald-50 border border-emerald-500/20 rounded-xl text-emerald-800 text-xs font-medium flex items-center gap-2 animate-pop"
           >
             <Icon name="lucide:check-circle" class="w-4 h-4 shrink-0 text-emerald-600" />
             <span>{{ successMessage }}</span>
@@ -349,7 +349,7 @@ const handleSubmit = async () => {
           <button 
             type="submit" 
             :disabled="isLoading"
-            class="w-full bg-brand-primary hover:bg-brand-secondary text-brand-cream font-bold py-2.5 px-5 rounded-xl transition-all shadow-soft-sm hover:shadow-soft-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer mt-1 text-xs sm:text-sm"
+            class="w-full bg-brand-primary hover:bg-brand-secondary text-brand-cream font-bold py-3 px-6 rounded-xl transition-all shadow-soft-sm hover:shadow-soft-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer mt-2 text-sm"
           >
             <Icon v-if="isLoading" name="lucide:loader-2" class="w-4 h-4 animate-spin" />
             <span>{{ isLogin ? 'Iniciar Sesión' : 'Crear mi Cuenta' }}</span>
@@ -358,7 +358,7 @@ const handleSubmit = async () => {
         </form>
 
         <!-- Alternar entre Login y Registro -->
-        <div class="text-center mt-3 pt-2.5 border-t border-brand-primary/10">
+        <div class="text-center mt-4 pt-3 border-t border-brand-primary/10">
           <p class="text-xs text-brand-secondary/80">
             {{ isLogin ? '¿Aún no tienes cuenta?' : '¿Ya eres parte de Dulce Fe?' }}
             <button 
@@ -372,7 +372,7 @@ const handleSubmit = async () => {
         </div>
 
         <!-- Sello de Seguridad -->
-        <div class="flex items-center justify-center gap-1.5 text-[10px] text-stone-400 mt-2">
+        <div class="flex items-center justify-center gap-1.5 text-[11px] text-stone-400 mt-2.5">
           <Icon name="lucide:shield-check" class="w-3.5 h-3.5 text-brand-primary/60" />
           <span>Tus datos están protegidos con cifrado SSL</span>
         </div>
