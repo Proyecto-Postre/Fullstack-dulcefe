@@ -39,17 +39,34 @@ defineEmits<{
       </div>
 
       <div>
-        <label for="checkout-customer-phone" class="block text-xs font-bold text-[#4A5D23] uppercase tracking-wider mb-1.5">
-          Teléfono (WhatsApp)
+        <label for="checkout-customer-phone" class="block text-xs font-bold text-[#4A5D23] uppercase tracking-wider mb-1.5 flex justify-between items-center">
+          <span>Teléfono (WhatsApp) <span v-if="mode === 'direct'" class="text-status-danger">*</span></span>
+          <span v-if="formData.phone && formData.phone.length === 9 && formData.phone.startsWith('9')" class="text-[11px] font-bold text-emerald-600 flex items-center gap-1">
+            <Icon name="lucide:check-circle-2" class="w-3.5 h-3.5" /> 9 dígitos
+          </span>
+          <span v-else-if="formData.phone" class="text-[11px] font-bold text-status-danger">
+            {{ formData.phone.length }}/9 dígitos
+          </span>
         </label>
         <input
           id="checkout-customer-phone"
-          v-model="formData.phone"
+          :value="formData.phone"
+          @input="formData.phone = ($event.target as HTMLInputElement).value.replace(/\D/g, '').slice(0, 9)"
           type="tel"
+          maxlength="9"
           autocomplete="tel"
           placeholder="Ej: 987654321"
-          class="w-full px-4 py-3 bg-[#F4F1E1]/40 border border-[#4A5D23]/20 rounded-xl text-sm font-bold text-[#2A321B] placeholder:text-[#4A5D23]/30 focus:outline-none focus:border-[#4A5D23] focus-visible:ring-2 focus-visible:ring-[#4A5D23] focus:bg-white transition-all shadow-xs"
+          :class="[
+            'w-full px-4 py-3 bg-[#F4F1E1]/40 border rounded-xl text-sm font-bold text-[#2A321B] placeholder:text-[#4A5D23]/30 focus:outline-none focus-visible:ring-2 transition-all shadow-xs',
+            formData.phone && (formData.phone.length !== 9 || !formData.phone.startsWith('9'))
+              ? 'border-status-danger/60 focus:border-status-danger focus-visible:ring-status-danger/30'
+              : 'border-[#4A5D23]/20 focus:border-[#4A5D23] focus-visible:ring-[#4A5D23] focus:bg-white'
+          ]"
         />
+        <p v-if="formData.phone && (!formData.phone.startsWith('9') || formData.phone.length < 9)" class="text-[11px] text-status-danger font-semibold mt-1 flex items-center gap-1">
+          <Icon name="lucide:alert-circle" class="w-3 h-3 shrink-0" />
+          El número de Perú debe empezar con 9 y tener 9 dígitos.
+        </p>
       </div>
     </div>
 

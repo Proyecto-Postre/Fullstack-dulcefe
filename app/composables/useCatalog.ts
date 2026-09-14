@@ -19,12 +19,25 @@ export const CATALOG_CATEGORIES: CatalogCategory[] = [
   { id: 'bocaditos', name: 'Boxes & Porciones', icon: 'lucide:box' }
 ]
 
-export function useCatalog(rawProducts: ComputedRef<CatalogProduct[]>) {
+export function useCatalog(
+  rawProducts: ComputedRef<CatalogProduct[]>,
+  rawCategories?: ComputedRef<CatalogCategory[]>
+) {
   const cartStore = useCartStore()
   const searchQuery = ref<string>('')
   const selectedCategory = ref<string>('todos')
 
-  const categories = CATALOG_CATEGORIES
+  const categories = computed<CatalogCategory[]>(() => {
+    const list = rawCategories?.value
+    // Si no se proporcionaron categorías o la tabla en BD está vacía, no mostrar categorías
+    if (!list || list.length === 0) {
+      return []
+    }
+    return [
+      { id: 'todos', name: 'Todos los Postres', icon: 'lucide:sparkles' },
+      ...list
+    ]
+  })
 
   const filteredProducts = computed<CatalogProduct[]>(() => {
     const list = rawProducts.value || []
@@ -46,6 +59,10 @@ export function useCatalog(rawProducts: ComputedRef<CatalogProduct[]>) {
 
       // 2. Filtro por categoría
       if (cat === 'todos') return true
+
+      // Coincidencia con categoría asignada o texto
+      if ((product as { category_id?: string }).category_id === cat) return true
+
       if (cat === 'tortas') {
         return (nameNorm.includes('torta') || nameNorm.includes('pastel') || nameNorm.includes('cake')) && !nameNorm.includes('cheesecake')
       }
@@ -58,8 +75,7 @@ export function useCatalog(rawProducts: ComputedRef<CatalogProduct[]>) {
       if (cat === 'bocaditos') {
         return nameNorm.includes('box') || nameNorm.includes('alfajor') || nameNorm.includes('brownie') || nameNorm.includes('cajita')
       }
-
-      return true
+      return nameNorm.includes(cat) || descNorm.includes(cat)
     })
   })
 

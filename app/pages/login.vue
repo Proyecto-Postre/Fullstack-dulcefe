@@ -4,6 +4,10 @@ import { navigateTo } from 'nuxt/app'
 import { useAuthStore } from '~/stores/auth'
 import { useSupabaseClient } from '#imports'
 
+definePageMeta({
+  layout: 'auth'
+})
+
 const authStore = useAuthStore()
 const supabase = useSupabaseClient()
 
@@ -74,102 +78,99 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <div class="flex items-center justify-center py-16 px-6">
-    <div class="w-full max-w-md">
-      
-      <!-- Header -->
-      <div class="text-center mb-8">
-        <NuxtLink to="/" class="inline-block">
-          <h1 class="text-4xl font-playfair font-black text-brand-secondary hover:text-brand-primary transition-colors">Dulce Fe</h1>
-        </NuxtLink>
-        <p class="text-brand-primary font-medium mt-2">
-          {{ isLogin ? 'Bienvenido de vuelta a tu pastelería favorita' : 'Únete a nuestra familia dulce' }}
-        </p>
-      </div>
+  <div class="w-full max-w-md my-auto">
+    <!-- Header -->
+    <div class="text-center mb-6">
+      <h1 class="text-3xl font-playfair font-black text-brand-secondary">
+        {{ isLogin ? 'Bienvenido de vuelta' : 'Crea tu Cuenta' }}
+      </h1>
+      <p class="text-brand-primary text-sm font-medium mt-1.5">
+        {{ isLogin ? 'Ingresa para ver tus pedidos y acumular puntos' : 'Únete a nuestra familia dulce y disfruta postres de autor' }}
+      </p>
+    </div>
 
-      <!-- Tarjeta de Formulario Premium Soft -->
-      <div class="bg-surface/90 backdrop-blur-md border border-brand-primary/10 rounded-[2rem] p-8 shadow-soft-lg">
+    <!-- Tarjeta de Formulario Premium Soft -->
+    <div class="bg-surface/95 backdrop-blur-md border border-brand-primary/10 rounded-[2rem] p-7 sm:p-8 shadow-soft-lg">
         
-        <form @submit.prevent="handleSubmit" class="space-y-5">
+      <form @submit.prevent="handleSubmit" class="space-y-5">
           
-          <!-- Nombre (Solo Registro) -->
-          <div v-if="!isLogin" class="space-y-2 animate-pop">
-            <label for="fullName" class="block text-sm font-bold text-brand-secondary uppercase tracking-wider">Nombre Completo</label>
-            <input 
-              id="fullName"
-              v-model="fullName"
-              type="text" 
-              required
-              placeholder="Ej. María Pérez"
-              class="w-full bg-surface border border-brand-primary/20 rounded-xl px-4 py-3 text-brand-secondary font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent transition-all placeholder:text-brand-primary/40 shadow-soft-sm"
-            >
-          </div>
-
-          <!-- Email -->
-          <div class="space-y-2">
-            <label for="email" class="block text-sm font-bold text-brand-secondary uppercase tracking-wider">Correo Electrónico</label>
-            <input 
-              id="email"
-              v-model="email"
-              type="email" 
-              required
-              autocomplete="email"
-              placeholder="tu@correo.com"
-              class="w-full bg-surface border border-brand-primary/20 rounded-xl px-4 py-3 text-brand-secondary font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent transition-all placeholder:text-brand-primary/40 shadow-soft-sm"
-            >
-          </div>
-
-          <!-- Contraseña -->
-          <div class="space-y-2">
-            <label for="password" class="block text-sm font-bold text-brand-secondary uppercase tracking-wider">Contraseña</label>
-            <div class="relative">
-              <input 
-                id="password"
-                v-model="password"
-                :type="showPassword ? 'text' : 'password'" 
-                required
-                :autocomplete="isLogin ? 'current-password' : 'new-password'"
-                placeholder="••••••••"
-                class="w-full bg-surface border border-brand-primary/20 rounded-xl px-4 py-3 pr-12 text-brand-secondary font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent transition-all placeholder:text-brand-primary/40 shadow-soft-sm"
-              >
-              <button
-                type="button"
-                aria-label="Alternar visibilidad de contraseña"
-                @click="showPassword = !showPassword"
-                class="absolute right-4 top-1/2 -translate-y-1/2 text-brand-primary/50 hover:text-brand-secondary transition-colors cursor-pointer"
-              >
-                <Icon :name="showPassword ? 'lucide:eye-off' : 'lucide:eye'" class="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-
-          <!-- Mensaje de Error -->
-          <div v-if="errorMessage" role="alert" aria-live="assertive" class="p-3 bg-red-50 border border-status-danger/20 rounded-xl text-status-danger text-sm font-medium animate-pop shadow-soft-sm">
-            {{ errorMessage }}
-          </div>
-
-          <!-- Botón Submit -->
-          <button 
-            type="submit"
-            :disabled="isLoading"
-            class="w-full bg-brand-primary text-white font-bold py-4 rounded-xl shadow-soft-md hover:shadow-soft-lg hover:-translate-y-0.5 hover:bg-brand-secondary active:translate-y-0 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm uppercase tracking-widest mt-4 cursor-pointer"
+        <!-- Nombre (Solo Registro) -->
+        <div v-if="!isLogin" class="space-y-2 animate-pop">
+          <label for="fullName" class="block text-sm font-bold text-brand-secondary uppercase tracking-wider">Nombre Completo</label>
+          <input 
+            id="fullName"
+            v-model="fullName"
+            type="text" 
+            required
+            placeholder="Ej. María Pérez"
+            class="w-full bg-surface border border-brand-primary/20 rounded-xl px-4 py-3 text-brand-secondary font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent transition-all placeholder:text-brand-primary/40 shadow-soft-sm"
           >
-            <Icon v-if="isLoading" name="lucide:loader-2" class="w-6 h-6 animate-spin" />
-            <span v-else>{{ isLogin ? 'Iniciar Sesión' : 'Crear Cuenta' }}</span>
-          </button>
-        </form>
-
-        <!-- Toggle Mode -->
-        <div class="mt-6 text-center">
-          <button 
-            @click.prevent="toggleMode"
-            class="text-brand-primary font-bold hover:text-brand-secondary transition-colors underline decoration-2 underline-offset-4 cursor-pointer text-sm"
-          >
-            {{ isLogin ? '¿No tienes cuenta? Regístrate aquí' : '¿Ya tienes cuenta? Inicia sesión' }}
-          </button>
         </div>
 
+        <!-- Email -->
+        <div class="space-y-2">
+          <label for="email" class="block text-sm font-bold text-brand-secondary uppercase tracking-wider">Correo Electrónico</label>
+          <input 
+            id="email"
+            v-model="email"
+            type="email" 
+            required
+            autocomplete="email"
+            placeholder="tu@correo.com"
+            class="w-full bg-surface border border-brand-primary/20 rounded-xl px-4 py-3 text-brand-secondary font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent transition-all placeholder:text-brand-primary/40 shadow-soft-sm"
+          >
+        </div>
+
+        <!-- Contraseña -->
+        <div class="space-y-2">
+          <label for="password" class="block text-sm font-bold text-brand-secondary uppercase tracking-wider">Contraseña</label>
+          <div class="relative">
+            <input 
+              id="password"
+              v-model="password"
+              :type="showPassword ? 'text' : 'password'" 
+              required
+              :autocomplete="isLogin ? 'current-password' : 'new-password'"
+              placeholder="••••••••"
+              class="w-full bg-surface border border-brand-primary/20 rounded-xl px-4 py-3 pr-12 text-brand-secondary font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent transition-all placeholder:text-brand-primary/40 shadow-soft-sm"
+            >
+            <button
+              type="button"
+              aria-label="Alternar visibilidad de contraseña"
+              @click="showPassword = !showPassword"
+              class="absolute right-4 top-1/2 -translate-y-1/2 text-brand-primary/50 hover:text-brand-secondary transition-colors cursor-pointer"
+            >
+              <Icon :name="showPassword ? 'lucide:eye-off' : 'lucide:eye'" class="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        <!-- Mensaje de Error -->
+        <div v-if="errorMessage" role="alert" aria-live="assertive" class="p-3 bg-red-50 border border-status-danger/20 rounded-xl text-status-danger text-sm font-medium animate-pop shadow-soft-sm">
+          {{ errorMessage }}
+        </div>
+
+        <!-- Botón Submit -->
+        <button 
+          type="submit"
+          :disabled="isLoading"
+          class="w-full bg-brand-primary text-white font-bold py-4 rounded-xl shadow-soft-md hover:shadow-soft-lg hover:-translate-y-0.5 hover:bg-brand-secondary active:translate-y-0 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm uppercase tracking-widest mt-4 cursor-pointer"
+        >
+          <Icon v-if="isLoading" name="lucide:loader-2" class="w-6 h-6 animate-spin" />
+          <span v-else>{{ isLogin ? 'Iniciar Sesión' : 'Crear Cuenta' }}</span>
+        </button>
+      </form>
+
+      <!-- Toggle Mode -->
+      <div class="mt-6 text-center">
+        <button 
+          @click.prevent="toggleMode"
+          class="text-brand-primary font-bold hover:text-brand-secondary transition-colors underline decoration-2 underline-offset-4 cursor-pointer text-sm"
+        >
+          {{ isLogin ? '¿No tienes cuenta? Regístrate aquí' : '¿Ya tienes cuenta? Inicia sesión' }}
+        </button>
       </div>
+
     </div>
   </div>
 </template>

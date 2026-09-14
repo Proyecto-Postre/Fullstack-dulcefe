@@ -93,4 +93,13 @@ describe('Validación de Esquema de Checkout (server/utils/schemas/checkout.ts)'
     }
     expect(CheckoutBodySchema.safeParse(shortNameOrder).success).toBe(false)
   })
+
+  it('rechaza explícitamente teléfonos de 8 dígitos (ej. 96584734)', () => {
+    const eightDigitPhoneOrder = {
+      ...validDirectOrder,
+      customer_phone: '96584734'
+    }
+    const result = CheckoutBodySchema.safeParse(eightDigitPhoneOrder)
+    expect(result.success).toBe(false)
+  })
 })

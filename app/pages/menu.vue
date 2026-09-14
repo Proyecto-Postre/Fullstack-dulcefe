@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useAsyncData } from 'nuxt/app'
-import type { CatalogApiResponse, CatalogProduct } from '~/types/catalog'
+import type { CatalogApiResponse, CatalogProduct, CatalogCategory } from '~/types/catalog'
 import { useCatalog } from '~/composables/useCatalog'
 import CatalogHeader from '~/components/catalog/CatalogHeader.vue'
 import CatalogSearchFilter from '~/components/catalog/CatalogSearchFilter.vue'
@@ -17,8 +17,20 @@ const { data: catalogResponse, pending, error } = await useAsyncData(
   }
 )
 
+const { data: categoriesResponse } = await useAsyncData(
+  'categories-catalog',
+  () => $fetch<{ success: boolean; data: CatalogCategory[] }>('/api/categories'),
+  {
+    default: () => ({ success: true, data: [] })
+  }
+)
+
 const rawProducts = computed<CatalogProduct[]>(() => {
   return catalogResponse.value?.data || []
+})
+
+const rawCategories = computed<CatalogCategory[]>(() => {
+  return categoriesResponse.value?.data || []
 })
 
 const {
@@ -29,7 +41,7 @@ const {
   handleAddToCart,
   getProductImage,
   resetFilters
-} = useCatalog(rawProducts)
+} = useCatalog(rawProducts, rawCategories)
 </script>
 
 <template>
@@ -85,3 +97,21 @@ const {
     </TransitionGroup>
   </div>
 </template>
+
+<style scoped>
+.list-move,
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+  transform: translateY(12px) scale(0.96);
+}
+
+.list-leave-active {
+  position: absolute;
+}
+</style>

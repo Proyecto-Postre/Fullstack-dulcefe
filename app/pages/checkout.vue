@@ -13,6 +13,8 @@ import CheckoutItemsList from '~/components/checkout/CheckoutItemsList.vue'
 import CheckoutSummaryCard from '~/components/checkout/CheckoutSummaryCard.vue'
 import CheckoutErrorAlert from '~/components/checkout/CheckoutErrorAlert.vue'
 
+import { toast } from 'vue-sonner'
+
 const cartStore = useCartStore()
 const authStore = useAuthStore()
 const config = useRuntimeConfig()
@@ -50,15 +52,35 @@ watch(() => cartStore.items.length, (newLength) => {
   }
 })
 
-const isFormValid = computed<boolean>(() => {
-  if (checkoutMode.value === 'chat') {
-    return formData.value.name.trim() !== ''
+const isPhoneValid = computed<boolean>(() => {
+  const p = formData.value.phone.trim()
+  if (!p) {
+    return checkoutMode.value === 'chat'
   }
-  return formData.value.name.trim() !== '' && formData.value.address.trim() !== ''
+  return p.length === 9 && p.startsWith('9')
+})
+
+const isFormValid = computed<boolean>(() => {
+  const hasName = formData.value.name.trim().length >= 2
+  if (!isPhoneValid.value) return false
+  if (checkoutMode.value === 'chat') {
+    return hasName
+  }
+  const hasPhone = formData.value.phone.trim().length === 9
+  const hasAddress = formData.value.address.trim().length >= 5
+  return hasName && hasPhone && hasAddress
 })
 
 async function processCheckout(): Promise<void> {
-  if (!isFormValid.value || isSubmitting.value) return
+  if (!isPhoneValid.value && formData.value.phone.trim()) {
+    toast.error('El teléfono debe tener 9 dígitos y empezar con 9')
+    return
+  }
+
+  if (!isFormValid.value || isSubmitting.value) {
+    toast.error('Por favor completa todos los campos requeridos correctamente')
+    return
+  }
 
   const payload: CheckoutPayload = {
     channel: checkoutMode.value === 'direct' ? 'direct' : 'whatsapp_chat',
@@ -78,7 +100,15 @@ async function processCheckout(): Promise<void> {
   }
 
   const result = await submitCheckout(payload)
-  if (!result) return
+  if (!result) {
+    if (errorMessage.value) {
+      toast.error(errorMessage.value)
+    }
+    if (import.meta.client) {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+    return
+  }
 
   const { order } = result
 
