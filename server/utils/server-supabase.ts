@@ -9,8 +9,9 @@ function isGenuineServiceRoleKey(key?: string): boolean {
   if (!key || typeof key !== 'string' || key.trim() === '') return false
   try {
     const parts = key.split('.')
-    if (parts.length < 2) return false
-    const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf-8'))
+    const part = parts[1]
+    if (!part) return false
+    const payload = JSON.parse(Buffer.from(part, 'base64').toString('utf-8'))
     return payload.role === 'service_role'
   } catch {
     return false
