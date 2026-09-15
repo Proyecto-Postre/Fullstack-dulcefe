@@ -116,57 +116,68 @@ function openEditMaterial(item: RawMaterialRow): void {
 
 <template>
   <div class="space-y-6">
-    <!-- Header Section -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-[2rem] border border-[#4A5D23]/10 shadow-soft-sm">
-      <div>
-        <h2 class="text-2xl font-black font-playfair text-[#2A321B]">Almacén de Insumos</h2>
+    <!-- Header Section con Búsqueda y Acción integradas -->
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-6 rounded-[2rem] border border-[#4A5D23]/10 shadow-soft-sm">
+      <div class="shrink-0">
+        <div class="flex items-center gap-3">
+          <h2 class="text-2xl font-black font-playfair text-[#2A321B]">Almacén de Insumos</h2>
+          <span v-if="localMaterials.length" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#4A5D23]/10 text-[#4A5D23] border border-[#4A5D23]/15">
+            {{ localMaterials.length }} {{ localMaterials.length === 1 ? 'insumo' : 'insumos' }}
+          </span>
+        </div>
         <p class="text-xs text-[#4A5D23]/70 font-medium mt-0.5">Control de materias primas, costos de adquisición y stock físico</p>
       </div>
-      <button
-        @click="openNewMaterialModal"
-        type="button"
-        class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#4A5D23] text-white text-xs font-bold hover:bg-[#3C4A1C] transition-all shadow-sm active:scale-95 cursor-pointer self-start sm:self-auto"
-      >
-        <Icon name="lucide:plus" class="w-4 h-4" />
-        <span>Nuevo Insumo</span>
-      </button>
-    </div>
 
-    <!-- Search Bar with Suggestions -->
-    <div class="relative w-full max-w-xl">
-      <div class="relative">
-        <Icon name="lucide:search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#4A5D23]/40" />
-        <input 
-          v-model="searchQuery"
-          @focus="isSearchFocused = true"
-          type="text" 
-          placeholder="Buscar insumos por nombre o unidad..."
-          class="w-full pl-10 pr-10 py-2.5 bg-white border border-[#4A5D23]/15 rounded-xl text-xs font-bold text-[#2A321B] placeholder:text-[#4A5D23]/30 focus:outline-none focus:border-[#4A5D23] transition-colors shadow-xs"
-        />
-        <button 
-          v-if="searchQuery" 
-          @click="clearSearch"
-          type="button"
-          class="absolute right-3 top-1/2 -translate-y-1/2 text-[#4A5D23]/40 hover:text-red-600 p-0.5 cursor-pointer"
-        >
-          <Icon name="lucide:x" class="w-3.5 h-3.5" />
-        </button>
-      </div>
+      <!-- Barra de herramientas compacta: Búsqueda focalizada + Botón Nuevo Insumo -->
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        <!-- Search Bar with Suggestions -->
+        <div class="relative w-full sm:w-64 md:w-72 lg:w-80">
+          <div class="relative">
+            <Icon name="lucide:search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#4A5D23]/40" />
+            <input 
+              v-model="searchQuery"
+              @focus="isSearchFocused = true"
+              type="text" 
+              placeholder="Buscar insumos o unidad..."
+              class="w-full pl-10 pr-10 py-2.5 bg-[#F4F1E1]/40 hover:bg-[#F4F1E1]/70 focus:bg-white border border-[#4A5D23]/15 rounded-xl text-xs font-bold text-[#2A321B] placeholder:text-[#4A5D23]/40 focus:outline-none focus:border-[#4A5D23] focus:ring-2 focus:ring-[#4A5D23]/15 transition-all shadow-xs"
+            />
+            <button 
+              v-if="searchQuery" 
+              @click="clearSearch"
+              type="button"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-[#4A5D23]/40 hover:text-red-600 p-0.5 cursor-pointer transition-colors"
+              title="Limpiar búsqueda"
+            >
+              <Icon name="lucide:x" class="w-3.5 h-3.5" />
+            </button>
+          </div>
 
-      <!-- Dropdown de sugerencias -->
-      <div 
-        v-if="isSearchFocused && searchSuggestions.length > 0 && searchQuery"
-        class="absolute left-0 right-0 top-full mt-1.5 bg-white border border-[#4A5D23]/15 rounded-xl shadow-lg z-50 overflow-hidden divide-y divide-[#4A5D23]/5"
-      >
+          <!-- Dropdown de sugerencias -->
+          <div 
+            v-if="isSearchFocused && searchSuggestions.length > 0 && searchQuery"
+            class="absolute left-0 right-0 top-full mt-1.5 bg-white border border-[#4A5D23]/15 rounded-xl shadow-lg z-50 overflow-hidden divide-y divide-[#4A5D23]/5"
+          >
+            <button
+              v-for="sugg in searchSuggestions"
+              :key="sugg.id"
+              @click="selectSuggestion(sugg)"
+              type="button"
+              class="w-full text-left px-4 py-2 text-xs font-bold text-[#2A321B] hover:bg-[#F4F1E1]/40 flex items-center justify-between cursor-pointer"
+            >
+              <span>{{ sugg.name }}</span>
+              <span class="text-[10px] text-[#4A5D23]/60">{{ sugg.unit }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Botón Nuevo Insumo -->
         <button
-          v-for="sugg in searchSuggestions"
-          :key="sugg.id"
-          @click="selectSuggestion(sugg)"
+          @click="openNewMaterialModal"
           type="button"
-          class="w-full text-left px-4 py-2 text-xs font-bold text-[#2A321B] hover:bg-[#F4F1E1]/40 flex items-center justify-between cursor-pointer"
+          class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#4A5D23] text-white text-xs font-bold hover:bg-[#3C4A1C] transition-all shadow-sm active:scale-95 cursor-pointer shrink-0"
         >
-          <span>{{ sugg.name }}</span>
-          <span class="text-[10px] text-[#4A5D23]/60">{{ sugg.unit }}</span>
+          <Icon name="lucide:plus" class="w-4 h-4" />
+          <span>Nuevo Insumo</span>
         </button>
       </div>
     </div>
@@ -207,6 +218,24 @@ function openEditMaterial(item: RawMaterialRow): void {
             </tr>
           </thead>
           <tbody class="divide-y divide-[#4A5D23]/5">
+            <!-- Fila cuando no hay coincidencias de búsqueda -->
+            <tr v-if="!paginatedMaterials.length">
+              <td colspan="6" class="text-center py-14 text-[#4A5D23]/60">
+                <div class="w-12 h-12 rounded-full bg-[#F4F1E1] flex items-center justify-center mx-auto mb-2 text-[#4A5D23]">
+                  <Icon name="lucide:search-x" class="w-6 h-6" />
+                </div>
+                <p class="text-xs font-bold text-[#2A321B]">No se encontraron insumos</p>
+                <p class="text-[11px] text-[#4A5D23]/60 mt-0.5">No hay materias primas que coincidan con "{{ searchQuery }}"</p>
+                <button 
+                  v-if="searchQuery" 
+                  @click="clearSearch" 
+                  type="button" 
+                  class="mt-3 px-3 py-1.5 text-xs font-bold text-[#4A5D23] bg-[#F4F1E1] hover:bg-[#4A5D23] hover:text-white rounded-lg transition-colors cursor-pointer"
+                >
+                  Limpiar búsqueda
+                </button>
+              </td>
+            </tr>
             <tr 
               v-for="item in paginatedMaterials" 
               :key="item.id" 
