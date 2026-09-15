@@ -26,10 +26,15 @@ Durante la sesión de pruebas visuales y funcionales en local, se identificaron 
 
 ## 2. Diagnóstico Técnico y Soluciones Implementadas
 
-### 2.1 Autenticación con Layout Dedicado (`app/layouts/auth.vue` y `app/pages/login.vue`)
+### 2.1 Autenticación con Layout Dedicado y Adaptabilidad Fluida (`app/layouts/auth.vue` y `app/pages/login.vue`)
 
-- **Implementación:** Se creó el layout `app/layouts/auth.vue` libre de headers/footers de tienda. Incluye un botón flotante con chevron _"Volver a la tienda"_, fondo botánico con gradiente suave y contenedor centrado.
-- **Integración:** `app/pages/login.vue` se configuró con `definePageMeta({ layout: 'auth' })`, eliminando wrappers redundantes y corrigiendo el estilo bajo ESLint.
+- **Implementación de Layout:** Se creó el layout `app/layouts/auth.vue` libre de headers/footers de tienda. Incluye botón flotante con chevron _"Volver a la tienda"_, fondo botánico con gradiente suave y contenedor centrado.
+- **Adaptabilidad Responsiva sin Vacíos Excesivos:**
+  - En pantallas anchas (1920x1080 / 2K), el contenedor ya no está restringido a 1024px (`max-w-5xl`), sino que escala fluidamente a `xl:max-w-[1140px]` y `2xl:max-w-[1240px]` con padding enriquecido (`xl:p-10 2xl:p-12`) y tipografía proporcional, eliminando el exceso de espacio vacío circundante.
+  - En tablets (≥ 768px), el diseño de dos columnas se activa desde `md:` (evitando que se apile innecesariamente).
+- **Equilibrio Óptico y Altura Estable (Login vs. Registro):**
+  - Registro cuenta con 4 campos (`Nombre`, `Celular +51`, `Email`, `Contraseña`).
+  - Login cuenta con 2 campos (`Email`, `Contraseña`) y un bloque de beneficios Dulce Fe (`Club Dulce Fe & Pedidos`) con `justify-between`, asegurando que la tarjeta no sufra saltos bruscos ni colapsos de altura al alternar entre ambos modos.
 
 ### 2.2 Catálogo: Píldoras con Scroll Suave y Transición FLIP (`app/components/catalog/CatalogSearchFilter.vue` y `app/pages/menu.vue`)
 
@@ -69,6 +74,21 @@ Durante la sesión de pruebas visuales y funcionales en local, se identificaron 
 - **Desacoplamiento de Hover y FLIP:** Cada tarjeta está envuelta en `.product-item`, separando el cálculo de posición del hover `hover:-translate-y-1.5`.
 - **Categorías Estrictamente Dinámicas desde BD:** Se respetó la regla original de que si la tabla `public.categories` está vacía, no se renderiza ninguna píldora en la interfaz.
 
+### 2.8 Refinamiento Visual y Responsivo de Autenticación (Login & Registro)
+
+- **Atmósfera & Iluminación Ambiental (`app/layouts/auth.vue`):**
+  - Se introdujo un fondo cálido marfil artesanal (`#faf7f2`) acompañado de dos halos de luz ambiental desenfocados (resplandor miel/ámbar en la esquina superior izquierda y verde bosque botánico en la esquina inferior derecha), creando profundidad orgánica sin sobrecargar el DOM.
+  - Barra superior simplificada con botón de retorno en píldora de vidrio mate (`bg-white/80 backdrop-blur-md`) y logotipo con subtítulo "Pastelería Artesanal" en micro-tipografía oro/marrón.
+- **Elevación Estratificada de la Tarjeta (`app/pages/login.vue`):**
+  - Contenedor con borde doble de luz perimetral (`ring-1 ring-white/80 inset`, `border-stone-200/80`) y sombra profunda difusa (`shadow-[0_20px_60px_-15px_rgba(45,74,34,0.12)]`).
+  - Panel izquierdo de marca en gradiente profundo verde selva (`#1b311f` a `#0c180e`), tarjetas de beneficios con efecto vidrio translúcido y 5 estrellas doradas sólidas vectoriales con brillo cálido.
+- **Rediseño de Celda de Teléfono & Código de País (Perú):**
+  - Se sustituyeron los emojis y cajas toscas por un prefijo integrado con la bandera peruana vectorial (SVG en proporción oficial 3:2, bandas roja-blanca-roja con micro-borde), código `+51` en tipografía de alto contraste y divisor sutil.
+  - Indicador de estado en tiempo real: cambia automáticamente a chip verde esmeralda con icono de verificación (`Válido 9/9`) al completar los 9 dígitos reglamentarios que inician en 9.
+- **Campos de Formulario Elevados:**
+  - Segmented control superior para alternar entre "Iniciar Sesión" y "Crear Cuenta" con píldora blanca activa y sombras suaves.
+  - Inputs con fondo cálido satinado (`bg-stone-50/80`), iconografía contextual que reacciona al foco (`focus-within:text-brand-primary`) y preservación estricta de atributos accesibles (`a11y-forms`).
+
 ---
 
 ## 3. Matriz de Verificación de Calidad
@@ -85,3 +105,4 @@ Durante la sesión de pruebas visuales y funcionales en local, se identificaron 
 ## 4. Estado de los Cambios
 
 Los cambios se encuentran preparados y validados en la rama `feat/ui-refinements-auth-checkout-kds`.
+
