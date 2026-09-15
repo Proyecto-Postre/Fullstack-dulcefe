@@ -1,5 +1,6 @@
 import type { H3Event } from 'h3'
 import type { User } from '@supabase/supabase-js'
+import { serverSupabaseClient } from '#supabase/server'
 import type { Database } from '~/types/database.types'
 
 export type UserProfile = Database['public']['Tables']['profiles']['Row']
@@ -43,11 +44,30 @@ export async function requireAdmin(event: H3Event): Promise<AdminAuthContext> {
   // Se prioriza Service Role si está configurado, con fallback limpio a cliente de sesión
   const supabase = await getAdminSupabaseClient(event)
 
-  const { data: profile, error } = await supabase
+  let { data: profile, error } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', userId)
-    .single()
+    .maybeSingle()
+
+  // Fallback de resiliencia: si el primer cliente falló o no encontró perfil (por ejemplo por RLS en cliente sin cookies),
+  // intentar explícitamente con serverSupabaseClient del usuario
+  if ((error || !profile) && event) {
+    try {
+      const sessionClient = await serverSupabaseClient<Database>(event)
+      const res = await sessionClient
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle()
+      if (res.data) {
+        profile = res.data
+        error = null
+      }
+    } catch {
+      // Continuar con el manejo de error
+    }
+  }
 
   // 4. Si el perfil no existe o ocurre un error al consultar
   if (error || !profile) {
