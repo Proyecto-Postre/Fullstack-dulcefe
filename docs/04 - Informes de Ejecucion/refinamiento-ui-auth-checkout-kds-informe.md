@@ -61,6 +61,14 @@ Durante la sesión de pruebas visuales y funcionales en local, se identificaron 
 - **Assets Estáticos:** Se migraron los archivos de logotipos oficiales desde Descargas a `public/images/payments/` (`logo_yape.png` y `logo_plin.png`).
 - **Diseño Horizontal:** En `app/components/checkout/CheckoutPaymentSection.vue`, se refactorizó la distribución para que el icono o logotipo se posicione lateralmente junto al nombre y descripción del método, reduciendo la altura ocupada y mejorando la ergonomía táctil en móviles.
 
+### 2.7 Optimización de Animación de Filtro y Eliminación de Parpadeos (Catálogo)
+
+- **Cero Parpadeo en Búsqueda y Filtrado:** Las tarjetas que dejan de coincidir con la búsqueda o filtro se retiran de forma inmediata e invisible (`visibility: hidden; opacity: 0; position: absolute`), permitiendo que las tarjetas supervivientes se deslicen de inmediato a sus nuevas posiciones de cuadrícula con FLIP suave (`transform 0.35s cubic-bezier(0.22, 1, 0.36, 1)`).
+- **Sin Saltos a (0,0) ni Retrasos:** Se eliminó la espera de salida y las colisiones en coordenadas (0,0), erradicando por completo el parpadeo de tarjetas y el destello de opacidad cero durante la escritura en la barra de búsqueda.
+- **Entrada Suave y Expansiva:** Las tarjetas que vuelven a entrar (al borrar texto o cambiar filtro) entran con un escalado sutil (`scale(0.96) -> 1` en 0.2s) sin traslaciones verticales excesivas que compitan con el cálculo FLIP.
+- **Desacoplamiento de Hover y FLIP:** Cada tarjeta está envuelta en `.product-item`, separando el cálculo de posición del hover `hover:-translate-y-1.5`.
+- **Categorías Estrictamente Dinámicas desde BD:** Se respetó la regla original de que si la tabla `public.categories` está vacía, no se renderiza ninguna píldora en la interfaz.
+
 ---
 
 ## 3. Matriz de Verificación de Calidad

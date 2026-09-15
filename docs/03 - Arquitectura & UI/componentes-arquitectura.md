@@ -72,3 +72,12 @@ Estos componentes son agnósticos a la lógica de negocio. Son piezas de Lego re
 
 ### `CustomSelect.vue` (`app/components/ui/CustomSelect.vue`)
 - Dropdown select totalmente personalizado con soporte para cierre al hacer clic afuera, tipado estricto (0 `any`) y animaciones elásticas suaves.
+
+### `AnimatedGrid.vue` (`app/components/ui/AnimatedGrid.vue`)
+- **Propósito:** Cuadrícula de elementos genéricos con animación FLIP de alto rendimiento (60fps en GPU), cero parpadeos y deslizamiento suave en tiempo real al filtrar, reordenar o buscar.
+- **Características Clave:**
+  1. **Cero Parpadeo:** Elementos que dejan de cumplir el filtro se ocultan de inmediato de forma invisible (`visibility: hidden; opacity: 0; position: absolute`), liberando la celda del grid al instante.
+  2. **FLIP Orgánico:** Las tarjetas restantes se deslizan con `transform 0.35s cubic-bezier(0.22, 1, 0.36, 1)` hacia sus nuevas coordenadas sin esperas ni saltos bruscos.
+  3. **Aislación de Micro-interacciones:** Envoltorio neutro `.animated-grid-item` que previene colisiones entre el `style="transform: ..."` de Vue FLIP y el `hover:-translate-y-1.5` de las tarjetas hijas.
+  4. **Accesibilidad Integrada:** Respeta automáticamente `prefers-reduced-motion: reduce`.
+

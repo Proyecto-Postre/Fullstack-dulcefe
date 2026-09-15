@@ -8,6 +8,7 @@ import CatalogSearchFilter from '~/components/catalog/CatalogSearchFilter.vue'
 import CatalogProductCard from '~/components/catalog/CatalogProductCard.vue'
 import CatalogEmptyState from '~/components/catalog/CatalogEmptyState.vue'
 import CatalogLoadingSkeleton from '~/components/catalog/CatalogLoadingSkeleton.vue'
+import AnimatedGrid from '~/components/ui/AnimatedGrid.vue'
 
 const { data: catalogResponse, pending, error } = await useAsyncData(
   'products-catalog',
@@ -80,38 +81,19 @@ const {
       @reset="resetFilters"
     />
 
-    <!-- Estado: Cuadrícula de Productos -->
-    <TransitionGroup
+    <!-- Estado: Cuadrícula de Productos con Deslizamiento Suave FLIP -->
+    <AnimatedGrid
       v-else
-      name="list"
-      tag="div"
-      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-7 relative"
+      :items="filteredProducts"
+      grid-class="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-7"
     >
-      <CatalogProductCard
-        v-for="product in filteredProducts"
-        :key="product.id"
-        :product="product"
-        :image-url="getProductImage(product)"
-        @add-to-cart="handleAddToCart"
-      />
-    </TransitionGroup>
+      <template #default="{ item: product }">
+        <CatalogProductCard
+          :product="product"
+          :image-url="getProductImage(product)"
+          @add-to-cart="handleAddToCart"
+        />
+      </template>
+    </AnimatedGrid>
   </div>
 </template>
-
-<style scoped>
-.list-move,
-.list-enter-active,
-.list-leave-active {
-  transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-.list-enter-from,
-.list-leave-to {
-  opacity: 0;
-  transform: translateY(12px) scale(0.96);
-}
-
-.list-leave-active {
-  position: absolute;
-}
-</style>

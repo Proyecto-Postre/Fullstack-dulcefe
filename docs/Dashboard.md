@@ -83,6 +83,7 @@ flowchart TD
 * [[architecture-refactor-plan]] — Diagnóstico arquitectónico y plan de refactorización.
 * [[arquitectura-patrones]] — Patrones de diseño aplicados y composables.
 * [[componentes-arquitectura]] — Guía de estructuración de componentes Vue 3.
+* [[patron-animacion-grid-flip]] — Patrón de cuadrícula animada FLIP (GPU 60fps) sin parpadeos para catálogos y listados.
 * [[design-system-tokens]] — Paleta de colores Dulce Fe, tipografía y bordes.
 * [[herramientas-ui]] — Utilidades y librerías de UI (Lucide Icons, Toast, Modal).
 
