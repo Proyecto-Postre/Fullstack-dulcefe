@@ -242,30 +242,30 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="space-y-4 sm:space-y-5 animate-fade-in-up">
+  <div class="space-y-3 sm:space-y-3.5 animate-fade-in-up">
     <!-- Welcome Section (Cálido, limpio y orgánico) -->
     <div
-      class="bg-white rounded-[2rem] border border-[#4A5D23]/10 shadow-soft-sm p-5 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4"
+      class="bg-white rounded-2xl sm:rounded-[1.75rem] border border-[#4A5D23]/10 shadow-soft-sm p-3.5 sm:p-4 lg:p-4.5 flex flex-col md:flex-row md:items-center justify-between gap-3.5"
     >
       <div>
-        <h2 class="text-2xl sm:text-3xl font-playfair font-bold text-[#2A321B]">
+        <h2 class="text-xl sm:text-2xl font-playfair font-bold text-[#2A321B]">
           ¡Hola, {{ authStore.profile?.full_name?.split(" ")[0] || "Administrador" }}!
         </h2>
-        <p class="text-xs sm:text-sm text-[#4A5D23]/70 font-medium mt-1">
+        <p class="text-xs sm:text-sm text-[#4A5D23]/70 font-medium mt-0.5">
           {{ currentDateFormatted }} • Estado operativo y de abastecimiento.
         </p>
       </div>
 
       <!-- Widget Valor del Almacén -->
-      <div class="bg-[#F4F1E1]/60 border border-[#4A5D23]/10 rounded-2xl px-4 sm:px-5 py-2.5 sm:py-3 flex items-center gap-3.5 shrink-0">
-        <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-brand-primary text-white flex items-center justify-center shadow-soft-sm shrink-0">
-          <Icon name="lucide:wallet" class="w-5 h-5" />
+      <div class="bg-[#F4F1E1]/60 border border-[#4A5D23]/10 rounded-xl sm:rounded-2xl px-3.5 sm:px-4 py-2 sm:py-2.5 flex items-center gap-3 shrink-0">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-brand-primary text-white flex items-center justify-center shadow-soft-sm shrink-0">
+          <Icon name="lucide:wallet" class="w-4 h-4 sm:w-5 sm:h-5" />
         </div>
         <div>
-          <p class="text-[10px] font-bold text-[#4A5D23]/70 uppercase tracking-wider">
+          <p class="text-[9px] sm:text-[10px] font-bold text-[#4A5D23]/70 uppercase tracking-wider">
             Valor del Almacén
           </p>
-          <p class="text-xl sm:text-2xl font-bold text-[#2A321B] font-inter">
+          <p class="text-lg sm:text-xl font-bold text-[#2A321B] font-inter leading-tight">
             S/ {{ totalInventoryValue.toFixed(2) }}
           </p>
         </div>
@@ -281,20 +281,20 @@ onUnmounted(() => {
         @touchend="resumeCarousel"
         @mouseenter="pauseCarousel"
         @mouseleave="resumeCarousel"
-        class="relative flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 overflow-x-auto sm:overflow-x-visible snap-x snap-mandatory sm:snap-none hide-scrollbar scroll-smooth"
+        class="relative flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 overflow-x-auto sm:overflow-x-visible snap-x snap-mandatory sm:snap-none hide-scrollbar scroll-smooth"
       >
         <!-- 1. Productos Vitrina -->
         <div
-          class="w-full shrink-0 snap-center sm:w-auto sm:shrink bg-white rounded-2xl p-3.5 sm:p-4 border border-[#4A5D23]/10 shadow-soft-sm hover:shadow-soft-md transition-all flex items-center gap-3.5"
+          class="w-full shrink-0 snap-center sm:w-auto sm:shrink bg-white rounded-2xl p-2.5 sm:p-3 border border-[#4A5D23]/10 shadow-soft-sm hover:shadow-soft-md transition-all flex items-center gap-3"
         >
-          <div class="w-11 h-11 rounded-xl bg-[#F4F1E1] text-[#4A5D23] flex items-center justify-center shrink-0">
-            <Icon name="lucide:cake-slice" class="w-5 h-5" />
+          <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#F4F1E1] text-[#4A5D23] flex items-center justify-center shrink-0">
+            <Icon name="lucide:cake-slice" class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
           <div class="min-w-0">
-            <p class="text-xs font-medium text-[#4A5D23]/70 truncate">
+            <p class="text-[11px] sm:text-xs font-medium text-[#4A5D23]/70 truncate">
               Productos en vitrina
             </p>
-            <p class="text-xl sm:text-2xl font-bold text-[#2A321B] font-inter leading-tight">
+            <p class="text-lg sm:text-xl font-bold text-[#2A321B] font-inter leading-tight">
               {{ totalProducts }}
             </p>
           </div>
@@ -302,16 +302,16 @@ onUnmounted(() => {
 
         <!-- 2. Insumos Almacén -->
         <div
-          class="w-full shrink-0 snap-center sm:w-auto sm:shrink bg-white rounded-2xl p-3.5 sm:p-4 border border-[#4A5D23]/10 shadow-soft-sm hover:shadow-soft-md transition-all flex items-center gap-3.5"
+          class="w-full shrink-0 snap-center sm:w-auto sm:shrink bg-white rounded-2xl p-2.5 sm:p-3 border border-[#4A5D23]/10 shadow-soft-sm hover:shadow-soft-md transition-all flex items-center gap-3"
         >
-          <div class="w-11 h-11 rounded-xl bg-[#F4F1E1] text-[#4A5D23] flex items-center justify-center shrink-0">
-            <Icon name="lucide:scale" class="w-5 h-5" />
+          <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#F4F1E1] text-[#4A5D23] flex items-center justify-center shrink-0">
+            <Icon name="lucide:scale" class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
           <div class="min-w-0">
-            <p class="text-xs font-medium text-[#4A5D23]/70 truncate">
+            <p class="text-[11px] sm:text-xs font-medium text-[#4A5D23]/70 truncate">
               Insumos registrados
             </p>
-            <p class="text-xl sm:text-2xl font-bold text-[#2A321B] font-inter leading-tight">
+            <p class="text-lg sm:text-xl font-bold text-[#2A321B] font-inter leading-tight">
               {{ totalMaterials }}
             </p>
           </div>
@@ -319,25 +319,25 @@ onUnmounted(() => {
 
         <!-- 3. Prod. Stock Bajo -->
         <div
-          class="w-full shrink-0 snap-center sm:w-auto sm:shrink bg-white rounded-2xl p-3.5 sm:p-4 border border-[#4A5D23]/10 shadow-soft-sm hover:shadow-soft-md transition-all flex items-center gap-3.5"
+          class="w-full shrink-0 snap-center sm:w-auto sm:shrink bg-white rounded-2xl p-2.5 sm:p-3 border border-[#4A5D23]/10 shadow-soft-sm hover:shadow-soft-md transition-all flex items-center gap-3"
         >
           <div
             :class="[
-              'w-11 h-11 rounded-xl flex items-center justify-center shrink-0',
+              'w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0',
               lowStockProducts.length > 0
                 ? 'bg-amber-50 text-amber-600'
                 : 'bg-[#F4F1E1] text-[#4A5D23]',
             ]"
           >
-            <Icon name="lucide:alert-triangle" class="w-5 h-5" />
+            <Icon name="lucide:alert-triangle" class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
           <div class="min-w-0">
-            <p class="text-xs font-medium text-[#4A5D23]/70 truncate">
+            <p class="text-[11px] sm:text-xs font-medium text-[#4A5D23]/70 truncate">
               Productos por agotarse
             </p>
             <p
               :class="[
-                'text-xl sm:text-2xl font-bold font-inter leading-tight',
+                'text-lg sm:text-xl font-bold font-inter leading-tight',
                 lowStockProducts.length > 0 ? 'text-amber-700' : 'text-[#2A321B]',
               ]"
             >
@@ -348,25 +348,25 @@ onUnmounted(() => {
 
         <!-- 4. Insumos Críticos -->
         <div
-          class="w-full shrink-0 snap-center sm:w-auto sm:shrink bg-white rounded-2xl p-3.5 sm:p-4 border border-[#4A5D23]/10 shadow-soft-sm hover:shadow-soft-md transition-all flex items-center gap-3.5"
+          class="w-full shrink-0 snap-center sm:w-auto sm:shrink bg-white rounded-2xl p-2.5 sm:p-3 border border-[#4A5D23]/10 shadow-soft-sm hover:shadow-soft-md transition-all flex items-center gap-3"
         >
           <div
             :class="[
-              'w-11 h-11 rounded-xl flex items-center justify-center shrink-0',
+              'w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0',
               lowStockMaterials.length > 0
                 ? 'bg-red-50 text-red-600'
                 : 'bg-[#F4F1E1] text-[#4A5D23]',
             ]"
           >
-            <Icon name="lucide:package-x" class="w-5 h-5" />
+            <Icon name="lucide:package-x" class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
           <div class="min-w-0">
-            <p class="text-xs font-medium text-[#4A5D23]/70 truncate">
+            <p class="text-[11px] sm:text-xs font-medium text-[#4A5D23]/70 truncate">
               Insumos con stock bajo
             </p>
             <p
               :class="[
-                'text-xl sm:text-2xl font-bold font-inter leading-tight',
+                'text-lg sm:text-xl font-bold font-inter leading-tight',
                 lowStockMaterials.length > 0 ? 'text-red-700' : 'text-[#2A321B]',
               ]"
             >
@@ -440,23 +440,23 @@ onUnmounted(() => {
     </div>
 
     <!-- Alert Sections (Listas Operativas) -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-3.5 sm:gap-4">
       <!-- Low Stock Products List -->
       <div
         :class="[
-          'bg-white rounded-[2rem] border border-[#4A5D23]/10 shadow-soft-sm p-5 sm:p-6 flex-col justify-between',
+          'bg-white rounded-2xl sm:rounded-[1.75rem] border border-[#4A5D23]/10 shadow-soft-sm p-3.5 sm:p-4 lg:p-4.5 flex-col justify-between',
           activeAlertTab === 'products' ? 'flex' : 'hidden lg:flex',
         ]"
       >
         <div>
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="font-playfair font-bold text-base sm:text-lg text-[#2A321B] flex items-center gap-2">
-              <Icon name="lucide:cake" class="w-5 h-5 text-[#4A5D23]" />
+          <div class="flex items-center justify-between mb-2.5 sm:mb-3">
+            <h3 class="font-playfair font-bold text-sm sm:text-base text-[#2A321B] flex items-center gap-2">
+              <Icon name="lucide:cake" class="w-4 h-4 sm:w-5 sm:h-5 text-[#4A5D23]" />
               <span>Productos por agotarse</span>
             </h3>
             <span
               v-if="lowStockProducts.length"
-              class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 shrink-0"
+              class="px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 shrink-0"
             >
               {{ lowStockProducts.length }} {{ lowStockProducts.length === 1 ? 'producto' : 'productos' }}
             </span>
@@ -464,51 +464,51 @@ onUnmounted(() => {
 
           <div
             v-if="lowStockProducts.length === 0"
-            class="flex flex-col items-center justify-center py-10 text-center"
+            class="flex flex-col items-center justify-center py-8 text-center"
           >
             <Icon
               name="lucide:check-circle"
-              class="w-12 h-12 text-[#4A5D23]/30 mb-2"
+              class="w-10 h-10 text-[#4A5D23]/30 mb-1.5"
             />
-            <p class="text-sm font-medium text-[#4A5D23]/60">
+            <p class="text-xs sm:text-sm font-medium text-[#4A5D23]/60">
               ¡Excelente! Tu vitrina está bien abastecida.
             </p>
           </div>
 
-          <div v-else class="space-y-2.5">
+          <div v-else class="space-y-2">
             <div
               v-for="p in paginatedLowStockProducts"
               :key="p.id"
-              class="flex items-center justify-between p-3 rounded-xl bg-[#F4F1E1]/40 border border-[#4A5D23]/10 hover:bg-[#F4F1E1]/70 transition-colors"
+              class="flex items-center justify-between p-2 sm:p-2.5 rounded-xl bg-[#F4F1E1]/40 border border-[#4A5D23]/10 hover:bg-[#F4F1E1]/70 transition-colors"
             >
-              <div class="flex items-center gap-3 min-w-0">
+              <div class="flex items-center gap-2.5 min-w-0">
                 <img
                   :src="p.image_url || '/placeholder-cake.png'"
                   :alt="p.name"
-                  class="w-10 h-10 rounded-xl object-cover bg-white border border-[#4A5D23]/10 shrink-0"
+                  class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-cover bg-white border border-[#4A5D23]/10 shrink-0"
                 />
                 <div class="min-w-0">
                   <h4 class="font-bold text-xs sm:text-sm text-[#2A321B] truncate">{{ p.name }}</h4>
-                  <p class="text-xs text-[#4A5D23]/70 font-medium">
+                  <p class="text-[11px] text-[#4A5D23]/70 font-medium">
                     S/ {{ Number(p.price).toFixed(2) }}
                   </p>
                 </div>
               </div>
-              <div class="flex items-center gap-2.5 shrink-0">
+              <div class="flex items-center gap-2 shrink-0">
                 <span
                   :class="[
-                    'px-2.5 py-1 rounded-full text-[11px] font-bold border',
+                    'px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold border',
                     p.stock === 0
                       ? 'bg-red-50 text-red-700 border-red-200'
                       : 'bg-amber-50 text-amber-800 border-amber-200',
                   ]"
                 >
-                  {{ p.stock === 0 ? "Agotado" : p.stock === 1 ? "1 disponible" : `${p.stock} disponibles` }}
+                  {{ p.stock === 0 ? "Agotado" : p.stock === 1 ? "1 disp." : `${p.stock} disp.` }}
                 </span>
                 <button
                   @click="openProductModal(p)"
                   type="button"
-                  class="px-3 py-1 rounded-lg text-xs font-bold text-brand-primary bg-white hover:bg-brand-primary hover:text-white border border-brand-primary/20 shadow-2xs hover:shadow-soft-sm transition-all cursor-pointer"
+                  class="px-2.5 py-1 rounded-lg text-[11px] sm:text-xs font-bold text-brand-primary bg-white hover:bg-brand-primary hover:text-white border border-brand-primary/20 shadow-2xs hover:shadow-soft-sm transition-all cursor-pointer"
                   aria-label="Editar producto"
                 >
                   Editar
@@ -521,9 +521,9 @@ onUnmounted(() => {
         <!-- Paginación de Productos -->
         <div
           v-if="totalProductsPages > 1"
-          class="mt-4 pt-3.5 border-t border-[#4A5D23]/10 flex items-center justify-between"
+          class="mt-2.5 pt-2.5 border-t border-[#4A5D23]/10 flex items-center justify-between"
         >
-          <span class="text-xs text-[#4A5D23]/70 font-medium">
+          <span class="text-[11px] sm:text-xs text-[#4A5D23]/70 font-medium">
             Página {{ currentProductsPage }} de {{ totalProductsPages }}
           </span>
           <div class="flex items-center gap-1.5">
@@ -531,7 +531,7 @@ onUnmounted(() => {
               @click="prevProductsPage"
               :disabled="currentProductsPage <= 1"
               type="button"
-              class="px-2.5 py-1 rounded-lg border border-[#4A5D23]/20 bg-white text-xs font-bold text-[#2A321B] hover:bg-[#F4F1E1] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1 shadow-2xs"
+              class="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg border border-[#4A5D23]/20 bg-white text-[11px] sm:text-xs font-bold text-[#2A321B] hover:bg-[#F4F1E1] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1 shadow-2xs"
               aria-label="Página anterior de productos"
             >
               <Icon name="lucide:chevron-left" class="w-3.5 h-3.5" />
@@ -541,7 +541,7 @@ onUnmounted(() => {
               @click="nextProductsPage"
               :disabled="currentProductsPage >= totalProductsPages"
               type="button"
-              class="px-2.5 py-1 rounded-lg border border-[#4A5D23]/20 bg-white text-xs font-bold text-[#2A321B] hover:bg-[#F4F1E1] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1 shadow-2xs"
+              class="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg border border-[#4A5D23]/20 bg-white text-[11px] sm:text-xs font-bold text-[#2A321B] hover:bg-[#F4F1E1] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1 shadow-2xs"
               aria-label="Página siguiente de productos"
             >
               <span>Siguiente</span>
@@ -554,19 +554,19 @@ onUnmounted(() => {
       <!-- Critical Materials List -->
       <div
         :class="[
-          'bg-white rounded-[2rem] border border-[#4A5D23]/10 shadow-soft-sm p-5 sm:p-6 flex-col justify-between',
+          'bg-white rounded-2xl sm:rounded-[1.75rem] border border-[#4A5D23]/10 shadow-soft-sm p-3.5 sm:p-4 lg:p-4.5 flex-col justify-between',
           activeAlertTab === 'materials' ? 'flex' : 'hidden lg:flex',
         ]"
       >
         <div>
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="font-playfair font-bold text-base sm:text-lg text-[#2A321B] flex items-center gap-2">
-              <Icon name="lucide:scale" class="w-5 h-5 text-[#4A5D23]" />
+          <div class="flex items-center justify-between mb-2.5 sm:mb-3">
+            <h3 class="font-playfair font-bold text-sm sm:text-base text-[#2A321B] flex items-center gap-2">
+              <Icon name="lucide:scale" class="w-4 h-4 sm:w-5 sm:h-5 text-[#4A5D23]" />
               <span>Insumos con stock bajo</span>
             </h3>
             <span
               v-if="lowStockMaterials.length"
-              class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 shrink-0"
+              class="px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 shrink-0"
             >
               {{ lowStockMaterials.length }} {{ lowStockMaterials.length === 1 ? 'insumo' : 'insumos' }}
             </span>
@@ -574,47 +574,45 @@ onUnmounted(() => {
 
           <div
             v-if="lowStockMaterials.length === 0"
-            class="flex flex-col items-center justify-center py-10 text-center"
+            class="flex flex-col items-center justify-center py-8 text-center"
           >
             <Icon
               name="lucide:check-circle"
-              class="w-12 h-12 text-[#4A5D23]/30 mb-2"
+              class="w-10 h-10 text-[#4A5D23]/30 mb-1.5"
             />
-            <p class="text-sm font-medium text-[#4A5D23]/60">
-              Todos los insumos del almacén tienen stock suficiente.
+            <p class="text-xs sm:text-sm font-medium text-[#4A5D23]/60">
+              ¡Excelente! Tus insumos están en niveles óptimos.
             </p>
           </div>
 
-          <div v-else class="space-y-2.5">
+          <div v-else class="space-y-2">
             <div
               v-for="m in paginatedLowStockMaterials"
               :key="m.id"
-              class="flex items-center justify-between p-3 rounded-xl bg-[#F4F1E1]/40 border border-[#4A5D23]/10 hover:bg-[#F4F1E1]/70 transition-colors"
+              class="flex items-center justify-between p-2 sm:p-2.5 rounded-xl bg-[#F4F1E1]/40 border border-[#4A5D23]/10 hover:bg-[#F4F1E1]/70 transition-colors"
             >
-              <div class="min-w-0">
-                <h4 class="font-bold text-xs sm:text-sm text-[#2A321B] truncate">{{ m.name }}</h4>
-                <p class="text-[10px] font-bold uppercase tracking-wider text-[#4A5D23]/70">
-                  Costo Base: S/ {{ Number(m.purchase_price).toFixed(2) }} x {{ m.purchase_quantity }} {{ m.unit }}
-                </p>
+              <div class="flex items-center gap-2.5 min-w-0">
+                <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white border border-[#4A5D23]/10 flex items-center justify-center text-[#4A5D23] shrink-0">
+                  <Icon name="lucide:package-alert" class="w-4 h-4" />
+                </div>
+                <div class="min-w-0">
+                  <h4 class="font-bold text-xs sm:text-sm text-[#2A321B] truncate">{{ m.name }}</h4>
+                  <p class="text-[11px] text-[#4A5D23]/70 font-medium">
+                    Stock: {{ Number(m.stock || 0) }} {{ m.unit }}
+                  </p>
+                </div>
               </div>
-              <div class="flex items-center gap-2.5 shrink-0">
-                <span
-                  :class="[
-                    'px-2.5 py-1 rounded-full text-[11px] font-bold border',
-                    m.stock === 0
-                      ? 'bg-red-50 text-red-700 border-red-200'
-                      : 'bg-amber-50 text-amber-800 border-amber-200',
-                  ]"
-                >
-                  {{ m.stock }} {{ m.unit }}
+              <div class="flex items-center gap-2 shrink-0">
+                <span class="px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                  Crítico
                 </span>
                 <button
                   @click="openMaterialModal(m)"
                   type="button"
-                  class="px-3 py-1 rounded-lg text-xs font-bold text-brand-primary bg-white hover:bg-brand-primary hover:text-white border border-brand-primary/20 shadow-2xs hover:shadow-soft-sm transition-all cursor-pointer"
-                  aria-label="Reabastecer insumo"
+                  class="px-2.5 py-1 rounded-lg text-[11px] sm:text-xs font-bold text-brand-primary bg-white hover:bg-brand-primary hover:text-white border border-brand-primary/20 shadow-2xs hover:shadow-soft-sm transition-all cursor-pointer"
+                  aria-label="Editar insumo"
                 >
-                  Reabastecer
+                  Editar
                 </button>
               </div>
             </div>
@@ -624,9 +622,9 @@ onUnmounted(() => {
         <!-- Paginación de Insumos -->
         <div
           v-if="totalMaterialsPages > 1"
-          class="mt-4 pt-3.5 border-t border-[#4A5D23]/10 flex items-center justify-between"
+          class="mt-2.5 pt-2.5 border-t border-[#4A5D23]/10 flex items-center justify-between"
         >
-          <span class="text-xs text-[#4A5D23]/70 font-medium">
+          <span class="text-[11px] sm:text-xs text-[#4A5D23]/70 font-medium">
             Página {{ currentMaterialsPage }} de {{ totalMaterialsPages }}
           </span>
           <div class="flex items-center gap-1.5">
@@ -634,7 +632,7 @@ onUnmounted(() => {
               @click="prevMaterialsPage"
               :disabled="currentMaterialsPage <= 1"
               type="button"
-              class="px-2.5 py-1 rounded-lg border border-[#4A5D23]/20 bg-white text-xs font-bold text-[#2A321B] hover:bg-[#F4F1E1] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1 shadow-2xs"
+              class="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg border border-[#4A5D23]/20 bg-white text-[11px] sm:text-xs font-bold text-[#2A321B] hover:bg-[#F4F1E1] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1 shadow-2xs"
               aria-label="Página anterior de insumos"
             >
               <Icon name="lucide:chevron-left" class="w-3.5 h-3.5" />
@@ -644,7 +642,7 @@ onUnmounted(() => {
               @click="nextMaterialsPage"
               :disabled="currentMaterialsPage >= totalMaterialsPages"
               type="button"
-              class="px-2.5 py-1 rounded-lg border border-[#4A5D23]/20 bg-white text-xs font-bold text-[#2A321B] hover:bg-[#F4F1E1] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1 shadow-2xs"
+              class="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg border border-[#4A5D23]/20 bg-white text-[11px] sm:text-xs font-bold text-[#2A321B] hover:bg-[#F4F1E1] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1 shadow-2xs"
               aria-label="Página siguiente de insumos"
             >
               <span>Siguiente</span>

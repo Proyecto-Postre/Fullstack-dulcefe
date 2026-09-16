@@ -157,7 +157,7 @@ function goToRecipeTab(product: ProductItem) {
 
     <!-- Main Content Area -->
     <main class="col-span-1 relative z-10 overflow-hidden flex flex-col bg-transparent">
-      <div class="flex-1 overflow-y-auto hide-scrollbar py-6 px-6 lg:px-10 max-w-7xl mx-auto w-full">
+      <div class="flex-1 overflow-y-auto hide-scrollbar py-3 sm:py-4 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
         <!-- Componentes de Pestaña -->
         <AdminDashboardTab 
           v-if="currentTab === 'dashboard'" 

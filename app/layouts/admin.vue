@@ -42,15 +42,15 @@ async function handleLogout() {
 
     <!-- Header Administrativo ERP -->
     <header class="relative z-50 bg-surface/90 backdrop-blur-md border-b border-brand-primary/10 transition-all duration-300 shadow-soft-sm shrink-0">
-      <div class="w-full flex justify-between items-center py-3.5 px-5 sm:px-6 lg:px-8">
+      <div class="w-full flex justify-between items-center py-2.5 sm:py-3 px-4 sm:px-6 lg:px-8">
         <!-- Logo -->
-        <div class="flex items-center space-x-3 sm:space-x-3.5">
-          <div class="w-9 h-9 sm:w-10 sm:h-10 border border-brand-primary/20 bg-brand-cream rounded-full flex items-center justify-center text-brand-primary shadow-soft-sm shrink-0">
-            <Icon name="lucide:wheat" class="w-5 h-5" />
+        <div class="flex items-center space-x-3">
+          <div class="w-8 h-8 sm:w-9 sm:h-9 border border-brand-primary/20 bg-brand-cream rounded-full flex items-center justify-center text-brand-primary shadow-soft-sm shrink-0">
+            <Icon name="lucide:wheat" class="w-4 h-4 sm:w-4.5 sm:h-4.5" />
           </div>
           <div>
-            <h1 class="text-lg sm:text-xl font-playfair font-black tracking-tight text-brand-secondary leading-tight">
-              Dulce Fe <span class="font-normal text-brand-primary ml-0.5 sm:ml-1 text-sm sm:text-base">| ERP</span>
+            <h1 class="text-base sm:text-lg font-playfair font-black tracking-tight text-brand-secondary leading-tight">
+              Dulce Fe <span class="font-normal text-brand-primary ml-0.5 sm:ml-1 text-xs sm:text-sm">| ERP</span>
             </h1>
             <p class="text-[8px] sm:text-[9px] font-bold text-brand-primary uppercase tracking-[0.25em] mt-0.5">Costos & Vitrina</p>
           </div>
