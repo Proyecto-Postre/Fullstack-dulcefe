@@ -5,6 +5,7 @@ import type { ProductRow } from "~/types/catalog";
 import type { RawMaterialRow } from "~/types/inventory";
 import ProductModal from "./ProductModal.vue";
 import MaterialModal from "./MaterialModal.vue";
+import { getMaterialIcon } from "~/composables/admin/useAdminMaterials";
 
 const authStore = useAuthStore();
 
@@ -592,8 +593,8 @@ onUnmounted(() => {
               class="flex items-center justify-between p-2 sm:p-2.5 rounded-xl bg-[#F4F1E1]/40 border border-[#4A5D23]/10 hover:bg-[#F4F1E1]/70 transition-colors"
             >
               <div class="flex items-center gap-2.5 min-w-0">
-                <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white border border-[#4A5D23]/10 flex items-center justify-center text-[#4A5D23] shrink-0">
-                  <Icon name="lucide:package-alert" class="w-4 h-4" />
+                <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#F4F1E1] border border-[#4A5D23]/10 flex items-center justify-center text-[#4A5D23] shrink-0">
+                  <Icon :name="getMaterialIcon(m.name)" class="w-4 h-4 sm:w-4.5 sm:h-4.5" />
                 </div>
                 <div class="min-w-0">
                   <h4 class="font-bold text-xs sm:text-sm text-[#2A321B] truncate">{{ m.name }}</h4>
