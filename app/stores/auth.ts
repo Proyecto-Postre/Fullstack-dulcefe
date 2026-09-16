@@ -196,7 +196,7 @@ export const useAuthStore = defineStore('auth', () => {
   // Sincronización automática en cliente con Supabase Auth
   let authListenerSubscribed = false
 
-  function initAuth(): void {
+  async function initAuth(): Promise<void> {
     if (import.meta.client) {
       const supabase = useSupabaseClient<Database>()
       const supabaseUser = useSupabaseUser()
@@ -206,11 +206,20 @@ export const useAuthStore = defineStore('auth', () => {
         if (!user.value || user.value.id !== supabaseUser.value.id) {
           setUser(supabaseUser.value as unknown as User)
         } else if (!profile.value) {
-          fetchProfile()
+          await fetchProfile()
         }
       } else {
-        // Purgar sesión zombi si Supabase no tiene usuario activo
-        clearSession()
+        // En recarga o hidratación, consultar getSession() antes de purgar sesión
+        try {
+          const { data: sessionData } = await supabase.auth.getSession()
+          if (sessionData?.session?.user) {
+            setUser(sessionData.session.user as unknown as User)
+          } else {
+            clearSession()
+          }
+        } catch {
+          clearSession()
+        }
       }
 
       // Escuchar cambios de autenticación en tiempo real
@@ -219,7 +228,7 @@ export const useAuthStore = defineStore('auth', () => {
         supabase.auth.onAuthStateChange((event, session) => {
           if (event === 'SIGNED_OUT' || !session?.user) {
             clearSession()
-          } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+          } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED' || event === 'INITIAL_SESSION') {
             setUser(session.user as unknown as User)
           }
         })
