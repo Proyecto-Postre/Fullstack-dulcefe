@@ -3,7 +3,7 @@
 > **Plataforma Integral E-Commerce, ERP de Producción & Kitchen Display System (KDS)**  
 > Desarrollado con **Nuxt 4**, **Vue 3.5**, **TypeScript**, **Tailwind CSS**, **Supabase (PostgreSQL / RLS)** y **Nitro Engine**.
 
-[![Tests](https://img.shields.io/badge/tests-198%20passing-success.svg)](#-pruebas-y-calidad)
+[![Tests](https://img.shields.io/badge/tests-201%20passing-success.svg)](#-pruebas-y-calidad)
 [![TypeScript](https://img.shields.io/badge/typescript-strict%20100%25-blue.svg)](#-arquitectura-técnica)
 [![WCAG](https://img.shields.io/badge/accessibility-WCAG%202.1%20AA-green.svg)](#-diseño-y-experiencia-de-usuario)
 [![Status](https://img.shields.io/badge/status-Enterprise%2010%2F10-gold.svg)](#-documentación-y-segundo-cerebro)
@@ -97,7 +97,7 @@ APP_URL=http://localhost:3000
 El proyecto cuenta con una sólida disciplina de ingeniería y gobernanza:
 
 ```bash
-# Ejecutar suite completa de pruebas unitarias y de arquitectura (30 suites, 198 tests)
+# Ejecutar suite completa de pruebas unitarias y de arquitectura (30 suites, 201 tests)
 npm test
 
 # Validación estricta de tipos TypeScript

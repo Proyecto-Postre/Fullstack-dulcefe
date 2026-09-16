@@ -73,7 +73,7 @@ Registro cronológico inmutable de auditorías y entregas por fase:
 * **Hardening & Estabilidad:**
   * [`hardening-estabilidad-informe-ejecucion.md`](./04%20-%20Informes%20de%20Ejecucion/hardening-estabilidad-informe-ejecucion.md) — **Informe de Hardening & Estabilidad del Sistema (Fix Modales, RLS Service Role & Sesiones Zombi)**.
 * **Refinamiento UI, Autenticación Dedicada, Checkout Perú & Mobile:**
-  * [`refinamiento-ui-auth-checkout-kds-informe.md`](./04%20-%20Informes%20de%20Ejecucion/refinamiento-ui-auth-checkout-kds-informe.md) — **Informe de Refinamiento UI, Autenticación Dedicada, Checkout Perú (Yape/Plin), Navegación Móvil (Drawer/Carrusel/Tabs) y KDS** (198 tests passing).
+  * [`refinamiento-ui-auth-checkout-kds-informe.md`](./04%20-%20Informes%20de%20Ejecucion/refinamiento-ui-auth-checkout-kds-informe.md) — **Informe de Refinamiento UI, Autenticación Dedicada, Checkout Perú (Yape/Plin), Navegación Móvil (Drawer/Carrusel/Tabs) y KDS** (201 tests passing).
 
 ### 5. 🛡️ [05 - Operaciones](./05%20-%20Operaciones/)
 * [`playbook-operaciones.md`](./05%20-%20Operaciones/playbook-operaciones.md) — **Manual Operativo de Misión Crítica**:

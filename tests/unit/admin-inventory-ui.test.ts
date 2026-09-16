@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { ref } from 'vue'
+import fs from 'node:fs'
+import path from 'node:path'
 import { calculateUnitCost, getMaterialIcon, useAdminMaterials } from '../../app/composables/admin/useAdminMaterials'
 import type { RawMaterialRow } from '../../app/types/inventory'
 
@@ -138,4 +140,34 @@ describe('Fase 4 (PR-4c): Dominio Inventario y Materias Primas - Cálculo de Cos
       expect(isSearchFocused.value).toBe(false)
     })
   })
+
+  describe('AdminMaterialsTab UI Transitions & Search Animation', () => {
+    const componentPath = path.resolve(__dirname, '../../app/components/admin/AdminMaterialsTab.vue')
+
+    it('AdminMaterialsTab.vue debe existir y definir TransitionGroup tag="tbody" con nombre "material-row"', () => {
+      expect(fs.existsSync(componentPath)).toBe(true)
+      const content = fs.readFileSync(componentPath, 'utf-8')
+      expect(content).toContain('<TransitionGroup')
+      expect(content).toContain('name="material-row"')
+      expect(content).toContain('tag="tbody"')
+    })
+
+    it('AdminMaterialsTab.vue debe definir las clases FLIP .material-row-move, .material-row-enter-active y .material-row-leave-active', () => {
+      const content = fs.readFileSync(componentPath, 'utf-8')
+      expect(content).toContain('.material-row-move')
+      expect(content).toContain('will-change: transform;')
+      expect(content).toContain('.material-row-enter-active')
+      expect(content).toContain('.material-row-leave-active')
+      expect(content).toContain('position: absolute;')
+      expect(content).toContain('prefers-reduced-motion')
+    })
+
+    it('la barra de búsqueda debe contar con botón de limpieza animado y feedback de resultados', () => {
+      const content = fs.readFileSync(componentPath, 'utf-8')
+      expect(content).toContain('<Transition name="fade">')
+      expect(content).toContain('<Transition name="dropdown">')
+      expect(content).toContain('filteredMaterials.length')
+    })
+  })
 })
+

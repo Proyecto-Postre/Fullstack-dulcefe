@@ -104,3 +104,56 @@ const items = ref([
 | `items` | `T[]` (donde `T` tiene `id`) | Requerido | Lista reactiva de elementos a renderizar |
 | `gridClass` | `string` | `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-7` | Clases de Tailwind para la cuadrícula CSS |
 | `itemKey` | `keyof T` | `'id'` | Campo clave único para el seguimiento de elementos en Vue |
+
+---
+
+## 4. Adaptación del Patrón para Tablas Administrativas (`AdminMaterialsTab.vue`)
+
+En paneles de administración estructurados en tablas HTML (`<table>`), el patrón FLIP se implementa directamente sobre el elemento `<tbody>` mediante `<TransitionGroup tag="tbody" name="material-row">`:
+
+```html
+<TransitionGroup
+  v-else
+  name="material-row"
+  tag="tbody"
+  class="divide-y divide-[#4A5D23]/5 relative"
+>
+  <tr 
+    v-for="item in paginatedMaterials" 
+    :key="item.id" 
+    class="hover:bg-[#F4F1E1]/20 transition-colors group"
+  >
+    ...
+  </tr>
+</TransitionGroup>
+```
+
+### Reglas de Estilo para Filas de Tabla:
+```css
+/* Deslizamiento suave FLIP de las filas supervivientes */
+.material-row-move {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+/* Entrada sutil de filas que reaparecen al borrar caracteres */
+.material-row-enter-active {
+  transition: opacity 0.25s ease-out, transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.material-row-enter-from {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+/* Salida inmediata e invisible: sale del flujo (position: absolute) para
+   que las filas inferiores se deslicen fluidamente sin parpadeos */
+.material-row-leave-active {
+  position: absolute;
+  width: 100%;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.05s ease;
+}
+```
+

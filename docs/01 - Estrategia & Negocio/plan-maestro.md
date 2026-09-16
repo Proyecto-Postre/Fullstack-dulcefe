@@ -2,7 +2,7 @@
 
 > **Ecosistema Digital de Repostería Artesanal: E-Commerce & ERP Financiero-Operativo**  
 > **Versión:** 1.2.0 (Enterprise)  
-> **Estado:** 🟢 Fases 0 a 6 Completadas | 🟢 Hardening & Estabilidad Sellados | 📱 Refinamiento UI Mobile Implementado (198/198 Tests Pasando)  
+> **Estado:** 🟢 Fases 0 a 6 Completadas | 🟢 Hardening & Estabilidad Sellados | 📱 Refinamiento UI Mobile & Animación Insumos (201/201 Tests Pasando)  
 > **Stack Principal:** Nuxt 4 (Vue 3, TypeScript), Tailwind CSS, Supabase (PostgreSQL, Auth, Storage), ExcelJS, `@nuxt/icon` (Lucide Icons), n8n (Automatización Open-Source).
 
 ---
@@ -301,7 +301,7 @@ gantt
 | **Fase 5 — Disciplina** | ESLint 10, CI type-drift gate, ADRs D1–D8, Playbook Ops | 148 | ✅ Completada |
 | **Fase 6 — Expansión** | Guest Tracking HMAC, KDS Taller, Vouchers Yape, n8n webhooks | 172 | ✅ Completada |
 | **Hardening & Estabilidad** | Portales de modales z-[9999], RLS Service Role, purga zombi | 185 | ✅ Completada |
-| **Refinamiento Mobile & UX** | Carrusel métricas sin saltos, tabs segmentados, hide-scrollbar | 198 | ✅ Completada |
+| **Refinamiento Mobile & Insumos** | Carrusel métricas sin saltos, tabs segmentados, animación FLIP | 201 | ✅ Completada |
 
 ---
 

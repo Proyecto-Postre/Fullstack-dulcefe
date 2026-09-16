@@ -3,7 +3,7 @@
 **Rama:** `feat/ui-refinements-auth-checkout-kds`  
 **Fecha:** 2026-09-15  
 **Autor:** Antigravity (Pair Programming con Jafeth)  
-**Estado:** ✅ COMPLETADO (30 archivos de prueba, 198 tests passing, 0 lints, 0 typecheck errors, build exitoso)
+**Estado:** ✅ COMPLETADO (30 archivos de prueba, 201 tests passing, 0 lints, 0 typecheck errors, build exitoso)
 
 ---
 
@@ -183,13 +183,24 @@ Durante la sesión de pruebas visuales y funcionales en local y dispositivos mó
   - Se integró un switch táctil estilizado con fondo `#F4F1E1`, píldora activa blanca y badges numéricos para alternar entre _"Por agotarse"_ (productos) e _"Insumos bajos"_ (materiales).
   - Reduce la altura vertical de la pantalla en un 50% en dispositivos móviles, permitiendo al administrador enfocarse en una lista a la vez sin fatiga de scroll.
 
+### 2.16 Animación FLIP en Filtro de Almacén de Insumos (`AdminMaterialsTab.vue`)
+
+- **Patrón FLIP en Tabla de Insumos:**
+  - Se implementó `<TransitionGroup tag="tbody" name="material-row">` en la tabla principal de materias primas.
+  - Al escribir o filtrar en el buscador, las filas no coincidentes salen del flujo inmediatamente (`position: absolute; opacity: 0; pointer-events: none; transition: opacity 0.05s ease;`), permitiendo que las filas restantes se deslicen suavemente a sus nuevas posiciones (`transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1); will-change: transform;`).
+  - Al borrar letras o limpiar la búsqueda, los insumos reaparecen con una entrada sutil por escala y traslación vertical (`opacity 0.25s, transform translateY(-8px)`).
+- **Feedback Interactivo en la Búsqueda:**
+  - El badge del encabezado ahora muestra dinámicamente el conteo de coincidencias en tiempo real (`X de Y insumos`).
+  - El botón de limpieza `(x)` cuenta con transición suave de desvanecimiento (`<Transition name="fade">`).
+  - El dropdown de sugerencias se anima sutilmente (`<Transition name="dropdown">`) y previene pérdidas prematuras de foco mediante `@mousedown.prevent`.
+
 ---
 
 ## 3. Matriz de Verificación de Calidad
 
 | Prueba / Verificación                 | Comando Ejecutado   | Resultado | Detalle                                                                        |
 | :------------------------------------ | :------------------ | :-------: | :----------------------------------------------------------------------------- |
-| **Pruebas Unitarias & Arquitectura**  | `npm test`          |  ✅ PASS  | 30 suites ejecutadas, 198 pruebas pasando al 100% (incluye paginación admin)   |
+| **Pruebas Unitarias & Arquitectura**  | `npm test`          |  ✅ PASS  | 30 suites ejecutadas, 201 pruebas pasando al 100% (incluye animación FLIP)     |
 | **Validación de Tipos (TypeScript)**  | `npm run typecheck` |  ✅ PASS  | 0 errores de tipado en cliente y servidor                                      |
 | **Linter de Código (ESLint)**         | `npm run lint`      |  ✅ PASS  | 0 errores, 0 advertencias de estilo o formato                                  |
 | **Compilación de Producción (Build)** | `npm run build`     |  ✅ PASS  | Compilación Nitro / Vite exitosa sin warnings                                  |
@@ -198,5 +209,6 @@ Durante la sesión de pruebas visuales y funcionales en local y dispositivos mó
 
 ## 4. Estado de los Cambios
 
-Los cambios se encuentran preparados, integrados y comiteados en la rama `feat/ui-refinements-auth-checkout-kds` (commit `3922363` y precedentes). La base de código cuenta con paridad de experiencia móvil y de escritorio de alta fidelidad, con pruebas automatizadas y validación en dispositivos físicos reales.
+Los cambios se encuentran preparados, integrados y comiteados en la rama `feat/ui-refinements-auth-checkout-kds`. La base de código cuenta con paridad de experiencia móvil y de escritorio de alta fidelidad, con pruebas automatizadas y validación en dispositivos físicos reales.
+
 

@@ -29,6 +29,7 @@ const {
   isSearchFocused,
   currentPage,
   paginatedMaterials,
+  filteredMaterials,
   searchSuggestions,
   totalPages,
   selectSuggestion,
@@ -38,6 +39,12 @@ const {
   getMaterialIcon,
   calculateUnitCost
 } = useAdminMaterials(localMaterials)
+
+function handleSearchBlur(): void {
+  setTimeout(() => {
+    isSearchFocused.value = false
+  }, 150)
+}
 
 watch(searchQuery, () => {
   currentPage.value = 1
@@ -122,7 +129,7 @@ function openEditMaterial(item: RawMaterialRow): void {
         <div class="flex items-center gap-3">
           <h2 class="text-2xl font-black font-playfair text-[#2A321B]">Almacén de Insumos</h2>
           <span v-if="localMaterials.length" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#4A5D23]/10 text-[#4A5D23] border border-[#4A5D23]/15">
-            {{ localMaterials.length }} {{ localMaterials.length === 1 ? 'insumo' : 'insumos' }}
+            {{ searchQuery ? `${filteredMaterials.length} de ${localMaterials.length} ${localMaterials.length === 1 ? 'insumo' : 'insumos'}` : `${localMaterials.length} ${localMaterials.length === 1 ? 'insumo' : 'insumos'}` }}
           </span>
         </div>
         <p class="text-xs text-[#4A5D23]/70 font-medium mt-0.5">Control de materias primas, costos de adquisición y stock físico</p>
@@ -137,37 +144,42 @@ function openEditMaterial(item: RawMaterialRow): void {
             <input 
               v-model="searchQuery"
               @focus="isSearchFocused = true"
+              @blur="handleSearchBlur"
               type="text" 
               placeholder="Buscar insumos o unidad..."
               class="w-full pl-10 pr-10 py-2.5 bg-[#F4F1E1]/40 hover:bg-[#F4F1E1]/70 focus:bg-white border border-[#4A5D23]/15 rounded-xl text-xs font-bold text-[#2A321B] placeholder:text-[#4A5D23]/40 focus:outline-none focus:border-[#4A5D23] focus:ring-2 focus:ring-[#4A5D23]/15 transition-all shadow-xs"
             />
-            <button 
-              v-if="searchQuery" 
-              @click="clearSearch"
-              type="button"
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-[#4A5D23]/40 hover:text-red-600 p-0.5 cursor-pointer transition-colors"
-              aria-label="Limpiar búsqueda"
-            >
-              <Icon name="lucide:x" class="w-3.5 h-3.5" />
-            </button>
+            <Transition name="fade">
+              <button 
+                v-if="searchQuery" 
+                @click="clearSearch"
+                type="button"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-[#4A5D23]/40 hover:text-red-600 p-0.5 cursor-pointer transition-colors"
+                aria-label="Limpiar búsqueda"
+              >
+                <Icon name="lucide:x" class="w-3.5 h-3.5" />
+              </button>
+            </Transition>
           </div>
 
           <!-- Dropdown de sugerencias -->
-          <div 
-            v-if="isSearchFocused && searchSuggestions.length > 0 && searchQuery"
-            class="absolute left-0 right-0 top-full mt-1.5 bg-white border border-[#4A5D23]/15 rounded-xl shadow-lg z-50 overflow-hidden divide-y divide-[#4A5D23]/5"
-          >
-            <button
-              v-for="sugg in searchSuggestions"
-              :key="sugg.id"
-              @click="selectSuggestion(sugg)"
-              type="button"
-              class="w-full text-left px-4 py-2 text-xs font-bold text-[#2A321B] hover:bg-[#F4F1E1]/40 flex items-center justify-between cursor-pointer"
+          <Transition name="dropdown">
+            <div 
+              v-if="isSearchFocused && searchSuggestions.length > 0 && searchQuery"
+              class="absolute left-0 right-0 top-full mt-1.5 bg-white border border-[#4A5D23]/15 rounded-xl shadow-lg z-50 overflow-hidden divide-y divide-[#4A5D23]/5"
             >
-              <span>{{ sugg.name }}</span>
-              <span class="text-[10px] text-[#4A5D23]/60">{{ sugg.unit }}</span>
-            </button>
-          </div>
+              <button
+                v-for="sugg in searchSuggestions"
+                :key="sugg.id"
+                @mousedown.prevent="selectSuggestion(sugg)"
+                type="button"
+                class="w-full text-left px-4 py-2 text-xs font-bold text-[#2A321B] hover:bg-[#F4F1E1]/40 flex items-center justify-between cursor-pointer"
+              >
+                <span>{{ sugg.name }}</span>
+                <span class="text-[10px] text-[#4A5D23]/60">{{ sugg.unit }}</span>
+              </button>
+            </div>
+          </Transition>
         </div>
 
         <!-- Botón Nuevo Insumo -->
@@ -217,9 +229,9 @@ function openEditMaterial(item: RawMaterialRow): void {
               <th class="py-4 px-6 text-[11px] font-bold text-[#4A5D23] uppercase tracking-wider text-right">Acciones</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-[#4A5D23]/5">
-            <!-- Fila cuando no hay coincidencias de búsqueda -->
-            <tr v-if="!paginatedMaterials.length">
+          <!-- Fila cuando no hay coincidencias de búsqueda -->
+          <tbody v-if="!paginatedMaterials.length">
+            <tr>
               <td colspan="6" class="text-center py-14 text-[#4A5D23]/60">
                 <div class="w-12 h-12 rounded-full bg-[#F4F1E1] flex items-center justify-center mx-auto mb-2 text-[#4A5D23]">
                   <Icon name="lucide:search-x" class="w-6 h-6" />
@@ -236,6 +248,15 @@ function openEditMaterial(item: RawMaterialRow): void {
                 </button>
               </td>
             </tr>
+          </tbody>
+
+          <!-- Lista de Insumos con Animación FLIP Suave al Filtrar -->
+          <TransitionGroup
+            v-else
+            name="material-row"
+            tag="tbody"
+            class="divide-y divide-[#4A5D23]/5 relative"
+          >
             <tr 
               v-for="item in paginatedMaterials" 
               :key="item.id" 
@@ -312,7 +333,7 @@ function openEditMaterial(item: RawMaterialRow): void {
                 </div>
               </td>
             </tr>
-          </tbody>
+          </TransitionGroup>
         </table>
       </div>
 
@@ -349,3 +370,66 @@ function openEditMaterial(item: RawMaterialRow): void {
     />
   </div>
 </template>
+
+<style scoped>
+/* Deslizamiento suave FLIP de las filas de insumos al filtrar o reordenar */
+.material-row-move {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+/* Entrada sutil sin destellos ni saltos bruscos */
+.material-row-enter-active {
+  transition: opacity 0.25s ease-out, transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.material-row-enter-from {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+/* Salida inmediata sin parpadeos: se oculta al instante (0.05s) para que las
+   filas restantes se deslicen fluidamente sin trabas ni saltos */
+.material-row-leave-active {
+  position: absolute;
+  width: 100%;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.05s ease;
+}
+
+/* Transiciones para el botón de limpiar búsqueda */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.15s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* Transición para el dropdown de sugerencias */
+.dropdown-enter-active,
+.dropdown-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dropdown-enter-from,
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .material-row-move,
+  .material-row-enter-active,
+  .material-row-leave-active,
+  .dropdown-enter-active,
+  .dropdown-leave-active {
+    transition: none !important;
+    transform: none !important;
+  }
+}
+</style>
