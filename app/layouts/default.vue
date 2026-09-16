@@ -62,25 +62,25 @@ const formattedWhatsApp = computed(() => {
         </NuxtLink>
 
         <!-- Navegación Central (Desktop >= md) -->
-        <nav class="hidden md:flex items-center gap-8 text-sm font-bold tracking-wide">
+        <nav class="hidden md:flex items-center gap-3 lg:gap-5 text-sm font-bold tracking-wide">
           <NuxtLink 
             to="/" 
-            active-class="text-brand-primary font-black"
-            class="text-brand-secondary/80 hover:text-brand-primary transition-colors cursor-pointer py-1"
+            active-class="text-brand-primary font-black bg-brand-primary/10 shadow-xs"
+            class="px-3.5 py-2 rounded-full text-brand-secondary/85 hover:text-brand-primary hover:bg-brand-primary/10 hover:shadow-soft-sm transition-all duration-200 cursor-pointer"
           >
             Inicio
           </NuxtLink>
           <NuxtLink 
             to="/menu" 
-            active-class="text-brand-primary font-black"
-            class="text-brand-secondary/80 hover:text-brand-primary transition-colors cursor-pointer py-1"
+            active-class="text-brand-primary font-black bg-brand-primary/10 shadow-xs"
+            class="px-3.5 py-2 rounded-full text-brand-secondary/85 hover:text-brand-primary hover:bg-brand-primary/10 hover:shadow-soft-sm transition-all duration-200 cursor-pointer"
           >
             Carta & Menú
           </NuxtLink>
           <NuxtLink 
             to="/perfil?tab=pedidos" 
-            active-class="text-brand-primary font-black"
-            class="text-brand-secondary/80 hover:text-brand-primary transition-colors cursor-pointer py-1"
+            active-class="text-brand-primary font-black bg-brand-primary/10 shadow-xs"
+            class="px-3.5 py-2 rounded-full text-brand-secondary/85 hover:text-brand-primary hover:bg-brand-primary/10 hover:shadow-soft-sm transition-all duration-200 cursor-pointer"
           >
             Mis Pedidos
           </NuxtLink>
@@ -91,28 +91,27 @@ const formattedWhatsApp = computed(() => {
           <!-- Botón de Carrito (Visible en desktop y móvil) -->
           <button 
             @click="cartStore.openDrawer()" 
-            class="relative flex items-center gap-1.5 sm:gap-2 bg-surface hover:bg-brand-cream border border-brand-primary/20 px-3 sm:px-4 py-2 sm:py-2.5 rounded-full shadow-soft-sm hover:shadow-soft-md transition-all active:translate-y-0.5 cursor-pointer text-brand-secondary"
+            class="group relative flex items-center gap-1.5 sm:gap-2 bg-surface hover:bg-[#EDE8D5] border border-brand-primary/20 hover:border-brand-primary px-3 sm:px-4 py-2 sm:py-2.5 rounded-full shadow-soft-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-all duration-200 cursor-pointer text-brand-secondary hover:text-brand-primary"
             aria-label="Ver carrito"
           >
-            <Icon name="lucide:shopping-bag" class="w-4 h-4 sm:w-5 sm:h-5 text-brand-primary" />
+            <Icon name="lucide:shopping-bag" class="w-4 h-4 sm:w-5 sm:h-5 text-brand-primary group-hover:scale-110 transition-transform" />
             <span class="font-bold text-xs hidden sm:inline">Carrito</span>
             <span 
               v-if="cartStore.cartItemCount > 0" 
-              class="w-5 h-5 bg-brand-primary text-white text-[10px] font-black rounded-full flex items-center justify-center animate-pop"
+              class="w-5 h-5 bg-brand-primary text-white text-[10px] font-black rounded-full flex items-center justify-center animate-pop group-hover:scale-105 transition-transform"
             >
               {{ cartStore.cartItemCount }}
             </span>
           </button>
 
           <!-- Acciones de Usuario (Solo Desktop >= md) -->
-          <div class="hidden md:flex items-center gap-3">
+          <div class="hidden md:flex items-center gap-2.5 sm:gap-3">
             <template v-if="authStore.isLoggedIn">
               <!-- Acceso a Panel Admin si es Administrador (Solo Desktop) -->
               <NuxtLink 
                 v-if="authStore.isAdmin"
                 to="/admin" 
-                class="flex items-center gap-1.5 bg-brand-secondary text-white hover:bg-brand-primary border border-transparent px-4 py-2.5 rounded-full font-bold text-xs shadow-soft-sm transition-all cursor-pointer"
-                title="Panel de Administración ERP"
+                class="flex items-center gap-1.5 bg-brand-secondary text-white hover:bg-brand-primary border border-transparent px-4 py-2.5 rounded-full font-bold text-xs shadow-soft-sm hover:shadow-md hover:-translate-y-0.5 hover:scale-[1.02] active:translate-y-0 active:scale-95 transition-all duration-200 cursor-pointer"
               >
                 <Icon name="lucide:shield-check" class="w-4 h-4 text-status-success shrink-0" />
                 <span>Panel Admin</span>
@@ -121,11 +120,10 @@ const formattedWhatsApp = computed(() => {
               <!-- Acceso a Mi Perfil / Datos Personales (Solo Desktop) -->
               <NuxtLink 
                 to="/perfil?tab=personal" 
-                class="flex items-center gap-2 bg-surface hover:bg-brand-cream border border-brand-primary/20 px-3.5 py-2.5 rounded-full shadow-soft-sm transition-all cursor-pointer text-brand-secondary"
-                title="Mi Perfil"
+                class="group flex items-center gap-2 bg-surface hover:bg-[#EDE8D5] border border-brand-primary/20 hover:border-brand-primary px-3.5 py-2.5 rounded-full shadow-soft-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-all duration-200 cursor-pointer text-brand-secondary hover:text-brand-primary"
               >
-                <Icon name="lucide:user" class="w-4 h-4 text-brand-primary" />
-                <span class="font-bold text-xs max-w-[120px] truncate">
+                <Icon name="lucide:user" class="w-4 h-4 text-brand-primary group-hover:scale-110 transition-transform" />
+                <span class="font-bold text-xs max-w-[130px] truncate">
                   {{ authStore.profile?.full_name || authStore.user?.user_metadata?.full_name || 'Mi Perfil' }}
                 </span>
               </NuxtLink>
@@ -134,7 +132,7 @@ const formattedWhatsApp = computed(() => {
             <template v-else>
               <NuxtLink 
                 to="/login" 
-                class="flex items-center gap-1.5 bg-brand-primary text-white hover:bg-brand-secondary border border-transparent px-4 py-2.5 rounded-full font-bold text-xs shadow-soft-sm transition-all cursor-pointer active:translate-y-0.5"
+                class="flex items-center gap-1.5 bg-brand-primary text-white hover:bg-brand-secondary border border-transparent px-4 py-2.5 rounded-full font-bold text-xs shadow-soft-sm hover:shadow-md hover:-translate-y-0.5 hover:scale-[1.02] transition-all duration-200 cursor-pointer active:translate-y-0 active:scale-95"
               >
                 <Icon name="lucide:user" class="w-4 h-4" />
                 <span>Ingresar</span>
@@ -264,7 +262,8 @@ const formattedWhatsApp = computed(() => {
                 <button 
                   @click="handleLogout" 
                   type="button"
-                  class="w-full flex items-center justify-center gap-2 py-2 text-xs font-bold text-status-danger hover:opacity-80 transition-opacity cursor-pointer"
+                  class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold text-status-danger bg-red-50/60 hover:bg-red-500 hover:text-white border border-red-200/60 hover:border-red-500 shadow-soft-sm hover:shadow-md active:scale-98 transition-all duration-200 cursor-pointer"
+                  aria-label="Cerrar sesión"
                 >
                   <Icon name="lucide:log-out" class="w-4 h-4" />
                   <span>Cerrar Sesión</span>

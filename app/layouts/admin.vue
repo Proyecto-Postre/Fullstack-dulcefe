@@ -60,8 +60,7 @@ async function handleLogout() {
         <div class="flex items-center space-x-2.5 sm:space-x-5">
           <NuxtLink 
             to="/" 
-            class="flex items-center space-x-1.5 sm:space-x-2 text-xs font-bold text-brand-secondary/80 hover:text-brand-primary bg-brand-cream/60 hover:bg-brand-cream px-3 py-2 rounded-xl transition-all border border-brand-primary/10 shadow-soft-sm"
-            title="Ir a la vitrina de la tienda"
+            class="flex items-center space-x-1.5 sm:space-x-2 text-xs font-bold text-brand-secondary/85 hover:text-brand-primary bg-brand-cream/60 hover:bg-[#EDE8D5] px-3.5 py-2 rounded-xl transition-all duration-200 border border-brand-primary/15 hover:border-brand-primary shadow-soft-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-95 cursor-pointer"
           >
             <Icon name="lucide:store" class="w-4 h-4 text-brand-primary" />
             <span class="hidden sm:inline">Ver Vitrina</span>
@@ -80,8 +79,9 @@ async function handleLogout() {
             </div>
             <button 
               @click="handleLogout" 
-              class="text-brand-secondary/50 hover:text-status-danger transition-colors p-1.5 rounded-lg hover:bg-red-50 cursor-pointer"
-              title="Cerrar sesión"
+              type="button"
+              class="text-brand-secondary/60 hover:text-white bg-transparent hover:bg-red-500 border border-transparent hover:border-red-500 transition-all duration-200 p-2 rounded-xl hover:shadow-md hover:scale-105 active:scale-95 cursor-pointer"
+              aria-label="Cerrar sesión"
             >
               <Icon name="lucide:log-out" class="w-4 h-4" />
             </button>
@@ -198,7 +198,8 @@ async function handleLogout() {
               <button 
                 @click="handleLogout" 
                 type="button"
-                class="w-full flex items-center justify-center gap-2 py-2 text-xs font-bold text-status-danger hover:opacity-80 transition-opacity cursor-pointer"
+                class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold text-status-danger bg-red-50/60 hover:bg-red-500 hover:text-white border border-red-200/60 hover:border-red-500 shadow-soft-sm hover:shadow-md active:scale-98 transition-all duration-200 cursor-pointer"
+                aria-label="Cerrar sesión"
               >
                 <Icon name="lucide:log-out" class="w-4 h-4" />
                 <span>Cerrar Sesión</span>

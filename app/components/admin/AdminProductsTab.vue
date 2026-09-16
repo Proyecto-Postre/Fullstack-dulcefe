@@ -237,7 +237,7 @@ function getProductIcon(name: string): string {
                     @click="emit('view-recipe', item)"
                     type="button"
                     class="w-8 h-8 rounded-lg bg-[#F4F1E1]/60 text-[#4A5D23] hover:bg-[#4A5D23] hover:text-white transition-all flex items-center justify-center shadow-xs cursor-pointer"
-                    title="Ver Escandallo / Receta"
+                    aria-label="Ver Escandallo / Receta"
                   >
                     <Icon name="lucide:calculator" class="w-4 h-4" />
                   </button>
@@ -245,7 +245,7 @@ function getProductIcon(name: string): string {
                     @click="handleEditProduct(item)"
                     type="button"
                     class="w-8 h-8 rounded-lg bg-[#F4F1E1]/60 text-[#4A5D23] hover:bg-[#4A5D23] hover:text-white transition-all flex items-center justify-center shadow-xs cursor-pointer"
-                    title="Editar"
+                    aria-label="Editar"
                   >
                     <Icon name="lucide:pencil" class="w-3.5 h-3.5" />
                   </button>
@@ -253,7 +253,7 @@ function getProductIcon(name: string): string {
                     @click="handleDeleteProduct(item.id, item.name)"
                     type="button"
                     class="w-8 h-8 rounded-lg bg-red-50 text-status-danger hover:bg-status-danger hover:text-white transition-all flex items-center justify-center shadow-xs cursor-pointer"
-                    title="Eliminar"
+                    aria-label="Eliminar"
                   >
                     <Icon name="lucide:trash-2" class="w-3.5 h-3.5" />
                   </button>

@@ -31,7 +31,6 @@ defineEmits<{
           @click="$emit('close')" 
           type="button"
           class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-brand-cream text-brand-secondary hover:bg-brand-primary hover:text-white transition-colors cursor-pointer"
-          title="Cerrar modal"
           aria-label="Cerrar modal"
         >
           <Icon name="lucide:x" class="w-4 h-4" />

@@ -49,7 +49,7 @@ defineEmits<{
           <button 
             @click="$emit('editAddress', address)"
             class="w-8 h-8 rounded-full bg-surface text-brand-primary flex items-center justify-center hover:bg-brand-primary hover:text-white transition-colors cursor-pointer shadow-soft-sm"
-            title="Editar"
+            aria-label="Editar"
           >
             <Icon name="lucide:pencil" class="w-3.5 h-3.5" />
           </button>
@@ -57,7 +57,7 @@ defineEmits<{
             @click="$emit('deleteAddress', address.id)"
             :disabled="isDeletingId === address.id"
             class="w-8 h-8 rounded-full bg-red-50 text-status-danger flex items-center justify-center hover:bg-status-danger hover:text-white transition-colors disabled:opacity-50 cursor-pointer shadow-soft-sm"
-            title="Eliminar"
+            aria-label="Eliminar"
           >
             <Icon v-if="isDeletingId === address.id" name="lucide:loader-2" class="w-3.5 h-3.5 animate-spin" />
             <Icon v-else name="lucide:trash-2" class="w-3.5 h-3.5" />

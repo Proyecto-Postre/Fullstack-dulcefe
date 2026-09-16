@@ -152,7 +152,7 @@ onUnmounted(() => {
             @click="fetchKdsOrders"
             :disabled="isLoading"
             class="p-2 bg-[#1c2517] hover:bg-[#25321f] active:scale-95 text-stone-200 border border-[#2a371e] rounded-xl transition cursor-pointer"
-            title="Actualizar"
+            aria-label="Actualizar"
           >
             <Icon name="lucide:refresh-cw" :class="['w-4 h-4', isLoading ? 'animate-spin' : '']" />
           </button>
@@ -160,7 +160,7 @@ onUnmounted(() => {
             type="button"
             @click="showMiseEnPlaceModal = true"
             class="p-2 bg-amber-500 hover:bg-amber-400 active:scale-95 text-stone-950 font-black rounded-xl transition cursor-pointer shadow-sm"
-            title="Mise en Place / Lotes"
+            aria-label="Mise en Place / Lotes"
           >
             <Icon name="lucide:scale" class="w-4 h-4" />
           </button>
@@ -227,7 +227,7 @@ onUnmounted(() => {
           @click="fetchKdsOrders"
           :disabled="isLoading"
           class="p-2 sm:p-2.5 bg-[#1c2517] hover:bg-[#25321f] active:scale-95 text-stone-200 border border-[#2a371e] rounded-xl transition cursor-pointer"
-          title="Actualizar comandas"
+          aria-label="Actualizar comandas"
         >
           <Icon name="lucide:refresh-cw" :class="['w-4 h-4 sm:w-5 sm:h-5', isLoading ? 'animate-spin' : '']" />
         </button>
@@ -236,7 +236,7 @@ onUnmounted(() => {
           type="button"
           @click="toggleFullscreen"
           class="p-2 sm:p-2.5 bg-[#1c2517] hover:bg-[#25321f] active:scale-95 text-stone-200 border border-[#2a371e] rounded-xl transition cursor-pointer"
-          title="Pantalla Completa"
+          aria-label="Pantalla Completa"
         >
           <Icon name="lucide:maximize" class="w-4 h-4 sm:w-5 sm:h-5" />
         </button>

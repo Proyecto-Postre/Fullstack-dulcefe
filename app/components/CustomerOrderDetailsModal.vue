@@ -191,7 +191,8 @@ const getStatusColor = (status: string | null) => {
         </section>
       </div>
     </div>
-  </Teleport>
+  </div>
+</Teleport>
 </template>
 
 <style scoped>

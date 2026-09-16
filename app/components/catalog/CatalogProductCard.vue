@@ -69,7 +69,7 @@ defineEmits<{
               ? 'bg-brand-primary text-white hover:bg-brand-secondary hover:shadow-soft-md active:scale-95'
               : 'bg-brand-cream text-brand-primary/40 cursor-not-allowed'
           ]"
-          :title="Number(product.price) > 0 ? 'Agregar al pedido' : 'Precio no disponible'"
+          :aria-label="Number(product.price) > 0 ? 'Agregar al pedido' : 'Precio no disponible'"
         >
           <span class="text-xs font-bold font-inter">Pedir</span>
           <Icon name="lucide:shopping-bag" class="w-4 h-4" />

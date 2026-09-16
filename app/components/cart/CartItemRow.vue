@@ -38,7 +38,7 @@ defineEmits<{
           @click.stop="$emit('remove', item.product_id, item.name)"
           type="button"
           class="text-[#4A5D23]/40 hover:text-[#991B1B] p-1.5 transition-colors cursor-pointer rounded-lg hover:bg-red-50"
-          title="Eliminar del pedido"
+          aria-label="Eliminar del pedido"
         >
           <Icon name="lucide:trash-2" class="w-4 h-4" />
         </button>

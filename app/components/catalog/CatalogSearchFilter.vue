@@ -33,7 +33,7 @@ defineEmits<{
         @click="$emit('update:searchQuery', '')"
         type="button"
         class="absolute right-3.5 top-1/2 -translate-y-1/2 text-brand-primary/50 hover:text-status-danger p-1 cursor-pointer"
-        title="Limpiar búsqueda"
+        aria-label="Limpiar búsqueda"
       >
         <Icon name="lucide:x" class="w-4 h-4" />
       </button>

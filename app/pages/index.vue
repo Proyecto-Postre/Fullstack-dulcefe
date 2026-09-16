@@ -165,7 +165,7 @@ function handleAddToCart(product: FeaturedProduct) {
                   @click="handleAddToCart(product)"
                   type="button"
                   class="h-11 px-5 rounded-full bg-surface border border-brand-primary/25 flex items-center gap-2 text-brand-primary hover:bg-brand-primary hover:text-white transition-all duration-300 shadow-soft-sm hover:shadow-soft-md active:scale-95 cursor-pointer"
-                  title="Añadir a mi pedido"
+                  aria-label="Añadir a mi pedido"
                 >
                   <span class="text-xs font-bold font-inter">Pedir</span>
                   <Icon name="lucide:shopping-bag" class="w-4 h-4" />

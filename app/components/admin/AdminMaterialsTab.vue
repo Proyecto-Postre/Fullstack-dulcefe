@@ -146,7 +146,7 @@ function openEditMaterial(item: RawMaterialRow): void {
               @click="clearSearch"
               type="button"
               class="absolute right-3 top-1/2 -translate-y-1/2 text-[#4A5D23]/40 hover:text-red-600 p-0.5 cursor-pointer transition-colors"
-              title="Limpiar búsqueda"
+              aria-label="Limpiar búsqueda"
             >
               <Icon name="lucide:x" class="w-3.5 h-3.5" />
             </button>
@@ -284,7 +284,7 @@ function openEditMaterial(item: RawMaterialRow): void {
                     type="number"
                     step="any"
                     class="w-20 px-2 py-1 bg-[#F4F1E1]/40 border border-[#4A5D23]/20 rounded-lg text-xs font-bold text-center text-[#2A321B] focus:outline-none focus:border-[#4A5D23]"
-                    title="Editar stock físico"
+                    aria-label="Editar stock físico"
                   />
                   <span class="text-[10px] font-bold text-[#4A5D23]/60">{{ item.unit }}</span>
                 </div>
@@ -297,7 +297,7 @@ function openEditMaterial(item: RawMaterialRow): void {
                     @click="openEditMaterial(item)"
                     type="button"
                     class="w-8 h-8 rounded-lg bg-[#F4F1E1]/60 text-[#4A5D23] hover:bg-[#4A5D23] hover:text-white transition-all flex items-center justify-center shadow-xs cursor-pointer"
-                    title="Editar Insumo"
+                    aria-label="Editar Insumo"
                   >
                     <Icon name="lucide:pencil" class="w-3.5 h-3.5" />
                   </button>
@@ -305,7 +305,7 @@ function openEditMaterial(item: RawMaterialRow): void {
                     @click="handleDeleteMaterial(item.id, item.name || '')"
                     type="button"
                     class="w-8 h-8 rounded-lg bg-red-50 text-status-danger hover:bg-status-danger hover:text-white transition-all flex items-center justify-center shadow-xs cursor-pointer"
-                    title="Eliminar Insumo"
+                    aria-label="Eliminar Insumo"
                   >
                     <Icon name="lucide:trash-2" class="w-3.5 h-3.5" />
                   </button>

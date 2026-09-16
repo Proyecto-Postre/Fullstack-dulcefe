@@ -232,7 +232,7 @@ function removeReceipt() {
             type="button"
             @click="removeReceipt"
             class="p-2 text-stone-400 hover:text-red-600 rounded-lg transition cursor-pointer"
-            title="Eliminar voucher"
+            aria-label="Eliminar voucher"
           >
             <Icon name="lucide:trash-2" class="w-4 h-4" />
           </button>

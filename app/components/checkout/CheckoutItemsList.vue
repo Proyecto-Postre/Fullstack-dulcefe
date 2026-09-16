@@ -50,7 +50,7 @@ function removeItem(productId: string | number): void {
               type="button"
               @click="updateQuantity(item.product_id, item.quantity - 1)"
               class="w-7 h-7 flex items-center justify-center text-[#2A321B] hover:bg-[#4A5D23]/10 text-xs font-bold transition-colors cursor-pointer"
-              title="Disminuir"
+              aria-label="Disminuir"
             >
               -
             </button>
@@ -61,7 +61,7 @@ function removeItem(productId: string | number): void {
               type="button"
               @click="updateQuantity(item.product_id, item.quantity + 1)"
               class="w-7 h-7 flex items-center justify-center text-[#2A321B] hover:bg-[#4A5D23]/10 text-xs font-bold transition-colors cursor-pointer"
-              title="Aumentar"
+              aria-label="Aumentar"
             >
               +
             </button>
@@ -77,7 +77,7 @@ function removeItem(productId: string | number): void {
             type="button"
             @click="removeItem(item.product_id)"
             class="w-7 h-7 rounded-lg text-red-500 hover:bg-red-50 hover:text-red-700 flex items-center justify-center transition-colors cursor-pointer"
-            title="Quitar producto"
+            aria-label="Quitar producto"
           >
             <Icon name="lucide:trash-2" class="w-4 h-4" />
           </button>
