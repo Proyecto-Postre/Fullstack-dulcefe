@@ -18,35 +18,45 @@ Este documento describe las **reglas de negocio operativas y financieras** que r
 
 ## 🔄 1. Ciclo de Vida del Pedido (State Machine)
 
-Cada orden creada en la tabla `orders` (documentada en [[esquema-base-datos]]) atraviesa una máquina de estados controlada:
+Cada orden creada en la tabla `orders` (documentada en [[esquema-base-datos]]) atraviesa una máquina de estados controlada tanto en la base de datos como en `server/utils/order-state-machine.ts`:
 
 ```mermaid
 stateDiagram-v2
-    [*] --> PENDIENTE: Checkout (Guest o Auth)
-    PENDIENTE --> EN_COCINA: Admin valida pago (Yape/Plin/Transferencia)
-    EN_COCINA --> LISTO: Chef pastelero termina decoración & empaque
-    LISTO --> ENTREGADO: Despacho completado (Delivery o Recojo en tienda)
-    PENDIENTE --> CANCELADO: Rechazado por falta de stock o pago
-    EN_COCINA --> CANCELADO: Incidente en cocina (Merma registrada)
-    CANCELADO --> [*]
-    ENTREGADO --> [*]
+    [*] --> pending: Checkout (Guest o Auth)
+    pending --> processing: Admin valida voucher de pago (POST verify-payment)
+    processing --> ready: Chef pastelero termina preparación en KDS
+    ready --> completed: Despacho completado (Delivery o Recojo en tienda)
+    pending --> cancelled: Rechazo de pago / Falta de stock (restore_stock=true)
+    processing --> cancelled: Incidente en cocina / Merma declarada (restore_stock=false)
+    cancelled --> [*]
+    completed --> [*]
 ```
 
-### Detalle de Estados y Acciones Automáticas:
+### Detalle de Estados y Acciones Técnicas:
 
-1. **`PENDIENTE`:**
-   * El cliente finaliza el checkout (no requiere cuenta obligatoria; soporta *Guest Checkout* según [[plan-maestro]]).
-   * Se genera un código amigable de rastreo (ej. `DF-4821`).
-   * Se emite un webhook a **n8n** para enviar mensaje de confirmación preliminar por WhatsApp.
-2. **`EN_COCINA` (KDS):**
-   * El administrador confirma el pago.
-   * El pedido aparece inmediatamente en la pantalla de cocina (KDS).
-   * **Deducción de Stock:** Se descuentan las unidades de producto o los insumos calculados en [[formulas-costeo]].
-3. **`LISTO`:**
-   * La cocina finaliza la preparación y el empaquetado.
-   * n8n dispara alerta al cliente: *"¡Tu postre está listo para recojo o en camino!"*.
-4. **`ENTREGADO`:**
-   * Cierre formal de la venta. Si el cliente está registrado, se acumulan sus puntos en `profiles.points`.
+1. **`pending` (Pendiente de Verificación):**
+   * El cliente finaliza el checkout (soporta *Guest Checkout* según [[plan-maestro]]).
+   * El cliente sube su voucher de pago Yape/Plin vía [[POST-api-checkout-upload-receipt]].
+   * Se genera un token criptográfico HMAC-SHA256 para seguimiento en tiempo real vía [[GET-api-orders-track-token]] (`/pedido/[token]`).
+   * Se emite un webhook seguro a **n8n** con cabecera `X-DulceFe-Signature` para confirmación preliminar por WhatsApp.
+
+2. **`processing` (En Cocina / KDS):**
+   * El administrador confirma el pago mediante [[POST-api-admin-orders-id-verify-payment]] (`payment_status = 'verified'`).
+   * El pedido ingresa inmediatamente a la pantalla de cocina [[GET-api-admin-kds-orders]] (`/admin/kds`) con semáforos de urgencia calculados en hora local de Lima.
+   * **Congelamiento de Costos (COGS Freeze):** Se toma un snapshot inmutable de las recetas y costos de materias primas actuales en `order_items.unit_cost` y `order_items.cost_snapshot` ([[ADR-008-recipe-versioning]]).
+   * **Deducción de Inventario:** El stock físico de materias primas y empaques se deduce mediante trigger atómico en base de datos.
+
+3. **`ready` (Listo para Entrega):**
+   * El equipo de cocina marca el pedido como listo en el KDS o el administrador en la pestaña de pedidos.
+   * n8n dispara alerta al cliente por WhatsApp: *"¡Tu postre está listo para recojo o en camino a tu dirección!"*.
+
+4. **`completed` (Entregado / Cerrado):**
+   * Cierre formal de la venta. Si el cliente está autenticado, se acumulan sus puntos en `profiles.points`.
+   * El pedido se convierte en un registro histórico inmutable ([[ADR-007-completed-order-immutability]]).
+
+5. **`cancelled` (Cancelado):**
+   * Si la cancelación ocurre antes de procesar (`pending -> cancelled`), se ejecuta la reversión de stock automática (`restore_stock = true`) a través de la RPC `revert_order_inventory` ([[ADR-001-cancellation-stock-reversal]]).
+   * Si la cancelación ocurre durante la producción (`processing -> cancelled`), se declara como merma culinaria sin restaurar el insumo físico (`restore_stock = false`).
 
 ---
 

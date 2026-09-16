@@ -1,8 +1,8 @@
-﻿# 📄 PLAN MAESTRO DULCE FE (MASTER BLUEPRINT)
+# 📄 PLAN MAESTRO DULCE FE (MASTER BLUEPRINT)
 
 > **Ecosistema Digital de Repostería Artesanal: E-Commerce & ERP Financiero-Operativo**  
-> **Versión:** 1.1.0  
-> **Estado:** Documento Vivo / Especificación de Arquitectura, Producto y Automatizaciones  
+> **Versión:** 1.2.0 (Enterprise)  
+> **Estado:** 🟢 Fases 0 a 6 Completadas | 🟢 Hardening & Estabilidad Sellados | 📱 Refinamiento UI Mobile Implementado (198/198 Tests Pasando)  
 > **Stack Principal:** Nuxt 4 (Vue 3, TypeScript), Tailwind CSS, Supabase (PostgreSQL, Auth, Storage), ExcelJS, `@nuxt/icon` (Lucide Icons), n8n (Automatización Open-Source).
 
 ---
@@ -271,28 +271,47 @@ Si a futuro el negocio requiere:
 
 ```mermaid
 gantt
-    title Plan de Desarrollo Dulce Fe ERP & E-Commerce
+    title Plan de Desarrollo Dulce Fe ERP & E-Commerce (Ejecutado)
     dateFormat  YYYY-MM-DD
-    section Fase 1: Core ERP & Escandallos
-    Almacén de Materias Primas       :done,    des1, 2024-11-01, 2024-11-15
-    Fichas Técnicas y Escandallos    :done,    des2, 2024-11-16, 2024-11-30
-    Exportación ExcelJS Avanzada     :done,    des3, 2024-12-01, 2024-12-10
-    section Fase 2: E-Commerce Storefront
-    Landing Page & Catálogo Premium  :done,    des4, 2024-12-11, 2024-12-25
-    Refinamiento Global UI (Soft)    :done,    des5, 2024-12-26, 2025-01-10
-    Carrito & Guest Checkout         :done,    des6, 2025-01-11, 2025-01-20
-    section Fase 3: Operaciones & n8n
-    Dashboard Admin & Wizard Prod.   :done,    des7, 2025-01-21, 2025-02-05
-    Automatización n8n WhatsApp      :active,  des8, 2025-02-06, 2025-02-15
-    section Fase 4: Analítica & BI
-    Dashboard Financiero & KPIs      :         des9, 2025-02-16, 2025-02-28
+    section Fase 0 & 1: Core ERP & Seguridad
+    Auditoría Inicial & Blindaje RLS :done, des0, 2026-08-01, 2026-08-10
+    Almacén de Materias Primas       :done, des1, 2026-08-11, 2026-08-18
+    Fichas Técnicas y Escandallos    :done, des2, 2026-08-19, 2026-08-25
+    Exportación ExcelJS Avanzada     :done, des3, 2026-08-26, 2026-08-31
+    section Fase 2 & 3: Storefront & Checkout
+    Landing, Catálogo & Design Tokens:done, des4, 2026-09-01, 2026-09-04
+    Carrito Pinia & Idempotencia     :done, des5, 2026-09-04, 2026-09-06
+    Checkout Seguro, Yape & WhatsApp :done, des6, 2026-09-06, 2026-09-08
+    section Fase 4, 5 & 6: KDS, Eventos & Refinamiento
+    Desacoplamiento & Tipos Zod      :done, des7, 2026-09-08, 2026-09-10
+    CI/CD, Disciplina & ADRs (D1-D8) :done, des8, 2026-09-10, 2026-09-12
+    KDS Taller, Vouchers & n8n       :done, des9, 2026-09-12, 2026-09-14
+    Hardening, Portales & Mobile UX  :done, des10, 2026-09-14, 2026-09-16
 ```
+
+### Tabla de Estado Actual de Fases
+
+| Fase / Hito | Alcance Principal | Tests Vitest | Estado |
+|---|---|:---:|:---:|
+| **Fase 0 — Base** | Dependencias, variables de entorno y baseline Nuxt 4 | 8 | ✅ Completada |
+| **Fase 1 — Seguridad** | RLS Postgres, guards `requireAdmin`/`requireUser`, S1 | 24 | ✅ Completada |
+| **Fase 2 — UI Shell** | Design System "Soft Botánico", Layouts `default`/`admin` | 42 | ✅ Completada |
+| **Fase 3 — Transaccional** | Checkout idempotente, céntimos exactos, corte S9 | 78 | ✅ Completada |
+| **Fase 4 — Desacoplamiento** | Servicios de dominio (Catálogo, Insumos, Recetas, Pedidos) | 126 | ✅ Completada |
+| **Fase 5 — Disciplina** | ESLint 10, CI type-drift gate, ADRs D1–D8, Playbook Ops | 148 | ✅ Completada |
+| **Fase 6 — Expansión** | Guest Tracking HMAC, KDS Taller, Vouchers Yape, n8n webhooks | 172 | ✅ Completada |
+| **Hardening & Estabilidad** | Portales de modales z-[9999], RLS Service Role, purga zombi | 185 | ✅ Completada |
+| **Refinamiento Mobile & UX** | Carrusel métricas sin saltos, tabs segmentados, hide-scrollbar | 198 | ✅ Completada |
 
 ---
 
 ### 📌 Documentos Complementarios en `/docs`
 
-1. **[[plan-maestro]]:** Especificación de producto, visión y roadmap.
-2. **[[arquitectura-patrones]]:** Guía profunda de arquitectura de software, patrones de diseño y flujo de datos.
-3. **[[formulas-costeo]]:** Algoritmos y fórmulas matemáticas para el escandallo.
-4. **[[componentes-arquitectura]]:** Estructura y convenciones de componentes Vue 3.
+1. **[[plan-maestro]]:** Especificación de producto, visión y roadmap maestro.
+2. **[[guia-diseno-mobile-responsivo]]:** Guía de ingeniería y patrones de diseño móvil responsivo (carruseles, tabs, drawers, footer y scrollbars).
+3. **[[arquitectura-patrones]]:** Guía profunda de arquitectura de software, patrones de diseño y flujo de datos.
+4. **[[formulas-costeo]]:** Algoritmos y fórmulas matemáticas para el escandallo de costos.
+5. **[[componentes-arquitectura]]:** Estructura y convenciones de componentes Vue 3 y layouts.
+6. **[[esquema-base-datos]]:** Esquema relacional oficial Supabase (12 tablas), triggers y RLS.
+7. **[[api-endpoints]]:** Catálogo oficial de 32 endpoints REST en Nitro.
+8. **[[Dashboard]]:** Centro de comando y grafo de Obsidian.

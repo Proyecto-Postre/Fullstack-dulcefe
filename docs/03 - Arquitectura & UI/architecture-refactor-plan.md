@@ -1258,3 +1258,50 @@ Durante la validación integral del ERP Administrativo previa a la Fase 7, se id
   - Ante respuestas `401` o `403`, el temporizador `pollTimer` DEBE cancelarse de inmediato (`clearInterval`) para no saturar los logs del servidor ni consumir CPU.
   - La interfaz DEBE mostrar un mensaje claro con botón de acción para reautenticarse (`/login`), reactivando el polling de forma transparente una vez recuperada la sesión válida.
 
+---
+
+## 22. Reglas de Arquitectura Mobile Responsiva & Ergonomía Táctil (Branch `feat/ui-refinements-auth-checkout-kds`)
+
+### 22.1 Contexto y Diagnóstico
+En pantallas móviles (`< sm:`, viewport ≤ 640px), las interfaces de paneles administrativos y de comercio electrónico sufren de tres patologías comunes:
+1. **Apilamiento vertical excesivo ("Doom Scrolling")**: Paneles con 4 tarjetas de métricas y múltiples paneles de alertas generan un desplazamiento vertical excesivamente largo, obligando al usuario a desplazarse varias pantallas para acceder a tablas y acciones operativas.
+2. **Saltos verticales de pantalla ("Window Scroll Jerk")**: El uso de `element.scrollIntoView({ block: 'nearest' })` en carruseles automáticos horizontales provoca que el navegador desplace el contenedor antecesor (la ventana completa) hacia arriba cada vez que el carrusel avanza si el usuario está leyendo contenido inferior.
+3. **Barras de desplazamiento nativas antiestéticas ("Scrollbar gris con flechas")**: En navegadores móviles y emuladores táctiles, el scroll horizontal automático o manual genera barras grises gruesas con flechas que degradan la estética *Premium Soft Botánico*.
+
+### 22.2 Reglas de Arquitectura Mobile Mandatorias
+
+#### Regla AR-5: Aislamiento Estricto de Desplazamiento Horizontal (Prohibición de `scrollIntoView`)
+- **Regla**: En carruseles horizontales programáticos (como el carrusel de métricas del Dashboard):
+  - **PROHIBIDO** el uso de `element.scrollIntoView()`.
+  - **OBLIGATORIO** calcular el desplazamiento relativo (`offsetLeft`) y ejecutar:
+    ```typescript
+    container.scrollTo({ left: targetLeft, behavior: 'smooth' });
+    ```
+  - Esto garantiza que el desplazamiento horizontal quede estrictamente confinado dentro del contenedor del carrusel, sin provocar nunca saltos verticales de la ventana del usuario.
+
+#### Regla AR-6: Pausa Inteligente de Rotación por Visibilidad en Viewport
+- **Regla**: Todo carrusel con rotación automática (`setInterval`) DEBE validar la visibilidad en pantalla antes de avanzar:
+  ```typescript
+  const isElementInViewport = (el: HTMLElement) => {
+    const rect = el.getBoundingClientRect();
+    return rect.top < window.innerHeight && rect.bottom > 0;
+  };
+  ```
+- Si el usuario se encuentra leyendo la parte inferior de la página o fuera de vista, la transición automática se omite para no desperdiciar ciclos de CPU ni batería en dispositivos móviles.
+
+#### Regla AR-7: Segmentación Táctil en Mobile vs. Grilla en Desktop
+- **Regla**: En bloques de información dual (como alertas operativas y recetas):
+  - En Desktop (`sm:block`, `lg:grid`): Se renderizan lado a lado simultáneamente.
+  - En Mobile (`block sm:hidden`): Se transforman en un selector segmentado interactivo tipo tabs/pastillas (`bg-[#F4F1E1]`, `rounded-xl`, `active:scale-95`) para visualizar una sección a la vez con cambio táctil instantáneo.
+
+#### Regla AR-8: Ocultamiento Global y Scoped de Scrollbars Horizontales
+- **Regla**: Todo contenedor con desplazamiento horizontal (`overflow-x-auto`) con clase `.hide-scrollbar` DEBE tener garantizado el ocultamiento de barras nativas en tres niveles:
+  1. Clases de utilidad en CSS global (`app/app.vue`):
+     ```css
+     .hide-scrollbar::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
+     .hide-scrollbar { -ms-overflow-style: none !important; scrollbar-width: none !important; }
+     ```
+  2. Reglas en el `<style scoped>` del componente para asegurar compilación sin fugas ni dependencias del orden de inyección.
+  3. Navegación táctil nativa preservada (`-webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory;`).
+
+
