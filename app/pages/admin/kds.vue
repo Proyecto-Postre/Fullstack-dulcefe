@@ -410,61 +410,66 @@ onUnmounted(() => {
     </main>
 
     <!-- Modal de Mise en Place & Horneado por Lotes -->
-    <div
-      v-if="showMiseEnPlaceModal"
-      class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
-    >
-      <div class="bg-[#182014] border border-[#2a371e] rounded-3xl max-w-2xl w-full p-5 sm:p-6 space-y-5 sm:space-y-6 shadow-2xl">
-        <div class="flex items-center justify-between border-b border-[#222c1a] pb-4">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
-              <Icon name="lucide:scale" class="w-6 h-6 sm:w-7 sm:h-7" />
-            </div>
-            <div>
-              <h3 class="text-lg sm:text-xl font-black text-white">Mise en Place &bull; Horneado por Lotes</h3>
-              <p class="text-xs text-stone-400">Total consolidado de insumos requeridos para pedidos en cola</p>
-            </div>
-          </div>
-          <button
-            type="button"
-            @click="showMiseEnPlaceModal = false"
-            class="p-2 text-stone-400 hover:text-white rounded-xl bg-[#1c2517] transition cursor-pointer"
-          >
-            <Icon name="lucide:x" class="w-5 h-5 sm:w-6 sm:h-6" />
-          </button>
-        </div>
-
-        <div v-if="batchIngredients.length === 0" class="py-8 text-center text-stone-500">
-          <Icon name="lucide:box" class="w-12 h-12 mx-auto mb-2 text-stone-600" />
-          <p class="text-sm">No hay recetas asignadas a las comandas activas pendientes o en horno.</p>
-        </div>
-
-        <div v-else class="max-h-96 overflow-y-auto space-y-2">
-          <div
-            v-for="mat in batchIngredients"
-            :key="mat.material_id"
-            class="flex items-center justify-between p-3.5 bg-[#0f140c] rounded-xl border border-[#222c1a]"
-          >
+    <Teleport to="body">
+      <div
+        v-if="showMiseEnPlaceModal"
+        class="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-y-auto"
+        role="dialog"
+        aria-modal="true"
+      >
+        <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" @click="showMiseEnPlaceModal = false"></div>
+        <div class="relative bg-[#182014] border border-[#2a371e] rounded-3xl max-w-2xl w-full p-5 sm:p-6 space-y-5 sm:space-y-6 shadow-2xl z-10">
+          <div class="flex items-center justify-between border-b border-[#222c1a] pb-4">
             <div class="flex items-center gap-3">
-              <Icon name="lucide:wheat" class="w-5 h-5 text-amber-400" />
-              <span class="font-bold text-stone-200 text-sm">{{ mat.material_name }}</span>
+              <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                <Icon name="lucide:scale" class="w-6 h-6 sm:w-7 sm:h-7" />
+              </div>
+              <div>
+                <h3 class="text-lg sm:text-xl font-black text-white">Mise en Place &bull; Horneado por Lotes</h3>
+                <p class="text-xs text-stone-400">Total consolidado de insumos requeridos para pedidos en cola</p>
+              </div>
             </div>
-            <span class="font-mono text-base font-black text-amber-400">
-              {{ mat.total_quantity.toLocaleString('es-PE', { maximumFractionDigits: 2 }) }} {{ mat.unit }}
-            </span>
+            <button
+              type="button"
+              @click="showMiseEnPlaceModal = false"
+              class="p-2 text-stone-400 hover:text-white rounded-xl bg-[#1c2517] transition cursor-pointer"
+            >
+              <Icon name="lucide:x" class="w-5 h-5 sm:w-6 sm:h-6" />
+            </button>
           </div>
-        </div>
 
-        <div class="pt-2 flex justify-end">
-          <button
-            type="button"
-            @click="showMiseEnPlaceModal = false"
-            class="px-6 py-3 bg-[#1c2517] hover:bg-[#25321f] text-white font-bold rounded-xl text-sm transition cursor-pointer"
-          >
-            Cerrar Resumen
-          </button>
+          <div v-if="batchIngredients.length === 0" class="py-8 text-center text-stone-500">
+            <Icon name="lucide:box" class="w-12 h-12 mx-auto mb-2 text-stone-600" />
+            <p class="text-sm">No hay recetas asignadas a las comandas activas pendientes o en horno.</p>
+          </div>
+
+          <div v-else class="max-h-96 overflow-y-auto space-y-2">
+            <div
+              v-for="mat in batchIngredients"
+              :key="mat.material_id"
+              class="flex items-center justify-between p-3.5 bg-[#0f140c] rounded-xl border border-[#222c1a]"
+            >
+              <div class="flex items-center gap-3">
+                <Icon name="lucide:wheat" class="w-5 h-5 text-amber-400" />
+                <span class="font-bold text-stone-200 text-sm">{{ mat.material_name }}</span>
+              </div>
+              <span class="font-mono text-base font-black text-amber-400">
+                {{ mat.total_quantity.toLocaleString('es-PE', { maximumFractionDigits: 2 }) }} {{ mat.unit }}
+              </span>
+            </div>
+          </div>
+
+          <div class="pt-2 flex justify-end">
+            <button
+              type="button"
+              @click="showMiseEnPlaceModal = false"
+              class="px-6 py-3 bg-[#1c2517] hover:bg-[#25321f] text-white font-bold rounded-xl text-sm transition cursor-pointer"
+            >
+              Cerrar Resumen
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </Teleport>
   </div>
 </template>

@@ -121,8 +121,8 @@ async function saveProduct(): Promise<void> {
 <template>
   <ClientOnly>
     <Teleport to="#admin-modal-portal">
-      <div v-if="show" class="absolute inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto custom-scrollbar pointer-events-auto">
-        <div class="absolute inset-0 bg-[#2A321B]/40 backdrop-blur-sm" @click="closeModal"></div>
+      <div v-if="show" class="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto custom-scrollbar pointer-events-auto">
+        <div class="fixed inset-0 bg-[#2A321B]/50 backdrop-blur-sm transition-opacity" @click="closeModal"></div>
       
         <div
           role="dialog"

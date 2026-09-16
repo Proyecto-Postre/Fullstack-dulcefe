@@ -64,8 +64,8 @@ function handleProceedToCheckout(): void {
               @close="cartStore.closeDrawer()" 
             />
 
-            <!-- Lista de Productos con animación -->
-            <div v-else v-auto-animate class="space-y-3.5">
+            <!-- Lista de Productos -->
+            <div v-else class="space-y-3.5">
               <CartItemRow
                 v-for="item in cartStore.items"
                 :key="item.product_id"

@@ -50,18 +50,21 @@ const getStatusColor = (status: string | null) => {
 </script>
 
 <template>
-  <div
-    v-if="show && order"
-    class="absolute inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto custom-scrollbar"
-  >
+  <Teleport to="body">
     <div
-      class="absolute inset-0 bg-[#2A321B]/40 backdrop-blur-sm"
-      @click="closeModal"
-    ></div>
-
-    <div
-      class="relative w-full max-w-2xl bg-white rounded-[2rem] shadow-2xl overflow-hidden animate-pop flex flex-col max-h-[85vh]"
+      v-if="show && order"
+      class="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto custom-scrollbar"
+      role="dialog"
+      aria-modal="true"
     >
+      <div
+        class="fixed inset-0 bg-[#2A321B]/50 backdrop-blur-sm transition-opacity"
+        @click="closeModal"
+      ></div>
+
+      <div
+        class="relative w-full max-w-2xl bg-white rounded-[2rem] shadow-2xl overflow-hidden animate-pop flex flex-col max-h-[85vh] z-10"
+      >
       <!-- Header -->
       <div
         class="p-5 sm:p-6 bg-[#F4F1E1]/30 border-b border-[#4A5D23]/10 flex items-center justify-between shrink-0"
@@ -188,7 +191,7 @@ const getStatusColor = (status: string | null) => {
         </section>
       </div>
     </div>
-  </div>
+  </Teleport>
 </template>
 
 <style scoped>

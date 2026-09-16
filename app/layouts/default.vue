@@ -20,6 +20,17 @@ async function handleLogout() {
   await authStore.signOut()
   navigateTo('/login')
 }
+
+const formattedWhatsApp = computed(() => {
+  const digits = String(config.public.whatsappNumber || '51998265700').replace(/\D/g, '')
+  if (digits.startsWith('51') && digits.length === 11) {
+    return `+51 ${digits.slice(2, 5)} ${digits.slice(5, 8)} ${digits.slice(8)}`
+  }
+  if (digits.length === 9) {
+    return `+51 ${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}`
+  }
+  return digits.startsWith('51') ? `+51 ${digits.slice(2)}` : `+${digits}`
+})
 </script>
 
 <template>
@@ -275,44 +286,36 @@ async function handleLogout() {
       </Transition>
     </Teleport>
 
-    <!-- Footer App Compacto y Elegante -->
-    <footer class="z-20 bg-brand-secondary text-brand-cream py-6 px-6 lg:px-12 border-t border-brand-primary/20 mt-auto shrink-0">
-      <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-        <!-- Marca y Eslogan -->
+    <!-- Footer de la Tienda (Elegante y Proporcionado) -->
+    <footer class="z-20 bg-brand-secondary text-brand-cream py-5 sm:py-6 px-6 sm:px-8 lg:px-12 border-t border-brand-primary/20 mt-auto shrink-0">
+      <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-6">
+        <!-- Marca e Identidad -->
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 border border-white/20 bg-brand-primary rounded-full flex items-center justify-center text-white shrink-0">
-            <Icon name="lucide:wheat" class="w-4 h-4" />
+          <div class="w-9 h-9 border border-white/20 bg-brand-primary/40 rounded-full flex items-center justify-center text-brand-cream shrink-0 shadow-soft-sm">
+            <Icon name="lucide:wheat" class="w-4 h-4 text-brand-cream" />
           </div>
-          <div>
-            <span class="text-lg font-playfair font-black text-brand-cream block leading-tight">Dulce Fe</span>
-            <p class="text-[10px] text-brand-cream/60 font-medium tracking-wider uppercase">Pastelería Fina Artesanal</p>
+          <div class="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3">
+            <span class="text-base sm:text-lg font-playfair font-black text-brand-cream tracking-tight">Dulce Fe</span>
+            <span class="text-xs text-brand-cream/60 font-medium">Pastelería Fina Artesanal</span>
+            <span class="text-xs text-brand-cream/40">© {{ new Date().getFullYear() }}</span>
           </div>
         </div>
 
-        <!-- Enlaces Rápidos de Navegación -->
-        <nav class="flex flex-wrap justify-center items-center gap-6 text-xs text-brand-cream/80 font-medium">
-          <NuxtLink to="/" class="hover:text-status-success transition-colors">Inicio</NuxtLink>
-          <NuxtLink to="/menu" class="hover:text-status-success transition-colors">Carta & Menú</NuxtLink>
-          <NuxtLink to="/perfil?tab=pedidos" class="hover:text-status-success transition-colors">Mis Pedidos</NuxtLink>
-          <NuxtLink to="/perfil?tab=personal" class="hover:text-status-success transition-colors">Mi Cuenta</NuxtLink>
-        </nav>
-
-        <!-- Botón Contacto WhatsApp -->
-        <a 
-          :href="`https://wa.me/${config.public.whatsappNumber}`" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-xs text-brand-cream font-bold transition-all shadow-soft-sm hover:scale-102"
-        >
-          <Icon name="lucide:message-circle" class="w-4 h-4 text-status-success" />
-          <span>WhatsApp: +{{ config.public.whatsappNumber }}</span>
-        </a>
-      </div>
-
-      <!-- Copyright inferior sutil -->
-      <div class="max-w-7xl mx-auto mt-5 pt-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center text-[10px] text-brand-cream/50 gap-2">
-        <span>© {{ new Date().getFullYear() }} Dulce Fe Pastelería Fina. Todos los derechos reservados.</span>
-        <span>Atención: Lun-Sáb 8am-8pm | Dom 9am-5pm</span>
+        <!-- Atención y Contacto Directo WhatsApp -->
+        <div class="flex flex-wrap items-center justify-center sm:justify-end gap-3 sm:gap-5">
+          <span class="text-xs text-brand-cream/60 font-medium hidden md:inline">
+            Atención: Lun-Sáb 8am-8pm | Dom 9am-5pm
+          </span>
+          <a 
+            :href="`https://wa.me/${config.public.whatsappNumber}`" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs sm:text-sm text-brand-cream font-bold transition-all shadow-soft-sm hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+          >
+            <Icon name="lucide:message-circle" class="w-4 h-4 text-emerald-400" />
+            <span>WhatsApp: {{ formattedWhatsApp }}</span>
+          </a>
+        </div>
       </div>
     </footer>
 

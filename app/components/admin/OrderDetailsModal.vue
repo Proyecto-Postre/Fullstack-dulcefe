@@ -138,10 +138,10 @@ const openWhatsApp = (): void => {
     <Teleport to="#admin-modal-portal">
       <div
         v-if="show && order"
-        class="absolute inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto custom-scrollbar pointer-events-auto"
+        class="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto custom-scrollbar pointer-events-auto"
       >
         <div
-          class="absolute inset-0 bg-[#2A321B]/40 backdrop-blur-sm"
+          class="fixed inset-0 bg-[#2A321B]/50 backdrop-blur-sm transition-opacity"
           @click="closeModal"
         ></div>
 
