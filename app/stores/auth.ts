@@ -239,6 +239,35 @@ export const useAuthStore = defineStore('auth', () => {
     clearSession()
   }
 
+  async function updateProfile(payload: { full_name?: string, phone?: string }): Promise<{ success: boolean, error?: string }> {
+    if (!user.value?.id) return { success: false, error: 'Usuario no autenticado' }
+    try {
+      const supabase = useSupabaseClient<Database>()
+      const updates: { full_name?: string, phone?: string, updated_at: string } = {
+        updated_at: new Date().toISOString()
+      }
+      if (payload.full_name !== undefined) updates.full_name = payload.full_name.trim()
+      if (payload.phone !== undefined) updates.phone = payload.phone.trim()
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', user.value.id)
+        .select()
+        .single()
+
+      if (error) throw error
+      if (data) {
+        profile.value = data
+      }
+      return { success: true }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error al actualizar perfil'
+      console.error('Error al actualizar perfil:', err)
+      return { success: false, error: message }
+    }
+  }
+
   return {
     user,
     profile,
@@ -251,6 +280,7 @@ export const useAuthStore = defineStore('auth', () => {
     signOut,
     initAuth,
     fetchProfile,
+    updateProfile,
     fetchAddresses,
     saveAddress,
     addAddress: saveAddress,

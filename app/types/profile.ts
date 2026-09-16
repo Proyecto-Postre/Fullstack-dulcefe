@@ -39,4 +39,5 @@ export interface ProfileAddressItem {
   is_default?: boolean
 }
 
-export type ProfileTab = 'history' | 'addresses' | 'points'
+export type ProfileTab = 'personal' | 'history' | 'addresses' | 'points'
+

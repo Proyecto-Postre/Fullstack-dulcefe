@@ -67,7 +67,7 @@ async function handleLogout() {
             Carta & Menú
           </NuxtLink>
           <NuxtLink 
-            to="/perfil" 
+            to="/perfil?tab=pedidos" 
             active-class="text-brand-primary font-black"
             class="text-brand-secondary/80 hover:text-brand-primary transition-colors cursor-pointer py-1"
           >
@@ -107,15 +107,15 @@ async function handleLogout() {
                 <span>Panel Admin</span>
               </NuxtLink>
 
-              <!-- Acceso a Mi Perfil (Solo Desktop) -->
+              <!-- Acceso a Mi Perfil / Datos Personales (Solo Desktop) -->
               <NuxtLink 
-                to="/perfil" 
+                to="/perfil?tab=personal" 
                 class="flex items-center gap-2 bg-surface hover:bg-brand-cream border border-brand-primary/20 px-3.5 py-2.5 rounded-full shadow-soft-sm transition-all cursor-pointer text-brand-secondary"
                 title="Mi Perfil"
               >
                 <Icon name="lucide:user" class="w-4 h-4 text-brand-primary" />
                 <span class="font-bold text-xs max-w-[120px] truncate">
-                  {{ authStore.user?.user_metadata?.full_name || 'Mi Perfil' }}
+                  {{ authStore.profile?.full_name || authStore.user?.user_metadata?.full_name || 'Mi Perfil' }}
                 </span>
               </NuxtLink>
             </template>
@@ -144,8 +144,8 @@ async function handleLogout() {
       </div>
     </header>
 
-    <!-- Contenido Central de la Vista -->
-    <main class="flex-grow z-10">
+    <!-- Contenido Central de la Vista con flex-grow para empujar footer al fondo -->
+    <main class="flex-grow z-10 flex flex-col">
       <slot />
     </main>
 
@@ -213,7 +213,7 @@ async function handleLogout() {
               </NuxtLink>
 
               <NuxtLink 
-                to="/perfil" 
+                to="/perfil?tab=pedidos" 
                 @click="isMobileMenuOpen = false"
                 active-class="bg-surface text-brand-primary font-black border-brand-primary/20 shadow-soft-sm"
                 class="flex items-center gap-3.5 px-4 py-3 rounded-2xl font-bold text-sm text-brand-secondary hover:bg-surface/80 border border-transparent transition-all"
@@ -243,12 +243,12 @@ async function handleLogout() {
             <div class="pt-4 border-t border-brand-primary/10 space-y-3">
               <template v-if="authStore.isLoggedIn">
                 <NuxtLink 
-                  to="/perfil" 
+                  to="/perfil?tab=personal" 
                   @click="isMobileMenuOpen = false"
                   class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-surface border border-brand-primary/15 text-xs font-bold text-brand-secondary"
                 >
                   <Icon name="lucide:user" class="w-4 h-4 text-brand-primary" />
-                  <span class="truncate">{{ authStore.user?.user_metadata?.full_name || authStore.user?.email || 'Mi Perfil' }}</span>
+                  <span class="truncate">{{ authStore.profile?.full_name || authStore.user?.user_metadata?.full_name || authStore.user?.email || 'Mi Perfil' }}</span>
                 </NuxtLink>
                 <button 
                   @click="handleLogout" 
@@ -275,55 +275,44 @@ async function handleLogout() {
       </Transition>
     </Teleport>
 
-    <!-- Footer Institucional Unificado -->
-    <footer class="z-20 bg-brand-secondary text-brand-cream py-14 px-6 lg:px-12 border-t border-brand-primary/20 mt-auto">
-      <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10">
-        <!-- Columna 1: Branding -->
-        <div>
-          <div class="flex items-center gap-3 mb-4">
-            <div class="w-9 h-9 border border-white/20 bg-brand-primary rounded-full flex items-center justify-center text-white">
-              <Icon name="lucide:wheat" class="w-5 h-5" />
-            </div>
-            <span class="text-2xl font-playfair font-black text-brand-cream">Dulce Fe</span>
+    <!-- Footer App Compacto y Elegante -->
+    <footer class="z-20 bg-brand-secondary text-brand-cream py-6 px-6 lg:px-12 border-t border-brand-primary/20 mt-auto shrink-0">
+      <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+        <!-- Marca y Eslogan -->
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 border border-white/20 bg-brand-primary rounded-full flex items-center justify-center text-white shrink-0">
+            <Icon name="lucide:wheat" class="w-4 h-4" />
           </div>
-          <p class="text-xs text-brand-cream/70 leading-relaxed max-w-sm">
-            Pastelería fina y repostería artesanal de alta gama. Creamos experiencias inolvidables para endulzar cada uno de tus momentos especiales.
-          </p>
+          <div>
+            <span class="text-lg font-playfair font-black text-brand-cream block leading-tight">Dulce Fe</span>
+            <p class="text-[10px] text-brand-cream/60 font-medium tracking-wider uppercase">Pastelería Fina Artesanal</p>
+          </div>
         </div>
 
-        <!-- Columna 2: Enlaces Rápidos -->
-        <div>
-          <h4 class="font-playfair font-bold text-base text-brand-cream mb-4">Explora</h4>
-          <ul class="space-y-2 text-xs text-brand-cream/80">
-            <li>
-              <NuxtLink to="/" class="hover:text-status-success transition-colors">Inicio</NuxtLink>
-            </li>
-            <li>
-              <NuxtLink to="/menu" class="hover:text-status-success transition-colors">Carta & Menú Completo</NuxtLink>
-            </li>
-            <li>
-              <NuxtLink to="/perfil" class="hover:text-status-success transition-colors">Historial de Pedidos</NuxtLink>
-            </li>
-          </ul>
-        </div>
+        <!-- Enlaces Rápidos de Navegación -->
+        <nav class="flex flex-wrap justify-center items-center gap-6 text-xs text-brand-cream/80 font-medium">
+          <NuxtLink to="/" class="hover:text-status-success transition-colors">Inicio</NuxtLink>
+          <NuxtLink to="/menu" class="hover:text-status-success transition-colors">Carta & Menú</NuxtLink>
+          <NuxtLink to="/perfil?tab=pedidos" class="hover:text-status-success transition-colors">Mis Pedidos</NuxtLink>
+          <NuxtLink to="/perfil?tab=personal" class="hover:text-status-success transition-colors">Mi Cuenta</NuxtLink>
+        </nav>
 
-        <!-- Columna 3: Contacto & Horarios -->
-        <div>
-          <h4 class="font-playfair font-bold text-base text-brand-cream mb-4">Contacto & Pedidos</h4>
-          <p class="text-xs text-brand-cream/80 mb-2 flex items-center gap-2">
-            <Icon name="lucide:message-circle" class="w-4 h-4 text-status-success" />
-            <span>WhatsApp: +{{ config.public.whatsappNumber }}</span>
-          </p>
-          <p class="text-xs text-brand-cream/70 leading-relaxed">
-            Atención: Lunes a Sábado de 8:00 am a 8:00 pm.<br>
-            Domingos de 9:00 am a 5:00 pm.
-          </p>
-        </div>
+        <!-- Botón Contacto WhatsApp -->
+        <a 
+          :href="`https://wa.me/${config.public.whatsappNumber}`" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-xs text-brand-cream font-bold transition-all shadow-soft-sm hover:scale-102"
+        >
+          <Icon name="lucide:message-circle" class="w-4 h-4 text-status-success" />
+          <span>WhatsApp: +{{ config.public.whatsappNumber }}</span>
+        </a>
       </div>
 
-      <div class="max-w-7xl mx-auto mt-10 pt-6 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center text-[11px] text-brand-cream/50 gap-4">
+      <!-- Copyright inferior sutil -->
+      <div class="max-w-7xl mx-auto mt-5 pt-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center text-[10px] text-brand-cream/50 gap-2">
         <span>© {{ new Date().getFullYear() }} Dulce Fe Pastelería Fina. Todos los derechos reservados.</span>
-        <span>Hecho con amor y precisión artesanal.</span>
+        <span>Atención: Lun-Sáb 8am-8pm | Dom 9am-5pm</span>
       </div>
     </footer>
 
