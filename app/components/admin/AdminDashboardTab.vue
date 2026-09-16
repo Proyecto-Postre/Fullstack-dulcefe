@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { useAuthStore } from "~/stores/auth";
 import type { ProductRow } from "~/types/catalog";
 import type { RawMaterialRow } from "~/types/inventory";
@@ -45,6 +45,73 @@ const totalInventoryValue = computed<number>(() => {
     return sum + costPerUnit * stock;
   }, 0);
 });
+
+// Paginación para Alertas de Stock (5 elementos por página)
+const ITEMS_PER_PAGE = 5;
+
+// Paginación de Productos por Agotarse
+const currentProductsPage = ref<number>(1);
+const totalProductsPages = computed<number>(() => {
+  if (!lowStockProducts.value.length) return 1;
+  return Math.ceil(lowStockProducts.value.length / ITEMS_PER_PAGE);
+});
+const paginatedLowStockProducts = computed<ProductRow[]>(() => {
+  const start = (currentProductsPage.value - 1) * ITEMS_PER_PAGE;
+  return lowStockProducts.value.slice(start, start + ITEMS_PER_PAGE);
+});
+
+function nextProductsPage(): void {
+  if (currentProductsPage.value < totalProductsPages.value) {
+    currentProductsPage.value++;
+  }
+}
+
+function prevProductsPage(): void {
+  if (currentProductsPage.value > 1) {
+    currentProductsPage.value--;
+  }
+}
+
+watch(
+  () => lowStockProducts.value.length,
+  () => {
+    if (currentProductsPage.value > totalProductsPages.value) {
+      currentProductsPage.value = Math.max(1, totalProductsPages.value);
+    }
+  }
+);
+
+// Paginación de Insumos con Stock Bajo
+const currentMaterialsPage = ref<number>(1);
+const totalMaterialsPages = computed<number>(() => {
+  if (!lowStockMaterials.value.length) return 1;
+  return Math.ceil(lowStockMaterials.value.length / ITEMS_PER_PAGE);
+});
+const paginatedLowStockMaterials = computed<RawMaterialRow[]>(() => {
+  const start = (currentMaterialsPage.value - 1) * ITEMS_PER_PAGE;
+  return lowStockMaterials.value.slice(start, start + ITEMS_PER_PAGE);
+});
+
+function nextMaterialsPage(): void {
+  if (currentMaterialsPage.value < totalMaterialsPages.value) {
+    currentMaterialsPage.value++;
+  }
+}
+
+function prevMaterialsPage(): void {
+  if (currentMaterialsPage.value > 1) {
+    currentMaterialsPage.value--;
+  }
+}
+
+watch(
+  () => lowStockMaterials.value.length,
+  () => {
+    if (currentMaterialsPage.value > totalMaterialsPages.value) {
+      currentMaterialsPage.value = Math.max(1, totalMaterialsPages.value);
+    }
+  }
+);
 
 // Modal state
 const showProductModal = ref(false);
@@ -196,124 +263,204 @@ function onModalSaved(): void {
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <!-- Low Stock Products List -->
       <div
-        class="bg-white rounded-[2rem] border border-[#4A5D23]/10 shadow-sm p-6 flex flex-col"
+        class="bg-white rounded-[2rem] border border-[#4A5D23]/10 shadow-sm p-6 flex flex-col justify-between"
       >
-        <h3
-          class="font-playfair font-bold text-lg text-[#2A321B] mb-4 flex items-center gap-2"
-        >
-          <Icon name="lucide:cake" class="w-5 h-5 text-[#4A5D23]" />
-          Productos por Agotarse (≤ 5 und)
-        </h3>
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <h3
+              class="font-playfair font-bold text-lg text-[#2A321B] flex items-center gap-2"
+            >
+              <Icon name="lucide:cake" class="w-5 h-5 text-[#4A5D23]" />
+              <span>Productos por Agotarse (≤ 5 und)</span>
+            </h3>
+            <span
+              v-if="lowStockProducts.length"
+              class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-800 border border-amber-500/20 shrink-0"
+            >
+              {{ lowStockProducts.length }} {{ lowStockProducts.length === 1 ? 'producto' : 'productos' }}
+            </span>
+          </div>
 
-        <div
-          v-if="lowStockProducts.length === 0"
-          class="flex-1 flex flex-col items-center justify-center py-8 text-center"
-        >
-          <Icon
-            name="lucide:check-circle"
-            class="w-12 h-12 text-[#4A5D23]/30 mb-2"
-          />
-          <p class="text-sm font-medium text-[#4A5D23]/60">
-            ¡Excelente! Tu vitrina está bien abastecida.
-          </p>
-        </div>
-
-        <div v-else class="space-y-3">
           <div
-            v-for="p in lowStockProducts"
-            :key="p.id"
-            class="flex items-center justify-between p-3 rounded-xl bg-[#F4F1E1]/40 border border-[#4A5D23]/10"
+            v-if="lowStockProducts.length === 0"
+            class="flex flex-col items-center justify-center py-10 text-center"
           >
-            <div class="flex items-center gap-3">
-              <img
-                :src="p.image_url || '/placeholder-cake.png'"
-                class="w-10 h-10 rounded-lg object-cover bg-white"
-              />
-              <div>
-                <h4 class="font-bold text-sm text-[#2A321B]">{{ p.name }}</h4>
-                <p class="text-xs text-[#4A5D23]/70 font-medium">
-                  S/ {{ Number(p.price).toFixed(2) }}
-                </p>
+            <Icon
+              name="lucide:check-circle"
+              class="w-12 h-12 text-[#4A5D23]/30 mb-2"
+            />
+            <p class="text-sm font-medium text-[#4A5D23]/60">
+              ¡Excelente! Tu vitrina está bien abastecida.
+            </p>
+          </div>
+
+          <div v-else class="space-y-3">
+            <div
+              v-for="p in paginatedLowStockProducts"
+              :key="p.id"
+              class="flex items-center justify-between p-3 rounded-xl bg-[#F4F1E1]/40 border border-[#4A5D23]/10 hover:bg-[#F4F1E1]/70 transition-colors"
+            >
+              <div class="flex items-center gap-3">
+                <img
+                  :src="p.image_url || '/placeholder-cake.png'"
+                  class="w-10 h-10 rounded-lg object-cover bg-white"
+                />
+                <div>
+                  <h4 class="font-bold text-sm text-[#2A321B]">{{ p.name }}</h4>
+                  <p class="text-xs text-[#4A5D23]/70 font-medium">
+                    S/ {{ Number(p.price).toFixed(2) }}
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <span
+                  :class="[
+                    'px-2.5 py-1 rounded-full text-xs font-bold',
+                    p.stock === 0
+                      ? 'bg-red-100 text-red-800'
+                      : 'bg-amber-100 text-amber-800',
+                  ]"
+                >
+                  {{ p.stock === 0 ? "Agotado" : `${p.stock} disponibles` }}
+                </span>
+                <button
+                  @click="openProductModal(p)"
+                  type="button"
+                  class="text-xs font-bold text-[#4A5D23] hover:underline cursor-pointer"
+                >
+                  Editar
+                </button>
               </div>
             </div>
-            <div class="flex items-center gap-3">
-              <span
-                :class="[
-                  'px-2.5 py-1 rounded-full text-xs font-bold',
-                  p.stock === 0
-                    ? 'bg-red-100 text-red-800'
-                    : 'bg-amber-100 text-amber-800',
-                ]"
-              >
-                {{ p.stock === 0 ? "Agotado" : `${p.stock} disponibles` }}
-              </span>
-              <button
-                @click="openProductModal(p)"
-                type="button"
-                class="text-xs font-bold text-[#4A5D23] hover:underline cursor-pointer"
-              >
-                Editar
-              </button>
-            </div>
+          </div>
+        </div>
+
+        <!-- Paginación de Productos -->
+        <div
+          v-if="totalProductsPages > 1"
+          class="mt-4 pt-4 border-t border-[#4A5D23]/10 flex items-center justify-between"
+        >
+          <span class="text-xs text-[#4A5D23]/70 font-medium">
+            Página {{ currentProductsPage }} de {{ totalProductsPages }}
+          </span>
+          <div class="flex items-center gap-1.5">
+            <button
+              @click="prevProductsPage"
+              :disabled="currentProductsPage <= 1"
+              type="button"
+              class="px-2.5 py-1 rounded-lg border border-[#4A5D23]/20 text-xs font-bold text-[#2A321B] hover:bg-[#F4F1E1]/60 transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1"
+            >
+              <Icon name="lucide:chevron-left" class="w-3.5 h-3.5" />
+              <span>Anterior</span>
+            </button>
+            <button
+              @click="nextProductsPage"
+              :disabled="currentProductsPage >= totalProductsPages"
+              type="button"
+              class="px-2.5 py-1 rounded-lg border border-[#4A5D23]/20 text-xs font-bold text-[#2A321B] hover:bg-[#F4F1E1]/60 transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1"
+            >
+              <span>Siguiente</span>
+              <Icon name="lucide:chevron-right" class="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
       </div>
 
       <!-- Critical Materials List -->
       <div
-        class="bg-white rounded-[2rem] border border-[#4A5D23]/10 shadow-sm p-6 flex flex-col"
+        class="bg-white rounded-[2rem] border border-[#4A5D23]/10 shadow-sm p-6 flex flex-col justify-between"
       >
-        <h3
-          class="font-playfair font-bold text-lg text-[#2A321B] mb-4 flex items-center gap-2"
-        >
-          <Icon name="lucide:scale" class="w-5 h-5 text-[#4A5D23]" />
-          Insumos con Stock Bajo
-        </h3>
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <h3
+              class="font-playfair font-bold text-lg text-[#2A321B] flex items-center gap-2"
+            >
+              <Icon name="lucide:scale" class="w-5 h-5 text-[#4A5D23]" />
+              <span>Insumos con Stock Bajo</span>
+            </h3>
+            <span
+              v-if="lowStockMaterials.length"
+              class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-800 border border-amber-500/20 shrink-0"
+            >
+              {{ lowStockMaterials.length }} {{ lowStockMaterials.length === 1 ? 'insumo' : 'insumos' }}
+            </span>
+          </div>
 
-        <div
-          v-if="lowStockMaterials.length === 0"
-          class="flex-1 flex flex-col items-center justify-center py-8 text-center"
-        >
-          <Icon
-            name="lucide:check-circle"
-            class="w-12 h-12 text-[#4A5D23]/30 mb-2"
-          />
-          <p class="text-sm font-medium text-[#4A5D23]/60">
-            Todos los insumos del almacén tienen stock suficiente.
-          </p>
+          <div
+            v-if="lowStockMaterials.length === 0"
+            class="flex flex-col items-center justify-center py-10 text-center"
+          >
+            <Icon
+              name="lucide:check-circle"
+              class="w-12 h-12 text-[#4A5D23]/30 mb-2"
+            />
+            <p class="text-sm font-medium text-[#4A5D23]/60">
+              Todos los insumos del almacén tienen stock suficiente.
+            </p>
+          </div>
+
+          <div v-else class="space-y-3">
+            <div
+              v-for="m in paginatedLowStockMaterials"
+              :key="m.id"
+              class="flex items-center justify-between p-3 rounded-xl bg-[#F4F1E1]/40 border border-[#4A5D23]/10 hover:bg-[#F4F1E1]/70 transition-colors"
+            >
+              <div>
+                <h4 class="font-bold text-sm text-[#2A321B]">{{ m.name }}</h4>
+                <p class="text-[10px] font-bold uppercase tracking-wider text-[#4A5D23]/70">
+                  Costo Base: S/ {{ Number(m.purchase_price).toFixed(2) }} x {{ m.purchase_quantity }} {{ m.unit }}
+                </p>
+              </div>
+              <div class="flex items-center gap-3">
+                <span
+                  :class="[
+                    'px-2.5 py-1 rounded-full text-xs font-bold',
+                    m.stock === 0
+                      ? 'bg-red-100 text-red-800'
+                      : 'bg-amber-100 text-amber-800',
+                  ]"
+                >
+                  {{ m.stock }} {{ m.unit }}
+                </span>
+                <button
+                  @click="openMaterialModal(m)"
+                  type="button"
+                  class="text-xs font-bold text-[#4A5D23] hover:underline cursor-pointer"
+                >
+                  Reabastecer
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div v-else class="space-y-3">
-          <div
-            v-for="m in lowStockMaterials"
-            :key="m.id"
-            class="flex items-center justify-between p-3 rounded-xl bg-[#F4F1E1]/40 border border-[#4A5D23]/10"
-          >
-            <div>
-              <h4 class="font-bold text-sm text-[#2A321B]">{{ m.name }}</h4>
-              <p class="text-[10px] font-bold uppercase tracking-wider text-[#4A5D23]/70">
-                Costo Base: S/ {{ Number(m.purchase_price).toFixed(2) }} x {{ m.purchase_quantity }} {{ m.unit }}
-              </p>
-            </div>
-            <div class="flex items-center gap-3">
-              <span
-                :class="[
-                  'px-2.5 py-1 rounded-full text-xs font-bold',
-                  m.stock === 0
-                    ? 'bg-red-100 text-red-800'
-                    : 'bg-amber-100 text-amber-800',
-                ]"
-              >
-                {{ m.stock }} {{ m.unit }}
-              </span>
-              <button
-                @click="openMaterialModal(m)"
-                type="button"
-                class="text-xs font-bold text-[#4A5D23] hover:underline cursor-pointer"
-              >
-                Reabastecer
-              </button>
-            </div>
+        <!-- Paginación de Insumos -->
+        <div
+          v-if="totalMaterialsPages > 1"
+          class="mt-4 pt-4 border-t border-[#4A5D23]/10 flex items-center justify-between"
+        >
+          <span class="text-xs text-[#4A5D23]/70 font-medium">
+            Página {{ currentMaterialsPage }} de {{ totalMaterialsPages }}
+          </span>
+          <div class="flex items-center gap-1.5">
+            <button
+              @click="prevMaterialsPage"
+              :disabled="currentMaterialsPage <= 1"
+              type="button"
+              class="px-2.5 py-1 rounded-lg border border-[#4A5D23]/20 text-xs font-bold text-[#2A321B] hover:bg-[#F4F1E1]/60 transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1"
+            >
+              <Icon name="lucide:chevron-left" class="w-3.5 h-3.5" />
+              <span>Anterior</span>
+            </button>
+            <button
+              @click="nextMaterialsPage"
+              :disabled="currentMaterialsPage >= totalMaterialsPages"
+              type="button"
+              class="px-2.5 py-1 rounded-lg border border-[#4A5D23]/20 text-xs font-bold text-[#2A321B] hover:bg-[#F4F1E1]/60 transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1"
+            >
+              <span>Siguiente</span>
+              <Icon name="lucide:chevron-right" class="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
       </div>
