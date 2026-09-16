@@ -43,23 +43,69 @@ watch(() => props.catalog?.data, (newData) => {
   }
 }, { immediate: true });
 
-// Pagination
+// Search State
+const searchQuery = ref("");
+const isSearchFocused = ref(false);
+
+function handleSearchBlur(): void {
+  setTimeout(() => {
+    isSearchFocused.value = false;
+  }, 150);
+}
+
+function clearSearch(): void {
+  searchQuery.value = "";
+  currentPage.value = 1;
+  isSearchFocused.value = false;
+}
+
+function selectSuggestion(item: ProductRow): void {
+  searchQuery.value = item.name || "";
+  isSearchFocused.value = false;
+}
+
+// Published products with price > 0
+const publishedProducts = computed<ProductRow[]>(() => {
+  if (!localCatalog.value.length) return [];
+  return localCatalog.value.filter((p: ProductRow) => Number(p.price) > 0);
+});
+
+// Filtered products by search query
+const filteredProducts = computed<ProductRow[]>(() => {
+  const list = publishedProducts.value;
+  if (!list.length) return [];
+  if (!searchQuery.value.trim()) return list;
+
+  const q = searchQuery.value.toLowerCase().trim();
+  return list.filter((p: ProductRow) => {
+    const name = p.name ? p.name.toLowerCase() : "";
+    return name.includes(q);
+  });
+});
+
+const searchSuggestions = computed<ProductRow[]>(() => {
+  if (!searchQuery.value.trim()) return [];
+  return filteredProducts.value.slice(0, 5);
+});
+
+// Pagination (7 items por página para ajuste perfecto en viewport)
 const currentPage = ref(1);
-const itemsPerPage = 10;
+const itemsPerPage = 7;
+
+watch(searchQuery, () => {
+  currentPage.value = 1;
+});
 
 const paginatedCatalog = computed<ProductRow[]>(() => {
-  if (!localCatalog.value.length) return [];
-  // Solo mostrar en vitrina los productos que ya tienen precio (publicados)
-  const publishedProducts = localCatalog.value.filter((p: ProductRow) => Number(p.price) > 0);
+  if (!filteredProducts.value.length) return [];
   const start = (currentPage.value - 1) * itemsPerPage;
   const end = start + itemsPerPage;
-  return publishedProducts.slice(start, end);
+  return filteredProducts.value.slice(start, end);
 });
 
 const totalPages = computed<number>(() => {
-  if (!localCatalog.value.length) return 1;
-  const publishedProducts = localCatalog.value.filter((p: ProductRow) => Number(p.price) > 0);
-  return Math.ceil(publishedProducts.length / itemsPerPage);
+  if (!filteredProducts.value.length) return 1;
+  return Math.ceil(filteredProducts.value.length / itemsPerPage);
 });
 
 function nextPage(): void {
@@ -136,17 +182,71 @@ function getProductIcon(name: string): string {
     <!-- Header Section -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-[2rem] border border-[#4A5D23]/10 shadow-soft-sm">
       <div>
-        <h2 class="text-2xl font-black font-playfair text-[#2A321B]">Vitrina Comercial</h2>
+        <div class="flex items-center gap-3">
+          <h2 class="text-2xl font-black font-playfair text-[#2A321B]">Vitrina Comercial</h2>
+          <span v-if="publishedProducts.length" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#4A5D23]/10 text-[#4A5D23] border border-[#4A5D23]/15">
+            {{ searchQuery ? `${filteredProducts.length} de ${publishedProducts.length} ${publishedProducts.length === 1 ? 'producto' : 'productos'}` : `${publishedProducts.length} ${publishedProducts.length === 1 ? 'producto' : 'productos'}` }}
+          </span>
+        </div>
         <p class="text-xs text-[#4A5D23]/70 font-medium mt-0.5">Gestiona los postres que se muestran públicamente a los clientes</p>
       </div>
-      <button
-        @click="openNewProductModal"
-        type="button"
-        class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#4A5D23] text-white text-xs font-bold hover:bg-[#3C4A1C] transition-all shadow-sm active:scale-95 cursor-pointer self-start sm:self-auto"
-      >
-        <Icon name="lucide:plus" class="w-4 h-4" />
-        <span>Nuevo Producto</span>
-      </button>
+
+      <!-- Barra de herramientas compacta: Búsqueda focalizada + Botón Nuevo Producto -->
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        <!-- Search Bar with Suggestions -->
+        <div class="relative w-full sm:w-64 md:w-72 lg:w-80">
+          <div class="relative">
+            <Icon name="lucide:search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#4A5D23]/40" />
+            <input 
+              v-model="searchQuery"
+              @focus="isSearchFocused = true"
+              @blur="handleSearchBlur"
+              type="text" 
+              placeholder="Buscar productos o postres..."
+              class="w-full pl-10 pr-10 py-2.5 bg-[#F4F1E1]/40 hover:bg-[#F4F1E1]/70 focus:bg-white border border-[#4A5D23]/15 rounded-xl text-xs font-bold text-[#2A321B] placeholder:text-[#4A5D23]/40 focus:outline-none focus:border-[#4A5D23] focus:ring-2 focus:ring-[#4A5D23]/15 transition-all shadow-xs"
+            />
+            <Transition name="fade">
+              <button 
+                v-if="searchQuery" 
+                @click="clearSearch"
+                type="button"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-[#4A5D23]/40 hover:text-red-600 p-0.5 cursor-pointer transition-colors"
+                aria-label="Limpiar búsqueda"
+              >
+                <Icon name="lucide:x" class="w-3.5 h-3.5" />
+              </button>
+            </Transition>
+          </div>
+
+          <!-- Dropdown de sugerencias -->
+          <Transition name="dropdown">
+            <div 
+              v-if="isSearchFocused && searchSuggestions.length > 0 && searchQuery"
+              class="absolute left-0 right-0 top-full mt-1.5 bg-white border border-[#4A5D23]/15 rounded-xl shadow-lg z-50 overflow-hidden divide-y divide-[#4A5D23]/5"
+            >
+              <button
+                v-for="sugg in searchSuggestions"
+                :key="sugg.id"
+                @mousedown.prevent="selectSuggestion(sugg)"
+                type="button"
+                class="w-full text-left px-4 py-2 text-xs font-bold text-[#2A321B] hover:bg-[#F4F1E1]/40 flex items-center justify-between cursor-pointer"
+              >
+                <span>{{ sugg.name }}</span>
+                <span class="text-[10px] text-[#4A5D23]/60">S/ {{ Number(sugg.price).toFixed(2) }}</span>
+              </button>
+            </div>
+          </Transition>
+        </div>
+
+        <button
+          @click="openNewProductModal"
+          type="button"
+          class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#4A5D23] text-white text-xs font-bold hover:bg-[#3C4A1C] transition-all shadow-sm active:scale-95 cursor-pointer shrink-0"
+        >
+          <Icon name="lucide:plus" class="w-4 h-4" />
+          <span>Nuevo Producto</span>
+        </button>
+      </div>
     </div>
 
     <!-- Loading State -->
@@ -182,7 +282,34 @@ function getProductIcon(name: string): string {
               <th class="py-4 px-6 text-[11px] font-bold text-[#4A5D23] uppercase tracking-wider text-right">Acciones</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-[#4A5D23]/5">
+          <!-- Fila cuando no hay coincidencias de búsqueda -->
+          <tbody v-if="!paginatedCatalog.length">
+            <tr>
+              <td colspan="4" class="text-center py-14 text-[#4A5D23]/60">
+                <div class="w-12 h-12 rounded-full bg-[#F4F1E1] flex items-center justify-center mx-auto mb-2 text-[#4A5D23]">
+                  <Icon name="lucide:search-x" class="w-6 h-6" />
+                </div>
+                <p class="text-xs font-bold text-[#2A321B]">No se encontraron productos</p>
+                <p class="text-[11px] text-[#4A5D23]/60 mt-0.5">No hay productos en vitrina que coincidan con "{{ searchQuery }}"</p>
+                <button 
+                  v-if="searchQuery" 
+                  @click="clearSearch" 
+                  type="button" 
+                  class="mt-3 px-3 py-1.5 text-xs font-bold text-[#4A5D23] bg-[#F4F1E1] hover:bg-[#4A5D23] hover:text-white rounded-lg transition-colors cursor-pointer"
+                >
+                  Limpiar búsqueda
+                </button>
+              </td>
+            </tr>
+          </tbody>
+
+          <!-- Lista de Productos con Animación FLIP Suave al Filtrar -->
+          <TransitionGroup
+            v-else
+            name="product-row"
+            tag="tbody"
+            class="divide-y divide-[#4A5D23]/5 relative"
+          >
             <tr 
               v-for="item in paginatedCatalog" 
               :key="item.id" 
@@ -260,11 +387,11 @@ function getProductIcon(name: string): string {
                 </div>
               </td>
             </tr>
-          </tbody>
+          </TransitionGroup>
         </table>
       </div>
 
-      <!-- Pagination Footer -->
+      <!-- Pagination Footer: Aparece recién después de 7 elementos -->
       <div v-if="totalPages > 1" class="flex items-center justify-between p-4 border-t border-[#4A5D23]/10 bg-[#F4F1E1]/20">
         <span class="text-xs text-[#4A5D23]/70 font-medium">
           Página {{ currentPage }} de {{ totalPages }}
@@ -297,3 +424,69 @@ function getProductIcon(name: string): string {
     />
   </div>
 </template>
+
+<style scoped>
+/* ==========================================================================
+   Animación de Filtrado y Transiciones FLIP para Productos
+   ========================================================================== */
+
+.product-row-move {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+/* Entrada sutil sin destellos ni saltos bruscos */
+.product-row-enter-active {
+  transition: opacity 0.25s ease-out, transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.product-row-enter-from {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+/* Salida inmediata sin parpadeos: se oculta al instante (0.05s) para que las
+   filas restantes se deslicen fluidamente sin trabas ni saltos */
+.product-row-leave-active {
+  position: absolute;
+  width: 100%;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.05s ease;
+}
+
+/* Transiciones para el botón de limpiar búsqueda */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.15s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* Transición para el dropdown de sugerencias */
+.dropdown-enter-active,
+.dropdown-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dropdown-enter-from,
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product-row-move,
+  .product-row-enter-active,
+  .product-row-leave-active,
+  .dropdown-enter-active,
+  .dropdown-leave-active {
+    transition: none !important;
+    transform: none !important;
+  }
+}
+</style>
