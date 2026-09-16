@@ -1,6 +1,6 @@
 import { defineEventHandler, createError } from 'h3'
-import { requireUser } from '~/server/utils/require-user'
-import { getAdminSupabaseClient } from '~/server/utils/server-supabase'
+import { requireUser } from '../../utils/require-user'
+import { getAdminSupabaseClient } from '../../utils/server-supabase'
 import type { Database } from '~/types/database.types'
 
 type UserProfile = Database['public']['Tables']['profiles']['Row']
