@@ -84,10 +84,12 @@ const config = useRuntimeConfig()
             <NuxtLink 
               v-if="authStore.isAdmin"
               to="/admin" 
-              class="hidden sm:flex items-center gap-1.5 bg-brand-secondary text-white hover:bg-brand-primary border border-transparent px-4 py-2.5 rounded-full font-bold text-xs shadow-soft-sm transition-all cursor-pointer"
+              class="flex items-center gap-1.5 bg-brand-secondary text-white hover:bg-brand-primary border border-transparent px-3 sm:px-4 py-2 sm:py-2.5 rounded-full font-bold text-xs shadow-soft-sm transition-all cursor-pointer"
+              title="Panel de Administración ERP"
             >
-              <Icon name="lucide:shield-check" class="w-4 h-4 text-status-success" />
-              <span>Panel Admin</span>
+              <Icon name="lucide:shield-check" class="w-4 h-4 text-status-success shrink-0" />
+              <span class="hidden sm:inline">Panel Admin</span>
+              <span class="sm:hidden text-[11px]">Admin</span>
             </NuxtLink>
 
             <!-- Acceso a Mi Perfil -->

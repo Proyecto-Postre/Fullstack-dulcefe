@@ -44,24 +44,35 @@ export const useAuthStore = defineStore('auth', () => {
     return profile.value.is_admin === true
   })
 
-  async function fetchProfile(): Promise<void> {
-    if (!user.value?.id) return
+  async function fetchProfile(userId?: string): Promise<UserProfile | null> {
+    const supabaseUser = useSupabaseUser()
+    const targetId = userId || user.value?.id || supabaseUser.value?.id
+    if (!targetId) return null
+
+    if (!user.value && supabaseUser.value) {
+      user.value = supabaseUser.value as unknown as User
+    }
+
     isLoading.value = true
     try {
       const supabase = useSupabaseClient<Database>()
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', user.value.id)
-        .single()
+        .eq('id', targetId)
+        .maybeSingle()
         
       if (error) throw error
-      profile.value = data
+      if (data) {
+        profile.value = data
+        return data
+      }
     } catch (err: unknown) {
       console.error('Error al obtener perfil de usuario:', err)
     } finally {
       isLoading.value = false
     }
+    return profile.value
   }
 
   async function fetchAddresses(): Promise<void> {

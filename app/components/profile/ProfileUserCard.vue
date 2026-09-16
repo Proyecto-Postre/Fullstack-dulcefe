@@ -26,5 +26,16 @@ defineProps<{
         <span class="text-2xl font-black text-brand-primary">{{ profile?.points || 0 }}</span>
       </div>
     </div>
+
+    <!-- Acceso Rápido a Panel Admin si es Administrador -->
+    <div v-if="profile?.is_admin" class="mt-6 pt-6 border-t border-brand-primary/10">
+      <NuxtLink
+        to="/admin"
+        class="w-full py-2.5 px-4 bg-brand-primary hover:bg-brand-secondary text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-soft-sm cursor-pointer"
+      >
+        <Icon name="lucide:shield-check" class="w-4 h-4 text-status-success" />
+        <span>Ir al Panel de Administración</span>
+      </NuxtLink>
+    </div>
   </div>
 </template>
