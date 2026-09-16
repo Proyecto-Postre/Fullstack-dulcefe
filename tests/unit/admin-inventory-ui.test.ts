@@ -88,8 +88,8 @@ describe('Fase 4 (PR-4c): Dominio Inventario y Materias Primas - Cálculo de Cos
       const { paginatedMaterials, totalPages, currentPage } = useAdminMaterials(materialsList)
 
       expect(currentPage.value).toBe(1)
-      expect(totalPages.value).toBe(3) // 25 items con 10 por página = 3 páginas
-      expect(paginatedMaterials.value.length).toBe(10)
+      expect(totalPages.value).toBe(4) // 25 items con 7 por página = 4 páginas (7, 7, 7, 4)
+      expect(paginatedMaterials.value.length).toBe(7)
     })
 
     it('filtra correctamente por nombre de insumo y actualiza sugerencias', () => {
@@ -120,10 +120,13 @@ describe('Fase 4 (PR-4c): Dominio Inventario y Materias Primas - Cálculo de Cos
       expect(currentPage.value).toBe(3)
 
       nextPage()
-      expect(currentPage.value).toBe(totalPages.value) // No puede superar totalPages
+      expect(currentPage.value).toBe(4)
+
+      nextPage()
+      expect(currentPage.value).toBe(totalPages.value) // No puede superar totalPages (4)
 
       prevPage()
-      expect(currentPage.value).toBe(2)
+      expect(currentPage.value).toBe(3)
     })
 
     it('selecciona y limpia sugerencias de búsqueda', () => {
