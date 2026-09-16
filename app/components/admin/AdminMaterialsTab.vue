@@ -272,7 +272,7 @@ function openEditMaterial(item: RawMaterialRow): void {
               </div>
 
               <!-- Fila Secundaria: Precios y Stock Físico editable -->
-              <div class="grid grid-cols-2 gap-2 pt-2 border-t border-[#4A5D23]/5 bg-[#F4F1E1]/20 -mx-3.5 px-3.5 py-2">
+              <div class="grid grid-cols-2 gap-2 pt-2.5 border-t border-[#4A5D23]/10">
                 <div>
                   <p class="text-[10px] text-[#4A5D23]/70 font-medium">Compra / Paquete</p>
                   <p class="text-xs font-bold text-[#2A321B]">
@@ -287,7 +287,7 @@ function openEditMaterial(item: RawMaterialRow): void {
                       @change="updateStockInline(item, $event)"
                       type="number"
                       step="any"
-                      class="w-16 px-1.5 py-0.5 bg-white border border-[#4A5D23]/20 rounded-md text-xs font-bold text-center text-[#2A321B] focus:outline-none focus:border-[#4A5D23]"
+                      class="w-16 px-1.5 py-0.5 bg-[#F4F1E1]/40 border border-[#4A5D23]/20 rounded-md text-xs font-bold text-center text-[#2A321B] focus:outline-none focus:bg-white focus:border-[#4A5D23]"
                       :aria-label="`Editar stock de ${item.name}`"
                     />
                     <span class="text-[10px] font-bold text-[#4A5D23]/60">{{ item.unit }}</span>
