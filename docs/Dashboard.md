@@ -84,6 +84,7 @@ flowchart TD
 * [[arquitectura-patrones]] — Patrones de diseño aplicados y composables.
 * [[componentes-arquitectura]] — Guía de estructuración de componentes Vue 3.
 * [[patron-animacion-grid-flip]] — Patrón de cuadrícula animada FLIP (GPU 60fps) sin parpadeos para catálogos y listados.
+* [[guia-diseno-mobile-responsivo]] — Guía de ingeniería y patrones de diseño móvil responsivo (carruseles, tabs, drawers, footer y scrollbars).
 * [[design-system-tokens]] — Paleta de colores Dulce Fe, tipografía y bordes.
 * [[herramientas-ui]] — Utilidades y librerías de UI (Lucide Icons, Toast, Modal).
 
@@ -121,7 +122,7 @@ flowchart TD
 * [[fase-6-producto-kds-informe-ejecucion]] — **Informe Maestro Consolidado de Fase 6**.
 * [[hardening-estabilidad-informe-ejecucion]] — **Informe de Hardening & Estabilidad del Sistema (Fix Modales, RLS Service Role & Sesiones Zombi)**.
 * [[elevacion-certificacion-10-10-informe-ejecucion]] — **Informe de Elevación Integral a Calificación 10/10 Enterprise y Cierre Arquitectónico**.
-* [[refinamiento-ui-auth-checkout-kds-informe]] — **Informe de Refinamiento UI, Autenticación Dedicada, Checkout Perú (Yape/Plin) y Navegación KDS**.
+* [[refinamiento-ui-auth-checkout-kds-informe]] — **Informe de Refinamiento UI, Autenticación Dedicada, Checkout Perú (Yape/Plin), Navegación Móvil (Drawer/Carrusel/Tabs) y KDS**.
 
 ### 📁 05 - Operaciones & Resiliencia
 * [[playbook-operaciones]] — Variables por entorno, rotación de claves, runbook de restore V44, Vercel Git-Ops y telemetría de alertas.
