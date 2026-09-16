@@ -478,22 +478,49 @@ function getProductIcon(name: string): string {
               </TransitionGroup>
             </table>
           </div>
+
+          <!-- Pagination Footer de Tabla Desktop (después del 7mo elemento) -->
+          <div v-if="totalPages > 1" class="flex items-center justify-between p-4 border-t border-[#4A5D23]/10 bg-[#F4F1E1]/20">
+            <span class="text-xs text-[#4A5D23]/70 font-medium">
+              Página {{ currentPage }} de {{ totalPages }}
+            </span>
+            <div class="flex items-center gap-2">
+              <button
+                @click="prevPage"
+                :disabled="currentPage <= 1"
+                type="button"
+                class="px-3 py-1.5 rounded-lg border border-[#4A5D23]/20 text-xs font-bold text-[#2A321B] hover:bg-white transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                aria-label="Página anterior"
+              >
+                Anterior
+              </button>
+              <button
+                @click="nextPage"
+                :disabled="currentPage >= totalPages"
+                type="button"
+                class="px-3 py-1.5 rounded-lg border border-[#4A5D23]/20 text-xs font-bold text-[#2A321B] hover:bg-white transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                aria-label="Página siguiente"
+              >
+                Siguiente
+              </button>
+            </div>
+          </div>
         </div>
 
-        <!-- Paginación Compartida (Mobile & Desktop) -->
+        <!-- Paginación Mobile (< md) (después del 7mo elemento) -->
         <div 
           v-if="totalPages > 1" 
-          class="flex items-center justify-between p-3 sm:p-4 rounded-2xl bg-white border border-[#4A5D23]/10 shadow-soft-sm"
+          class="flex md:hidden items-center justify-between p-3.5 rounded-2xl bg-white border border-[#4A5D23]/10 shadow-soft-sm"
         >
-          <span class="text-[11px] sm:text-xs text-[#4A5D23]/70 font-medium">
+          <span class="text-xs text-[#4A5D23]/70 font-medium">
             Página {{ currentPage }} de {{ totalPages }}
           </span>
-          <div class="flex items-center gap-1.5 sm:gap-2">
+          <div class="flex items-center gap-1.5">
             <button
               @click="prevPage"
               :disabled="currentPage <= 1"
               type="button"
-              class="px-3 py-1.5 rounded-xl border border-[#4A5D23]/20 bg-[#F4F1E1]/30 hover:bg-[#F4F1E1] text-[11px] sm:text-xs font-bold text-[#2A321B] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shadow-2xs"
+              class="px-3 py-1.5 rounded-xl border border-[#4A5D23]/20 bg-[#F4F1E1]/30 hover:bg-[#F4F1E1] text-xs font-bold text-[#2A321B] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shadow-2xs"
               aria-label="Página anterior"
             >
               Anterior
@@ -502,7 +529,7 @@ function getProductIcon(name: string): string {
               @click="nextPage"
               :disabled="currentPage >= totalPages"
               type="button"
-              class="px-3 py-1.5 rounded-xl border border-[#4A5D23]/20 bg-[#F4F1E1]/30 hover:bg-[#F4F1E1] text-[11px] sm:text-xs font-bold text-[#2A321B] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shadow-2xs"
+              class="px-3 py-1.5 rounded-xl border border-[#4A5D23]/20 bg-[#F4F1E1]/30 hover:bg-[#F4F1E1] text-xs font-bold text-[#2A321B] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shadow-2xs"
               aria-label="Página siguiente"
             >
               Siguiente
