@@ -101,4 +101,33 @@ describe('Admin Hardening & Stability Regression Guards (PR Fix / Master Plan)',
       expect(kdsContent).toContain('to="/login"')
     })
   })
+
+  describe('5. Navegación y URL Sync en Panel Admin', () => {
+    it('app/composables/admin/useAdminNavState.ts debe mapear slugs bidireccionales para tabs admin', () => {
+      const navContent = fs.readFileSync(path.join(rootAppDir, 'composables/admin/useAdminNavState.ts'), 'utf-8')
+      expect(navContent).toContain('TAB_TO_SLUG')
+      expect(navContent).toContain('SLUG_TO_TAB')
+      expect(navContent).toContain('vitrina')
+      expect(navContent).toContain('almacen')
+      expect(navContent).toContain('escandallo')
+      expect(navContent).toContain('pedidos')
+    })
+
+    it('app/pages/admin/index.vue debe sincronizar el tab activo con los query params de la URL', () => {
+      const pageContent = fs.readFileSync(path.join(rootAppDir, 'pages/admin/index.vue'), 'utf-8')
+      expect(pageContent).toContain('route.query.tab')
+      expect(pageContent).toContain('SLUG_TO_TAB')
+      expect(pageContent).toContain('TAB_TO_SLUG')
+      expect(pageContent).toContain('router.push')
+    })
+
+    it('server/api/auth/profile.get.ts debe existir y proteger la resolución del perfil con requireUser', () => {
+      const profileApiFile = path.join(rootServerDir, 'api/auth/profile.get.ts')
+      expect(fs.existsSync(profileApiFile)).toBe(true)
+      const content = fs.readFileSync(profileApiFile, 'utf-8')
+      expect(content).toContain('requireUser')
+      expect(content).toContain('getAdminSupabaseClient')
+    })
+  })
 })
+

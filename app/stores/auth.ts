@@ -55,6 +55,17 @@ export const useAuthStore = defineStore('auth', () => {
 
     isLoading.value = true
     try {
+      // 1. Intentar consultar vía endpoint seguro de servidor (evita bloqueos de RLS en SSR / reload)
+      try {
+        const response = await $fetch<{ success: boolean, data: UserProfile }>('/api/auth/profile')
+        if (response?.data) {
+          profile.value = response.data
+          return response.data
+        }
+      } catch {
+        // Continuar con fallback directo a Supabase cliente
+      }
+
       const supabase = useSupabaseClient<Database>()
       const { data, error } = await supabase
         .from('profiles')

@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useAdminTab } from '~/composables/admin/useAdminNavState'
+import { ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useAdminTab, TAB_TO_SLUG, SLUG_TO_TAB } from '~/composables/admin/useAdminNavState'
 import type { Database } from '~/types/database.types'
 
 type ProductItem = Database['public']['Tables']['products']['Row']
@@ -12,8 +13,44 @@ definePageMeta({
   middleware: 'admin-only'
 })
 
+const route = useRoute()
+const router = useRouter()
+
 // Control de pestañas del panel sincronizado con el layout
 const currentTab = useAdminTab()
+
+// Sincronizar pestaña inicial desde los query params de la URL si existen (ej. /admin?tab=almacen)
+const initialQueryTab = route.query.tab as string | undefined
+if (initialQueryTab && SLUG_TO_TAB[initialQueryTab]) {
+  currentTab.value = SLUG_TO_TAB[initialQueryTab]
+} else if (currentTab.value && currentTab.value !== 'dashboard' && !route.query.tab) {
+  router.replace({ query: { ...route.query, tab: TAB_TO_SLUG[currentTab.value] } })
+}
+
+// Observar cambios reactivos en la pestaña para actualizar la URL sin recargar la página (SPA pushState)
+watch(currentTab, (newTab) => {
+  const targetSlug = TAB_TO_SLUG[newTab]
+  if (route.query.tab !== targetSlug) {
+    if (newTab === 'dashboard') {
+      const { tab: _, ...restQuery } = route.query
+      router.push({ query: restQuery })
+    } else {
+      router.push({ query: { ...route.query, tab: targetSlug } })
+    }
+  }
+})
+
+// Responder a los botones Atrás / Adelante del navegador
+watch(() => route.query.tab, (newQueryTab) => {
+  if (typeof newQueryTab === 'string' && SLUG_TO_TAB[newQueryTab]) {
+    const matched = SLUG_TO_TAB[newQueryTab]
+    if (currentTab.value !== matched) {
+      currentTab.value = matched
+    }
+  } else if (!newQueryTab && currentTab.value !== 'dashboard') {
+    currentTab.value = 'dashboard'
+  }
+})
 
 // Consultas globales a la API (Productos e Insumos)
 const { data: catalog, refresh: refreshCatalog, pending: pendingCatalog } = await useFetch<{ success: boolean, data: ProductItem[] }>('/api/products')

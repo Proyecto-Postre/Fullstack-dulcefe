@@ -17,6 +17,10 @@ const adminModules: { id: AdminTab; label: string; icon: string; desc: string }[
 function selectModule(tab: AdminTab) {
   currentTab.value = tab
   isMobileAdminMenuOpen.value = false
+  const route = useRoute()
+  if (route.path !== '/admin') {
+    navigateTo('/admin')
+  }
 }
 
 async function handleLogout() {

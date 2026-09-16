@@ -44,6 +44,10 @@ export default defineNuxtConfig({
     storage: 'localStorage'
   },
   
+  routeRules: {
+    '/admin/**': { ssr: false }
+  },
+
   supabase: {
     redirect: false,
     serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY
