@@ -17,6 +17,16 @@ const emit = defineEmits<{
   (e: "refresh"): void;
 }>();
 
+const currentDateFormatted = computed<string>(() => {
+  const now = new Date();
+  const dateStr = new Intl.DateTimeFormat("es-PE", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  }).format(now);
+  return dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+});
+
 // Computed properties for dashboard metrics
 const totalProducts = computed<number>(() => props.catalog?.data?.length || 0);
 const totalMaterials = computed<number>(() => props.materials?.data?.length || 0);
@@ -135,147 +145,146 @@ function onModalSaved(): void {
 </script>
 
 <template>
-  <div class="space-y-8 animate-fade-in-up">
-    <!-- Welcome Section -->
+  <div class="space-y-4 sm:space-y-5 animate-fade-in-up">
+    <!-- Welcome Section (Cálido, limpio y orgánico) -->
     <div
-      class="bg-white/90 backdrop-blur-md rounded-[2rem] border border-[#4A5D23]/10 shadow-sm p-8 flex flex-col md:flex-row items-center justify-between gap-6"
+      class="bg-white rounded-[2rem] border border-[#4A5D23]/10 shadow-soft-sm p-5 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4"
     >
       <div>
-        <h2 class="text-3xl font-playfair font-black text-[#2A321B] mb-2">
-          ¡Hola,
-          {{ authStore.profile?.full_name?.split(" ")[0] || "Administrador" }}!
+        <h2 class="text-2xl sm:text-3xl font-playfair font-bold text-[#2A321B]">
+          ¡Hola, {{ authStore.profile?.full_name?.split(" ")[0] || "Administrador" }}!
         </h2>
-        <p class="text-[#4A5D23]/80 font-medium">
-          Aquí tienes un resumen del estado actual de tu pastelería.
+        <p class="text-xs sm:text-sm text-[#4A5D23]/70 font-medium mt-1">
+          Aquí tienes el estado operativo y de abastecimiento de tu pastelería.
         </p>
       </div>
-      <div class="flex items-center gap-4">
-        <div class="text-right">
-          <p
-            class="text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest"
-          >
+
+      <!-- Widget Valor del Almacén -->
+      <div class="bg-[#F4F1E1]/60 border border-[#4A5D23]/10 rounded-2xl px-4 sm:px-5 py-2.5 sm:py-3 flex items-center gap-3.5 shrink-0">
+        <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-brand-primary text-white flex items-center justify-center shadow-soft-sm shrink-0">
+          <Icon name="lucide:wallet" class="w-5 h-5" />
+        </div>
+        <div>
+          <p class="text-[10px] font-bold text-[#4A5D23]/70 uppercase tracking-wider">
             Valor del Almacén
           </p>
-          <p class="text-2xl font-black text-[#2A321B]">
+          <p class="text-xl sm:text-2xl font-bold text-[#2A321B] font-inter">
             S/ {{ totalInventoryValue.toFixed(2) }}
           </p>
-        </div>
-        <div
-          class="w-12 h-12 rounded-full bg-[#F4F1E1] border border-[#4A5D23]/20 flex items-center justify-center text-[#4A5D23]"
-        >
-          <Icon name="lucide:wallet" class="w-6 h-6" />
         </div>
       </div>
     </div>
 
-    <!-- Metrics Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <!-- Metrics Grid (Compactos, horizontales, limpios: Ícono, Nombre y Valor) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+      <!-- 1. Productos Vitrina -->
       <div
-        class="bg-white rounded-[2rem] p-6 border border-[#4A5D23]/10 shadow-sm flex items-center gap-4"
+        class="bg-white rounded-2xl p-3.5 sm:p-4 border border-[#4A5D23]/10 shadow-soft-sm hover:shadow-soft-md transition-all flex items-center gap-3.5"
       >
-        <div
-          class="w-12 h-12 rounded-2xl bg-[#F4F1E1] text-[#4A5D23] flex items-center justify-center font-bold"
-        >
-          <Icon name="lucide:cake-slice" class="w-6 h-6" />
+        <div class="w-11 h-11 rounded-xl bg-[#F4F1E1] text-[#4A5D23] flex items-center justify-center shrink-0">
+          <Icon name="lucide:cake-slice" class="w-5 h-5" />
         </div>
-        <div>
-          <p
-            class="text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest"
-          >
-            Productos Vitrina
+        <div class="min-w-0">
+          <p class="text-xs font-medium text-[#4A5D23]/70 truncate">
+            Productos en vitrina
           </p>
-          <p class="text-2xl font-black text-[#2A321B]">{{ totalProducts }}</p>
+          <p class="text-xl sm:text-2xl font-bold text-[#2A321B] font-inter leading-tight">
+            {{ totalProducts }}
+          </p>
         </div>
       </div>
 
+      <!-- 2. Insumos Almacén -->
       <div
-        class="bg-white rounded-[2rem] p-6 border border-[#4A5D23]/10 shadow-sm flex items-center gap-4"
+        class="bg-white rounded-2xl p-3.5 sm:p-4 border border-[#4A5D23]/10 shadow-soft-sm hover:shadow-soft-md transition-all flex items-center gap-3.5"
       >
-        <div
-          class="w-12 h-12 rounded-2xl bg-[#F4F1E1] text-[#4A5D23] flex items-center justify-center font-bold"
-        >
-          <Icon name="lucide:scale" class="w-6 h-6" />
+        <div class="w-11 h-11 rounded-xl bg-[#F4F1E1] text-[#4A5D23] flex items-center justify-center shrink-0">
+          <Icon name="lucide:scale" class="w-5 h-5" />
         </div>
-        <div>
-          <p
-            class="text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest"
-          >
-            Insumos Almacén
+        <div class="min-w-0">
+          <p class="text-xs font-medium text-[#4A5D23]/70 truncate">
+            Insumos registrados
           </p>
-          <p class="text-2xl font-black text-[#2A321B]">
+          <p class="text-xl sm:text-2xl font-bold text-[#2A321B] font-inter leading-tight">
             {{ totalMaterials }}
           </p>
         </div>
       </div>
 
+      <!-- 3. Prod. Stock Bajo -->
       <div
-        class="bg-white rounded-[2rem] p-6 border border-[#4A5D23]/10 shadow-sm flex items-center gap-4"
+        class="bg-white rounded-2xl p-3.5 sm:p-4 border border-[#4A5D23]/10 shadow-soft-sm hover:shadow-soft-md transition-all flex items-center gap-3.5"
       >
         <div
           :class="[
-            'w-12 h-12 rounded-2xl flex items-center justify-center font-bold',
+            'w-11 h-11 rounded-xl flex items-center justify-center shrink-0',
             lowStockProducts.length > 0
-              ? 'bg-amber-100 text-amber-700'
+              ? 'bg-amber-50 text-amber-600'
               : 'bg-[#F4F1E1] text-[#4A5D23]',
           ]"
         >
-          <Icon name="lucide:alert-triangle" class="w-6 h-6" />
+          <Icon name="lucide:alert-triangle" class="w-5 h-5" />
         </div>
-        <div>
-          <p
-            class="text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest"
-          >
-            Prod. Stock Bajo
+        <div class="min-w-0">
+          <p class="text-xs font-medium text-[#4A5D23]/70 truncate">
+            Productos por agotarse
           </p>
-          <p class="text-2xl font-black text-[#2A321B]">
+          <p
+            :class="[
+              'text-xl sm:text-2xl font-bold font-inter leading-tight',
+              lowStockProducts.length > 0 ? 'text-amber-700' : 'text-[#2A321B]',
+            ]"
+          >
             {{ lowStockProducts.length }}
           </p>
         </div>
       </div>
 
+      <!-- 4. Insumos Críticos -->
       <div
-        class="bg-white rounded-[2rem] p-6 border border-[#4A5D23]/10 shadow-sm flex items-center gap-4"
+        class="bg-white rounded-2xl p-3.5 sm:p-4 border border-[#4A5D23]/10 shadow-soft-sm hover:shadow-soft-md transition-all flex items-center gap-3.5"
       >
         <div
           :class="[
-            'w-12 h-12 rounded-2xl flex items-center justify-center font-bold',
+            'w-11 h-11 rounded-xl flex items-center justify-center shrink-0',
             lowStockMaterials.length > 0
-              ? 'bg-red-100 text-red-700'
+              ? 'bg-red-50 text-red-600'
               : 'bg-[#F4F1E1] text-[#4A5D23]',
           ]"
         >
-          <Icon name="lucide:package-x" class="w-6 h-6" />
+          <Icon name="lucide:package-x" class="w-5 h-5" />
         </div>
-        <div>
-          <p
-            class="text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest"
-          >
-            Insumos Críticos
+        <div class="min-w-0">
+          <p class="text-xs font-medium text-[#4A5D23]/70 truncate">
+            Insumos con stock bajo
           </p>
-          <p class="text-2xl font-black text-[#2A321B]">
+          <p
+            :class="[
+              'text-xl sm:text-2xl font-bold font-inter leading-tight',
+              lowStockMaterials.length > 0 ? 'text-red-700' : 'text-[#2A321B]',
+            ]"
+          >
             {{ lowStockMaterials.length }}
           </p>
         </div>
       </div>
     </div>
 
-    <!-- Alert Sections -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- Alert Sections (Listas Operativas con curvas suaves) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
       <!-- Low Stock Products List -->
       <div
-        class="bg-white rounded-[2rem] border border-[#4A5D23]/10 shadow-sm p-6 flex flex-col justify-between"
+        class="bg-white rounded-[2rem] border border-[#4A5D23]/10 shadow-soft-sm p-5 sm:p-6 flex flex-col justify-between"
       >
         <div>
           <div class="flex items-center justify-between mb-4">
-            <h3
-              class="font-playfair font-bold text-lg text-[#2A321B] flex items-center gap-2"
-            >
+            <h3 class="font-playfair font-bold text-base sm:text-lg text-[#2A321B] flex items-center gap-2">
               <Icon name="lucide:cake" class="w-5 h-5 text-[#4A5D23]" />
-              <span>Productos por Agotarse (≤ 5 und)</span>
+              <span>Productos por agotarse (≤ 5 und)</span>
             </h3>
             <span
               v-if="lowStockProducts.length"
-              class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-800 border border-amber-500/20 shrink-0"
+              class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 shrink-0"
             >
               {{ lowStockProducts.length }} {{ lowStockProducts.length === 1 ? 'producto' : 'productos' }}
             </span>
@@ -294,39 +303,41 @@ function onModalSaved(): void {
             </p>
           </div>
 
-          <div v-else class="space-y-3">
+          <div v-else class="space-y-2.5">
             <div
               v-for="p in paginatedLowStockProducts"
               :key="p.id"
               class="flex items-center justify-between p-3 rounded-xl bg-[#F4F1E1]/40 border border-[#4A5D23]/10 hover:bg-[#F4F1E1]/70 transition-colors"
             >
-              <div class="flex items-center gap-3">
+              <div class="flex items-center gap-3 min-w-0">
                 <img
                   :src="p.image_url || '/placeholder-cake.png'"
-                  class="w-10 h-10 rounded-lg object-cover bg-white"
+                  :alt="p.name"
+                  class="w-10 h-10 rounded-xl object-cover bg-white border border-[#4A5D23]/10 shrink-0"
                 />
-                <div>
-                  <h4 class="font-bold text-sm text-[#2A321B]">{{ p.name }}</h4>
+                <div class="min-w-0">
+                  <h4 class="font-bold text-xs sm:text-sm text-[#2A321B] truncate">{{ p.name }}</h4>
                   <p class="text-xs text-[#4A5D23]/70 font-medium">
                     S/ {{ Number(p.price).toFixed(2) }}
                   </p>
                 </div>
               </div>
-              <div class="flex items-center gap-3">
+              <div class="flex items-center gap-2.5 shrink-0">
                 <span
                   :class="[
-                    'px-2.5 py-1 rounded-full text-xs font-bold',
+                    'px-2.5 py-1 rounded-full text-[11px] font-bold border',
                     p.stock === 0
-                      ? 'bg-red-100 text-red-800'
-                      : 'bg-amber-100 text-amber-800',
+                      ? 'bg-red-50 text-red-700 border-red-200'
+                      : 'bg-amber-50 text-amber-800 border-amber-200',
                   ]"
                 >
-                  {{ p.stock === 0 ? "Agotado" : `${p.stock} disponibles` }}
+                  {{ p.stock === 0 ? "Agotado" : p.stock === 1 ? "1 disponible" : `${p.stock} disponibles` }}
                 </span>
                 <button
                   @click="openProductModal(p)"
                   type="button"
-                  class="text-xs font-bold text-[#4A5D23] hover:underline cursor-pointer"
+                  class="px-3 py-1 rounded-lg text-xs font-bold text-brand-primary bg-white hover:bg-brand-primary hover:text-white border border-brand-primary/20 shadow-2xs hover:shadow-soft-sm transition-all cursor-pointer"
+                  aria-label="Editar producto"
                 >
                   Editar
                 </button>
@@ -338,7 +349,7 @@ function onModalSaved(): void {
         <!-- Paginación de Productos -->
         <div
           v-if="totalProductsPages > 1"
-          class="mt-4 pt-4 border-t border-[#4A5D23]/10 flex items-center justify-between"
+          class="mt-4 pt-3.5 border-t border-[#4A5D23]/10 flex items-center justify-between"
         >
           <span class="text-xs text-[#4A5D23]/70 font-medium">
             Página {{ currentProductsPage }} de {{ totalProductsPages }}
@@ -348,7 +359,8 @@ function onModalSaved(): void {
               @click="prevProductsPage"
               :disabled="currentProductsPage <= 1"
               type="button"
-              class="px-2.5 py-1 rounded-lg border border-[#4A5D23]/20 text-xs font-bold text-[#2A321B] hover:bg-[#F4F1E1]/60 transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1"
+              class="px-2.5 py-1 rounded-lg border border-[#4A5D23]/20 bg-white text-xs font-bold text-[#2A321B] hover:bg-[#F4F1E1] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1 shadow-2xs"
+              aria-label="Página anterior de productos"
             >
               <Icon name="lucide:chevron-left" class="w-3.5 h-3.5" />
               <span>Anterior</span>
@@ -357,7 +369,8 @@ function onModalSaved(): void {
               @click="nextProductsPage"
               :disabled="currentProductsPage >= totalProductsPages"
               type="button"
-              class="px-2.5 py-1 rounded-lg border border-[#4A5D23]/20 text-xs font-bold text-[#2A321B] hover:bg-[#F4F1E1]/60 transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1"
+              class="px-2.5 py-1 rounded-lg border border-[#4A5D23]/20 bg-white text-xs font-bold text-[#2A321B] hover:bg-[#F4F1E1] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1 shadow-2xs"
+              aria-label="Página siguiente de productos"
             >
               <span>Siguiente</span>
               <Icon name="lucide:chevron-right" class="w-3.5 h-3.5" />
@@ -368,19 +381,17 @@ function onModalSaved(): void {
 
       <!-- Critical Materials List -->
       <div
-        class="bg-white rounded-[2rem] border border-[#4A5D23]/10 shadow-sm p-6 flex flex-col justify-between"
+        class="bg-white rounded-[2rem] border border-[#4A5D23]/10 shadow-soft-sm p-5 sm:p-6 flex flex-col justify-between"
       >
         <div>
           <div class="flex items-center justify-between mb-4">
-            <h3
-              class="font-playfair font-bold text-lg text-[#2A321B] flex items-center gap-2"
-            >
+            <h3 class="font-playfair font-bold text-base sm:text-lg text-[#2A321B] flex items-center gap-2">
               <Icon name="lucide:scale" class="w-5 h-5 text-[#4A5D23]" />
-              <span>Insumos con Stock Bajo</span>
+              <span>Insumos con stock bajo</span>
             </h3>
             <span
               v-if="lowStockMaterials.length"
-              class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-800 border border-amber-500/20 shrink-0"
+              class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 shrink-0"
             >
               {{ lowStockMaterials.length }} {{ lowStockMaterials.length === 1 ? 'insumo' : 'insumos' }}
             </span>
@@ -399,25 +410,25 @@ function onModalSaved(): void {
             </p>
           </div>
 
-          <div v-else class="space-y-3">
+          <div v-else class="space-y-2.5">
             <div
               v-for="m in paginatedLowStockMaterials"
               :key="m.id"
               class="flex items-center justify-between p-3 rounded-xl bg-[#F4F1E1]/40 border border-[#4A5D23]/10 hover:bg-[#F4F1E1]/70 transition-colors"
             >
-              <div>
-                <h4 class="font-bold text-sm text-[#2A321B]">{{ m.name }}</h4>
+              <div class="min-w-0">
+                <h4 class="font-bold text-xs sm:text-sm text-[#2A321B] truncate">{{ m.name }}</h4>
                 <p class="text-[10px] font-bold uppercase tracking-wider text-[#4A5D23]/70">
                   Costo Base: S/ {{ Number(m.purchase_price).toFixed(2) }} x {{ m.purchase_quantity }} {{ m.unit }}
                 </p>
               </div>
-              <div class="flex items-center gap-3">
+              <div class="flex items-center gap-2.5 shrink-0">
                 <span
                   :class="[
-                    'px-2.5 py-1 rounded-full text-xs font-bold',
+                    'px-2.5 py-1 rounded-full text-[11px] font-bold border',
                     m.stock === 0
-                      ? 'bg-red-100 text-red-800'
-                      : 'bg-amber-100 text-amber-800',
+                      ? 'bg-red-50 text-red-700 border-red-200'
+                      : 'bg-amber-50 text-amber-800 border-amber-200',
                   ]"
                 >
                   {{ m.stock }} {{ m.unit }}
@@ -425,7 +436,8 @@ function onModalSaved(): void {
                 <button
                   @click="openMaterialModal(m)"
                   type="button"
-                  class="text-xs font-bold text-[#4A5D23] hover:underline cursor-pointer"
+                  class="px-3 py-1 rounded-lg text-xs font-bold text-brand-primary bg-white hover:bg-brand-primary hover:text-white border border-brand-primary/20 shadow-2xs hover:shadow-soft-sm transition-all cursor-pointer"
+                  aria-label="Reabastecer insumo"
                 >
                   Reabastecer
                 </button>
@@ -437,7 +449,7 @@ function onModalSaved(): void {
         <!-- Paginación de Insumos -->
         <div
           v-if="totalMaterialsPages > 1"
-          class="mt-4 pt-4 border-t border-[#4A5D23]/10 flex items-center justify-between"
+          class="mt-4 pt-3.5 border-t border-[#4A5D23]/10 flex items-center justify-between"
         >
           <span class="text-xs text-[#4A5D23]/70 font-medium">
             Página {{ currentMaterialsPage }} de {{ totalMaterialsPages }}
@@ -447,7 +459,8 @@ function onModalSaved(): void {
               @click="prevMaterialsPage"
               :disabled="currentMaterialsPage <= 1"
               type="button"
-              class="px-2.5 py-1 rounded-lg border border-[#4A5D23]/20 text-xs font-bold text-[#2A321B] hover:bg-[#F4F1E1]/60 transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1"
+              class="px-2.5 py-1 rounded-lg border border-[#4A5D23]/20 bg-white text-xs font-bold text-[#2A321B] hover:bg-[#F4F1E1] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1 shadow-2xs"
+              aria-label="Página anterior de insumos"
             >
               <Icon name="lucide:chevron-left" class="w-3.5 h-3.5" />
               <span>Anterior</span>
@@ -456,7 +469,8 @@ function onModalSaved(): void {
               @click="nextMaterialsPage"
               :disabled="currentMaterialsPage >= totalMaterialsPages"
               type="button"
-              class="px-2.5 py-1 rounded-lg border border-[#4A5D23]/20 text-xs font-bold text-[#2A321B] hover:bg-[#F4F1E1]/60 transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1"
+              class="px-2.5 py-1 rounded-lg border border-[#4A5D23]/20 bg-white text-xs font-bold text-[#2A321B] hover:bg-[#F4F1E1] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1 shadow-2xs"
+              aria-label="Página siguiente de insumos"
             >
               <span>Siguiente</span>
               <Icon name="lucide:chevron-right" class="w-3.5 h-3.5" />
