@@ -79,33 +79,19 @@ El proyecto organiza sus componentes siguiendo una Clean Architecture adaptada a
   - Altamente reutilizables en cualquier parte de la aplicación.
 
 ### 3.2. Composables Pattern (Reusabilidad de Lógica de Estado)
-En lugar de saturar las vistas `.vue` con lógica reactiva de decenas de líneas, extraemos la lógica de estado en **Composables** dentro de `app/composables/`:
+En lugar de saturar las vistas `.vue` con lógica reactiva de decenas de líneas, extraemos la lógica de estado en **Composables especializados y desacoplados** dentro de `app/composables/`:
 
-```typescript
-// app/composables/useRecipeCalculator.ts
-import { ref, computed } from 'vue'
+#### Módulos de Tienda Pública:
+* **`useCatalog()` (`app/composables/useCatalog.ts`):** Gestiona la consulta reactiva de postres, lectura de categorías dinámicas (`/api/categories`), filtrado por categoría y búsqueda en tiempo real con debounce.
+* **`useCheckout()` (`app/composables/useCheckout.ts`):** Orquesta el flujo de checkout transaccional, cálculo estricto de céntimos, validaciones de teléfono móvil Perú, generación de llaves de idempotencia y enlace seguro de WhatsApp.
+* **`useProfileOrders()` (`app/composables/useProfileOrders.ts`):** Carga y pagina el historial de compras del cliente autenticado conectando con Supabase de forma segura sin exponer credenciales.
+* **`useConfetti()` (`app/composables/useConfetti.ts`):** Micro-interacción visual de celebración al confirmar una orden con éxito.
 
-export function useRecipeCalculator(recipeItems: Ref<any[]>, additionalCosts: Ref<any>) {
-  const sumIngredients = computed(() => {
-    return recipeItems.value.reduce((acc, item) => acc + (item.quantity * item.unitCost), 0)
-  })
-
-  const totalCost = computed(() => {
-    const cif = Number(additionalCosts.value.packaging || 0) + 
-                Number(additionalCosts.value.utilities || 0) + 
-                Number(additionalCosts.value.labor || 0)
-    return sumIngredients.value + cif
-  })
-
-  const calculateMargin = (suggestedPrice: number) => {
-    const profit = suggestedPrice - totalCost.value
-    const percentage = suggestedPrice > 0 ? (profit / suggestedPrice) * 100 : 0
-    return { profit, percentage }
-  }
-
-  return { sumIngredients, totalCost, calculateMargin }
-}
-```
+#### Módulos de Administración ERP (`app/composables/admin/`):
+* **`useAdminNavState()` (`app/composables/admin/useAdminNavState.ts`):** Centraliza la navegación del panel administrativo, sincroniza bidireccionalmente la pestaña activa con el query param `?tab=...` en la URL y previene redirecciones no deseadas a `/perfil` al presionar F5.
+* **`useAdminOrders()` (`app/composables/admin/useAdminOrders.ts`):** Controla el tablero Kanban de pedidos, transiciones de estado (`pending` -> `processing` -> `ready` -> `completed`), confirmación de vouchers de pago en 1-click y emisión de eventos auditables.
+* **`useAdminMaterials()` (`app/composables/admin/useAdminMaterials.ts`):** Administra el inventario de materias primas, cálculo de costo unitario base (S/ por gramo/ml), kardex de movimientos y altas/bajas en almacén.
+* **`useAdminRecipes()` (`app/composables/admin/useAdminRecipes.ts`):** Motor financiero de escandallos. Calcula en tiempo real el costo de ingredientes, costos fijos (CIF: mano de obra, luz, empaque), margen comercial y descarga de reportes vivos en Excel (`.xlsx`).
 
 ### 3.3. Strategy Pattern (Motor de Personalización de Tortas)
 Para calcular el precio dinámico de una torta personalizada en el E-Commerce según la combinación de opciones (tamaño, bizcocho, relleno, cubierta, toppers), aplicamos el patrón **Strategy**:

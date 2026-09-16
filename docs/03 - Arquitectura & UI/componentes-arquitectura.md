@@ -21,6 +21,14 @@ En Nuxt 4, la carpeta `app/layouts/` define los contenedores estructurales de la
 - **Elementos Integrados:**
   - **Header de Gestión ERP:** Branding `Dulce Fe | ERP`, badge `Costos & Vitrina`, botón "Ver Tienda", datos del admin autenticado y botón de cierre de sesión.
   - **Fondo Botánico ERP:** Vectores de fondo en segundo plano.
+  - **Sidebar Drawer Móvil:** Cajón lateral deslizable con acceso a todos los tabs y KDS en celulares.
+
+### `app/layouts/auth.vue` (Autenticación Dedicada)
+- **Propósito:** Cascarón inmersivo y enfocado para Login y Registro (`/login`), libre de headers, banners o footers comerciales que distraigan de la conversión.
+- **Elementos Integrados:**
+  - **Atmósfera Botánica & Iluminación:** Fondo cálido marfil (`#faf7f2`) con dos fuentes difusas de luz ambiental (resplandor ámbar/miel y verde bosque).
+  - **Header Flotante:** Píldora de vidrio mate (`bg-white/80 backdrop-blur-md`) con botón "Volver a la tienda" y logotipo con subtítulo artesanal.
+  - **Viewport Centrado & Responsivo:** Escala fluidamente desde smartphones hasta pantallas ultrawide (2K/4K) manteniendo equilibrio óptico sin saltos de altura.
 
 ---
 
@@ -40,6 +48,19 @@ Este es el panel principal de administración del sistema. Su responsabilidad se
 
 Los componentes que viven en `app/components/admin/` son "Componentes Inteligentes" (Smart Components). Poseen su propio estado local (`ref`, `reactive`), hacen llamadas asíncronas a la base de datos (Supabase a través de Nitro) y manejan su propio ciclo de vida y manejo de errores.
 
+### `AdminDashboardTab.vue` (Centro de Comando & Métricas)
+- **Responsabilidad**: Vista ejecutiva de KPIs operativos (valor de inventario, productos terminados, insumos registrados y stock crítico).
+- **Ingeniería Móvil Responsiva**:
+  - Carrusel horizontal continuo en `< sm` con auto-rotación cada 4s y 4 puntos indicadores interactivos.
+  - Implementación con `container.scrollTo()` para eliminar completamente los tirones verticales de pantalla.
+  - Pausa inteligente por visibilidad mediante `isElementInViewport()`.
+  - Control segmentado (switch de pestañas) para alternar entre "Productos por agotarse" e "Insumos bajos", reduciendo la altura vertical en un 50%.
+  - Paginación dinámica de 5 en 5 en ambas listas operativas para evitar scroll infinito.
+
+### `AdminOrdersTab.vue` (Tablero Kanban & Gestión de Pedidos)
+- **Responsabilidad**: Gestión del ciclo de vida de órdenes en tiempo real con columnas kanban y vista tabular.
+- **Acciones Operativas**: Transiciones de estado (`pending` -> `processing` -> `ready` -> `completed` / `cancelled`), quiebre atómico de insumos, verificación de pagos en 1-click y apertura de modales de detalle.
+
 ### `AdminProductsTab.vue` (Vitrina Comercial)
 - **Responsabilidad**: CRUD completo de productos finales que se venden al público (ej. "Torta de Chocolate").
 - **Flujo de Datos**: Se conecta a la API `/api/products` para listar, crear, editar y eliminar.
@@ -47,6 +68,7 @@ Los componentes que viven en `app/components/admin/` son "Componentes Inteligent
 
 ### `AdminMaterialsTab.vue` (Almacén de Insumos)
 - **Responsabilidad**: Gestión del inventario de materia prima (harina, huevos, azúcar, etc).
+- **Búsqueda & Filtro**: Barra de búsqueda integrada en header con contador reactivo y estado vacío con botón de reinicio.
 - **Regla de Negocio Crítica**: Obliga al usuario a definir una **Unidad de Medida** (kg, g, L, ml, und) que será la unidad base para las recetas. Calcula automáticamente el precio base (precio / cantidad) para que el resto del sistema no tenga que hacer esa matemática.
 
 ### `AdminRecipesTab.vue` (Escandallos y Rentabilidad)
@@ -80,4 +102,45 @@ Estos componentes son agnósticos a la lógica de negocio. Son piezas de Lego re
   2. **FLIP Orgánico:** Las tarjetas restantes se deslizan con `transform 0.35s cubic-bezier(0.22, 1, 0.36, 1)` hacia sus nuevas coordenadas sin esperas ni saltos bruscos.
   3. **Aislación de Micro-interacciones:** Envoltorio neutro `.animated-grid-item` que previene colisiones entre el `style="transform: ..."` de Vue FLIP y el `hover:-translate-y-1.5` de las tarjetas hijas.
   4. **Accesibilidad Integrada:** Respeta automáticamente `prefers-reduced-motion: reduce`.
+
+---
+
+## 5. Módulo de Catálogo & Checkout (`app/components/catalog/` y `app/components/checkout/`)
+
+### `CatalogSearchFilter.vue`
+- Barra de búsqueda de vitrina con debounce y píldoras de categorías dinámicas leídas desde Supabase. Contenedor con `hide-scrollbar` y desplazamiento táctil horizontal suave.
+
+### `CatalogProductCard.vue`
+- Tarjeta de postre con precio formateado en moneda peruana, indicador visual de stock disponible, botón táctil de agregar a carrito y apertura de modal con imagen ampliada.
+
+### `CheckoutCustomerForm.vue`
+- Formulario de datos de cliente con validación estricta de teléfono celular Perú (9 dígitos, prefijo `+51` con bandera SVG oficial y contador `x/9`).
+
+### `CheckoutPaymentSection.vue`
+- Selector de método de pago (Yape, Plin, Efectivo) con logotipos oficiales integrados y cargador seguro de comprobantes (voucher) con validación de imagen.
+
+---
+
+## 6. Módulo de Perfil de Usuario (`app/components/profile/`)
+
+### `ProfileHeader.vue`
+- Cabecera de perfil con bienvenida personalizada, avatar generado, badge de rol y saldo de puntos de fidelidad Dulce Fe.
+
+### `ProfileUserCard.vue`
+- Formulario reactivo para actualización de datos personales (nombre, teléfono y cambio de contraseña) con validaciones instantáneas.
+
+### `ProfileAddressModal.vue`
+- Modal para gestión de libreta de direcciones con selección de distrito de Lima y casilla de dirección predeterminada.
+
+### `CustomerOrderDetailsModal.vue`
+- Ficha detallada de pedido para clientes con desglose de ítems, estado del comprobante de pago, dirección de despacho y total liquidado.
+
+---
+
+## 7. Sistema de Modales y Portales (`z-[9999]`)
+
+Todos los modales de la plataforma (`ProductModal`, `MaterialModal`, `OrderDetailsModal`, `NewOrderModal`, `ProfileAddressModal`, `CustomerOrderDetailsModal`) respetan las siguientes normas arquitectónicas:
+1. **Elevación Universal:** `z-[9999]` estricto para garantizar que ningún elemento flotante o barra sticky se superponga sobre ellos.
+2. **Teleport Controlado:** Envueltos en `<ClientOnly>` y teleportados a `#admin-modal-portal` o `body` para prevenir desajustes de hidratación SSR.
+3. **Ergonomía Móvil:** Contenedor interno con `max-h-[85vh]` y scroll interno suave (`custom-scrollbar`) para evitar que el modal desborde la pantalla al desplegarse teclados virtuales en smartphones.
 

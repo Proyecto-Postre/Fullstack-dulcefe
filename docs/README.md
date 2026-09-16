@@ -41,14 +41,16 @@ graph TD
 * [`formulas-costeo.md`](./01%20-%20Estrategia%20&%20Negocio/formulas-costeo.md) — Algoritmos matemáticos de escandallos en gramos/ml, mano de obra, CIF y margen comercial.
 
 ### 2. ⚡ [02 - Backend & Datos](./02%20-%20Backend%20&%20Datos/)
-* [`api-endpoints.md`](./02%20-%20Backend%20&%20Datos/api-endpoints.md) — Catálogo de 17 endpoints HTTP organizados por dominio (productos, materias primas, recetas, carrito 410, checkout y administración).
-* [`esquema-base-datos.md`](./02%20-%20Backend%20&%20Datos/esquema-base-datos.md) — Modelo entidad-relación de PostgreSQL en Supabase, tablas centrales y políticas RLS.
+* [`api-endpoints.md`](./02%20-%20Backend%20&%20Datos/api-endpoints.md) — Catálogo exhaustivo de endpoints HTTP en Nitro organizados por dominio (productos, insumos, recetas, categorías, autenticación, checkout, tracking de invitados, comprobantes Yape/Plin, KDS y administración).
+* [`esquema-base-datos.md`](./02%20-%20Backend%20&%20Datos/esquema-base-datos.md) — Modelo entidad-relación de PostgreSQL en Supabase, tablas centrales (`products`, `categories`, `orders`, `order_guest_tokens`, `order_payment_receipts`, `order_cost_snapshots`, `waste_logs`, `profiles`, `addresses`, `raw_materials`, `recipe_items`) y políticas RLS.
 
 ### 3. 🏛️ [03 - Arquitectura & UI](./03%20-%20Arquitectura%20&%20UI/)
 * [`architecture-refactor-plan.md`](./03%20-%20Arquitectura%20&%20UI/architecture-refactor-plan.md) — **El Plan Maestro de Arquitectura y Refactorización (SSOT Técnico)**. Contiene las 20 secciones que rigen el proyecto, contratos HTTP (§14), corte S9 (§16), stack de pruebas (§18) y checklist de validación (§20).
 * [`checklist-feature-review.md`](./03%20-%20Arquitectura%20&%20UI/checklist-feature-review.md) — Lista de control obligatoria para revisión de features (§10.6): Dominio, Tipado, Validación, Permiso, Prueba y SQL.
 * [`design-system-tokens.md`](./03%20-%20Arquitectura%20&%20UI/design-system-tokens.md) — SSOT visual de tokens de diseño, colores institucionales, escala tipográfica y sombras.
-* [`componentes-arquitectura.md`](./03%20-%20Arquitectura%20&%20UI/componentes-arquitectura.md) — Lineamientos para estructurar componentes Vue 3 y composables.
+* [`guia-diseno-mobile-responsivo.md`](./03%20-%20Arquitectura%20&%20UI/guia-diseno-mobile-responsivo.md) — **Guía Oficial de Ingeniería y Patrones de Diseño Móvil Responsivo** (carruseles táctiles sin saltos, tabs segmentadas, drawer lateral, footer compacto y scrollbars nativas).
+* [`patron-animacion-grid-flip.md`](./03%20-%20Arquitectura%20&%20UI/patron-animacion-grid-flip.md) — Patrón de cuadrícula animada FLIP (GPU 60fps) sin parpadeos para catálogos y listados.
+* [`componentes-arquitectura.md`](./03%20-%20Arquitectura%20&%20UI/componentes-arquitectura.md) — Lineamientos para estructurar componentes Vue 3, modales y composables desacoplados.
 * [`arquitectura-patrones.md`](./03%20-%20Arquitectura%20&%20UI/arquitectura-patrones.md) — Patrones de diseño aplicados y guías modulares.
 * [`herramientas-ui.md`](./03%20-%20Arquitectura%20&%20UI/herramientas-ui.md) — Catálogo de utilidades de interfaz (Lucide, Toasts, BaseModal).
 
@@ -70,6 +72,8 @@ Registro cronológico inmutable de auditorías y entregas por fase:
   * [`fase-6-producto-kds-informe-ejecucion.md`](./04%20-%20Informes%20de%20Ejecucion/fase-6-producto-kds-informe-ejecucion.md) — **Informe Maestro Consolidado de la Fase 6**.
 * **Hardening & Estabilidad:**
   * [`hardening-estabilidad-informe-ejecucion.md`](./04%20-%20Informes%20de%20Ejecucion/hardening-estabilidad-informe-ejecucion.md) — **Informe de Hardening & Estabilidad del Sistema (Fix Modales, RLS Service Role & Sesiones Zombi)**.
+* **Refinamiento UI, Autenticación Dedicada, Checkout Perú & Mobile:**
+  * [`refinamiento-ui-auth-checkout-kds-informe.md`](./04%20-%20Informes%20de%20Ejecucion/refinamiento-ui-auth-checkout-kds-informe.md) — **Informe de Refinamiento UI, Autenticación Dedicada, Checkout Perú (Yape/Plin), Navegación Móvil (Drawer/Carrusel/Tabs) y KDS** (198 tests passing).
 
 ### 5. 🛡️ [05 - Operaciones](./05%20-%20Operaciones/)
 * [`playbook-operaciones.md`](./05%20-%20Operaciones/playbook-operaciones.md) — **Manual Operativo de Misión Crítica**:

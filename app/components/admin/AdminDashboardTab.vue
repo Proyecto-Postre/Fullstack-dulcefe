@@ -252,7 +252,7 @@ onUnmounted(() => {
           ¡Hola, {{ authStore.profile?.full_name?.split(" ")[0] || "Administrador" }}!
         </h2>
         <p class="text-xs sm:text-sm text-[#4A5D23]/70 font-medium mt-1">
-          Aquí tienes el estado operativo y de abastecimiento de tu pastelería.
+          {{ currentDateFormatted }} • Estado operativo y de abastecimiento.
         </p>
       </div>
 

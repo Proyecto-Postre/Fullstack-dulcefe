@@ -70,14 +70,18 @@ flowchart TD
 * [[formulas-costeo]] — Algoritmos de costeo en gramos/ml, CIF, mano de obra y margen.
 
 ### 📁 02 - Backend & Datos
-* [[api-endpoints]] — **Catálogo Maestro de Endpoints API** (17 fichas técnicas individuales en `endpoints/`):
+* [[api-endpoints]] — **Catálogo Maestro de Endpoints API** (24 fichas técnicas individuales en `endpoints/`):
   * **Productos:** [[GET-api-products]], [[POST-api-products]], [[GET-api-products-id]], [[PUT-api-products-id]], [[DELETE-api-products-id]], [[POST-api-products-upload]].
+  * **Categorías:** [[GET-api-categories]].
+  * **Autenticación & Perfil:** [[GET-api-auth-profile]].
   * **Materias Primas:** [[GET-api-raw-materials]], [[POST-api-raw-materials]], [[PUT-api-raw-materials-id]], [[DELETE-api-raw-materials-id]].
   * **Recetas & Excel:** [[GET-api-recipes-productId]], [[POST-api-recipes]], [[DELETE-api-recipes-id]], [[GET-api-recipes-export]].
   * **Carrito (Desactivado 410):** [[GET-api-cart]], [[POST-api-cart]], [[DELETE-api-cart-productId]].
-  * **Checkout & Pedidos:** [[POST-api-checkout]], [[GET-api-admin-orders]], [[GET-api-admin-orders-id]], [[PATCH-api-admin-orders-id]], [[PATCH-api-admin-orders-id-status]], [[POST-api-admin-orders]].
-* [[esquema-base-datos]] — Esquema relacional oficial, tablas `products`, `raw_materials`, `recipe_items`, `orders`, `profiles` y RLS.
-* [[sql/README]] — Gobernanza de base de datos y archivo histórico.
+  * **Checkout & Pagos:** [[POST-api-checkout]], [[POST-api-checkout-upload-receipt]].
+  * **Tracking Invitados:** [[GET-api-orders-track-token]].
+  * **Operaciones Admin & KDS:** [[GET-api-admin-orders]], [[GET-api-admin-orders-id]], [[PATCH-api-admin-orders-id]], [[PATCH-api-admin-orders-id-status]], [[POST-api-admin-orders]], [[POST-api-admin-orders-id-verify-payment]], [[GET-api-admin-orders-id-cost-snapshot]], [[GET-api-admin-kds-orders]].
+* [[esquema-base-datos]] — Esquema relacional oficial, tablas `products`, `categories`, `orders`, `order_items`, `profiles`, `addresses`, `inventory_movements`, `raw_materials`, `recipe_items` y RLS.
+* [[sql/README]] — Gobernanza de base de datos y catálogo de 8 migraciones oficiales en `supabase/migrations/`.
 
 ### 📁 03 - Arquitectura & UI
 * [[architecture-refactor-plan]] — Diagnóstico arquitectónico y plan de refactorización.
