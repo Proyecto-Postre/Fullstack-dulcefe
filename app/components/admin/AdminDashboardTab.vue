@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, onMounted, onUnmounted } from "vue";
 import { useAuthStore } from "~/stores/auth";
 import type { ProductRow } from "~/types/catalog";
 import type { RawMaterialRow } from "~/types/inventory";
@@ -142,6 +142,103 @@ function openMaterialModal(material: RawMaterialRow): void {
 function onModalSaved(): void {
   emit("refresh");
 }
+
+// Control de Carrusel de Métricas en Mobile (< sm)
+const activeMetricIndex = ref<number>(0);
+const metricsCarouselRef = ref<HTMLElement | null>(null);
+const isCarouselPaused = ref<boolean>(false);
+let carouselInterval: ReturnType<typeof setInterval> | null = null;
+
+function isElementInViewport(el: HTMLElement): boolean {
+  if (typeof window === "undefined") return false;
+  const rect = el.getBoundingClientRect();
+  const windowHeight = window.innerHeight || document.documentElement.clientHeight;
+  return rect.bottom > 0 && rect.top < windowHeight;
+}
+
+function scrollToMetric(index: number): void {
+  activeMetricIndex.value = index;
+  if (metricsCarouselRef.value) {
+    const container = metricsCarouselRef.value;
+    const cards = container.children;
+    if (cards && cards[index]) {
+      const firstCard = cards[0] as HTMLElement;
+      const targetCard = cards[index] as HTMLElement;
+      const baseOffset = firstCard ? firstCard.offsetLeft : 0;
+      const targetLeft = targetCard.offsetLeft - baseOffset;
+      // Scroll horizontal exclusivo dentro del contenedor, sin mover el scroll vertical de la ventana
+      container.scrollTo({
+        left: targetLeft,
+        behavior: "smooth",
+      });
+    }
+  }
+}
+
+function onCarouselScroll(): void {
+  if (!metricsCarouselRef.value) return;
+  const container = metricsCarouselRef.value;
+  const scrollLeft = container.scrollLeft;
+  const cards = container.children;
+  if (!cards || cards.length === 0) return;
+
+  const firstCard = cards[0] as HTMLElement;
+  const baseOffset = firstCard ? firstCard.offsetLeft : 0;
+
+  let closestIndex = 0;
+  let minDiff = Infinity;
+  for (let i = 0; i < Math.min(cards.length, 4); i++) {
+    const card = cards[i] as HTMLElement;
+    const cardRelativeLeft = card.offsetLeft - baseOffset;
+    const diff = Math.abs(cardRelativeLeft - scrollLeft);
+    if (diff < minDiff) {
+      minDiff = diff;
+      closestIndex = i;
+    }
+  }
+  if (closestIndex !== activeMetricIndex.value) {
+    activeMetricIndex.value = closestIndex;
+  }
+}
+
+function pauseCarousel(): void {
+  isCarouselPaused.value = true;
+}
+
+function resumeCarousel(): void {
+  isCarouselPaused.value = false;
+}
+
+function startCarousel(): void {
+  stopCarousel();
+  carouselInterval = setInterval(() => {
+    if (!isCarouselPaused.value && metricsCarouselRef.value) {
+      // Solo rotar automáticamente si el carrusel está visible en la pantalla
+      if (isElementInViewport(metricsCarouselRef.value)) {
+        const nextIndex = (activeMetricIndex.value + 1) % 4;
+        scrollToMetric(nextIndex);
+      }
+    }
+  }, 4000);
+}
+
+function stopCarousel(): void {
+  if (carouselInterval) {
+    clearInterval(carouselInterval);
+    carouselInterval = null;
+  }
+}
+
+// Control de Pestañas de Alertas en Mobile (< lg)
+const activeAlertTab = ref<"products" | "materials">("products");
+
+onMounted(() => {
+  startCarousel();
+});
+
+onUnmounted(() => {
+  stopCarousel();
+});
 </script>
 
 <template>
@@ -175,112 +272,187 @@ function onModalSaved(): void {
       </div>
     </div>
 
-    <!-- Metrics Grid (Compactos, horizontales, limpios: Ícono, Nombre y Valor) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
-      <!-- 1. Productos Vitrina -->
+    <!-- Metrics Section: Carrusel Rotativo en Mobile (< sm) / Grid en Desktop (>= sm) -->
+    <div>
       <div
-        class="bg-white rounded-2xl p-3.5 sm:p-4 border border-[#4A5D23]/10 shadow-soft-sm hover:shadow-soft-md transition-all flex items-center gap-3.5"
+        ref="metricsCarouselRef"
+        @scroll="onCarouselScroll"
+        @touchstart="pauseCarousel"
+        @touchend="resumeCarousel"
+        @mouseenter="pauseCarousel"
+        @mouseleave="resumeCarousel"
+        class="relative flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 overflow-x-auto sm:overflow-x-visible snap-x snap-mandatory sm:snap-none hide-scrollbar scroll-smooth"
       >
-        <div class="w-11 h-11 rounded-xl bg-[#F4F1E1] text-[#4A5D23] flex items-center justify-center shrink-0">
-          <Icon name="lucide:cake-slice" class="w-5 h-5" />
-        </div>
-        <div class="min-w-0">
-          <p class="text-xs font-medium text-[#4A5D23]/70 truncate">
-            Productos en vitrina
-          </p>
-          <p class="text-xl sm:text-2xl font-bold text-[#2A321B] font-inter leading-tight">
-            {{ totalProducts }}
-          </p>
-        </div>
-      </div>
-
-      <!-- 2. Insumos Almacén -->
-      <div
-        class="bg-white rounded-2xl p-3.5 sm:p-4 border border-[#4A5D23]/10 shadow-soft-sm hover:shadow-soft-md transition-all flex items-center gap-3.5"
-      >
-        <div class="w-11 h-11 rounded-xl bg-[#F4F1E1] text-[#4A5D23] flex items-center justify-center shrink-0">
-          <Icon name="lucide:scale" class="w-5 h-5" />
-        </div>
-        <div class="min-w-0">
-          <p class="text-xs font-medium text-[#4A5D23]/70 truncate">
-            Insumos registrados
-          </p>
-          <p class="text-xl sm:text-2xl font-bold text-[#2A321B] font-inter leading-tight">
-            {{ totalMaterials }}
-          </p>
-        </div>
-      </div>
-
-      <!-- 3. Prod. Stock Bajo -->
-      <div
-        class="bg-white rounded-2xl p-3.5 sm:p-4 border border-[#4A5D23]/10 shadow-soft-sm hover:shadow-soft-md transition-all flex items-center gap-3.5"
-      >
+        <!-- 1. Productos Vitrina -->
         <div
-          :class="[
-            'w-11 h-11 rounded-xl flex items-center justify-center shrink-0',
-            lowStockProducts.length > 0
-              ? 'bg-amber-50 text-amber-600'
-              : 'bg-[#F4F1E1] text-[#4A5D23]',
-          ]"
+          class="w-full shrink-0 snap-center sm:w-auto sm:shrink bg-white rounded-2xl p-3.5 sm:p-4 border border-[#4A5D23]/10 shadow-soft-sm hover:shadow-soft-md transition-all flex items-center gap-3.5"
         >
-          <Icon name="lucide:alert-triangle" class="w-5 h-5" />
+          <div class="w-11 h-11 rounded-xl bg-[#F4F1E1] text-[#4A5D23] flex items-center justify-center shrink-0">
+            <Icon name="lucide:cake-slice" class="w-5 h-5" />
+          </div>
+          <div class="min-w-0">
+            <p class="text-xs font-medium text-[#4A5D23]/70 truncate">
+              Productos en vitrina
+            </p>
+            <p class="text-xl sm:text-2xl font-bold text-[#2A321B] font-inter leading-tight">
+              {{ totalProducts }}
+            </p>
+          </div>
         </div>
-        <div class="min-w-0">
-          <p class="text-xs font-medium text-[#4A5D23]/70 truncate">
-            Productos por agotarse
-          </p>
-          <p
+
+        <!-- 2. Insumos Almacén -->
+        <div
+          class="w-full shrink-0 snap-center sm:w-auto sm:shrink bg-white rounded-2xl p-3.5 sm:p-4 border border-[#4A5D23]/10 shadow-soft-sm hover:shadow-soft-md transition-all flex items-center gap-3.5"
+        >
+          <div class="w-11 h-11 rounded-xl bg-[#F4F1E1] text-[#4A5D23] flex items-center justify-center shrink-0">
+            <Icon name="lucide:scale" class="w-5 h-5" />
+          </div>
+          <div class="min-w-0">
+            <p class="text-xs font-medium text-[#4A5D23]/70 truncate">
+              Insumos registrados
+            </p>
+            <p class="text-xl sm:text-2xl font-bold text-[#2A321B] font-inter leading-tight">
+              {{ totalMaterials }}
+            </p>
+          </div>
+        </div>
+
+        <!-- 3. Prod. Stock Bajo -->
+        <div
+          class="w-full shrink-0 snap-center sm:w-auto sm:shrink bg-white rounded-2xl p-3.5 sm:p-4 border border-[#4A5D23]/10 shadow-soft-sm hover:shadow-soft-md transition-all flex items-center gap-3.5"
+        >
+          <div
             :class="[
-              'text-xl sm:text-2xl font-bold font-inter leading-tight',
-              lowStockProducts.length > 0 ? 'text-amber-700' : 'text-[#2A321B]',
+              'w-11 h-11 rounded-xl flex items-center justify-center shrink-0',
+              lowStockProducts.length > 0
+                ? 'bg-amber-50 text-amber-600'
+                : 'bg-[#F4F1E1] text-[#4A5D23]',
             ]"
           >
-            {{ lowStockProducts.length }}
-          </p>
+            <Icon name="lucide:alert-triangle" class="w-5 h-5" />
+          </div>
+          <div class="min-w-0">
+            <p class="text-xs font-medium text-[#4A5D23]/70 truncate">
+              Productos por agotarse
+            </p>
+            <p
+              :class="[
+                'text-xl sm:text-2xl font-bold font-inter leading-tight',
+                lowStockProducts.length > 0 ? 'text-amber-700' : 'text-[#2A321B]',
+              ]"
+            >
+              {{ lowStockProducts.length }}
+            </p>
+          </div>
+        </div>
+
+        <!-- 4. Insumos Críticos -->
+        <div
+          class="w-full shrink-0 snap-center sm:w-auto sm:shrink bg-white rounded-2xl p-3.5 sm:p-4 border border-[#4A5D23]/10 shadow-soft-sm hover:shadow-soft-md transition-all flex items-center gap-3.5"
+        >
+          <div
+            :class="[
+              'w-11 h-11 rounded-xl flex items-center justify-center shrink-0',
+              lowStockMaterials.length > 0
+                ? 'bg-red-50 text-red-600'
+                : 'bg-[#F4F1E1] text-[#4A5D23]',
+            ]"
+          >
+            <Icon name="lucide:package-x" class="w-5 h-5" />
+          </div>
+          <div class="min-w-0">
+            <p class="text-xs font-medium text-[#4A5D23]/70 truncate">
+              Insumos con stock bajo
+            </p>
+            <p
+              :class="[
+                'text-xl sm:text-2xl font-bold font-inter leading-tight',
+                lowStockMaterials.length > 0 ? 'text-red-700' : 'text-[#2A321B]',
+              ]"
+            >
+              {{ lowStockMaterials.length }}
+            </p>
+          </div>
         </div>
       </div>
 
-      <!-- 4. Insumos Críticos -->
-      <div
-        class="bg-white rounded-2xl p-3.5 sm:p-4 border border-[#4A5D23]/10 shadow-soft-sm hover:shadow-soft-md transition-all flex items-center gap-3.5"
-      >
-        <div
+      <!-- Indicadores de Dots (Solo Mobile < sm) -->
+      <div class="flex sm:hidden items-center justify-center gap-1.5 mt-2.5">
+        <button
+          v-for="i in 4"
+          :key="i"
+          type="button"
+          @click="scrollToMetric(i - 1)"
           :class="[
-            'w-11 h-11 rounded-xl flex items-center justify-center shrink-0',
-            lowStockMaterials.length > 0
-              ? 'bg-red-50 text-red-600'
-              : 'bg-[#F4F1E1] text-[#4A5D23]',
+            'h-1.5 rounded-full transition-all duration-300 cursor-pointer',
+            activeMetricIndex === i - 1
+              ? 'w-5 bg-brand-primary'
+              : 'w-1.5 bg-brand-primary/25 hover:bg-brand-primary/40',
           ]"
-        >
-          <Icon name="lucide:package-x" class="w-5 h-5" />
-        </div>
-        <div class="min-w-0">
-          <p class="text-xs font-medium text-[#4A5D23]/70 truncate">
-            Insumos con stock bajo
-          </p>
-          <p
-            :class="[
-              'text-xl sm:text-2xl font-bold font-inter leading-tight',
-              lowStockMaterials.length > 0 ? 'text-red-700' : 'text-[#2A321B]',
-            ]"
-          >
-            {{ lowStockMaterials.length }}
-          </p>
-        </div>
+          :aria-label="`Ir a métrica ${i}`"
+        />
       </div>
     </div>
 
-    <!-- Alert Sections (Listas Operativas con curvas suaves) -->
+    <!-- Segmented Control / Switch de Alertas (Solo Mobile < lg) -->
+    <div class="lg:hidden">
+      <div class="bg-[#F4F1E1] p-1 rounded-2xl flex border border-[#4A5D23]/15 shadow-2xs">
+        <button
+          @click="activeAlertTab = 'products'"
+          type="button"
+          :class="[
+            'flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer',
+            activeAlertTab === 'products'
+              ? 'bg-white text-brand-secondary shadow-soft-sm'
+              : 'text-[#4A5D23]/70 hover:text-brand-secondary',
+          ]"
+        >
+          <Icon name="lucide:cake" class="w-4 h-4 text-[#4A5D23]" />
+          <span>Por agotarse</span>
+          <span
+            v-if="lowStockProducts.length"
+            class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200"
+          >
+            {{ lowStockProducts.length }}
+          </span>
+        </button>
+
+        <button
+          @click="activeAlertTab = 'materials'"
+          type="button"
+          :class="[
+            'flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer',
+            activeAlertTab === 'materials'
+              ? 'bg-white text-brand-secondary shadow-soft-sm'
+              : 'text-[#4A5D23]/70 hover:text-brand-secondary',
+          ]"
+        >
+          <Icon name="lucide:scale" class="w-4 h-4 text-[#4A5D23]" />
+          <span>Insumos bajos</span>
+          <span
+            v-if="lowStockMaterials.length"
+            class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200"
+          >
+            {{ lowStockMaterials.length }}
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Alert Sections (Listas Operativas) -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
       <!-- Low Stock Products List -->
       <div
-        class="bg-white rounded-[2rem] border border-[#4A5D23]/10 shadow-soft-sm p-5 sm:p-6 flex flex-col justify-between"
+        :class="[
+          'bg-white rounded-[2rem] border border-[#4A5D23]/10 shadow-soft-sm p-5 sm:p-6 flex-col justify-between',
+          activeAlertTab === 'products' ? 'flex' : 'hidden lg:flex',
+        ]"
       >
         <div>
           <div class="flex items-center justify-between mb-4">
             <h3 class="font-playfair font-bold text-base sm:text-lg text-[#2A321B] flex items-center gap-2">
               <Icon name="lucide:cake" class="w-5 h-5 text-[#4A5D23]" />
-              <span>Productos por agotarse (≤ 5 und)</span>
+              <span>Productos por agotarse</span>
             </h3>
             <span
               v-if="lowStockProducts.length"
@@ -381,7 +553,10 @@ function onModalSaved(): void {
 
       <!-- Critical Materials List -->
       <div
-        class="bg-white rounded-[2rem] border border-[#4A5D23]/10 shadow-soft-sm p-5 sm:p-6 flex flex-col justify-between"
+        :class="[
+          'bg-white rounded-[2rem] border border-[#4A5D23]/10 shadow-soft-sm p-5 sm:p-6 flex-col justify-between',
+          activeAlertTab === 'materials' ? 'flex' : 'hidden lg:flex',
+        ]"
       >
         <div>
           <div class="flex items-center justify-between mb-4">
@@ -496,3 +671,17 @@ function onModalSaved(): void {
     />
   </div>
 </template>
+
+<style scoped>
+/* Ocultar completamente la barra de scroll nativa horizontal (gris con flechas) en móviles y navegadores */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none !important; /* IE y Edge */
+  scrollbar-width: none !important; /* Firefox */
+}
+</style>
