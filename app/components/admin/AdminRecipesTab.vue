@@ -377,7 +377,7 @@ watch(() => props.modelValue, (newVal) => {
                     <div class="flex items-center gap-2">
                       <span class="font-bold text-[#2A321B]">{{ item.material_name || item.name }}</span>
                       <span class="text-[9px] text-[#4A5D23]/60 font-black uppercase tracking-widest bg-[#4A5D23]/5 px-1.5 py-0.5 rounded">
-                        S/ {{ (item.unit_cost ?? item.cost_per_unit ?? 0).toFixed(2) }} x {{ item.unit }}
+                        S/ {{ Number(item.unit_cost ?? item.cost_per_unit ?? 0).toFixed(2) }} x {{ item.unit }}
                       </span>
                     </div>
                   </td>
@@ -387,7 +387,7 @@ watch(() => props.modelValue, (newVal) => {
                     </span>
                   </td>
                   <td class="py-2.5 px-3 text-right font-black text-[#2A321B] font-inter text-base">
-                    <span class="text-[#4A5D23]/50 text-xs mr-0.5">S/</span>{{ (item.item_cost ?? item.item_total_cost ?? 0).toFixed(2) }}
+                    <span class="text-[#4A5D23]/50 text-xs mr-0.5">S/</span>{{ Number(item.item_cost ?? item.item_total_cost ?? 0).toFixed(2) }}
                   </td>
                   <td class="py-2.5 px-3">
                     <div class="flex items-center justify-end">

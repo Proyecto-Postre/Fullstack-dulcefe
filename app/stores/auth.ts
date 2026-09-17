@@ -186,7 +186,9 @@ export const useAuthStore = defineStore('auth', () => {
   function setUser(newUser: User | null): void {
     user.value = newUser
     if (newUser) {
-      fetchProfile()
+      if (!profile.value || profile.value.id !== newUser.id) {
+        fetchProfile(newUser.id)
+      }
       fetchAddresses()
     } else {
       clearSession()
@@ -206,7 +208,7 @@ export const useAuthStore = defineStore('auth', () => {
         if (!user.value || user.value.id !== supabaseUser.value.id) {
           setUser(supabaseUser.value as unknown as User)
         } else if (!profile.value) {
-          await fetchProfile()
+          await fetchProfile(supabaseUser.value.id)
         }
       } else {
         // En recarga o hidratación, consultar getSession() antes de purgar sesión
@@ -214,11 +216,13 @@ export const useAuthStore = defineStore('auth', () => {
           const { data: sessionData } = await supabase.auth.getSession()
           if (sessionData?.session?.user) {
             setUser(sessionData.session.user as unknown as User)
-          } else {
+          } else if (!user.value) {
             clearSession()
           }
         } catch {
-          clearSession()
+          if (!user.value) {
+            clearSession()
+          }
         }
       }
 
