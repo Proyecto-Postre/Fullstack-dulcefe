@@ -10,6 +10,16 @@ const route = useRoute()
 
 const isMobileMenuOpen = ref(false)
 
+// Bloqueo de scroll del body al abrir el menú móvil
+watch(isMobileMenuOpen, (isOpen) => {
+  if (typeof document === 'undefined') return
+  if (isOpen) {
+    document.body.classList.add('overflow-hidden', 'overscroll-none')
+  } else {
+    document.body.classList.remove('overflow-hidden', 'overscroll-none')
+  }
+})
+
 // Cerrar sidebar al cambiar de ruta automáticamente
 watch(() => route.fullPath, () => {
   isMobileMenuOpen.value = false
@@ -169,13 +179,14 @@ const formattedWhatsApp = computed(() => {
         >
           <!-- Backdrop -->
           <div 
-            class="absolute inset-0 bg-[#2A321B]/50 backdrop-blur-sm transition-opacity"
+            class="absolute inset-0 bg-[#2A321B]/50 backdrop-blur-sm transition-opacity touch-none"
             @click="isMobileMenuOpen = false"
+            @touchmove.prevent
           ></div>
 
           <!-- Sidebar Panel -->
           <aside 
-            class="relative w-[85%] max-w-xs bg-brand-cream h-full shadow-2xl border-l border-brand-primary/20 flex flex-col z-10 animate-slide-in p-6"
+            class="relative w-[85%] max-w-xs bg-brand-cream h-full h-[100dvh] max-h-[100dvh] shadow-2xl border-l border-brand-primary/20 flex flex-col z-10 animate-slide-in p-6 overscroll-contain overflow-hidden"
             @click.stop
           >
             <!-- Cabecera del Sidebar -->
