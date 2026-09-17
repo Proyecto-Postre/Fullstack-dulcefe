@@ -44,24 +44,46 @@ export const useAuthStore = defineStore('auth', () => {
     return profile.value.is_admin === true
   })
 
-  async function fetchProfile(): Promise<void> {
-    if (!user.value?.id) return
+  async function fetchProfile(userId?: string): Promise<UserProfile | null> {
+    const supabaseUser = useSupabaseUser()
+    const targetId = userId || user.value?.id || supabaseUser.value?.id
+    if (!targetId) return null
+
+    if (!user.value && supabaseUser.value) {
+      user.value = supabaseUser.value as unknown as User
+    }
+
     isLoading.value = true
     try {
+      // 1. Intentar consultar vía endpoint seguro de servidor (evita bloqueos de RLS en SSR / reload)
+      try {
+        const response = await $fetch<{ success: boolean, data: UserProfile }>('/api/auth/profile')
+        if (response?.data) {
+          profile.value = response.data
+          return response.data
+        }
+      } catch {
+        // Continuar con fallback directo a Supabase cliente
+      }
+
       const supabase = useSupabaseClient<Database>()
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', user.value.id)
-        .single()
+        .eq('id', targetId)
+        .maybeSingle()
         
       if (error) throw error
-      profile.value = data
+      if (data) {
+        profile.value = data
+        return data
+      }
     } catch (err: unknown) {
       console.error('Error al obtener perfil de usuario:', err)
     } finally {
       isLoading.value = false
     }
+    return profile.value
   }
 
   async function fetchAddresses(): Promise<void> {
@@ -174,7 +196,7 @@ export const useAuthStore = defineStore('auth', () => {
   // Sincronización automática en cliente con Supabase Auth
   let authListenerSubscribed = false
 
-  function initAuth(): void {
+  async function initAuth(): Promise<void> {
     if (import.meta.client) {
       const supabase = useSupabaseClient<Database>()
       const supabaseUser = useSupabaseUser()
@@ -184,11 +206,20 @@ export const useAuthStore = defineStore('auth', () => {
         if (!user.value || user.value.id !== supabaseUser.value.id) {
           setUser(supabaseUser.value as unknown as User)
         } else if (!profile.value) {
-          fetchProfile()
+          await fetchProfile()
         }
       } else {
-        // Purgar sesión zombi si Supabase no tiene usuario activo
-        clearSession()
+        // En recarga o hidratación, consultar getSession() antes de purgar sesión
+        try {
+          const { data: sessionData } = await supabase.auth.getSession()
+          if (sessionData?.session?.user) {
+            setUser(sessionData.session.user as unknown as User)
+          } else {
+            clearSession()
+          }
+        } catch {
+          clearSession()
+        }
       }
 
       // Escuchar cambios de autenticación en tiempo real
@@ -197,7 +228,7 @@ export const useAuthStore = defineStore('auth', () => {
         supabase.auth.onAuthStateChange((event, session) => {
           if (event === 'SIGNED_OUT' || !session?.user) {
             clearSession()
-          } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+          } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED' || event === 'INITIAL_SESSION') {
             setUser(session.user as unknown as User)
           }
         })
@@ -217,6 +248,35 @@ export const useAuthStore = defineStore('auth', () => {
     clearSession()
   }
 
+  async function updateProfile(payload: { full_name?: string, phone?: string }): Promise<{ success: boolean, error?: string }> {
+    if (!user.value?.id) return { success: false, error: 'Usuario no autenticado' }
+    try {
+      const supabase = useSupabaseClient<Database>()
+      const updates: { full_name?: string, phone?: string, updated_at: string } = {
+        updated_at: new Date().toISOString()
+      }
+      if (payload.full_name !== undefined) updates.full_name = payload.full_name.trim()
+      if (payload.phone !== undefined) updates.phone = payload.phone.trim()
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', user.value.id)
+        .select()
+        .single()
+
+      if (error) throw error
+      if (data) {
+        profile.value = data
+      }
+      return { success: true }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error al actualizar perfil'
+      console.error('Error al actualizar perfil:', err)
+      return { success: false, error: message }
+    }
+  }
+
   return {
     user,
     profile,
@@ -229,6 +289,7 @@ export const useAuthStore = defineStore('auth', () => {
     signOut,
     initAuth,
     fetchProfile,
+    updateProfile,
     fetchAddresses,
     saveAddress,
     addAddress: saveAddress,

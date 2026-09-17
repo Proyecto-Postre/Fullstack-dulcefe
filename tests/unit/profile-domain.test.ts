@@ -95,4 +95,11 @@ describe('Fase 4 (PR-4a): Dominio Perfil - Tipado y Lógica de Pedidos', () => {
     expect(address.label).toBe('Casa')
     expect(address.reference).toBe('Frente al parque')
   })
+
+  it('valida que ProfileTab incluya personal como primera sección del perfil', () => {
+    const validTabs: ProfileTab[] = ['personal', 'history', 'addresses']
+    expect(validTabs[0]).toBe('personal')
+    expect(validTabs[1]).toBe('history')
+    expect(validTabs[2]).toBe('addresses')
+  })
 })

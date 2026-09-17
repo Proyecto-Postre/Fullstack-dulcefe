@@ -60,11 +60,11 @@ export function calculateUnitCost(price: number | null | undefined, quantity: nu
   return price / quantity
 }
 
-export function useAdminMaterials(materialsList: Ref<RawMaterialRow[]>) {
+export function useAdminMaterials(materialsList: Ref<RawMaterialRow[]>, pageSize = 7) {
   const searchQuery = ref<string>('')
   const isSearchFocused = ref<boolean>(false)
   const currentPage = ref<number>(1)
-  const itemsPerPage = 10
+  const itemsPerPage = pageSize
 
   const filteredMaterials = computed<RawMaterialRow[]>(() => {
     const list = materialsList.value || []

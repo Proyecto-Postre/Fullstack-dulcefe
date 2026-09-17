@@ -70,19 +70,25 @@ flowchart TD
 * [[formulas-costeo]] — Algoritmos de costeo en gramos/ml, CIF, mano de obra y margen.
 
 ### 📁 02 - Backend & Datos
-* [[api-endpoints]] — **Catálogo Maestro de Endpoints API** (17 fichas técnicas individuales en `endpoints/`):
+* [[api-endpoints]] — **Catálogo Maestro de Endpoints API** (24 fichas técnicas individuales en `endpoints/`):
   * **Productos:** [[GET-api-products]], [[POST-api-products]], [[GET-api-products-id]], [[PUT-api-products-id]], [[DELETE-api-products-id]], [[POST-api-products-upload]].
+  * **Categorías:** [[GET-api-categories]].
+  * **Autenticación & Perfil:** [[GET-api-auth-profile]].
   * **Materias Primas:** [[GET-api-raw-materials]], [[POST-api-raw-materials]], [[PUT-api-raw-materials-id]], [[DELETE-api-raw-materials-id]].
   * **Recetas & Excel:** [[GET-api-recipes-productId]], [[POST-api-recipes]], [[DELETE-api-recipes-id]], [[GET-api-recipes-export]].
   * **Carrito (Desactivado 410):** [[GET-api-cart]], [[POST-api-cart]], [[DELETE-api-cart-productId]].
-  * **Checkout & Pedidos:** [[POST-api-checkout]], [[GET-api-admin-orders]], [[GET-api-admin-orders-id]], [[PATCH-api-admin-orders-id]], [[PATCH-api-admin-orders-id-status]], [[POST-api-admin-orders]].
-* [[esquema-base-datos]] — Esquema relacional oficial, tablas `products`, `raw_materials`, `recipe_items`, `orders`, `profiles` y RLS.
-* [[sql/README]] — Gobernanza de base de datos y archivo histórico.
+  * **Checkout & Pagos:** [[POST-api-checkout]], [[POST-api-checkout-upload-receipt]].
+  * **Tracking Invitados:** [[GET-api-orders-track-token]].
+  * **Operaciones Admin & KDS:** [[GET-api-admin-orders]], [[GET-api-admin-orders-id]], [[PATCH-api-admin-orders-id]], [[PATCH-api-admin-orders-id-status]], [[POST-api-admin-orders]], [[POST-api-admin-orders-id-verify-payment]], [[GET-api-admin-orders-id-cost-snapshot]], [[GET-api-admin-kds-orders]].
+* [[esquema-base-datos]] — Esquema relacional oficial, tablas `products`, `categories`, `orders`, `order_items`, `profiles`, `addresses`, `inventory_movements`, `raw_materials`, `recipe_items` y RLS.
+* [[sql/README]] — Gobernanza de base de datos y catálogo de 8 migraciones oficiales en `supabase/migrations/`.
 
 ### 📁 03 - Arquitectura & UI
 * [[architecture-refactor-plan]] — Diagnóstico arquitectónico y plan de refactorización.
 * [[arquitectura-patrones]] — Patrones de diseño aplicados y composables.
 * [[componentes-arquitectura]] — Guía de estructuración de componentes Vue 3.
+* [[patron-animacion-grid-flip]] — Patrón de cuadrícula animada FLIP (GPU 60fps) sin parpadeos para catálogos y listados.
+* [[guia-diseno-mobile-responsivo]] — Guía de ingeniería y patrones de diseño móvil responsivo (carruseles, tabs, drawers, footer y scrollbars).
 * [[design-system-tokens]] — Paleta de colores Dulce Fe, tipografía y bordes.
 * [[herramientas-ui]] — Utilidades y librerías de UI (Lucide Icons, Toast, Modal).
 
@@ -120,6 +126,7 @@ flowchart TD
 * [[fase-6-producto-kds-informe-ejecucion]] — **Informe Maestro Consolidado de Fase 6**.
 * [[hardening-estabilidad-informe-ejecucion]] — **Informe de Hardening & Estabilidad del Sistema (Fix Modales, RLS Service Role & Sesiones Zombi)**.
 * [[elevacion-certificacion-10-10-informe-ejecucion]] — **Informe de Elevación Integral a Calificación 10/10 Enterprise y Cierre Arquitectónico**.
+* [[refinamiento-ui-auth-checkout-kds-informe]] — **Informe de Refinamiento UI, Autenticación Dedicada, Checkout Perú (Yape/Plin), Navegación Móvil (Drawer/Carrusel/Tabs) y KDS**.
 
 ### 📁 05 - Operaciones & Resiliencia
 * [[playbook-operaciones]] — Variables por entorno, rotación de claves, runbook de restore V44, Vercel Git-Ops y telemetría de alertas.

@@ -33,29 +33,34 @@ defineEmits<{
         @click="$emit('update:searchQuery', '')"
         type="button"
         class="absolute right-3.5 top-1/2 -translate-y-1/2 text-brand-primary/50 hover:text-status-danger p-1 cursor-pointer"
-        title="Limpiar búsqueda"
+        aria-label="Limpiar búsqueda"
       >
         <Icon name="lucide:x" class="w-4 h-4" />
       </button>
     </div>
 
     <!-- Píldoras de Categoría -->
-    <div class="flex items-center justify-center gap-2 overflow-x-auto py-1 hide-scrollbar">
-      <button
-        v-for="cat in categories"
-        :key="cat.id"
-        @click="$emit('update:selectedCategory', cat.id)"
-        type="button"
-        :class="[
-          'inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 border cursor-pointer',
-          selectedCategory === cat.id
-            ? 'bg-brand-primary text-white border-brand-primary shadow-soft-sm scale-102'
-            : 'bg-surface text-brand-secondary border-brand-primary/15 hover:bg-brand-cream shadow-soft-sm'
-        ]"
-      >
-        <Icon :name="cat.icon" class="w-3.5 h-3.5" />
-        {{ cat.name }}
-      </button>
+    <div v-if="categories && categories.length > 0" class="relative w-full overflow-hidden">
+      <!-- Contenedor con scroll suave horizontal y padding de seguridad -->
+      <div class="overflow-x-auto py-2 px-2 hide-scrollbar scroll-smooth">
+        <div class="flex items-center gap-2.5 min-w-max mx-auto justify-start sm:justify-center px-2">
+          <button
+            v-for="cat in categories"
+            :key="cat.id"
+            @click="$emit('update:selectedCategory', cat.id)"
+            type="button"
+            :class="[
+              'inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold transition-all duration-300 shrink-0 border cursor-pointer select-none active:scale-95',
+              selectedCategory === cat.id
+                ? 'bg-brand-primary text-white border-brand-primary shadow-soft-sm scale-102'
+                : 'bg-surface text-brand-secondary border-brand-primary/15 hover:bg-brand-cream hover:border-brand-primary/30 shadow-soft-sm'
+            ]"
+          >
+            <Icon :name="cat.icon" class="w-3.5 h-3.5" />
+            <span>{{ cat.name }}</span>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </template>

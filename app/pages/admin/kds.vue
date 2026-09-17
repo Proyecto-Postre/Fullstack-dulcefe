@@ -119,37 +119,62 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-stone-900 text-stone-100 flex flex-col font-sans select-none">
-    <!-- Header KDS con controles grandes para dedos de cocina -->
-    <header class="bg-stone-950 border-b border-stone-800 px-6 py-4 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-30 shadow-md">
-      <div class="flex items-center gap-4">
-        <NuxtLink
-          to="/admin"
-          class="flex items-center gap-2 px-3 py-2 bg-stone-800 hover:bg-stone-700 active:scale-95 text-stone-300 rounded-xl font-bold text-sm transition"
-        >
-          <Icon name="lucide:arrow-left" class="w-5 h-5" />
-          <span>Salir</span>
-        </NuxtLink>
+  <div class="min-h-screen bg-[#11160d] text-[#f4f1e1] flex flex-col font-sans select-none">
+    <!-- Header KDS con controles táctiles de taller, optimizado para móvil, tablet y pantallas grandes -->
+    <header class="bg-[#0c1009] border-b border-[#222c1b] px-4 sm:px-6 py-3 sm:py-3.5 flex flex-col md:flex-row md:items-center md:justify-between gap-3 sm:gap-4 sticky top-0 z-30 shadow-md">
+      
+      <!-- Fila Superior: Marca, Salir y Metadatos -->
+      <div class="flex items-center justify-between md:justify-start gap-3 sm:gap-4">
+        <div class="flex items-center gap-3">
+          <NuxtLink
+            to="/admin"
+            class="flex items-center gap-1.5 px-3 py-2 bg-[#1c2517] hover:bg-[#25321f] active:scale-95 text-[#f4f1e1] border border-[#2a371e] rounded-xl font-bold text-xs sm:text-sm transition cursor-pointer"
+          >
+            <Icon name="lucide:arrow-left" class="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" />
+            <span>Salir</span>
+          </NuxtLink>
 
-        <div>
-          <h1 class="text-xl lg:text-2xl font-black text-amber-400 tracking-wide flex items-center gap-2">
-            <Icon name="lucide:chef-hat" class="w-7 h-7 text-amber-400" />
-            KDS TALLER &bull; DULCE FÉ
-          </h1>
-          <p class="text-xs text-stone-400">
-            Última sync: {{ lastUpdated || 'Cargando...' }} &bull; {{ orders.length }} comandas activas
-          </p>
+          <div>
+            <h1 class="text-base sm:text-xl lg:text-2xl font-playfair font-black text-amber-400 tracking-wide flex items-center gap-2 leading-none">
+              <Icon name="lucide:chef-hat" class="w-5 h-5 sm:w-6 sm:h-6 text-amber-400 shrink-0" />
+              <span>KDS TALLER &bull; DULCE FE</span>
+            </h1>
+            <p class="text-[11px] sm:text-xs text-stone-400 mt-1">
+              Sync: {{ lastUpdated || 'Cargando...' }} &bull; {{ orders.length }} comandas activas
+            </p>
+          </div>
+        </div>
+
+        <!-- Acciones rápidas visibles en móvil -->
+        <div class="flex md:hidden items-center gap-2">
+          <button
+            type="button"
+            @click="fetchKdsOrders"
+            :disabled="isLoading"
+            class="p-2 bg-[#1c2517] hover:bg-[#25321f] active:scale-95 text-stone-200 border border-[#2a371e] rounded-xl transition cursor-pointer"
+            aria-label="Actualizar"
+          >
+            <Icon name="lucide:refresh-cw" :class="['w-4 h-4', isLoading ? 'animate-spin' : '']" />
+          </button>
+          <button
+            type="button"
+            @click="showMiseEnPlaceModal = true"
+            class="p-2 bg-amber-500 hover:bg-amber-400 active:scale-95 text-stone-950 font-black rounded-xl transition cursor-pointer shadow-sm"
+            aria-label="Mise en Place / Lotes"
+          >
+            <Icon name="lucide:scale" class="w-4 h-4" />
+          </button>
         </div>
       </div>
 
-      <!-- Filtros táctiles por estado -->
-      <div class="flex items-center bg-stone-900 border border-stone-800 p-1 rounded-2xl gap-1">
+      <!-- Filtros táctiles por estado (con scroll horizontal en pantallas angostas) -->
+      <div class="flex items-center bg-[#182113] border border-[#2a371e] p-1 rounded-2xl gap-1 overflow-x-auto no-scrollbar w-full md:w-auto">
         <button
           type="button"
           @click="activeFilter = 'all'"
           :class="[
-            'px-4 py-2.5 rounded-xl font-bold text-xs transition cursor-pointer',
-            activeFilter === 'all' ? 'bg-amber-500 text-stone-950 shadow' : 'text-stone-400 hover:text-white'
+            'px-3.5 py-2 sm:py-2.5 rounded-xl font-bold text-xs whitespace-nowrap transition cursor-pointer shrink-0',
+            activeFilter === 'all' ? 'bg-amber-500 text-stone-950 shadow-sm' : 'text-stone-400 hover:text-white'
           ]"
         >
           Todas ({{ orders.length }})
@@ -158,8 +183,8 @@ onUnmounted(() => {
           type="button"
           @click="activeFilter = 'pending'"
           :class="[
-            'px-4 py-2.5 rounded-xl font-bold text-xs transition cursor-pointer',
-            activeFilter === 'pending' ? 'bg-amber-500 text-stone-950 shadow' : 'text-stone-400 hover:text-white'
+            'px-3.5 py-2 sm:py-2.5 rounded-xl font-bold text-xs whitespace-nowrap transition cursor-pointer shrink-0',
+            activeFilter === 'pending' ? 'bg-amber-500 text-stone-950 shadow-sm' : 'text-stone-400 hover:text-white'
           ]"
         >
           Pendientes ({{ orders.filter(o => o.status === 'pending').length }})
@@ -168,8 +193,8 @@ onUnmounted(() => {
           type="button"
           @click="activeFilter = 'processing'"
           :class="[
-            'px-4 py-2.5 rounded-xl font-bold text-xs transition cursor-pointer',
-            activeFilter === 'processing' ? 'bg-amber-500 text-stone-950 shadow' : 'text-stone-400 hover:text-white'
+            'px-3.5 py-2 sm:py-2.5 rounded-xl font-bold text-xs whitespace-nowrap transition cursor-pointer shrink-0',
+            activeFilter === 'processing' ? 'bg-amber-500 text-stone-950 shadow-sm' : 'text-stone-400 hover:text-white'
           ]"
         >
           En Horno ({{ orders.filter(o => o.status === 'processing').length }})
@@ -178,22 +203,22 @@ onUnmounted(() => {
           type="button"
           @click="activeFilter = 'ready'"
           :class="[
-            'px-4 py-2.5 rounded-xl font-bold text-xs transition cursor-pointer',
-            activeFilter === 'ready' ? 'bg-amber-500 text-stone-950 shadow' : 'text-stone-400 hover:text-white'
+            'px-3.5 py-2 sm:py-2.5 rounded-xl font-bold text-xs whitespace-nowrap transition cursor-pointer shrink-0',
+            activeFilter === 'ready' ? 'bg-amber-500 text-stone-950 shadow-sm' : 'text-stone-400 hover:text-white'
           ]"
         >
           Listas ({{ orders.filter(o => o.status === 'ready').length }})
         </button>
       </div>
 
-      <!-- Acciones globales: Batch Baking y Fullscreen -->
-      <div class="flex items-center gap-3">
+      <!-- Acciones globales en Desktop: Batch Baking y Fullscreen -->
+      <div class="hidden md:flex items-center gap-2.5">
         <button
           type="button"
           @click="showMiseEnPlaceModal = true"
-          class="flex items-center gap-2 px-4 py-2.5 bg-amber-600 hover:bg-amber-500 active:scale-95 text-stone-950 font-black rounded-xl text-sm shadow transition cursor-pointer"
+          class="flex items-center gap-2 px-3.5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 active:scale-95 text-stone-950 font-black rounded-xl text-xs sm:text-sm shadow transition cursor-pointer"
         >
-          <Icon name="lucide:scale" class="w-5 h-5" />
+          <Icon name="lucide:scale" class="w-4 h-4 sm:w-5 sm:h-5" />
           <span>Mise en Place / Lotes</span>
         </button>
 
@@ -201,74 +226,82 @@ onUnmounted(() => {
           type="button"
           @click="fetchKdsOrders"
           :disabled="isLoading"
-          class="p-2.5 bg-stone-800 hover:bg-stone-700 active:scale-95 text-stone-200 rounded-xl transition cursor-pointer"
-          title="Actualizar"
+          class="p-2 sm:p-2.5 bg-[#1c2517] hover:bg-[#25321f] active:scale-95 text-stone-200 border border-[#2a371e] rounded-xl transition cursor-pointer"
+          aria-label="Actualizar comandas"
         >
-          <Icon name="lucide:refresh-cw" :class="['w-5 h-5', isLoading ? 'animate-spin' : '']" />
+          <Icon name="lucide:refresh-cw" :class="['w-4 h-4 sm:w-5 sm:h-5', isLoading ? 'animate-spin' : '']" />
         </button>
 
         <button
           type="button"
           @click="toggleFullscreen"
-          class="p-2.5 bg-stone-800 hover:bg-stone-700 active:scale-95 text-stone-200 rounded-xl transition cursor-pointer"
-          title="Pantalla Completa"
+          class="p-2 sm:p-2.5 bg-[#1c2517] hover:bg-[#25321f] active:scale-95 text-stone-200 border border-[#2a371e] rounded-xl transition cursor-pointer"
+          aria-label="Pantalla Completa"
         >
-          <Icon name="lucide:maximize" class="w-5 h-5" />
+          <Icon name="lucide:maximize" class="w-4 h-4 sm:w-5 sm:h-5" />
         </button>
       </div>
     </header>
 
     <!-- Error Banner -->
-    <div v-if="errorMsg" class="bg-red-900/80 border-b border-red-700 px-6 py-3 text-red-200 text-sm flex items-center justify-between">
+    <div v-if="errorMsg" class="bg-red-900/80 border-b border-red-700 px-4 sm:px-6 py-2.5 sm:py-3 text-red-200 text-xs sm:text-sm flex items-center justify-between">
       <div class="flex items-center gap-2">
-        <Icon name="lucide:alert-triangle" class="w-5 h-5 text-red-300" />
+        <Icon name="lucide:alert-triangle" class="w-4 h-4 sm:w-5 sm:h-5 text-red-300 shrink-0" />
         <span>{{ errorMsg }}</span>
       </div>
       <div class="flex items-center gap-3">
         <NuxtLink
           v-if="isAuthError"
           to="/login"
-          class="px-3 py-1 bg-red-750 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5"
+          class="px-3 py-1 bg-red-700 hover:bg-red-600 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5"
         >
           <Icon name="lucide:log-in" class="w-3.5 h-3.5" />
           <span>Iniciar Sesión</span>
         </NuxtLink>
-        <button v-else @click="fetchKdsOrders" class="underline font-bold text-white cursor-pointer">
+        <button v-else @click="fetchKdsOrders" class="underline font-bold text-white cursor-pointer text-xs">
           Reintentar
         </button>
       </div>
     </div>
 
-    <!-- Tablero de Comandas -->
-    <main class="flex-1 p-6 overflow-y-auto">
+    <!-- Tablero de Comandas Adaptativo -->
+    <main class="flex-1 p-4 sm:p-6 overflow-y-auto">
       <div v-if="isLoading && orders.length === 0" class="flex flex-col items-center justify-center h-64 gap-4 text-stone-400">
         <Icon name="lucide:loader" class="w-10 h-10 animate-spin text-amber-400" />
         <p class="text-base font-semibold">Cargando comandas activas del taller...</p>
       </div>
 
-      <div v-else-if="filteredOrders.length === 0" class="flex flex-col items-center justify-center h-64 gap-3 text-stone-500">
-        <Icon name="lucide:check-check" class="w-16 h-16 text-stone-600" />
-        <p class="text-lg font-bold">¡Todo al día! No hay pedidos en esta sección.</p>
+      <!-- Estado Vacío Elegante de Taller -->
+      <div v-else-if="filteredOrders.length === 0" class="flex flex-col items-center justify-center py-16 px-4 text-center">
+        <div class="w-20 h-20 rounded-3xl bg-brand-primary/20 border border-brand-primary/30 flex items-center justify-center text-amber-400 mb-4 shadow-soft-sm">
+          <Icon name="lucide:chef-hat" class="w-10 h-10 text-amber-400" />
+        </div>
+        <h3 class="text-xl sm:text-2xl font-playfair font-black text-white mb-2">
+          ¡Taller al día!
+        </h3>
+        <p class="text-xs sm:text-sm text-stone-400 max-w-md leading-relaxed">
+          No hay comandas activas en esta sección. Los nuevos pedidos de vitrina o delivery aparecerán aquí automáticamente en tiempo real.
+        </p>
       </div>
 
-      <!-- Cuadrícula de Comandas (Cards táctiles) -->
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <!-- Cuadrícula de Comandas (Cards táctiles 1 a 4 columnas según viewport) -->
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
         <article
           v-for="order in filteredOrders"
           :key="order.id"
-          class="bg-stone-800/90 rounded-2xl border-2 overflow-hidden flex flex-col justify-between shadow-xl transition"
+          class="bg-[#182014] rounded-2xl border-2 overflow-hidden flex flex-col justify-between shadow-xl transition-all"
           :class="[
             calculateDeliveryUrgency(order.delivery_date, order.delivery_time).level === 'overdue'
               ? 'border-red-600 shadow-red-950/50 ring-2 ring-red-500/50'
               : calculateDeliveryUrgency(order.delivery_date, order.delivery_time).level === 'urgent'
                 ? 'border-amber-500 shadow-amber-950/30'
-                : 'border-stone-700 hover:border-stone-600'
+                : 'border-[#2a371e] hover:border-[#3d502b]'
           ]"
         >
           <!-- Cabecera de la comanda -->
-          <div class="p-4 bg-stone-850 border-b border-stone-750">
+          <div class="p-4 bg-[#141b11] border-b border-[#222c1a]">
             <div class="flex items-center justify-between gap-2 mb-2">
-              <span class="font-mono text-xs font-black px-2.5 py-1 rounded-md bg-stone-900 text-stone-300 border border-stone-700">
+              <span class="font-mono text-xs font-black px-2.5 py-1 rounded-md bg-[#0c1009] text-stone-300 border border-[#2a371e]">
                 #{{ order.short_id }}
               </span>
 
@@ -300,7 +333,7 @@ onUnmounted(() => {
             <div
               v-for="item in order.items"
               :key="item.product_id"
-              class="bg-stone-900/80 p-3 rounded-xl border border-stone-750"
+              class="bg-[#0f140c] p-3 rounded-xl border border-[#222c1a]"
             >
               <div class="flex items-start justify-between gap-2">
                 <span class="font-black text-amber-300 text-base">
@@ -312,7 +345,7 @@ onUnmounted(() => {
               </div>
 
               <!-- Lista de insumos requeridos por ítem si existen -->
-              <div v-if="item.recipe && item.recipe.length > 0" class="mt-2.5 pt-2 border-t border-stone-800 text-xs space-y-1">
+              <div v-if="item.recipe && item.recipe.length > 0" class="mt-2.5 pt-2 border-t border-[#222c1a] text-xs space-y-1">
                 <p class="text-[10px] font-black tracking-wider uppercase text-stone-400">Receta / Insumos:</p>
                 <div
                   v-for="ing in item.recipe"
@@ -328,21 +361,21 @@ onUnmounted(() => {
             </div>
 
             <!-- Notas de la comanda -->
-            <div v-if="order.notes" class="p-2.5 bg-amber-950/30 border border-amber-800/40 rounded-xl text-xs text-amber-200 flex items-start gap-1.5">
+            <div v-if="order.notes" class="p-2.5 bg-amber-950/40 border border-amber-800/40 rounded-xl text-xs text-amber-200 flex items-start gap-1.5">
               <Icon name="lucide:message-square" class="w-4 h-4 shrink-0 text-amber-400 mt-0.5" />
               <span class="italic">{{ order.notes }}</span>
             </div>
           </div>
 
           <!-- Botonera de Avance Rápido (Touch 1-Tap) -->
-          <div class="p-3 bg-stone-850 border-t border-stone-750 flex items-center gap-2">
+          <div class="p-3 bg-[#141b11] border-t border-[#222c1a] flex items-center gap-2">
             <!-- Si está PENDIENTE -> Pasar a PROCESSING (En Horno) -->
             <button
               v-if="order.status === 'pending'"
               type="button"
               :disabled="isUpdating === order.id"
               @click="advanceOrderStatus(order, 'processing')"
-              class="w-full py-3.5 px-4 bg-amber-500 hover:bg-amber-400 active:scale-98 text-stone-950 font-black rounded-xl text-sm flex items-center justify-center gap-2 transition cursor-pointer shadow-md"
+              class="w-full py-3.5 px-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 active:scale-98 text-stone-950 font-black rounded-xl text-sm flex items-center justify-center gap-2 transition cursor-pointer shadow-md"
             >
               <Icon name="lucide:flame" class="w-5 h-5" />
               <span>HORNEAR AHORA</span>
@@ -354,7 +387,7 @@ onUnmounted(() => {
               type="button"
               :disabled="isUpdating === order.id"
               @click="advanceOrderStatus(order, 'ready')"
-              class="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-500 active:scale-98 text-white font-black rounded-xl text-sm flex items-center justify-center gap-2 transition cursor-pointer shadow-md"
+              class="w-full py-3.5 px-4 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 active:scale-98 text-white font-black rounded-xl text-sm flex items-center justify-center gap-2 transition cursor-pointer shadow-md"
             >
               <Icon name="lucide:package-check" class="w-5 h-5" />
               <span>MARCAR LISTO</span>
@@ -366,7 +399,7 @@ onUnmounted(() => {
               type="button"
               :disabled="isUpdating === order.id"
               @click="advanceOrderStatus(order, 'completed')"
-              class="w-full py-3.5 px-4 bg-blue-600 hover:bg-blue-500 active:scale-98 text-white font-black rounded-xl text-sm flex items-center justify-center gap-2 transition cursor-pointer shadow-md"
+              class="w-full py-3.5 px-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 active:scale-98 text-white font-black rounded-xl text-sm flex items-center justify-center gap-2 transition cursor-pointer shadow-md"
             >
               <Icon name="lucide:check-circle-2" class="w-5 h-5" />
               <span>ENTREGADO / CERRAR</span>
@@ -377,61 +410,66 @@ onUnmounted(() => {
     </main>
 
     <!-- Modal de Mise en Place & Horneado por Lotes -->
-    <div
-      v-if="showMiseEnPlaceModal"
-      class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
-    >
-      <div class="bg-stone-900 border border-stone-700 rounded-3xl max-w-2xl w-full p-6 space-y-6 shadow-2xl">
-        <div class="flex items-center justify-between border-b border-stone-800 pb-4">
-          <div class="flex items-center gap-3">
-            <div class="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
-              <Icon name="lucide:scale" class="w-7 h-7" />
-            </div>
-            <div>
-              <h3 class="text-xl font-black text-white">Mise en Place &bull; Horneado por Lotes</h3>
-              <p class="text-xs text-stone-400">Total consolidado de insumos requeridos para pedidos en cola</p>
-            </div>
-          </div>
-          <button
-            type="button"
-            @click="showMiseEnPlaceModal = false"
-            class="p-2 text-stone-400 hover:text-white rounded-xl bg-stone-800 transition cursor-pointer"
-          >
-            <Icon name="lucide:x" class="w-6 h-6" />
-          </button>
-        </div>
-
-        <div v-if="batchIngredients.length === 0" class="py-8 text-center text-stone-500">
-          <Icon name="lucide:box" class="w-12 h-12 mx-auto mb-2 text-stone-600" />
-          <p class="text-sm">No hay recetas asignadas a las comandas activas pendientes o en horno.</p>
-        </div>
-
-        <div v-else class="max-h-96 overflow-y-auto space-y-2">
-          <div
-            v-for="mat in batchIngredients"
-            :key="mat.material_id"
-            class="flex items-center justify-between p-3.5 bg-stone-800/80 rounded-xl border border-stone-700"
-          >
+    <Teleport to="body">
+      <div
+        v-if="showMiseEnPlaceModal"
+        class="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-y-auto"
+        role="dialog"
+        aria-modal="true"
+      >
+        <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" @click="showMiseEnPlaceModal = false"></div>
+        <div class="relative bg-[#182014] border border-[#2a371e] rounded-3xl max-w-2xl w-full p-5 sm:p-6 space-y-5 sm:space-y-6 shadow-2xl z-10">
+          <div class="flex items-center justify-between border-b border-[#222c1a] pb-4">
             <div class="flex items-center gap-3">
-              <Icon name="lucide:wheat" class="w-5 h-5 text-amber-400" />
-              <span class="font-bold text-stone-200 text-sm">{{ mat.material_name }}</span>
+              <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                <Icon name="lucide:scale" class="w-6 h-6 sm:w-7 sm:h-7" />
+              </div>
+              <div>
+                <h3 class="text-lg sm:text-xl font-black text-white">Mise en Place &bull; Horneado por Lotes</h3>
+                <p class="text-xs text-stone-400">Total consolidado de insumos requeridos para pedidos en cola</p>
+              </div>
             </div>
-            <span class="font-mono text-base font-black text-amber-400">
-              {{ mat.total_quantity.toLocaleString('es-PE', { maximumFractionDigits: 2 }) }} {{ mat.unit }}
-            </span>
+            <button
+              type="button"
+              @click="showMiseEnPlaceModal = false"
+              class="p-2 text-stone-400 hover:text-white rounded-xl bg-[#1c2517] transition cursor-pointer"
+            >
+              <Icon name="lucide:x" class="w-5 h-5 sm:w-6 sm:h-6" />
+            </button>
           </div>
-        </div>
 
-        <div class="pt-2 flex justify-end">
-          <button
-            type="button"
-            @click="showMiseEnPlaceModal = false"
-            class="px-6 py-3 bg-stone-800 hover:bg-stone-700 text-white font-bold rounded-xl text-sm transition cursor-pointer"
-          >
-            Cerrar Resumen
-          </button>
+          <div v-if="batchIngredients.length === 0" class="py-8 text-center text-stone-500">
+            <Icon name="lucide:box" class="w-12 h-12 mx-auto mb-2 text-stone-600" />
+            <p class="text-sm">No hay recetas asignadas a las comandas activas pendientes o en horno.</p>
+          </div>
+
+          <div v-else class="max-h-96 overflow-y-auto space-y-2">
+            <div
+              v-for="mat in batchIngredients"
+              :key="mat.material_id"
+              class="flex items-center justify-between p-3.5 bg-[#0f140c] rounded-xl border border-[#222c1a]"
+            >
+              <div class="flex items-center gap-3">
+                <Icon name="lucide:wheat" class="w-5 h-5 text-amber-400" />
+                <span class="font-bold text-stone-200 text-sm">{{ mat.material_name }}</span>
+              </div>
+              <span class="font-mono text-base font-black text-amber-400">
+                {{ mat.total_quantity.toLocaleString('es-PE', { maximumFractionDigits: 2 }) }} {{ mat.unit }}
+              </span>
+            </div>
+          </div>
+
+          <div class="pt-2 flex justify-end">
+            <button
+              type="button"
+              @click="showMiseEnPlaceModal = false"
+              class="px-6 py-3 bg-[#1c2517] hover:bg-[#25321f] text-white font-bold rounded-xl text-sm transition cursor-pointer"
+            >
+              Cerrar Resumen
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </Teleport>
   </div>
 </template>

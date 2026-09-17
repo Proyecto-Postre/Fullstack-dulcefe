@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useAdminTab, TAB_TO_SLUG, SLUG_TO_TAB } from '~/composables/admin/useAdminNavState'
 import type { Database } from '~/types/database.types'
 
 type ProductItem = Database['public']['Tables']['products']['Row']
@@ -11,8 +13,44 @@ definePageMeta({
   middleware: 'admin-only'
 })
 
-// Control de pestañas del panel
-const currentTab = ref<'dashboard' | 'products' | 'materials' | 'recipes' | 'orders'>('dashboard')
+const route = useRoute()
+const router = useRouter()
+
+// Control de pestañas del panel sincronizado con el layout
+const currentTab = useAdminTab()
+
+// Sincronizar pestaña inicial desde los query params de la URL si existen (ej. /admin?tab=almacen)
+const initialQueryTab = route.query.tab as string | undefined
+if (initialQueryTab && SLUG_TO_TAB[initialQueryTab]) {
+  currentTab.value = SLUG_TO_TAB[initialQueryTab]
+} else if (currentTab.value && currentTab.value !== 'dashboard' && !route.query.tab) {
+  router.replace({ query: { ...route.query, tab: TAB_TO_SLUG[currentTab.value] } })
+}
+
+// Observar cambios reactivos en la pestaña para actualizar la URL sin recargar la página (SPA pushState)
+watch(currentTab, (newTab) => {
+  const targetSlug = TAB_TO_SLUG[newTab]
+  if (route.query.tab !== targetSlug) {
+    if (newTab === 'dashboard') {
+      const { tab: _, ...restQuery } = route.query
+      router.push({ query: restQuery })
+    } else {
+      router.push({ query: { ...route.query, tab: targetSlug } })
+    }
+  }
+})
+
+// Responder a los botones Atrás / Adelante del navegador
+watch(() => route.query.tab, (newQueryTab) => {
+  if (typeof newQueryTab === 'string' && SLUG_TO_TAB[newQueryTab]) {
+    const matched = SLUG_TO_TAB[newQueryTab]
+    if (currentTab.value !== matched) {
+      currentTab.value = matched
+    }
+  } else if (!newQueryTab && currentTab.value !== 'dashboard') {
+    currentTab.value = 'dashboard'
+  }
+})
 
 // Consultas globales a la API (Productos e Insumos)
 const { data: catalog, refresh: refreshCatalog, pending: pendingCatalog } = await useFetch<{ success: boolean, data: ProductItem[] }>('/api/products')
@@ -28,7 +66,7 @@ function goToRecipeTab(product: ProductItem) {
 </script>
 
 <template>
-  <div class="h-full w-full grid grid-cols-1 lg:grid-cols-[280px_1fr] grid-rows-[auto_1fr] lg:grid-rows-1 overflow-hidden">
+  <div class="h-full w-full grid grid-cols-1 lg:grid-cols-[280px_1fr] overflow-hidden">
     
     <!-- Sidebar (Desktop - Pegado a la izquierda) -->
     <aside class="hidden lg:flex flex-col col-span-1 bg-surface border-r border-brand-primary/10 relative z-20 overflow-hidden">
@@ -108,103 +146,18 @@ function goToRecipeTab(product: ProductItem) {
 
         <NuxtLink
           to="/admin/kds"
-          target="_blank"
           class="flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold text-amber-700 bg-amber-50 hover:bg-amber-100/80 border border-amber-300/40 text-left w-full relative overflow-hidden group cursor-pointer text-sm transition-all shadow-soft-sm mt-2"
         >
           <Icon name="lucide:chef-hat" class="w-5 h-5 text-amber-600 transition-transform duration-300 group-hover:scale-110" />
           <span>KDS Cocina / Taller</span>
-          <Icon name="lucide:external-link" class="w-3.5 h-3.5 ml-auto text-amber-500" />
+          <Icon name="lucide:arrow-right" class="w-3.5 h-3.5 ml-auto text-amber-500 group-hover:translate-x-0.5 transition-transform" />
         </NuxtLink>
       </div>
     </aside>
 
-    <!-- Navegación Móvil (Horizontal) -->
-    <div class="lg:hidden col-span-full row-span-1 relative z-20 bg-surface border-b border-brand-primary/10">
-      <div class="flex space-x-2 p-3 overflow-x-auto hide-scrollbar">
-        <button 
-          @click="currentTab = 'dashboard'"
-          type="button"
-          :class="[
-            'flex items-center gap-2 py-2 px-3.5 font-bold text-xs rounded-xl transition-all duration-300 border whitespace-nowrap cursor-pointer',
-            currentTab === 'dashboard' 
-              ? 'bg-brand-cream border-brand-primary/20 text-brand-primary shadow-soft-sm' 
-              : 'bg-transparent border-transparent text-brand-secondary hover:bg-brand-cream/50'
-          ]"
-        >
-          <Icon name="lucide:layout-dashboard" class="w-4 h-4" />
-          Dashboard
-        </button>
-
-        <button 
-          @click="currentTab = 'products'"
-          type="button"
-          :class="[
-            'flex items-center gap-2 py-2 px-3.5 font-bold text-xs rounded-xl transition-all duration-300 border whitespace-nowrap cursor-pointer',
-            currentTab === 'products' 
-              ? 'bg-brand-cream border-brand-primary/20 text-brand-primary shadow-soft-sm' 
-              : 'bg-transparent border-transparent text-brand-secondary hover:bg-brand-cream/50'
-          ]"
-        >
-          <Icon name="lucide:cake-slice" class="w-4 h-4" />
-          Vitrina
-        </button>
-
-        <button 
-          @click="currentTab = 'materials'"
-          type="button"
-          :class="[
-            'flex items-center gap-2 py-2 px-3.5 font-bold text-xs rounded-xl transition-all duration-300 border whitespace-nowrap cursor-pointer',
-            currentTab === 'materials' 
-              ? 'bg-brand-cream border-brand-primary/20 text-brand-primary shadow-soft-sm' 
-              : 'bg-transparent border-transparent text-brand-secondary hover:bg-brand-cream/50'
-          ]"
-        >
-          <Icon name="lucide:scale" class="w-4 h-4" />
-          Almacén
-        </button>
-
-        <button 
-          @click="currentTab = 'recipes'"
-          type="button"
-          :class="[
-            'flex items-center gap-2 py-2 px-3.5 font-bold text-xs rounded-xl transition-all duration-300 border whitespace-nowrap cursor-pointer',
-            currentTab === 'recipes' 
-              ? 'bg-brand-cream border-brand-primary/20 text-brand-primary shadow-soft-sm' 
-              : 'bg-transparent border-transparent text-brand-secondary hover:bg-brand-cream/50'
-          ]"
-        >
-          <Icon name="lucide:calculator" class="w-4 h-4" />
-          Escandallo
-        </button>
-
-        <button 
-          @click="currentTab = 'orders'"
-          type="button"
-          :class="[
-            'flex items-center gap-2 py-2 px-3.5 font-bold text-xs rounded-xl transition-all duration-300 border whitespace-nowrap cursor-pointer',
-            currentTab === 'orders' 
-              ? 'bg-brand-cream border-brand-primary/20 text-brand-primary shadow-soft-sm' 
-              : 'bg-transparent border-transparent text-brand-secondary hover:bg-brand-cream/50'
-          ]"
-        >
-          <Icon name="lucide:clipboard-list" class="w-4 h-4" />
-          Pedidos
-        </button>
-
-        <NuxtLink
-          to="/admin/kds"
-          target="_blank"
-          class="flex items-center gap-2 py-2 px-3.5 font-bold text-xs rounded-xl transition-all duration-300 border border-amber-300/40 bg-amber-50 text-amber-700 whitespace-nowrap cursor-pointer hover:bg-amber-100"
-        >
-          <Icon name="lucide:chef-hat" class="w-4 h-4 text-amber-600" />
-          KDS Taller
-        </NuxtLink>
-      </div>
-    </div>
-
     <!-- Main Content Area -->
-    <main class="col-span-full lg:col-span-1 row-span-1 relative z-10 overflow-hidden flex flex-col bg-transparent">
-      <div class="flex-1 overflow-y-auto hide-scrollbar py-6 px-6 lg:px-10 max-w-7xl mx-auto w-full">
+    <main class="col-span-1 relative z-10 overflow-hidden flex flex-col bg-transparent">
+      <div class="flex-1 overflow-y-auto hide-scrollbar py-3 sm:py-4 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
         <!-- Componentes de Pestaña -->
         <AdminDashboardTab 
           v-if="currentTab === 'dashboard'" 

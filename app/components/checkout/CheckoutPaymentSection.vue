@@ -87,23 +87,25 @@ function removeReceipt() {
         type="button"
         @click="emit('update:paymentMethod', 'cash')"
         :class="[
-          'p-3.5 rounded-xl border-2 text-left transition flex flex-col justify-between gap-2 cursor-pointer',
+          'p-3 rounded-xl border-2 text-left transition flex items-center justify-between gap-2.5 cursor-pointer',
           props.paymentMethod === 'cash'
             ? 'border-[#4A5D23] bg-[#F4F1E1]/40 shadow-xs'
             : 'border-stone-200 hover:border-stone-300 bg-white'
         ]"
       >
-        <div class="flex items-center justify-between w-full">
-          <Icon name="lucide:banknote" class="w-5 h-5 text-[#4A5D23]" />
-          <span
-            v-if="props.paymentMethod === 'cash'"
-            class="w-2.5 h-2.5 rounded-full bg-[#4A5D23]"
-          ></span>
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-8 h-8 rounded-lg bg-[#F4F1E1] text-[#4A5D23] flex items-center justify-center shrink-0">
+            <Icon name="lucide:banknote" class="w-4 h-4" />
+          </div>
+          <div>
+            <p class="text-xs font-black text-[#2A321B] leading-tight">Efectivo</p>
+            <p class="text-[10px] text-stone-500 leading-tight mt-0.5">Contra entrega</p>
+          </div>
         </div>
-        <div>
-          <p class="text-xs font-black text-[#2A321B]">Efectivo</p>
-          <p class="text-[11px] text-stone-500">Contra entrega</p>
-        </div>
+        <span
+          v-if="props.paymentMethod === 'cash'"
+          class="w-2.5 h-2.5 rounded-full bg-[#4A5D23] shrink-0"
+        ></span>
       </button>
 
       <!-- Yape -->
@@ -111,23 +113,27 @@ function removeReceipt() {
         type="button"
         @click="emit('update:paymentMethod', 'yape')"
         :class="[
-          'p-3.5 rounded-xl border-2 text-left transition flex flex-col justify-between gap-2 cursor-pointer',
+          'p-3 rounded-xl border-2 text-left transition flex items-center justify-between gap-2.5 cursor-pointer',
           props.paymentMethod === 'yape'
             ? 'border-purple-600 bg-purple-50/60 shadow-xs'
             : 'border-stone-200 hover:border-stone-300 bg-white'
         ]"
       >
-        <div class="flex items-center justify-between w-full">
-          <span class="w-5 h-5 rounded-full bg-purple-600 text-white text-[10px] font-black flex items-center justify-center">Y</span>
-          <span
-            v-if="props.paymentMethod === 'yape'"
-            class="w-2.5 h-2.5 rounded-full bg-purple-600"
-          ></span>
+        <div class="flex items-center gap-2.5 min-w-0">
+          <img
+            src="/images/payments/logo_yape.png"
+            alt="Logo Yape"
+            class="w-8 h-8 rounded-lg object-cover shrink-0 shadow-xs"
+          />
+          <div>
+            <p class="text-xs font-black text-purple-900 leading-tight">Yape</p>
+            <p class="text-[10px] text-purple-700/70 leading-tight mt-0.5">Billetera móvil</p>
+          </div>
         </div>
-        <div>
-          <p class="text-xs font-black text-purple-900">Yape</p>
-          <p class="text-[11px] text-purple-700/70">Billetera móvil</p>
-        </div>
+        <span
+          v-if="props.paymentMethod === 'yape'"
+          class="w-2.5 h-2.5 rounded-full bg-purple-600 shrink-0"
+        ></span>
       </button>
 
       <!-- Plin -->
@@ -135,23 +141,27 @@ function removeReceipt() {
         type="button"
         @click="emit('update:paymentMethod', 'plin')"
         :class="[
-          'p-3.5 rounded-xl border-2 text-left transition flex flex-col justify-between gap-2 cursor-pointer',
+          'p-3 rounded-xl border-2 text-left transition flex items-center justify-between gap-2.5 cursor-pointer',
           props.paymentMethod === 'plin'
             ? 'border-sky-600 bg-sky-50/60 shadow-xs'
             : 'border-stone-200 hover:border-stone-300 bg-white'
         ]"
       >
-        <div class="flex items-center justify-between w-full">
-          <span class="w-5 h-5 rounded-full bg-sky-500 text-white text-[10px] font-black flex items-center justify-center">P</span>
-          <span
-            v-if="props.paymentMethod === 'plin'"
-            class="w-2.5 h-2.5 rounded-full bg-sky-600"
-          ></span>
+        <div class="flex items-center gap-2.5 min-w-0">
+          <img
+            src="/images/payments/logo_plin.png"
+            alt="Logo Plin"
+            class="w-8 h-8 rounded-lg object-cover shrink-0 shadow-xs"
+          />
+          <div>
+            <p class="text-xs font-black text-sky-900 leading-tight">Plin</p>
+            <p class="text-[10px] text-sky-700/70 leading-tight mt-0.5">Interbancario</p>
+          </div>
         </div>
-        <div>
-          <p class="text-xs font-black text-sky-900">Plin</p>
-          <p class="text-[11px] text-sky-700/70">Interbancario</p>
-        </div>
+        <span
+          v-if="props.paymentMethod === 'plin'"
+          class="w-2.5 h-2.5 rounded-full bg-sky-600 shrink-0"
+        ></span>
       </button>
     </div>
 
@@ -222,7 +232,7 @@ function removeReceipt() {
             type="button"
             @click="removeReceipt"
             class="p-2 text-stone-400 hover:text-red-600 rounded-lg transition cursor-pointer"
-            title="Eliminar voucher"
+            aria-label="Eliminar voucher"
           >
             <Icon name="lucide:trash-2" class="w-4 h-4" />
           </button>

@@ -28,18 +28,22 @@ onMounted(() => {
         }
       }"
     />
-    <div id="admin-modal-portal" class="fixed inset-0 z-[100] pointer-events-none empty:hidden"></div>
+    <div id="admin-modal-portal" class="fixed inset-0 z-[9999] pointer-events-none empty:hidden"></div>
   </div>
 </template>
 
 <style>
 /* Estilos globales para los scrollbars */
-.custom-scrollbar::-webkit-scrollbar {
-  display: none;
+.custom-scrollbar::-webkit-scrollbar,
+.hide-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
-.custom-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+.custom-scrollbar,
+.hide-scrollbar {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
 }
 
 /* Quitar flechas de incremento/decremento en inputs numéricos globalmente */

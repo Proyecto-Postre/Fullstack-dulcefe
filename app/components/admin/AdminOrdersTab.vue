@@ -293,7 +293,7 @@ onMounted(() => {
                   type="button"
                   @click.stop="openOrderDetails(order)"
                   class="text-[#4A5D23] hover:bg-[#4A5D23]/10 p-2 rounded-lg transition-colors cursor-pointer"
-                  title="Ver Detalles"
+                  aria-label="Ver Detalles"
                 >
                   <Icon name="lucide:eye" class="w-5 h-5" />
                 </button>

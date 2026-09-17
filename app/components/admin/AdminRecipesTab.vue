@@ -128,7 +128,7 @@ watch(() => props.modelValue, (newVal) => {
             bgClass="bg-[#F4F1E1]"
             class="flex-1 min-w-0"
           />
-          <button @click="showModal = true" class="w-12 h-12 shrink-0 bg-[#4A5D23] text-white rounded-xl flex items-center justify-center hover:bg-[#3C4A1C] transition-colors shadow-sm" title="Nuevo Producto">
+          <button @click="showModal = true" class="w-12 h-12 shrink-0 bg-[#4A5D23] text-white rounded-xl flex items-center justify-center hover:bg-[#3C4A1C] transition-colors shadow-sm cursor-pointer" aria-label="Nuevo Producto">
             <Icon name="lucide:plus" class="w-5 h-5" />
           </button>
         </div>
@@ -330,8 +330,8 @@ watch(() => props.modelValue, (newVal) => {
               <button 
                 @click="handleExportToExcel"
                 :disabled="isExporting || recipeItems.length === 0"
-                class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-300 border border-transparent shadow-sm text-white bg-[#4A5D23] hover:bg-[#3C4A1C] disabled:opacity-50 disabled:cursor-not-allowed active:translate-y-0.5 active:shadow-none"
-                title="Exportar a Excel"
+                class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-300 border border-transparent shadow-sm text-white bg-[#4A5D23] hover:bg-[#3C4A1C] disabled:opacity-50 disabled:cursor-not-allowed active:translate-y-0.5 active:shadow-none cursor-pointer"
+                aria-label="Exportar a Excel"
               >
                 <Icon v-if="isExporting" name="lucide:loader-2" class="w-3.5 h-3.5 animate-spin" />
                 <Icon v-else name="lucide:file-spreadsheet" class="w-3.5 h-3.5" />
@@ -393,8 +393,8 @@ watch(() => props.modelValue, (newVal) => {
                     <div class="flex items-center justify-end">
                       <button 
                         @click="handleDeleteRecipeItem(item.id, item.material_name || item.name)"
-                        class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-red-700 hover:text-white hover:bg-red-800 hover:shadow-sm transition-all duration-300 focus:outline-none"
-                        title="Quitar de la receta"
+                        class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-red-700 hover:text-white hover:bg-red-800 hover:shadow-sm transition-all duration-300 focus:outline-none cursor-pointer"
+                        aria-label="Quitar de la receta"
                       >
                         <Icon name="lucide:x" class="w-3.5 h-3.5" />
                       </button>

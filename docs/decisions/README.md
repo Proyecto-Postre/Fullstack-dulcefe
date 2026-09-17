@@ -1,4 +1,4 @@
-﻿# Registro de Decisiones de Arquitectura (ADRs) — Dulce Fe
+# Registro de Decisiones de Arquitectura (ADRs) — Dulce Fe
 
 Este directorio almacena el registro histórico e inmutable de decisiones técnicas, compensaciones de diseño (*trade-offs*) y gestión de deuda técnica del proyecto **Dulce Fe**, adoptando el estándar internacional **MADR (Markdown Architectural Decision Records)**.
 

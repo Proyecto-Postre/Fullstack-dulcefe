@@ -13,7 +13,7 @@ defineEmits<{
 
 <template>
   <article
-    class="group bg-surface rounded-[2rem] overflow-hidden shadow-soft-sm hover:shadow-soft-lg transition-all duration-300 flex flex-col border border-brand-primary/10 hover:-translate-y-1.5"
+    class="group bg-surface rounded-[2rem] overflow-hidden shadow-soft-sm hover:shadow-soft-lg transition-all duration-300 ease-out flex flex-col border border-brand-primary/10 hover:-translate-y-1.5 h-full"
   >
     <!-- Contenedor de Imagen -->
     <div class="h-64 w-full relative overflow-hidden bg-brand-cream/60">
@@ -69,7 +69,7 @@ defineEmits<{
               ? 'bg-brand-primary text-white hover:bg-brand-secondary hover:shadow-soft-md active:scale-95'
               : 'bg-brand-cream text-brand-primary/40 cursor-not-allowed'
           ]"
-          :title="Number(product.price) > 0 ? 'Agregar al pedido' : 'Precio no disponible'"
+          :aria-label="Number(product.price) > 0 ? 'Agregar al pedido' : 'Precio no disponible'"
         >
           <span class="text-xs font-bold font-inter">Pedir</span>
           <Icon name="lucide:shopping-bag" class="w-4 h-4" />

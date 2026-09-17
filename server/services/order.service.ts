@@ -409,7 +409,12 @@ export class OrderService {
         .eq('key', idempotencyKey)
         .eq('lifecycle', 'processing')
 
-      const msg = dbErr instanceof Error ? dbErr.message : 'Error inesperado al persistir orden'
+      const msg = dbErr instanceof Error
+        ? dbErr.message
+        : (dbErr && typeof dbErr === 'object' && 'message' in dbErr)
+          ? String((dbErr as { message: unknown }).message)
+          : 'Error inesperado al persistir orden'
+      console.error('[OrderService.createOrderFromCheckout] Error al persistir orden:', dbErr)
       throw createError({
         statusCode: 500,
         statusMessage: 'INTERNAL_ERROR',
