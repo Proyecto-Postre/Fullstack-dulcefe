@@ -14,7 +14,7 @@ defineEmits<{
 </script>
 
 <template>
-  <div class="mb-10 space-y-4 max-w-3xl mx-auto">
+  <div class="mb-6 sm:mb-10 space-y-3 sm:space-y-4 max-w-3xl mx-auto">
     <!-- Barra de Búsqueda -->
     <div class="relative w-full">
       <Icon 
