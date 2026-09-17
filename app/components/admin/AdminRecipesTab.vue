@@ -123,10 +123,10 @@ watch(() => props.modelValue, (newVal) => {
     <!-- ========================================== -->
     <!-- BARRA SUPERIOR INTEGRADA (DESKTOP Y MÓVIL) -->
     <!-- ========================================== -->
-    <header class="bg-white px-4 py-3 sm:px-5 sm:py-3.5 rounded-2xl border border-[#4A5D23]/20 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+    <header class="bg-surface px-4 py-3 sm:px-5 sm:py-3.5 rounded-2xl sm:rounded-[1.5rem] border border-brand-primary/15 shadow-soft-sm flex flex-col lg:flex-row lg:items-center justify-between gap-3">
       <!-- Selector de Producto -->
       <div class="flex items-center gap-2.5 flex-1 min-w-0">
-        <div class="w-9 h-9 rounded-xl bg-[#4A5D23]/10 text-[#4A5D23] flex items-center justify-center shrink-0">
+        <div class="w-9 h-9 rounded-xl bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
           <Icon name="lucide:cake-slice" class="w-4.5 h-4.5" />
         </div>
         <div class="flex-1 min-w-0">
@@ -134,13 +134,13 @@ watch(() => props.modelValue, (newVal) => {
             v-model="activeProduct"
             :options="(catalog?.data || []).map((p: ProductRow) => ({ label: p.name, value: p }))"
             placeholder="Selecciona un pastel o producto..."
-            bgClass="bg-[#F4F1E1]"
+            bgClass="bg-brand-cream/50"
             class="w-full text-xs sm:text-sm"
           />
         </div>
         <button 
           @click="showModal = true" 
-          class="h-10 px-3 bg-[#4A5D23] text-white rounded-xl flex items-center justify-center gap-1.5 hover:bg-[#3C4A1C] transition-colors shadow-sm cursor-pointer shrink-0 text-xs font-bold"
+          class="h-10 px-3 bg-brand-primary text-white rounded-xl flex items-center justify-center gap-1.5 hover:bg-[#3C4A1C] transition-colors shadow-soft-sm cursor-pointer shrink-0 text-xs font-bold active:scale-95"
           aria-label="Nuevo Producto"
         >
           <Icon name="lucide:plus" class="w-4 h-4" />
@@ -149,13 +149,13 @@ watch(() => props.modelValue, (newVal) => {
       </div>
 
       <!-- Controles de Vitrina Comercial en Desktop (>= lg) -->
-      <div v-if="activeProduct" class="hidden lg:flex items-center gap-3 shrink-0 pl-3 border-l border-[#4A5D23]/15">
+      <div v-if="activeProduct" class="hidden lg:flex items-center gap-3 shrink-0 pl-3 border-l border-brand-primary/15">
         <!-- Badge de estado -->
         <span 
           v-if="Number(activeProduct?.price || 0) > 0" 
-          class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#4A5D23]/10 text-[#4A5D23] border border-[#4A5D23]/20 flex items-center gap-1"
+          class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-brand-primary/10 text-brand-primary border border-brand-primary/20 flex items-center gap-1"
         >
-          <span class="w-1.5 h-1.5 rounded-full bg-[#4A5D23]"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-brand-primary"></span>
           Vitrina Activa
         </span>
         <span 
@@ -168,28 +168,28 @@ watch(() => props.modelValue, (newVal) => {
 
         <!-- Input Precio Venta -->
         <div class="flex items-center gap-1.5">
-          <label class="text-[10px] font-bold uppercase tracking-wider text-[#4A5D23]/80">Precio S/</label>
+          <label class="text-[10px] font-bold uppercase tracking-wider text-brand-primary/80">Precio S/</label>
           <div class="relative w-24">
-            <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#4A5D23]/50 font-bold text-xs">S/</span>
+            <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-brand-primary/50 font-bold text-xs">S/</span>
             <input 
               v-model="publishData.price"
               type="number" 
               step="0.01"
               required
-              class="w-full pl-6 pr-2 py-1.5 bg-[#F4F1E1]/60 rounded-lg border border-[#4A5D23]/20 text-xs font-bold text-[#2A321B] focus:outline-none focus:border-[#4A5D23]"
+              class="w-full pl-6 pr-2 py-1.5 bg-brand-cream/60 rounded-lg border border-brand-primary/20 text-xs font-bold text-brand-secondary focus:outline-none focus:border-brand-primary"
             />
           </div>
         </div>
 
         <!-- Input Stock -->
         <div class="flex items-center gap-1.5">
-          <label class="text-[10px] font-bold uppercase tracking-wider text-[#4A5D23]/80">Stock</label>
+          <label class="text-[10px] font-bold uppercase tracking-wider text-brand-primary/80">Stock</label>
           <input 
             v-model="publishData.stock"
             type="number" 
             min="0"
             required
-            class="w-16 px-2 py-1.5 bg-[#F4F1E1]/60 rounded-lg border border-[#4A5D23]/20 text-xs font-bold text-[#2A321B] text-center focus:outline-none focus:border-[#4A5D23]"
+            class="w-16 px-2 py-1.5 bg-brand-cream/60 rounded-lg border border-brand-primary/20 text-xs font-bold text-brand-secondary text-center focus:outline-none focus:border-brand-primary"
           />
         </div>
 
@@ -197,7 +197,7 @@ watch(() => props.modelValue, (newVal) => {
         <button 
           @click="handlePublishProduct(false)" 
           :disabled="isPublishing" 
-          class="bg-[#4A5D23] text-white font-bold px-3.5 py-1.5 rounded-lg hover:bg-[#3C4A1C] transition-colors shadow-sm disabled:opacity-50 flex items-center gap-1.5 text-xs cursor-pointer"
+          class="bg-brand-primary text-white font-bold px-3.5 py-1.5 rounded-lg hover:bg-[#3C4A1C] transition-colors shadow-soft-sm disabled:opacity-50 flex items-center gap-1.5 text-xs cursor-pointer active:scale-95"
         >
           <Icon v-if="isPublishing" name="lucide:loader-2" class="w-3.5 h-3.5 animate-spin" />
           <Icon v-else name="lucide:store" class="w-3.5 h-3.5" />
@@ -209,9 +209,9 @@ watch(() => props.modelValue, (newVal) => {
     <!-- Estado cuando NO hay producto seleccionado -->
     <div 
       v-if="!activeProduct" 
-      class="flex flex-col items-center justify-center py-16 sm:py-24 bg-white rounded-2xl border border-[#4A5D23]/20 shadow-sm text-center px-4"
+      class="flex flex-col items-center justify-center py-16 sm:py-24 bg-surface rounded-2xl sm:rounded-[1.75rem] border border-brand-primary/15 shadow-soft-sm text-center px-4"
     >
-      <div class="w-16 h-16 rounded-2xl bg-[#F4F1E1] border border-[#4A5D23]/20 flex items-center justify-center text-[#4A5D23] mb-3 shadow-inner">
+      <div class="w-16 h-16 rounded-2xl bg-brand-cream border border-brand-primary/20 flex items-center justify-center text-brand-primary mb-3 shadow-inner">
         <Icon name="lucide:calculator" class="w-8 h-8 opacity-80" />
       </div>
       <h3 class="text-base sm:text-lg font-playfair font-bold text-[#2A321B] mb-1">Ningún producto seleccionado</h3>
@@ -411,8 +411,8 @@ watch(() => props.modelValue, (newVal) => {
             <button 
               @click="handleExportToExcel"
               :disabled="isExporting || recipeItems.length === 0"
-              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors text-white bg-[#4A5D23] hover:bg-[#3C4A1C] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm cursor-pointer"
-              title="Descargar Ficha en formato Excel con fórmulas vivas"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors text-white bg-brand-primary hover:bg-[#3C4A1C] disabled:opacity-40 disabled:cursor-not-allowed shadow-soft-sm cursor-pointer"
+              aria-label="Descargar Ficha en formato Excel con fórmulas vivas"
             >
               <Icon v-if="isExporting" name="lucide:loader-2" class="w-3 h-3 animate-spin" />
               <Icon v-else name="lucide:file-spreadsheet" class="w-3.5 h-3.5" />
@@ -421,18 +421,18 @@ watch(() => props.modelValue, (newVal) => {
           </div>
 
           <!-- Estado de Carga -->
-          <div v-if="pendingRecipe" class="flex flex-col items-center justify-center py-16 text-[#4A5D23]">
+          <div v-if="pendingRecipe" class="flex flex-col items-center justify-center py-16 text-brand-primary">
             <Icon name="lucide:loader-2" class="w-8 h-8 animate-spin mb-2" />
             <p class="text-xs font-bold tracking-widest uppercase">Calculando escandallo...</p>
           </div>
 
           <!-- Estado Vacío -->
-          <div v-else-if="recipeItems.length === 0" class="flex flex-col items-center justify-center py-12 text-center bg-[#F4F1E1]/40 rounded-xl border border-dashed border-[#4A5D23]/25 p-4">
-            <div class="w-12 h-12 rounded-full bg-white flex items-center justify-center mb-2 border border-[#4A5D23]/20 shadow-sm text-[#4A5D23]">
+          <div v-else-if="recipeItems.length === 0" class="flex flex-col items-center justify-center py-12 text-center bg-brand-cream/40 rounded-xl border border-dashed border-brand-primary/25 p-4">
+            <div class="w-12 h-12 rounded-full bg-white flex items-center justify-center mb-2 border border-brand-primary/20 shadow-soft-sm text-brand-primary">
               <Icon name="lucide:utensils-crossed" class="w-6 h-6 opacity-60" />
             </div>
-            <p class="text-sm font-playfair font-bold text-[#2A321B] mb-1">Sin insumos asignados</p>
-            <p class="text-xs text-[#4A5D23]/70 max-w-[240px]">
+            <p class="text-sm font-playfair font-bold text-brand-secondary mb-1">Sin insumos asignados</p>
+            <p class="text-xs text-brand-primary/70 max-w-[240px]">
               Agrega materias primas para comenzar el costeo por gramo de este producto.
             </p>
           </div>
@@ -441,36 +441,36 @@ watch(() => props.modelValue, (newVal) => {
           <div v-else class="hidden lg:block overflow-y-auto max-h-[calc(100vh-270px)] pr-1 custom-scrollbar">
             <table class="w-full text-left border-collapse whitespace-nowrap">
               <thead class="sticky top-0 bg-white z-10 shadow-[0_2px_4px_-2px_rgba(74,93,35,0.1)]">
-                <tr class="border-b border-[#4A5D23]/15 text-[10px] uppercase tracking-wider text-[#4A5D23]/80 font-bold">
+                <tr class="border-b border-brand-primary/15 text-[10px] uppercase tracking-wider text-brand-primary/80 font-bold">
                   <th class="py-2.5 px-3">Insumo</th>
                   <th class="py-2.5 px-3 text-center">Cantidad</th>
                   <th class="py-2.5 px-3 text-right">Costo Parcial</th>
                   <th class="py-2.5 px-2 text-right w-8"></th>
                 </tr>
               </thead>
-              <tbody v-auto-animate class="divide-y divide-[#4A5D23]/10 text-xs">
-                <tr v-for="item in recipeItems" :key="item.id" class="hover:bg-[#F4F1E1]/40 transition-colors">
+              <tbody v-auto-animate class="divide-y divide-brand-primary/10 text-xs">
+                <tr v-for="item in recipeItems" :key="item.id" class="hover:bg-brand-cream/40 transition-colors">
                   <td class="py-2 px-3">
                     <div class="flex items-center gap-1.5">
-                      <span class="font-bold text-[#2A321B]">{{ item.material_name || item.name }}</span>
-                      <span class="text-[9px] text-[#4A5D23]/60 font-semibold bg-[#4A5D23]/5 px-1.5 py-0.5 rounded">
+                      <span class="font-bold text-brand-secondary">{{ item.material_name || item.name }}</span>
+                      <span class="text-[9px] text-brand-primary/70 font-semibold bg-brand-primary/5 px-1.5 py-0.5 rounded">
                         S/ {{ Number(item.unit_cost ?? item.cost_per_unit ?? 0).toFixed(2) }} x {{ item.unit }}
                       </span>
                     </div>
                   </td>
                   <td class="py-2 px-3 text-center">
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-[#F4F1E1] text-[#4A5D23] border border-[#4A5D23]/20">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-brand-cream text-brand-primary border border-brand-primary/20">
                       {{ item.quantity_used }} {{ item.unit }}
                     </span>
                   </td>
-                  <td class="py-2 px-3 text-right font-black text-[#2A321B] font-inter text-sm">
-                    <span class="text-[#4A5D23]/50 text-[10px] mr-0.5">S/</span>{{ Number(item.item_cost ?? item.item_total_cost ?? 0).toFixed(2) }}
+                  <td class="py-2 px-3 text-right font-black text-brand-secondary font-inter text-sm">
+                    <span class="text-brand-primary/50 text-[10px] mr-0.5">S/</span>{{ Number(item.item_cost ?? item.item_total_cost ?? 0).toFixed(2) }}
                   </td>
                   <td class="py-2 px-2 text-right">
                     <button 
                       @click="handleDeleteRecipeItem(item.id, item.material_name || item.name)"
-                      class="inline-flex items-center justify-center w-6 h-6 rounded-md text-red-600 hover:text-white hover:bg-red-700 transition-colors cursor-pointer"
-                      title="Quitar insumo"
+                      class="inline-flex items-center justify-center w-6 h-6 rounded-md text-status-danger hover:text-white hover:bg-status-danger transition-colors cursor-pointer"
+                      aria-label="Quitar insumo"
                     >
                       <Icon name="lucide:trash-2" class="w-3.5 h-3.5" />
                     </button>
@@ -485,15 +485,15 @@ watch(() => props.modelValue, (newVal) => {
             <div 
               v-for="item in recipeItems" 
               :key="item.id"
-              class="bg-[#F4F1E1]/40 border border-[#4A5D23]/15 p-3 rounded-xl flex items-center justify-between gap-3 shadow-xs"
+              class="bg-brand-cream/40 border border-brand-primary/15 p-3 rounded-xl flex items-center justify-between gap-3 shadow-2xs"
             >
               <div class="min-w-0 flex-1">
-                <p class="font-bold text-xs text-[#2A321B] truncate">{{ item.material_name || item.name }}</p>
+                <p class="font-bold text-xs text-brand-secondary truncate">{{ item.material_name || item.name }}</p>
                 <div class="flex items-center gap-2 mt-1">
-                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-white text-[#4A5D23] border border-[#4A5D23]/20">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-white text-brand-primary border border-brand-primary/20">
                     {{ item.quantity_used }} {{ item.unit }}
                   </span>
-                  <span class="text-[10px] text-[#4A5D23]/60 font-medium">
+                  <span class="text-[10px] text-brand-primary/70 font-medium">
                     S/ {{ Number(item.unit_cost ?? item.cost_per_unit ?? 0).toFixed(2) }} / {{ item.unit }}
                   </span>
                 </div>
@@ -501,14 +501,14 @@ watch(() => props.modelValue, (newVal) => {
 
               <div class="flex items-center gap-2.5 shrink-0">
                 <div class="text-right">
-                  <span class="text-[9px] uppercase tracking-wider text-[#4A5D23]/70 block font-semibold">Subtotal</span>
-                  <span class="text-sm font-black text-[#2A321B] font-inter">
+                  <span class="text-[9px] uppercase tracking-wider text-brand-primary/70 block font-semibold">Subtotal</span>
+                  <span class="text-sm font-black text-brand-secondary font-inter">
                     S/ {{ Number(item.item_cost ?? item.item_total_cost ?? 0).toFixed(2) }}
                   </span>
                 </div>
                 <button 
                   @click="handleDeleteRecipeItem(item.id, item.material_name || item.name)"
-                  class="w-8 h-8 rounded-lg bg-white border border-red-200 text-red-600 flex items-center justify-center active:bg-red-50 cursor-pointer"
+                  class="w-8 h-8 rounded-lg bg-white border border-red-200 text-status-danger flex items-center justify-center active:bg-red-50 cursor-pointer"
                   aria-label="Eliminar insumo"
                 >
                   <Icon name="lucide:trash-2" class="w-4 h-4" />
@@ -525,21 +525,23 @@ watch(() => props.modelValue, (newVal) => {
     <!-- ========================================== -->
     <div 
       v-if="activeProduct" 
-      class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#4A5D23]/20 px-4 py-2.5 flex items-center gap-2 shadow-lg"
+      class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface/95 backdrop-blur-md border-t border-brand-primary/20 px-4 py-2.5 flex items-center gap-2.5 shadow-soft-lg"
     >
       <button 
         @click="isMobileAddSheetOpen = true"
-        class="flex-1 bg-[#4A5D23] text-white font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 text-xs shadow-sm active:scale-95 transition-transform"
+        class="flex-1 min-h-[44px] bg-brand-primary text-white font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 text-xs shadow-soft-sm active:scale-95 transition-transform cursor-pointer"
+        aria-label="Abrir formulario para agregar insumo"
       >
-        <Icon name="lucide:plus" class="w-4 h-4" />
+        <Icon name="lucide:plus" class="w-4.5 h-4.5" />
         <span>Agregar Insumo</span>
       </button>
 
       <button 
         @click="isMobilePublishSheetOpen = true"
-        class="bg-[#F4F1E1] text-[#2A321B] border border-[#4A5D23]/30 font-bold py-2.5 px-3.5 rounded-xl flex items-center justify-center gap-1.5 text-xs active:scale-95 transition-transform"
+        class="min-h-[44px] bg-brand-cream text-brand-secondary border border-brand-primary/30 font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-1.5 text-xs active:scale-95 transition-transform cursor-pointer"
+        aria-label="Abrir panel comercial de vitrina"
       >
-        <Icon name="lucide:store" class="w-4 h-4 text-[#4A5D23]" />
+        <Icon name="lucide:store" class="w-4 h-4 text-brand-primary" />
         <span>Vitrina</span>
       </button>
     </div>
@@ -548,40 +550,44 @@ watch(() => props.modelValue, (newVal) => {
     <!-- BOTTOM SHEET: AGREGAR INSUMO EN MOBILE -->
     <!-- ========================================== -->
     <Teleport to="body">
-      <div v-if="isMobileAddSheetOpen" class="fixed inset-0 z-50 flex items-end justify-center lg:hidden">
+      <div v-if="isMobileAddSheetOpen" class="fixed inset-0 z-[9999] flex items-end justify-center lg:hidden">
         <!-- Backdrop -->
         <div 
           @click="isMobileAddSheetOpen = false" 
-          class="absolute inset-0 bg-black/40 backdrop-blur-xs transition-opacity"
+          class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
         ></div>
 
         <!-- Sheet Modal Content -->
-        <div class="relative w-full max-w-lg bg-white rounded-t-3xl p-5 shadow-2xl z-10 border-t border-[#4A5D23]/20 animate-in slide-in-from-bottom duration-200">
-          <div class="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4"></div>
+        <div class="relative w-full max-w-lg max-h-[85vh] overflow-y-auto custom-scrollbar bg-surface rounded-t-3xl p-5 shadow-soft-lg z-10 border-t border-brand-primary/20 animate-in slide-in-from-bottom duration-200">
+          <div class="w-12 h-1 bg-brand-primary/20 rounded-full mx-auto mb-4"></div>
           
-          <div class="flex items-center justify-between pb-3 mb-4 border-b border-[#4A5D23]/15">
-            <h3 class="font-playfair font-bold text-base text-[#2A321B] flex items-center gap-2">
-              <Icon name="lucide:plus-circle" class="w-5 h-5 text-[#4A5D23]" />
+          <div class="flex items-center justify-between pb-3 mb-4 border-b border-dashed border-brand-primary/20">
+            <h3 class="font-playfair font-bold text-base text-brand-secondary flex items-center gap-2">
+              <Icon name="lucide:plus-circle" class="w-5 h-5 text-brand-primary" />
               Agregar Insumo a la Ficha
             </h3>
-            <button @click="isMobileAddSheetOpen = false" class="p-1 text-gray-400 hover:text-gray-600 rounded-lg">
+            <button 
+              @click="isMobileAddSheetOpen = false" 
+              class="w-8 h-8 rounded-lg flex items-center justify-center text-brand-secondary/60 hover:text-brand-secondary hover:bg-brand-cream/60 transition-colors cursor-pointer"
+              aria-label="Cerrar modal"
+            >
               <Icon name="lucide:x" class="w-5 h-5" />
             </button>
           </div>
 
           <form @submit.prevent="handleAddRecipeItem(true)" class="space-y-4">
             <div>
-              <label class="block text-xs font-bold text-[#4A5D23] uppercase tracking-wider mb-1.5">Insumo del Almacén</label>
+              <label class="block text-xs font-bold text-brand-primary uppercase tracking-wider mb-1.5">Insumo del Almacén</label>
               <CustomSelect 
                 v-model="newRecipeItem.raw_material_id"
                 :options="(materials?.data || []).map((m: RawMaterialRow) => ({ label: `${m.name} (${m.unit})`, value: m.id }))"
                 placeholder="Selecciona un insumo..."
-                bgClass="bg-[#F4F1E1]"
+                bgClass="bg-brand-cream"
               />
             </div>
 
             <div>
-              <label class="block text-xs font-bold text-[#4A5D23] uppercase tracking-wider mb-1.5">Cantidad Utilizada</label>
+              <label class="block text-xs font-bold text-brand-primary uppercase tracking-wider mb-1.5">Cantidad Utilizada</label>
               <div class="relative">
                 <input 
                   v-model="newRecipeItem.quantity_used"
@@ -589,9 +595,9 @@ watch(() => props.modelValue, (newVal) => {
                   step="any"
                   required
                   placeholder="Ej: 200"
-                  class="w-full px-4 py-3 bg-[#F4F1E1]/60 rounded-xl border border-[#4A5D23]/20 text-sm font-bold text-[#2A321B] focus:outline-none focus:border-[#4A5D23]"
+                  class="w-full min-h-[44px] px-4 py-2.5 bg-brand-cream/60 rounded-xl border border-brand-primary/20 text-sm font-bold text-brand-secondary focus:outline-none focus:border-brand-primary"
                 />
-                <span class="absolute right-4 top-1/2 -translate-y-1/2 font-bold text-[#4A5D23] text-sm pointer-events-none">
+                <span class="absolute right-4 top-1/2 -translate-y-1/2 font-bold text-brand-primary text-sm pointer-events-none">
                   {{ selectedMaterialUnit }}
                 </span>
               </div>
@@ -600,7 +606,7 @@ watch(() => props.modelValue, (newVal) => {
             <button 
               type="submit"
               :disabled="isSubmittingRecipe"
-              class="w-full py-3.5 bg-[#4A5D23] text-white font-bold rounded-xl flex items-center justify-center gap-2 text-sm shadow-md mt-2 disabled:opacity-50"
+              class="w-full min-h-[44px] py-3 bg-brand-primary text-white font-bold rounded-xl flex items-center justify-center gap-2 text-sm shadow-soft-sm mt-2 disabled:opacity-50 cursor-pointer active:scale-[0.98] transition-transform"
             >
               <Icon v-if="isSubmittingRecipe" name="lucide:loader-2" class="w-4 h-4 animate-spin" />
               <Icon v-else name="lucide:plus" class="w-4 h-4" />
@@ -615,60 +621,64 @@ watch(() => props.modelValue, (newVal) => {
     <!-- BOTTOM SHEET: VITRINA COMERCIAL EN MOBILE -->
     <!-- ========================================== -->
     <Teleport to="body">
-      <div v-if="isMobilePublishSheetOpen" class="fixed inset-0 z-50 flex items-end justify-center lg:hidden">
+      <div v-if="isMobilePublishSheetOpen" class="fixed inset-0 z-[9999] flex items-end justify-center lg:hidden">
         <!-- Backdrop -->
         <div 
           @click="isMobilePublishSheetOpen = false" 
-          class="absolute inset-0 bg-black/40 backdrop-blur-xs transition-opacity"
+          class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
         ></div>
 
         <!-- Sheet Modal Content -->
-        <div class="relative w-full max-w-lg bg-white rounded-t-3xl p-5 shadow-2xl z-10 border-t border-[#4A5D23]/20 animate-in slide-in-from-bottom duration-200">
-          <div class="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4"></div>
+        <div class="relative w-full max-w-lg max-h-[85vh] overflow-y-auto custom-scrollbar bg-surface rounded-t-3xl p-5 shadow-soft-lg z-10 border-t border-brand-primary/20 animate-in slide-in-from-bottom duration-200">
+          <div class="w-12 h-1 bg-brand-primary/20 rounded-full mx-auto mb-4"></div>
           
-          <div class="flex items-center justify-between pb-3 mb-4 border-b border-[#4A5D23]/15">
-            <h3 class="font-playfair font-bold text-base text-[#2A321B] flex items-center gap-2">
-              <Icon name="lucide:store" class="w-5 h-5 text-[#4A5D23]" />
+          <div class="flex items-center justify-between pb-3 mb-4 border-b border-dashed border-brand-primary/20">
+            <h3 class="font-playfair font-bold text-base text-brand-secondary flex items-center gap-2">
+              <Icon name="lucide:store" class="w-5 h-5 text-brand-primary" />
               Vitrina Comercial
             </h3>
-            <button @click="isMobilePublishSheetOpen = false" class="p-1 text-gray-400 hover:text-gray-600 rounded-lg">
+            <button 
+              @click="isMobilePublishSheetOpen = false" 
+              class="w-8 h-8 rounded-lg flex items-center justify-center text-brand-secondary/60 hover:text-brand-secondary hover:bg-brand-cream/60 transition-colors cursor-pointer"
+              aria-label="Cerrar modal"
+            >
               <Icon name="lucide:x" class="w-5 h-5" />
             </button>
           </div>
 
           <form @submit.prevent="handlePublishProduct(true)" class="space-y-4">
             <div>
-              <label class="block text-xs font-bold text-[#4A5D23] uppercase tracking-wider mb-1.5">Precio de Venta al Público</label>
+              <label class="block text-xs font-bold text-brand-primary uppercase tracking-wider mb-1.5">Precio de Venta al Público</label>
               <div class="relative">
-                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#4A5D23]/60 font-bold text-sm">S/</span>
+                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-primary/60 font-bold text-sm">S/</span>
                 <input 
                   v-model="publishData.price"
                   type="number" 
                   step="0.01"
                   required
-                  class="w-full pl-9 pr-3 py-3 bg-[#F4F1E1]/60 rounded-xl border border-[#4A5D23]/20 text-sm font-bold text-[#2A321B] focus:outline-none focus:border-[#4A5D23]"
+                  class="w-full min-h-[44px] pl-9 pr-3 py-2.5 bg-brand-cream/60 rounded-xl border border-brand-primary/20 text-sm font-bold text-brand-secondary focus:outline-none focus:border-brand-primary"
                 />
               </div>
-              <p class="text-[10px] text-[#4A5D23]/70 mt-1 font-medium">
+              <p class="text-[10px] text-brand-primary/70 mt-1 font-medium">
                 Sugerido (30% neto): S/ {{ (computedTotalCost * 1.428).toFixed(2) }}
               </p>
             </div>
 
             <div>
-              <label class="block text-xs font-bold text-[#4A5D23] uppercase tracking-wider mb-1.5">Stock en Tienda</label>
+              <label class="block text-xs font-bold text-brand-primary uppercase tracking-wider mb-1.5">Stock en Tienda</label>
               <input 
                 v-model="publishData.stock"
                 type="number" 
                 min="0"
                 required
-                class="w-full px-4 py-3 bg-[#F4F1E1]/60 rounded-xl border border-[#4A5D23]/20 text-sm font-bold text-[#2A321B] focus:outline-none focus:border-[#4A5D23]"
+                class="w-full min-h-[44px] px-4 py-2.5 bg-brand-cream/60 rounded-xl border border-brand-primary/20 text-sm font-bold text-brand-secondary focus:outline-none focus:border-brand-primary"
               />
             </div>
 
             <button 
               type="submit" 
               :disabled="isPublishing" 
-              class="w-full py-3.5 bg-[#4A5D23] text-white font-bold rounded-xl flex items-center justify-center gap-2 text-sm shadow-md mt-2 disabled:opacity-50"
+              class="w-full min-h-[44px] py-3 bg-brand-primary text-white font-bold rounded-xl flex items-center justify-center gap-2 text-sm shadow-soft-sm mt-2 disabled:opacity-50 cursor-pointer active:scale-[0.98] transition-transform"
             >
               <Icon v-if="isPublishing" name="lucide:loader-2" class="w-4 h-4 animate-spin" />
               <Icon v-else name="lucide:check" class="w-4 h-4" />
