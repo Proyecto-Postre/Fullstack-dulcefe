@@ -38,6 +38,13 @@ describe('Validación de Origen HTTP (server/utils/http-origin.ts)', () => {
     expect(() => validateRequestOrigin(eventVercel, 'req-test-6')).not.toThrow()
   })
 
+  it('permite orígenes de red local privada para pruebas con dev:host (192.168.x.x, 10.x.x.x)', () => {
+    const eventLan192 = mockEventWithOrigin('http://192.168.68.56:3000')
+    const eventLan10 = mockEventWithOrigin('http://10.0.0.15:3000')
+    expect(() => validateRequestOrigin(eventLan192, 'req-test-lan-1')).not.toThrow()
+    expect(() => validateRequestOrigin(eventLan10, 'req-test-lan-2')).not.toThrow()
+  })
+
   it('rechaza orígenes externos maliciosos o no autorizados con FORBIDDEN_ORIGIN', () => {
     const maliciousEvent = mockEventWithOrigin('http://evil-attacker.com')
     expect(() => validateRequestOrigin(maliciousEvent, 'req-test-7')).toThrowError(/FORBIDDEN_ORIGIN/)

@@ -125,11 +125,14 @@ const customerPhone = computed<string>(
 
 const openWhatsApp = (): void => {
   if (!customerPhone.value) return;
-  const phone = customerPhone.value.replace(/\D/g, "");
+  let phone = customerPhone.value.replace(/\D/g, "");
+  if (!phone.startsWith('51') && phone.length === 9) {
+    phone = `51${phone}`;
+  }
   const message = encodeURIComponent(
     `Hola ${customerName.value}, te escribimos de Dulce Fe sobre tu pedido.`,
   );
-  window.open(`https://wa.me/51${phone}?text=${message}`, "_blank");
+  window.open(`https://wa.me/${phone}?text=${message}`, "_blank");
 };
 </script>
 

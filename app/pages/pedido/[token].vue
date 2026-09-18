@@ -37,10 +37,17 @@ onUnmounted(() => {
   document.removeEventListener('visibilitychange', handleVisibilityChange)
 })
 
-// Enlace de soporte WhatsApp
-const whatsappSupportUrl = ref('')
 const config = useRuntimeConfig()
 const businessPhone = (config.public?.whatsappNumber as string) || '51998265700'
+
+// Enlace de soporte WhatsApp reactivo ante cualquier estado de carga del pedido
+const whatsappSupportUrl = computed(() => {
+  const shortId = order.value?.short_id || (token ? String(token).slice(0, 8) : '')
+  const msg = shortId
+    ? `¡Hola Dulce Fe! Tengo una consulta sobre mi pedido #${shortId}.`
+    : '¡Hola Dulce Fe! Tengo una consulta sobre mi pedido.'
+  return buildWhatsAppUrl(businessPhone, msg)
+})
 
 function getStatusBadgeClass(status: string): string {
   switch (status) {
@@ -74,11 +81,6 @@ function getStatusLabel(status: string): string {
     default:
       return status
   }
-}
-
-if (order.value) {
-  const msg = `¡Hola Dulce Fe! Tengo una consulta sobre mi pedido ${order.value.short_id}.`
-  whatsappSupportUrl.value = buildWhatsAppUrl(businessPhone, msg)
 }
 </script>
 
