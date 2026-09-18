@@ -9,30 +9,47 @@ defineProps<{
 </script>
 
 <template>
-  <div class="bg-surface border border-brand-primary/10 rounded-[2rem] p-6 shadow-soft-md">
-    <!-- Avatar e Identificación -->
-    <div class="flex items-center gap-4 mb-4">
-      <div class="w-14 h-14 bg-brand-cream border border-brand-primary/20 rounded-full flex items-center justify-center text-brand-primary shadow-soft-sm shrink-0">
-        <Icon name="lucide:user" class="w-7 h-7" />
+  <div class="bg-surface border border-brand-primary/10 rounded-2xl lg:rounded-[2rem] p-4 sm:p-6 shadow-soft-sm lg:shadow-soft-md">
+    <!-- Fila de usuario (Avatar + Datos + Puntos integrados) -->
+    <div class="flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3 sm:gap-4 min-w-0">
+        <div class="w-11 h-11 sm:w-14 sm:h-14 bg-brand-cream border border-brand-primary/20 rounded-full flex items-center justify-center text-brand-primary shadow-soft-sm shrink-0">
+          <Icon name="lucide:user" class="w-5 h-5 sm:w-7 sm:h-7" />
+        </div>
+        <div class="min-w-0">
+          <h2 class="text-base sm:text-lg font-black font-playfair text-brand-secondary leading-snug">
+            {{ profile?.full_name || user?.user_metadata?.full_name || 'Cliente Dulce Fe' }}
+          </h2>
+          <p class="text-[11px] sm:text-xs text-brand-primary font-medium truncate mt-0.5">
+            {{ user?.email }}
+          </p>
+          <p v-if="profile?.phone" class="text-[11px] text-brand-secondary/70 flex items-center gap-1 mt-0.5 lg:hidden">
+            <Icon name="lucide:phone" class="w-3 h-3 text-brand-primary shrink-0" />
+            <span>{{ profile.phone }}</span>
+          </p>
+        </div>
       </div>
-      <div class="min-w-0">
-        <h2 class="text-lg font-black font-playfair text-brand-secondary truncate leading-tight">
-          {{ profile?.full_name || user?.user_metadata?.full_name || 'Cliente Dulce Fe' }}
-        </h2>
-        <p class="text-xs text-brand-primary font-medium truncate mt-0.5">
-          {{ user?.email }}
-        </p>
+
+      <!-- Badge de Puntos en Mobile (Compacto y elegante en cabecera) -->
+      <div class="lg:hidden shrink-0">
+        <div class="px-3 py-1.5 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-300/60 shadow-2xs flex items-center gap-1.5">
+          <Icon name="lucide:award" class="w-4 h-4 text-amber-600 shrink-0" />
+          <div class="text-right leading-none">
+            <span class="text-sm font-black text-amber-900 font-inter">{{ profile?.points || 0 }}</span>
+            <span class="text-[9px] font-bold text-amber-700 uppercase ml-0.5">pts</span>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Teléfono si está registrado -->
-    <div v-if="profile?.phone" class="mb-4 px-3.5 py-2 rounded-xl bg-brand-cream/40 border border-brand-primary/10 flex items-center gap-2 text-xs text-brand-secondary">
+    <!-- Teléfono si está registrado (En Desktop) -->
+    <div v-if="profile?.phone" class="hidden lg:flex mt-4 px-3.5 py-2 rounded-xl bg-brand-cream/40 border border-brand-primary/10 items-center gap-2 text-xs text-brand-secondary">
       <Icon name="lucide:phone" class="w-3.5 h-3.5 text-brand-primary shrink-0" />
       <span class="font-medium truncate">{{ profile.phone }}</span>
     </div>
     
-    <!-- Widget Club Dulce Fe (Puntos de Lealtad Integrados) -->
-    <div class="pt-4 border-t border-brand-primary/10">
+    <!-- Widget Club Dulce Fe (Expandido para Desktop) -->
+    <div class="hidden lg:block pt-4 mt-4 border-t border-brand-primary/10">
       <div class="p-4 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50/60 border border-amber-300/40 shadow-soft-sm">
         <div class="flex items-center justify-between mb-2">
           <div class="flex items-center gap-2">

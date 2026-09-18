@@ -7,12 +7,15 @@ export type AddressRow = Database['public']['Tables']['addresses']['Row']
 export type ProfileRow = Database['public']['Tables']['profiles']['Row']
 
 export interface ProfileOrderItemProduct {
+  id?: number | string
   name: string
+  price?: number | null
   image_url: string | null
 }
 
 export interface ProfileOrderItem {
   id: string
+  product_id?: number | string | null
   quantity: number
   price_at_time: number
   products: ProfileOrderItemProduct | null

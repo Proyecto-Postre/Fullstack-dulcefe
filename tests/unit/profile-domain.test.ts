@@ -102,4 +102,38 @@ describe('Fase 4 (PR-4a): Dominio Perfil - Tipado y Lógica de Pedidos', () => {
     expect(validTabs[1]).toBe('history')
     expect(validTabs[2]).toBe('addresses')
   })
+
+  it('determina correctamente los iconos de estado y si un pedido está activo', () => {
+    const isOrderActive = (status: string | null): boolean => {
+      return status === 'pending' || status === 'processing' || status === 'preparing' || status === 'in_delivery'
+    }
+
+    const getStatusIcon = (status: string | null): string => {
+      switch (status) {
+        case 'completed':
+          return 'lucide:check-circle-2'
+        case 'in_delivery':
+          return 'lucide:truck'
+        case 'processing':
+        case 'preparing':
+          return 'lucide:chef-hat'
+        case 'pending':
+          return 'lucide:clock'
+        case 'cancelled':
+          return 'lucide:x-circle'
+        default:
+          return 'lucide:package'
+      }
+    }
+
+    expect(isOrderActive('pending')).toBe(true)
+    expect(isOrderActive('processing')).toBe(true)
+    expect(isOrderActive('in_delivery')).toBe(true)
+    expect(isOrderActive('completed')).toBe(false)
+    expect(isOrderActive('cancelled')).toBe(false)
+
+    expect(getStatusIcon('completed')).toBe('lucide:check-circle-2')
+    expect(getStatusIcon('in_delivery')).toBe('lucide:truck')
+    expect(getStatusIcon('cancelled')).toBe('lucide:x-circle')
+  })
 })
