@@ -41,6 +41,11 @@ const formattedWhatsApp = computed(() => {
   }
   return digits.startsWith('51') ? `+51 ${digits.slice(2)}` : `+${digits}`
 })
+
+const whatsappCleanUrl = computed(() => {
+  const digits = String(config.public.whatsappNumber || '51998265700').replace(/\D/g, '')
+  return `https://wa.me/${digits}?text=${encodeURIComponent('¡Hola Dulce Fe! Deseo realizar una consulta.')}`
+})
 </script>
 
 <template>
@@ -242,6 +247,17 @@ const formattedWhatsApp = computed(() => {
                 <span>Mis Pedidos</span>
               </NuxtLink>
 
+              <a 
+                :href="whatsappCleanUrl" 
+                target="_blank"
+                rel="noopener noreferrer"
+                @click="isMobileMenuOpen = false"
+                class="flex items-center gap-3.5 px-4 py-3 rounded-2xl font-bold text-sm text-brand-secondary hover:bg-surface/80 border border-transparent transition-all cursor-pointer"
+              >
+                <Icon name="lucide:message-circle" class="w-5 h-5 text-emerald-600" />
+                <span>Atención WhatsApp</span>
+              </a>
+
               <!-- Opción Destacada de Panel Admin (Solo Administradores) -->
               <div v-if="authStore.isAdmin" class="pt-4 mt-4 border-t border-brand-primary/10">
                 <p class="text-[10px] font-black uppercase tracking-wider text-brand-primary/60 px-4 mb-2">Administración</p>
@@ -296,36 +312,39 @@ const formattedWhatsApp = computed(() => {
       </Transition>
     </Teleport>
 
-    <!-- Footer de la Tienda (Elegante y Proporcionado) -->
-    <footer class="z-20 bg-brand-secondary text-brand-cream py-5 sm:py-6 px-6 sm:px-8 lg:px-12 border-t border-brand-primary/20 mt-auto shrink-0">
-      <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-6">
+    <!-- Footer de la Tienda (Boutique Dulce Fe - Elegante y Armónico) -->
+    <footer class="z-20 bg-brand-secondary text-brand-cream py-3.5 px-4 sm:px-8 border-t border-brand-primary/20 mt-auto shrink-0 pb-[max(0.85rem,env(safe-area-inset-bottom))]">
+      <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
         <!-- Marca e Identidad -->
-        <div class="flex items-center gap-3">
-          <div class="w-9 h-9 border border-white/20 bg-brand-primary/40 rounded-full flex items-center justify-center text-brand-cream shrink-0 shadow-soft-sm">
-            <Icon name="lucide:wheat" class="w-4 h-4 text-brand-cream" />
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-8 h-8 rounded-full bg-brand-cream/10 border border-brand-cream/15 flex items-center justify-center text-brand-accent shrink-0 shadow-soft-sm">
+            <Icon name="lucide:wheat" class="w-4 h-4 text-[#C5A059]" />
           </div>
-          <div class="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3">
-            <span class="text-base sm:text-lg font-playfair font-black text-brand-cream tracking-tight">Dulce Fe</span>
-            <span class="text-xs text-brand-cream/60 font-medium">Pastelería Fina Artesanal</span>
-            <span class="text-xs text-brand-cream/40">© {{ new Date().getFullYear() }}</span>
+          <div class="min-w-0">
+            <div class="flex items-baseline gap-1.5 leading-tight">
+              <span class="text-sm sm:text-base font-playfair font-black text-brand-cream tracking-tight">Dulce Fe</span>
+              <span class="text-[10px] text-brand-cream/40 font-mono">© {{ new Date().getFullYear() }}</span>
+            </div>
+            <p class="text-[10px] text-brand-cream/60 font-medium hidden xs:block leading-none mt-0.5">
+              Pastelería Fina Artesanal
+            </p>
           </div>
         </div>
 
-        <!-- Atención y Contacto Directo WhatsApp -->
-        <div class="flex flex-wrap items-center justify-center sm:justify-end gap-3 sm:gap-5">
-          <span class="text-xs text-brand-cream/60 font-medium hidden md:inline">
-            Atención: Lun-Sáb 8am-8pm | Dom 9am-5pm
+        <!-- Botón WhatsApp Estilo Integrado (Armonía Tonal con el Footer) -->
+        <a 
+          :href="whatsappCleanUrl" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          class="group inline-flex items-center gap-2 px-3 sm:px-3.5 py-1.5 rounded-full bg-brand-cream/10 hover:bg-brand-cream/20 text-brand-cream border border-brand-cream/15 hover:border-brand-cream/30 backdrop-blur-sm shadow-soft-sm transition-all duration-200 active:scale-95 shrink-0 select-none cursor-pointer"
+          aria-label="Atención por WhatsApp"
+        >
+          <Icon name="lucide:message-circle" class="w-4 h-4 text-emerald-400 group-hover:text-emerald-300 transition-colors shrink-0" />
+          <span class="text-xs font-medium tracking-tight text-brand-cream/90 group-hover:text-white transition-colors">
+            <span class="hidden sm:inline">WhatsApp: {{ formattedWhatsApp }}</span>
+            <span class="sm:hidden">WhatsApp</span>
           </span>
-          <a 
-            :href="`https://wa.me/${config.public.whatsappNumber}`" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs sm:text-sm text-brand-cream font-bold transition-all shadow-soft-sm hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
-          >
-            <Icon name="lucide:message-circle" class="w-4 h-4 text-emerald-400" />
-            <span>WhatsApp: {{ formattedWhatsApp }}</span>
-          </a>
-        </div>
+        </a>
       </div>
     </footer>
 
