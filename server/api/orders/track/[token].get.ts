@@ -26,7 +26,7 @@ export default defineEventHandler(async (event): Promise<PublicOrderTrackingDTO>
   // 2. Consultar la orden por token único usando Service Role
   const { data: order, error: orderError } = await supabase
     .from('orders')
-    .select('id, status, customer_name, delivery_date, delivery_time, created_at, tracking_token')
+    .select('id, status, customer_name, delivery_date, delivery_time, created_at, tracking_token, address, notes, payment_method, payment_status')
     .eq('tracking_token', token)
     .maybeSingle()
 
@@ -79,12 +79,15 @@ export default defineEventHandler(async (event): Promise<PublicOrderTrackingDTO>
   // 5. Construcción de la línea de tiempo operativa
   const currentStatus = order.status || 'pending'
   const isCancelled = currentStatus === 'cancelled'
+  const isWhatsAppCoordination = !order.address || (order.notes ? order.notes.toLowerCase().includes('whatsapp') : false)
 
   const timeline: PublicTimelineStep[] = [
     {
       status: 'pending',
-      label: 'Pedido Registrado',
-      description: 'Tu orden fue recibida y confirmada por el sistema.',
+      label: isWhatsAppCoordination ? 'Solicitud Recibida' : 'Pedido Registrado',
+      description: isWhatsAppCoordination
+        ? 'Tu solicitud fue recibida. Estamos coordinando la confirmación y detalles de tu pedido por WhatsApp.'
+        : 'Tu orden fue recibida y registrada por nuestro taller para su preparación.',
       completed: true,
       current: currentStatus === 'pending'
     },
@@ -115,7 +118,7 @@ export default defineEventHandler(async (event): Promise<PublicOrderTrackingDTO>
     short_id: `#${order.id.slice(0, 8)}`,
     status: currentStatus,
     customer_first_name: firstName,
-    channel: 'web_guest_tracking',
+    channel: isWhatsAppCoordination ? 'whatsapp_chat' : 'direct',
     delivery_date: order.delivery_date,
     delivery_time: order.delivery_time,
     created_at: order.created_at,

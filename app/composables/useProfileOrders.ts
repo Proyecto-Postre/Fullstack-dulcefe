@@ -34,6 +34,7 @@ export function useProfileOrders() {
           delivery_time,
           notes,
           address,
+          tracking_token,
           order_items (
             id,
             product_id,

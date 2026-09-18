@@ -30,6 +30,7 @@ export interface ProfileOrder {
   delivery_time?: string | null
   notes?: string | null
   address?: string | null
+  tracking_token?: string | null
   order_items?: ProfileOrderItem[]
 }
 

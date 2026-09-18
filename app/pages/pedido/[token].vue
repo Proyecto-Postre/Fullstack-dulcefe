@@ -69,7 +69,7 @@ function getStatusBadgeClass(status: string): string {
 function getStatusLabel(status: string): string {
   switch (status) {
     case 'pending':
-      return 'Pedido Recibido'
+      return order.value?.channel === 'whatsapp_chat' ? 'Solicitud Recibida' : 'Pedido Registrado'
     case 'processing':
       return 'En Taller / Horneado'
     case 'ready':
@@ -85,7 +85,7 @@ function getStatusLabel(status: string): string {
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#FDFBF7] py-12 px-4 sm:px-6 lg:px-8">
+  <div class="min-h-screen bg-[#FDFBF7] py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-3xl mx-auto">
       <!-- Estado de Carga -->
       <div v-if="pending" class="text-center py-20">
@@ -113,6 +113,16 @@ function getStatusLabel(status: string): string {
 
       <!-- Vista Principal de Seguimiento -->
       <div v-else class="space-y-6">
+        <!-- Navegación de Retorno a Mis Pedidos -->
+        <div class="flex items-center justify-between">
+          <NuxtLink
+            to="/perfil?tab=pedidos"
+            class="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-[#4A5D23] hover:text-[#2A321B] transition-colors group"
+          >
+            <Icon name="lucide:arrow-left" class="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+            <span>Volver a Mis Pedidos</span>
+          </NuxtLink>
+        </div>
         <!-- Cabecera de la Orden -->
         <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-stone-200">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-100 pb-6 mb-6">
@@ -235,9 +245,15 @@ function getStatusLabel(status: string): string {
         <!-- Tarjeta de Soporte y Preguntas -->
         <div class="bg-gradient-to-r from-[#F4F1E1] to-[#ebe5d3] rounded-3xl p-6 sm:p-8 border border-[#ded8c4] flex flex-col sm:flex-row items-center justify-between gap-6">
           <div>
-            <h3 class="text-lg font-serif font-bold text-[#2A321B]">¿Tienes alguna pregunta sobre tu entrega?</h3>
+            <h3 class="text-lg font-serif font-bold text-[#2A321B]">
+              {{ order.channel === 'whatsapp_chat' && order.status === 'pending'
+                ? '¿Aún no coordinas los detalles de tu pedido?'
+                : '¿Tienes alguna pregunta sobre tu entrega?' }}
+            </h3>
             <p class="text-stone-600 text-sm mt-1 font-sans">
-              Estamos en línea para coordinar detalles especiales de tu pedido.
+              {{ order.channel === 'whatsapp_chat' && order.status === 'pending'
+                ? 'Estamos en línea para coordinar y confirmar tu pedido directamente por WhatsApp.'
+                : 'Estamos en línea para coordinar detalles especiales de tu pedido.' }}
             </p>
           </div>
           <a
@@ -247,7 +263,7 @@ function getStatusLabel(status: string): string {
             class="inline-flex items-center gap-2 px-6 py-3.5 bg-[#4A5D23] text-white font-medium rounded-full hover:bg-[#3d4d1c] transition-all shadow-sm flex-shrink-0"
           >
             <Icon name="lucide:message-circle" class="w-5 h-5 text-white" />
-            Escribir por WhatsApp
+            <span>{{ order.channel === 'whatsapp_chat' && order.status === 'pending' ? 'Coordinar por WhatsApp' : 'Escribir por WhatsApp' }}</span>
           </a>
         </div>
       </div>

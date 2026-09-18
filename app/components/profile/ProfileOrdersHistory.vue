@@ -206,6 +206,27 @@ const getOrderPreviewText = (order: ProfileOrder): string => {
               <Icon name="lucide:sticky-note" class="w-3.5 h-3.5 shrink-0 text-amber-700" />
               <span class="font-medium truncate">Nota: {{ order.notes }}</span>
             </div>
+
+            <!-- Barra de Acciones de Pedido en Curso: Ver cómo va mi pedido -->
+            <div class="pt-3 border-t border-amber-200/60 flex flex-wrap items-center justify-between gap-3">
+              <div class="flex items-center gap-2 text-xs font-bold text-amber-950">
+                <span class="flex h-2 w-2 relative">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-primary opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-primary"></span>
+                </span>
+                <span>Seguimiento en vivo en taller</span>
+              </div>
+
+              <NuxtLink
+                v-if="order.tracking_token"
+                :to="`/pedido/${order.tracking_token}`"
+                class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-black text-white bg-brand-primary hover:bg-brand-secondary shadow-soft-sm hover:shadow-md hover:scale-[1.02] active:scale-95 transition-all cursor-pointer"
+              >
+                <Icon name="lucide:truck" class="w-4 h-4" />
+                <span>Ver cómo va mi pedido</span>
+                <Icon name="lucide:arrow-right" class="w-3.5 h-3.5 opacity-80" />
+              </NuxtLink>
+            </div>
           </div>
         </div>
       </div>
@@ -298,12 +319,23 @@ const getOrderPreviewText = (order: ProfileOrder): string => {
               </div>
             </div>
 
-            <!-- Barra de Acciones de la Card (Solo Repetir Pedido) -->
-            <div class="pt-3 border-t border-brand-primary/10 flex flex-wrap items-center justify-between gap-2">
-              <span class="text-[11px] text-brand-primary/70 inline-flex items-center gap-1.5">
-                <Icon name="lucide:check" class="w-3.5 h-3.5 text-status-success" />
-                <span>Entrega confirmada</span>
-              </span>
+            <!-- Barra de Acciones de la Card -->
+            <div class="pt-3 border-t border-brand-primary/10 flex flex-wrap items-center justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <span class="text-[11px] text-brand-primary/70 inline-flex items-center gap-1.5">
+                  <Icon name="lucide:check" class="w-3.5 h-3.5 text-status-success" />
+                  <span>Entrega confirmada</span>
+                </span>
+
+                <NuxtLink
+                  v-if="order.tracking_token"
+                  :to="`/pedido/${order.tracking_token}`"
+                  class="inline-flex items-center gap-1 text-xs font-bold text-brand-primary hover:text-brand-secondary hover:underline transition-colors"
+                >
+                  <Icon name="lucide:receipt" class="w-3.5 h-3.5" />
+                  <span>Ver seguimiento / detalle</span>
+                </NuxtLink>
+              </div>
 
               <!-- Botón Estrella de Repetir Pedido -->
               <button

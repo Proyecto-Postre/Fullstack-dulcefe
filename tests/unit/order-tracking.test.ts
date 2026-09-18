@@ -123,5 +123,26 @@ describe('Fase 6 - Subfase 6.1: Tracking Criptográfico de Invitados (ADR-002 / 
       expect(timeline.every((s) => s.completed)).toBe(true)
       expect(timeline[3].current).toBe(true)
     })
+
+    it('personaliza el paso 1 cuando el pedido es por coordinación de WhatsApp', () => {
+      function getStepOne(isWhatsAppCoordination: boolean) {
+        return {
+          status: 'pending',
+          label: isWhatsAppCoordination ? 'Solicitud Recibida' : 'Pedido Registrado',
+          description: isWhatsAppCoordination
+            ? 'Tu solicitud fue recibida. Estamos coordinando la confirmación y detalles de tu pedido por WhatsApp.'
+            : 'Tu orden fue recibida y registrada por nuestro taller para su preparación.',
+          completed: true
+        }
+      }
+
+      const waStep = getStepOne(true)
+      expect(waStep.label).toBe('Solicitud Recibida')
+      expect(waStep.description).toContain('coordinando la confirmación')
+
+      const directStep = getStepOne(false)
+      expect(directStep.label).toBe('Pedido Registrado')
+      expect(directStep.description).toContain('recibida y registrada')
+    })
   })
 })

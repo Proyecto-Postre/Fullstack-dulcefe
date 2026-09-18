@@ -76,10 +76,12 @@ describe('Fase 4 (PR-4a): Dominio Perfil - Tipado y Lógica de Pedidos', () => {
       delivery_date: '2026-09-07',
       delivery_time: '15:00',
       notes: 'Sin azúcar adicional',
+      tracking_token: 'b2c6641130705bcf03ddefe01aa35fb829ca0cac8a955b0731077870f9021234',
       order_items: [item]
     }
 
     expect(order.id).toBe('ord-12345678-abcd')
+    expect(order.tracking_token).toBe('b2c6641130705bcf03ddefe01aa35fb829ca0cac8a955b0731077870f9021234')
     expect(order.order_items?.[0].price_at_time).toBe(15.5)
     expect(order.order_items?.[0].products?.name).toBe('Torta de Chocolate')
   })
