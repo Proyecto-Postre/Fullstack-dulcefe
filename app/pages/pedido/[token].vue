@@ -98,10 +98,6 @@ async function copyShortId() {
   try {
     await navigator.clipboard.writeText(order.value.short_id)
     isShortIdCopied.value = true
-    toast.success(`Referencia ${order.value.short_id} copiada`, {
-      id: 'copy-short-id',
-      duration: 1400
-    })
     if (shortIdTimeout) clearTimeout(shortIdTimeout)
     shortIdTimeout = setTimeout(() => {
       isShortIdCopied.value = false
