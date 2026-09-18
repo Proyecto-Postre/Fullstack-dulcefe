@@ -100,12 +100,12 @@ async function copyShortId() {
     isShortIdCopied.value = true
     toast.success(`Referencia ${order.value.short_id} copiada`, {
       id: 'copy-short-id',
-      duration: 2000
+      duration: 1400
     })
     if (shortIdTimeout) clearTimeout(shortIdTimeout)
     shortIdTimeout = setTimeout(() => {
       isShortIdCopied.value = false
-    }, 2000)
+    }, 1400)
   } catch {
     // Ignorar si el navegador no tiene permiso
   }
@@ -294,23 +294,17 @@ const progressPercentage = computed(() => {
                         class="inline-flex items-center gap-1.5 font-mono font-bold px-2 py-0.5 rounded-md border transition-all duration-200 select-none cursor-pointer"
                         :class="[
                           isShortIdCopied
-                            ? 'bg-emerald-100 text-emerald-800 border-emerald-300 scale-105 shadow-2xs'
+                            ? 'bg-emerald-50 text-emerald-800 border-emerald-300 shadow-2xs'
                             : 'text-[#4A5D23] bg-[#F4F1E1]/80 hover:bg-[#F4F1E1] border-[#4A5D23]/20 hover:border-[#4A5D23]/40 active:scale-95'
                         ]"
-                        :title="isShortIdCopied ? '¡Referencia copiada al portapapeles!' : 'Clic para copiar referencia'"
+                        :title="isShortIdCopied ? '¡Referencia copiada!' : 'Clic para copiar referencia'"
                       >
                         <Icon
                           :name="isShortIdCopied ? 'lucide:check' : 'lucide:copy'"
                           class="w-3 h-3 transition-transform duration-200"
-                          :class="isShortIdCopied ? 'text-emerald-600 scale-110' : 'opacity-70'"
+                          :class="isShortIdCopied ? 'text-emerald-600 scale-115' : 'opacity-70'"
                         />
                         <span>{{ order.short_id }}</span>
-                        <span
-                          v-if="isShortIdCopied"
-                          class="text-[10px] text-emerald-700 font-sans font-bold"
-                        >
-                          ¡Copiado!
-                        </span>
                       </button>
                     </div>
                   </div>
