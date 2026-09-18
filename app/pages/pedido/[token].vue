@@ -114,9 +114,9 @@ function getStatusBadgeClass(status: string): string {
     case 'processing':
       return 'bg-blue-100 text-blue-900 border-blue-300/70'
     case 'ready':
-      return 'bg-emerald-100 text-emerald-900 border-emerald-300/70'
+      return 'bg-[#4A5D23]/15 text-[#2A321B] border-[#4A5D23]/35'
     case 'delivered':
-      return 'bg-[#4A5D23]/15 text-[#2A321B] border-[#4A5D23]/30'
+      return 'bg-[#4A5D23] text-white border-[#4A5D23]'
     case 'cancelled':
       return 'bg-red-100 text-red-900 border-red-300/70'
     default:
@@ -196,10 +196,10 @@ const progressPercentage = computed(() => {
           @click="copyTrackingUrl"
           type="button"
           class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/95 hover:bg-white text-xs font-bold border shadow-soft-sm hover:shadow-md transition-all duration-200 active:scale-95 cursor-pointer"
-          :class="isCopied ? 'border-emerald-400 text-emerald-800 bg-emerald-50 scale-105' : 'text-stone-700 hover:text-[#2A321B] border-[#4A5D23]/15'"
+          :class="isCopied ? 'border-[#4A5D23]/50 text-[#2A321B] bg-[#4A5D23]/15 scale-105' : 'text-stone-700 hover:text-[#2A321B] border-[#4A5D23]/15'"
           :title="'Copiar enlace de seguimiento para compartir'"
         >
-          <Icon :name="isCopied ? 'lucide:check' : 'lucide:share-2'" class="w-3.5 h-3.5 transition-transform duration-200" :class="isCopied ? 'text-emerald-600 scale-110' : 'text-[#4A5D23]'" />
+          <Icon :name="isCopied ? 'lucide:check' : 'lucide:share-2'" class="w-3.5 h-3.5 transition-transform duration-200" :class="isCopied ? 'text-[#4A5D23] scale-110' : 'text-[#4A5D23]'" />
           <span class="hidden xs:inline">{{ isCopied ? '¡Copiado!' : 'Compartir' }}</span>
         </button>
       </div>
@@ -290,7 +290,7 @@ const progressPercentage = computed(() => {
                         class="inline-flex items-center gap-1.5 font-mono font-bold px-2 py-0.5 rounded-md border transition-all duration-200 select-none cursor-pointer"
                         :class="[
                           isShortIdCopied
-                            ? 'bg-emerald-50 text-emerald-800 border-emerald-300 shadow-2xs'
+                            ? 'bg-[#4A5D23]/15 text-[#2A321B] border-[#4A5D23]/50 shadow-2xs'
                             : 'text-[#4A5D23] bg-[#F4F1E1]/80 hover:bg-[#F4F1E1] border-[#4A5D23]/20 hover:border-[#4A5D23]/40 active:scale-95'
                         ]"
                         :title="isShortIdCopied ? '¡Referencia copiada!' : 'Clic para copiar referencia'"
@@ -298,7 +298,7 @@ const progressPercentage = computed(() => {
                         <Icon
                           :name="isShortIdCopied ? 'lucide:check' : 'lucide:copy'"
                           class="w-3 h-3 transition-transform duration-200"
-                          :class="isShortIdCopied ? 'text-emerald-600 scale-115' : 'opacity-70'"
+                          :class="isShortIdCopied ? 'text-[#4A5D23] scale-110' : 'opacity-70'"
                         />
                         <span>{{ order.short_id }}</span>
                       </button>
@@ -486,10 +486,10 @@ const progressPercentage = computed(() => {
         </div>
 
         <!-- ==================== TARJETA WHATSAPP: ACCIÓN DE SOPORTE ABAJO DEL TODO ==================== -->
-        <div class="bg-gradient-to-br from-[#F4F1E1] via-white to-emerald-50/50 rounded-2xl sm:rounded-3xl p-3 sm:p-3.5 border border-[#4A5D23]/20 shadow-soft-sm flex flex-col sm:flex-row items-center justify-between gap-2.5">
+        <div class="bg-gradient-to-br from-[#F4F1E1] via-white to-[#F4F1E1]/80 rounded-2xl sm:rounded-3xl p-3 sm:p-3.5 border border-[#4A5D23]/20 shadow-soft-sm flex flex-col sm:flex-row items-center justify-between gap-2.5">
           <div class="space-y-0.5 text-center sm:text-left min-w-0">
-            <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 text-[10px] font-bold border border-emerald-300/60">
-              <Icon name="lucide:message-circle" class="w-3 h-3 text-emerald-600" />
+            <div class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#4A5D23]/12 text-[#2A321B] text-[10px] font-bold border border-[#4A5D23]/25">
+              <Icon name="lucide:message-circle" class="w-3 h-3 text-[#4A5D23]" />
               <span>Atención Directa</span>
             </div>
             <h3 class="text-xs sm:text-sm font-playfair font-black text-[#2A321B]">
