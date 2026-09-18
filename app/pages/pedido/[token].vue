@@ -162,8 +162,8 @@ const progressPercentage = computed(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#F4F1E1]/40 py-3 sm:py-5 px-3 sm:px-6 lg:px-8 flex flex-col justify-start">
-    <div class="max-w-5xl mx-auto w-full space-y-3 sm:space-y-4">
+  <div class="flex-1 w-full bg-[#F4F1E1]/40 pt-2.5 pb-4 sm:pt-4 sm:pb-6 px-3 sm:px-6 lg:px-8 flex flex-col justify-start">
+    <div class="max-w-5xl mx-auto w-full space-y-3 sm:space-y-3.5">
 
       <!-- ==================== BARRA SUPERIOR DE NAVEGACIÓN Y ACCIONES ==================== -->
       <div class="flex items-center justify-between gap-2">
