@@ -66,26 +66,46 @@ const whatsappSupportUrl = computed(() => {
 
 // Función para copiar el enlace de seguimiento al portapapeles
 const isCopied = ref(false)
+let trackingUrlTimeout: ReturnType<typeof setTimeout> | null = null
+
 async function copyTrackingUrl() {
-  if (typeof window === 'undefined') return
+  if (typeof window === 'undefined' || isCopied.value) return
   try {
     await navigator.clipboard.writeText(window.location.href)
     isCopied.value = true
-    toast.success('¡Enlace de seguimiento copiado al portapapeles!')
-    setTimeout(() => {
+    toast.success('¡Enlace de seguimiento copiado al portapapeles!', {
+      id: 'copy-tracking-url',
+      duration: 2500
+    })
+    if (trackingUrlTimeout) clearTimeout(trackingUrlTimeout)
+    trackingUrlTimeout = setTimeout(() => {
       isCopied.value = false
     }, 2500)
   } catch {
-    toast.error('No se pudo copiar el enlace. Puedes copiar la URL del navegador.')
+    toast.error('No se pudo copiar el enlace. Puedes copiar la URL del navegador.', {
+      id: 'copy-tracking-url-error'
+    })
   }
 }
 
-// Función para copiar la referencia del pedido
+// Función para copiar la referencia del pedido con animación in-place
+const isShortIdCopied = ref(false)
+let shortIdTimeout: ReturnType<typeof setTimeout> | null = null
+
 async function copyShortId() {
-  if (!order.value?.short_id) return
+  if (!order.value?.short_id || isShortIdCopied.value) return
+  if (typeof window === 'undefined') return
   try {
     await navigator.clipboard.writeText(order.value.short_id)
-    toast.success(`Referencia ${order.value.short_id} copiada`)
+    isShortIdCopied.value = true
+    toast.success(`Referencia ${order.value.short_id} copiada`, {
+      id: 'copy-short-id',
+      duration: 2000
+    })
+    if (shortIdTimeout) clearTimeout(shortIdTimeout)
+    shortIdTimeout = setTimeout(() => {
+      isShortIdCopied.value = false
+    }, 2000)
   } catch {
     // Ignorar si el navegador no tiene permiso
   }
@@ -179,10 +199,11 @@ const progressPercentage = computed(() => {
           v-if="order"
           @click="copyTrackingUrl"
           type="button"
-          class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/95 hover:bg-white text-xs font-bold text-stone-700 hover:text-[#2A321B] border border-[#4A5D23]/15 shadow-soft-sm hover:shadow-md transition-all cursor-pointer"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/95 hover:bg-white text-xs font-bold border shadow-soft-sm hover:shadow-md transition-all duration-200 active:scale-95 cursor-pointer"
+          :class="isCopied ? 'border-emerald-400 text-emerald-800 bg-emerald-50 scale-105' : 'text-stone-700 hover:text-[#2A321B] border-[#4A5D23]/15'"
           :title="'Copiar enlace de seguimiento para compartir'"
         >
-          <Icon :name="isCopied ? 'lucide:check' : 'lucide:share-2'" class="w-3.5 h-3.5 text-[#4A5D23]" />
+          <Icon :name="isCopied ? 'lucide:check' : 'lucide:share-2'" class="w-3.5 h-3.5 transition-transform duration-200" :class="isCopied ? 'text-emerald-600 scale-110' : 'text-[#4A5D23]'" />
           <span class="hidden xs:inline">{{ isCopied ? '¡Copiado!' : 'Compartir' }}</span>
         </button>
       </div>
@@ -270,11 +291,26 @@ const progressPercentage = computed(() => {
                       <button
                         @click="copyShortId"
                         type="button"
-                        class="inline-flex items-center gap-1 font-mono font-bold text-[#4A5D23] bg-[#F4F1E1]/80 hover:bg-[#F4F1E1] px-2 py-0.5 rounded-md border border-[#4A5D23]/20 transition-all cursor-pointer"
-                        title="Clic para copiar referencia"
+                        class="inline-flex items-center gap-1.5 font-mono font-bold px-2 py-0.5 rounded-md border transition-all duration-200 select-none cursor-pointer"
+                        :class="[
+                          isShortIdCopied
+                            ? 'bg-emerald-100 text-emerald-800 border-emerald-300 scale-105 shadow-2xs'
+                            : 'text-[#4A5D23] bg-[#F4F1E1]/80 hover:bg-[#F4F1E1] border-[#4A5D23]/20 hover:border-[#4A5D23]/40 active:scale-95'
+                        ]"
+                        :title="isShortIdCopied ? '¡Referencia copiada al portapapeles!' : 'Clic para copiar referencia'"
                       >
+                        <Icon
+                          :name="isShortIdCopied ? 'lucide:check' : 'lucide:copy'"
+                          class="w-3 h-3 transition-transform duration-200"
+                          :class="isShortIdCopied ? 'text-emerald-600 scale-110' : 'opacity-70'"
+                        />
                         <span>{{ order.short_id }}</span>
-                        <Icon name="lucide:copy" class="w-3 h-3 opacity-70" />
+                        <span
+                          v-if="isShortIdCopied"
+                          class="text-[10px] text-emerald-700 font-sans font-bold"
+                        >
+                          ¡Copiado!
+                        </span>
                       </button>
                     </div>
                   </div>
