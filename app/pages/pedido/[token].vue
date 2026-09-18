@@ -224,266 +224,270 @@ const progressPercentage = computed(() => {
       </div>
 
       <!-- ==================== VISTA PRINCIPAL (GRID RESPONSIVO DE 1 SOLA PANTALLA) ==================== -->
-      <div v-else class="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-4 items-start">
+      <div v-else class="space-y-3 sm:space-y-3.5">
 
-        <!-- COLUMNA IZQUIERDA: HERO DEL PEDIDO + STEPPER + WHATSAPP (lg:col-span-7) -->
-        <div class="lg:col-span-7 space-y-3 sm:space-y-3.5">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-4 items-start">
 
-          <!-- TARJETA HERO: ESTADO Y STEPPER -->
-          <div class="bg-white rounded-2xl sm:rounded-3xl shadow-soft-sm border border-[#4A5D23]/15 overflow-hidden">
-            <!-- Barra decorativa superior botánica -->
-            <div class="h-1.5 w-full bg-gradient-to-r from-[#4A5D23] via-[#6a8435] to-[#4A5D23]/30" />
+          <!-- COLUMNA IZQUIERDA: HERO DEL PEDIDO + STEPPER (lg:col-span-7) -->
+          <div class="lg:col-span-7">
 
-            <div class="p-3.5 sm:p-5 space-y-3.5">
-              <!-- Encabezado compacto: Saludo + Badge + Referencia -->
-              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-[#4A5D23]/10">
-                <div>
-                  <div class="flex items-center gap-2 mb-0.5">
-                    <span class="text-[10px] font-black uppercase tracking-wider text-stone-500 font-sans">
-                      Seguimiento en Vivo
-                    </span>
-                    <span
-                      class="inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-bold rounded-full border shadow-2xs"
-                      :class="getStatusBadgeClass(order.status)"
-                    >
-                      <span 
-                        v-if="!order.is_cancelled && order.status !== 'delivered'" 
-                        class="flex h-1.5 w-1.5 relative"
-                      >
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-500 opacity-75" />
-                        <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-600" />
+            <!-- TARJETA HERO: ESTADO Y STEPPER -->
+            <div class="bg-white rounded-2xl sm:rounded-3xl shadow-soft-sm border border-[#4A5D23]/15 overflow-hidden">
+              <!-- Barra decorativa superior botánica -->
+              <div class="h-1.5 w-full bg-gradient-to-r from-[#4A5D23] via-[#6a8435] to-[#4A5D23]/30" />
+
+              <div class="p-3.5 sm:p-5 space-y-3.5">
+                <!-- Encabezado compacto: Saludo + Badge + Referencia -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-[#4A5D23]/10">
+                  <div>
+                    <div class="flex items-center gap-2 mb-0.5">
+                      <span class="text-[10px] font-black uppercase tracking-wider text-stone-500 font-sans">
+                        Seguimiento en Vivo
                       </span>
-                      <Icon :name="getStatusIcon(order.status)" class="w-3 h-3" />
-                      <span>{{ getStatusLabel(order.status) }}</span>
-                    </span>
+                      <span
+                        class="inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-bold rounded-full border shadow-2xs"
+                        :class="getStatusBadgeClass(order.status)"
+                      >
+                        <span 
+                          v-if="!order.is_cancelled && order.status !== 'delivered'" 
+                          class="flex h-1.5 w-1.5 relative"
+                        >
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-500 opacity-75" />
+                          <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-600" />
+                        </span>
+                        <Icon :name="getStatusIcon(order.status)" class="w-3 h-3" />
+                        <span>{{ getStatusLabel(order.status) }}</span>
+                      </span>
+                    </div>
+
+                    <h1 class="text-xl sm:text-2xl font-playfair font-black text-[#2A321B]">
+                      ¡Hola, {{ order.customer_first_name }}!
+                    </h1>
+
+                    <!-- Referencia con botón de copia rápida -->
+                    <div class="flex items-center gap-1.5 text-xs text-stone-600 mt-0.5">
+                      <span>Referencia:</span>
+                      <button
+                        @click="copyShortId"
+                        type="button"
+                        class="inline-flex items-center gap-1 font-mono font-bold text-[#4A5D23] bg-[#F4F1E1]/80 hover:bg-[#F4F1E1] px-2 py-0.5 rounded-md border border-[#4A5D23]/20 transition-all cursor-pointer"
+                        title="Clic para copiar referencia"
+                      >
+                        <span>{{ order.short_id }}</span>
+                        <Icon name="lucide:copy" class="w-3 h-3 opacity-70" />
+                      </button>
+                    </div>
                   </div>
 
-                  <h1 class="text-xl sm:text-2xl font-playfair font-black text-[#2A321B]">
-                    ¡Hola, {{ order.customer_first_name }}!
-                  </h1>
-
-                  <!-- Referencia con botón de copia rápida -->
-                  <div class="flex items-center gap-1.5 text-xs text-stone-600 mt-0.5">
-                    <span>Referencia:</span>
-                    <button
-                      @click="copyShortId"
-                      type="button"
-                      class="inline-flex items-center gap-1 font-mono font-bold text-[#4A5D23] bg-[#F4F1E1]/80 hover:bg-[#F4F1E1] px-2 py-0.5 rounded-md border border-[#4A5D23]/20 transition-all cursor-pointer"
-                      title="Clic para copiar referencia"
-                    >
-                      <span>{{ order.short_id }}</span>
-                      <Icon name="lucide:copy" class="w-3 h-3 opacity-70" />
-                    </button>
+                  <!-- Fecha programada si existe -->
+                  <div
+                    v-if="order.delivery_date"
+                    class="bg-[#F4F1E1]/70 rounded-xl px-3 py-1.5 border border-[#4A5D23]/15 self-start sm:self-auto sm:text-right shrink-0 text-xs"
+                  >
+                    <span class="text-[10px] font-bold text-[#4A5D23] uppercase block">Entrega</span>
+                    <span class="font-bold text-[#2A321B] block font-serif">{{ order.delivery_date }}</span>
+                    <span v-if="order.delivery_time" class="text-[10px] text-stone-600 font-sans block">
+                      {{ order.delivery_time }}
+                    </span>
                   </div>
                 </div>
 
-                <!-- Fecha programada si existe -->
+                <!-- Alerta de orden cancelada -->
                 <div
-                  v-if="order.delivery_date"
-                  class="bg-[#F4F1E1]/70 rounded-xl px-3 py-1.5 border border-[#4A5D23]/15 self-start sm:self-auto sm:text-right shrink-0 text-xs"
+                  v-if="order.is_cancelled"
+                  class="bg-red-50 border border-red-200 text-red-900 rounded-xl p-2.5 flex items-start gap-2 text-xs"
+                  role="alert"
                 >
-                  <span class="text-[10px] font-bold text-[#4A5D23] uppercase block">Entrega</span>
-                  <span class="font-bold text-[#2A321B] block font-serif">{{ order.delivery_date }}</span>
-                  <span v-if="order.delivery_time" class="text-[10px] text-stone-600 font-sans block">
-                    {{ order.delivery_time }}
+                  <Icon name="lucide:x-circle" class="w-4 h-4 text-red-600 mt-0.5 shrink-0" />
+                  <div>
+                    <p class="font-bold">Este pedido se encuentra cancelado.</p>
+                    <p class="text-stone-700">Comunícate con nuestro taller vía WhatsApp para resolver cualquier consulta.</p>
+                  </div>
+                </div>
+
+                <!-- ==================== STEPPER OPERATIVO COMPACTO ==================== -->
+                <div v-if="!order.is_cancelled" class="pt-1">
+                  <!-- Barra horizontal de 4 pasos -->
+                  <div class="relative pb-1">
+                    <!-- Barra conectora de fondo -->
+                    <div class="absolute top-4 left-6 right-6 h-1 bg-stone-200 rounded-full" aria-hidden="true" />
+                    <!-- Barra de progreso activa coloreada -->
+                    <div 
+                      class="absolute top-4 left-6 h-1 bg-[#4A5D23] rounded-full transition-all duration-500" 
+                      :style="{ width: `calc(${progressPercentage}% - 1.5rem)` }"
+                      aria-hidden="true" 
+                    />
+
+                    <div class="grid grid-cols-4 gap-1.5 sm:gap-2 relative">
+                      <div
+                        v-for="(step, idx) in order.timeline"
+                        :key="step.status"
+                        class="flex flex-col items-center text-center space-y-1"
+                      >
+                        <!-- Círculo del paso con icono -->
+                        <div
+                          class="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center font-bold text-xs z-10 transition-all shadow-2xs"
+                          :class="[
+                            step.current
+                              ? 'bg-[#4A5D23] text-white ring-3 ring-[#4A5D23]/25 scale-105'
+                              : step.completed
+                                ? 'bg-[#4A5D23] text-white'
+                                : 'bg-stone-100 text-stone-400 border border-stone-300'
+                          ]"
+                        >
+                          <Icon v-if="step.completed && !step.current" name="lucide:check" class="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                          <Icon v-else-if="step.icon" :name="step.icon" class="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                          <span v-else>{{ idx + 1 }}</span>
+                        </div>
+
+                        <!-- Nombre del paso -->
+                        <div class="max-w-[85px] sm:max-w-[120px]">
+                          <p
+                            class="text-[10px] sm:text-xs font-bold leading-tight line-clamp-2"
+                            :class="step.current || step.completed ? 'text-[#2A321B]' : 'text-stone-400'"
+                          >
+                            {{ step.label }}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Caja descriptiva del estado actual (muy compacta) -->
+                  <div 
+                    v-if="order.timeline.find(s => s.current)" 
+                    class="mt-2.5 p-2 sm:p-2.5 rounded-xl bg-[#F4F1E1]/60 border border-[#4A5D23]/15 flex items-center gap-2 text-xs text-[#2A321B]"
+                  >
+                    <Icon name="lucide:info" class="w-3.5 h-3.5 text-[#4A5D23] shrink-0" />
+                    <p class="leading-snug text-stone-700 text-[11px] sm:text-xs">
+                      <span class="font-bold text-[#4A5D23]">{{ order.timeline.find(s => s.current)?.label }}:</span>
+                      {{ order.timeline.find(s => s.current)?.description }}
+                    </p>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+
+          <!-- COLUMNA DERECHA: DETALLE DEL PEDIDO Y TOTAL (lg:col-span-5) -->
+          <div class="lg:col-span-5">
+            <div class="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 shadow-soft-sm border border-[#4A5D23]/15 space-y-3">
+              <!-- Título del detalle -->
+              <div class="flex items-center justify-between pb-2 border-b border-[#4A5D23]/10">
+                <h2 class="text-sm sm:text-base font-playfair font-black text-[#2A321B] flex items-center gap-1.5">
+                  <Icon name="lucide:shopping-bag" class="w-4 h-4 text-[#4A5D23]" />
+                  <span>Detalle del Pedido</span>
+                </h2>
+                <span class="text-[10px] sm:text-[11px] font-bold text-stone-500 bg-[#F4F1E1] px-2 py-0.5 rounded-full border border-[#4A5D23]/10">
+                  {{ order.items.length }} {{ order.items.length === 1 ? 'producto' : 'productos' }}
+                </span>
+              </div>
+
+              <!-- Lista de productos con miniaturas controladas estrictamente (CERO DESBORDAMIENTO) -->
+              <div class="divide-y divide-stone-100 max-h-[260px] overflow-y-auto pr-1">
+                <div
+                  v-for="(item, idx) in order.items"
+                  :key="idx"
+                  class="py-2 first:pt-0 last:pb-0 flex items-center justify-between gap-2.5"
+                >
+                  <!-- Miniatura fija + Nombre + Cantidad -->
+                  <div class="flex items-center gap-2.5 min-w-0">
+                    <!-- Contenedor rígido estricto de 44x44px con estilo inline y clases para blindar tamaño en mobile -->
+                    <div 
+                      class="rounded-xl ring-1 ring-[#4A5D23]/15 overflow-hidden bg-[#F4F1E1] shrink-0 aspect-square flex items-center justify-center"
+                      style="width: 44px; height: 44px; min-width: 44px; max-width: 44px; min-height: 44px; max-height: 44px;"
+                    >
+                      <img
+                        v-if="item.image_url"
+                        :src="item.image_url"
+                        :alt="item.name"
+                        class="w-full h-full object-cover block aspect-square"
+                        style="width: 100%; height: 100%; max-width: 44px; max-height: 44px;"
+                        loading="lazy"
+                      />
+                      <div v-else class="w-full h-full flex items-center justify-center text-[#4A5D23]/60 bg-[#EDE8D5]">
+                        <Icon name="lucide:cake" class="w-5 h-5" />
+                      </div>
+                    </div>
+
+                    <!-- Textos del producto -->
+                    <div class="min-w-0">
+                      <p class="text-xs sm:text-sm font-bold text-[#2A321B] truncate leading-tight">
+                        {{ item.name }}
+                      </p>
+                      <div class="flex items-center gap-1.5 mt-0.5 text-[11px] text-stone-500">
+                        <span class="font-bold text-[#4A5D23] bg-[#F4F1E1] px-1.5 py-0.2 rounded text-[10px]">
+                          {{ item.quantity }}x
+                        </span>
+                        <span v-if="item.price_at_time">
+                          S/ {{ Number(item.price_at_time).toFixed(2) }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Subtotal por ítem -->
+                  <div v-if="item.price_at_time" class="text-right shrink-0">
+                    <span class="text-xs sm:text-sm font-bold font-inter text-[#2A321B]">
+                      S/ {{ (Number(item.price_at_time) * item.quantity).toFixed(2) }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Resumen y Total Financiero -->
+              <div class="pt-2.5 border-t border-[#4A5D23]/10 space-y-1 text-xs">
+                <div class="flex items-center justify-between text-stone-600 text-[11px] sm:text-xs">
+                  <span>Entrega:</span>
+                  <span class="font-medium text-[#2A321B] text-right truncate max-w-[180px] sm:max-w-[220px]">
+                    {{ order.address || (order.channel === 'whatsapp_chat' ? 'Por coordinar por WhatsApp' : 'Recojo / Entrega pactada') }}
+                  </span>
+                </div>
+
+                <div v-if="order.total_amount" class="flex items-center justify-between pt-1.5 border-t border-dashed border-stone-200">
+                  <span class="font-playfair font-black text-sm sm:text-base text-[#2A321B]">Total</span>
+                  <span class="font-inter font-black text-base sm:text-lg text-[#2A321B]">
+                    S/ {{ Number(order.total_amount).toFixed(2) }}
                   </span>
                 </div>
               </div>
 
-              <!-- Alerta de orden cancelada -->
-              <div
-                v-if="order.is_cancelled"
-                class="bg-red-50 border border-red-200 text-red-900 rounded-xl p-2.5 flex items-start gap-2 text-xs"
-                role="alert"
-              >
-                <Icon name="lucide:x-circle" class="w-4 h-4 text-red-600 mt-0.5 shrink-0" />
-                <div>
-                  <p class="font-bold">Este pedido se encuentra cancelado.</p>
-                  <p class="text-stone-700">Comunícate con nuestro taller vía WhatsApp para resolver cualquier consulta.</p>
-                </div>
-              </div>
-
-              <!-- ==================== STEPPER OPERATIVO COMPACTO ==================== -->
-              <div v-if="!order.is_cancelled" class="pt-1">
-                <!-- Barra horizontal de 4 pasos -->
-                <div class="relative pb-1">
-                  <!-- Barra conectora de fondo -->
-                  <div class="absolute top-4 left-6 right-6 h-1 bg-stone-200 rounded-full" aria-hidden="true" />
-                  <!-- Barra de progreso activa coloreada -->
-                  <div 
-                    class="absolute top-4 left-6 h-1 bg-[#4A5D23] rounded-full transition-all duration-500" 
-                    :style="{ width: `calc(${progressPercentage}% - 1.5rem)` }"
-                    aria-hidden="true" 
-                  />
-
-                  <div class="grid grid-cols-4 gap-1.5 sm:gap-2 relative">
-                    <div
-                      v-for="(step, idx) in order.timeline"
-                      :key="step.status"
-                      class="flex flex-col items-center text-center space-y-1"
-                    >
-                      <!-- Círculo del paso con icono -->
-                      <div
-                        class="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center font-bold text-xs z-10 transition-all shadow-2xs"
-                        :class="[
-                          step.current
-                            ? 'bg-[#4A5D23] text-white ring-3 ring-[#4A5D23]/25 scale-105'
-                            : step.completed
-                              ? 'bg-[#4A5D23] text-white'
-                              : 'bg-stone-100 text-stone-400 border border-stone-300'
-                        ]"
-                      >
-                        <Icon v-if="step.completed && !step.current" name="lucide:check" class="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                        <Icon v-else-if="step.icon" :name="step.icon" class="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                        <span v-else>{{ idx + 1 }}</span>
-                      </div>
-
-                      <!-- Nombre del paso -->
-                      <div class="max-w-[85px] sm:max-w-[120px]">
-                        <p
-                          class="text-[10px] sm:text-xs font-bold leading-tight line-clamp-2"
-                          :class="step.current || step.completed ? 'text-[#2A321B]' : 'text-stone-400'"
-                        >
-                          {{ step.label }}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Caja descriptiva del estado actual (muy compacta) -->
-                <div 
-                  v-if="order.timeline.find(s => s.current)" 
-                  class="mt-2.5 p-2 sm:p-2.5 rounded-xl bg-[#F4F1E1]/60 border border-[#4A5D23]/15 flex items-center gap-2 text-xs text-[#2A321B]"
-                >
-                  <Icon name="lucide:info" class="w-3.5 h-3.5 text-[#4A5D23] shrink-0" />
-                  <p class="leading-snug text-stone-700 text-[11px] sm:text-xs">
-                    <span class="font-bold text-[#4A5D23]">{{ order.timeline.find(s => s.current)?.label }}:</span>
-                    {{ order.timeline.find(s => s.current)?.description }}
-                  </p>
-                </div>
-              </div>
-
             </div>
-          </div>
-
-          <!-- TARJETA WHATSAPP: ACCIÓN INMEDIATA COMPACTA -->
-          <div class="bg-gradient-to-br from-[#F4F1E1] via-white to-emerald-50/50 rounded-2xl sm:rounded-3xl p-3 sm:p-3.5 border border-[#4A5D23]/20 shadow-soft-sm flex flex-col sm:flex-row items-center justify-between gap-2.5">
-            <div class="space-y-0.5 text-center sm:text-left min-w-0">
-              <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 text-[10px] font-bold border border-emerald-300/60">
-                <Icon name="lucide:message-circle" class="w-3 h-3 text-emerald-600" />
-                <span>Atención Directa</span>
-              </div>
-              <h3 class="text-xs sm:text-sm font-playfair font-black text-[#2A321B]">
-                {{ order.channel === 'whatsapp_chat' && order.status === 'pending'
-                  ? '¿Aún no coordinas los detalles de tu pedido?'
-                  : '¿Tienes alguna duda sobre tu entrega?' }}
-              </h3>
-              <p class="text-[11px] text-stone-600 leading-snug">
-                {{ order.channel === 'whatsapp_chat' && order.status === 'pending'
-                  ? 'Escríbenos para confirmar stock, horario y medio de pago.'
-                  : 'Estamos en línea en nuestro taller para ayudarte.' }}
-              </p>
-            </div>
-
-            <!-- Botón de WhatsApp Responsive Compacto -->
-            <a
-              :href="whatsappSupportUrl"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 sm:py-2.5 bg-[#25D366] hover:bg-[#1EBE5D] text-white font-black text-xs rounded-full shadow-soft-sm hover:shadow-md hover:scale-[1.02] active:scale-95 transition-all shrink-0 cursor-pointer"
-            >
-              <Icon name="lucide:message-circle" class="w-4 h-4 text-white" />
-              <span>{{ order.channel === 'whatsapp_chat' && order.status === 'pending' ? 'Coordinar por WhatsApp' : 'Escribir por WhatsApp' }}</span>
-            </a>
           </div>
 
         </div>
 
-        <!-- COLUMNA DERECHA: DETALLE DEL PEDIDO Y TOTAL (lg:col-span-5) -->
-        <div class="lg:col-span-5">
-          <div class="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 shadow-soft-sm border border-[#4A5D23]/15 space-y-3">
-            <!-- Título del detalle -->
-            <div class="flex items-center justify-between pb-2 border-b border-[#4A5D23]/10">
-              <h2 class="text-sm sm:text-base font-playfair font-black text-[#2A321B] flex items-center gap-1.5">
-                <Icon name="lucide:shopping-bag" class="w-4 h-4 text-[#4A5D23]" />
-                <span>Detalle del Pedido</span>
-              </h2>
-              <span class="text-[10px] sm:text-[11px] font-bold text-stone-500 bg-[#F4F1E1] px-2 py-0.5 rounded-full border border-[#4A5D23]/10">
-                {{ order.items.length }} {{ order.items.length === 1 ? 'producto' : 'productos' }}
-              </span>
+        <!-- ==================== TARJETA WHATSAPP: ACCIÓN DE SOPORTE ABAJO DEL TODO ==================== -->
+        <div class="bg-gradient-to-br from-[#F4F1E1] via-white to-emerald-50/50 rounded-2xl sm:rounded-3xl p-3 sm:p-3.5 border border-[#4A5D23]/20 shadow-soft-sm flex flex-col sm:flex-row items-center justify-between gap-2.5">
+          <div class="space-y-0.5 text-center sm:text-left min-w-0">
+            <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 text-[10px] font-bold border border-emerald-300/60">
+              <Icon name="lucide:message-circle" class="w-3 h-3 text-emerald-600" />
+              <span>Atención Directa</span>
             </div>
-
-            <!-- Lista de productos con miniaturas controladas estrictamente (CERO DESBORDAMIENTO) -->
-            <div class="divide-y divide-stone-100 max-h-[260px] overflow-y-auto pr-1">
-              <div
-                v-for="(item, idx) in order.items"
-                :key="idx"
-                class="py-2 first:pt-0 last:pb-0 flex items-center justify-between gap-2.5"
-              >
-                <!-- Miniatura fija + Nombre + Cantidad -->
-                <div class="flex items-center gap-2.5 min-w-0">
-                  <!-- Contenedor rígido estricto de 44x44px con estilo inline y clases para blindar tamaño en mobile -->
-                  <div 
-                    class="rounded-xl ring-1 ring-[#4A5D23]/15 overflow-hidden bg-[#F4F1E1] shrink-0 aspect-square flex items-center justify-center"
-                    style="width: 44px; height: 44px; min-width: 44px; max-width: 44px; min-height: 44px; max-height: 44px;"
-                  >
-                    <img
-                      v-if="item.image_url"
-                      :src="item.image_url"
-                      :alt="item.name"
-                      class="w-full h-full object-cover block aspect-square"
-                      style="width: 100%; height: 100%; max-width: 44px; max-height: 44px;"
-                      loading="lazy"
-                    />
-                    <div v-else class="w-full h-full flex items-center justify-center text-[#4A5D23]/60 bg-[#EDE8D5]">
-                      <Icon name="lucide:cake" class="w-5 h-5" />
-                    </div>
-                  </div>
-
-                  <!-- Textos del producto -->
-                  <div class="min-w-0">
-                    <p class="text-xs sm:text-sm font-bold text-[#2A321B] truncate leading-tight">
-                      {{ item.name }}
-                    </p>
-                    <div class="flex items-center gap-1.5 mt-0.5 text-[11px] text-stone-500">
-                      <span class="font-bold text-[#4A5D23] bg-[#F4F1E1] px-1.5 py-0.2 rounded text-[10px]">
-                        {{ item.quantity }}x
-                      </span>
-                      <span v-if="item.price_at_time">
-                        S/ {{ Number(item.price_at_time).toFixed(2) }}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Subtotal por ítem -->
-                <div v-if="item.price_at_time" class="text-right shrink-0">
-                  <span class="text-xs sm:text-sm font-bold font-inter text-[#2A321B]">
-                    S/ {{ (Number(item.price_at_time) * item.quantity).toFixed(2) }}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Resumen y Total Financiero -->
-            <div class="pt-2.5 border-t border-[#4A5D23]/10 space-y-1 text-xs">
-              <div class="flex items-center justify-between text-stone-600 text-[11px] sm:text-xs">
-                <span>Entrega:</span>
-                <span class="font-medium text-[#2A321B] text-right truncate max-w-[180px] sm:max-w-[220px]">
-                  {{ order.address || (order.channel === 'whatsapp_chat' ? 'Por coordinar por WhatsApp' : 'Recojo / Entrega pactada') }}
-                </span>
-              </div>
-
-              <div v-if="order.total_amount" class="flex items-center justify-between pt-1.5 border-t border-dashed border-stone-200">
-                <span class="font-playfair font-black text-sm sm:text-base text-[#2A321B]">Total</span>
-                <span class="font-inter font-black text-base sm:text-lg text-[#2A321B]">
-                  S/ {{ Number(order.total_amount).toFixed(2) }}
-                </span>
-              </div>
-            </div>
-
+            <h3 class="text-xs sm:text-sm font-playfair font-black text-[#2A321B]">
+              {{ order.channel === 'whatsapp_chat' && order.status === 'pending'
+                ? '¿Aún no coordinas los detalles de tu pedido?'
+                : '¿Tienes alguna duda sobre tu entrega?' }}
+            </h3>
+            <p class="text-[11px] text-stone-600 leading-snug">
+              {{ order.channel === 'whatsapp_chat' && order.status === 'pending'
+                ? 'Escríbenos para confirmar stock, horario y medio de pago.'
+                : 'Estamos en línea en nuestro taller para ayudarte.' }}
+            </p>
           </div>
+
+          <!-- Botón de WhatsApp Responsive Compacto -->
+          <a
+            :href="whatsappSupportUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#25D366] hover:bg-[#1EBE5D] text-white font-black text-xs rounded-full shadow-soft-sm hover:shadow-md hover:scale-[1.02] active:scale-95 transition-all shrink-0 cursor-pointer"
+          >
+            <Icon name="lucide:message-circle" class="w-4 h-4 text-white" />
+            <span>{{ order.channel === 'whatsapp_chat' && order.status === 'pending' ? 'Coordinar por WhatsApp' : 'Escribir por WhatsApp' }}</span>
+          </a>
         </div>
 
       </div>
