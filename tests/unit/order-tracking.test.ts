@@ -145,4 +145,42 @@ describe('Fase 6 - Subfase 6.1: Tracking Criptográfico de Invitados (ADR-002 / 
       expect(directStep.description).toContain('recibida y registrada')
     })
   })
+
+  describe('Bus de Eventos Server-Sent Events (server/utils/order-events.ts)', () => {
+    it('emite y recibe notificaciones desacopladas por token y por order_id', async () => {
+      const { orderEvents, notifyOrderUpdated } = await import('../../server/utils/order-events')
+      
+      const dummyToken = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
+      const dummyOrderId = 'order-uuid-sse-123'
+
+      let tokenReceived: any = null
+      let idReceived: any = null
+
+      const tokenListener = (payload: any) => {
+        tokenReceived = payload
+      }
+      const idListener = (payload: any) => {
+        idReceived = payload
+      }
+
+      orderEvents.once(`order:token:${dummyToken}`, tokenListener)
+      orderEvents.once(`order:id:${dummyOrderId}`, idListener)
+
+      notifyOrderUpdated({
+        order_id: dummyOrderId,
+        tracking_token: dummyToken,
+        status: 'processing',
+        timestamp: '2026-09-18T15:00:00.000Z'
+      })
+
+      expect(tokenReceived).not.toBeNull()
+      expect(tokenReceived.status).toBe('processing')
+      expect(tokenReceived.order_id).toBe(dummyOrderId)
+
+      expect(idReceived).not.toBeNull()
+      expect(idReceived.status).toBe('processing')
+      expect(idReceived.tracking_token).toBe(dummyToken)
+    })
+  })
 })
+

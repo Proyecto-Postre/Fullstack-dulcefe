@@ -62,6 +62,32 @@ El usuario detectó que la pantalla de seguimiento individual (`/pedido/[token]`
   - Si el pedido está en `pending` y es por WhatsApp: Guía al usuario a dar el paso final con botón verde `#25D366` de altura táctil completa (44px+) con mensaje prellenado oficial.
   - Si ya está confirmado/avanzado: Canal de soporte directo con el taller.
 
+### D. Arquitectura en Tiempo Real con Server-Sent Events (SSE) vs Polling
+- **Eliminación de Polling Periódico:**
+  - Se suprimió completamente el temporizador `setInterval(..., 30000)` que consultaba la base de datos de Supabase cada 30 segundos indiscriminadamente.
+- **Bus de Eventos en Memoria (`server/utils/order-events.ts`):**
+  - Implementación con `EventEmitter` desacoplado de dependencias o proveedores de nube externos, evitando vendor lock-in en caso de migrar fuera de Supabase en el futuro.
+  - Función `notifyOrderUpdated({ order_id, tracking_token, status, timestamp })`.
+- **Endpoint SSE Nitro (`server/api/orders/track/[token]/stream.get.ts`):**
+  - Usa `createEventStream` de H3/Nitro.
+  - Transmite evento inicial `connected`.
+  - Escucha el canal `order:token:${token}` y envía eventos `order_updated` únicamente cuando el taller o administrador cambia el estado del pedido.
+  - Heartbeat `ping` cada 25 segundos para evitar timeouts en proxies móviles o HTTP/2.
+  - Limpieza en `eventStream.onClosed` al desconectarse el cliente.
+- **Disparo en Servicio de Órdenes (`server/services/order.service.ts`):**
+  - En `OrderService.updateOrderStatus`, tras registrar el cambio en la base de datos y en la auditoría inmutable, se notifica al bus SSE automáticamente.
+- **Consumo en Frontend (`app/pages/pedido/[token].vue`):**
+  - Conexión nativa con `EventSource('/api/orders/track/' + token + '/stream')`.
+  - Al recibir `order_updated`, ejecuta `refresh()` y muestra un toast informativo no invasivo al usuario.
+  - Desconexión limpia en `onUnmounted`.
+
+### E. Compactación de Pantalla y Blindaje Visual en Móviles
+- **Layout de 1 Sola Pantalla:**
+  - En Desktop: Grid de 2 columnas (`lg:grid lg:grid-cols-12`) donde la columna izquierda (`col-span-7`) agrupa Hero + Stepper + WhatsApp, y la columna derecha (`col-span-5`) agrupa Detalle de Ítems + Totales.
+  - En Móvil: Alturas y paddings compactos (`p-3 sm:p-4`), reduciendo el scroll vertical a su mínima expresión.
+- **Blindaje de Imágenes en Móvil:**
+  - Se corrigió el error de clases inexistentes (`w-13 h-13`) fijando dimensiones exactas e invariables de 44x44px con `style="width: 44px; height: 44px; min-width: 44px; max-width: 44px;"` y `object-cover`, evitando cualquier desbordamiento visual.
+
 ---
 
 ## 3. Matriz de Pruebas y Validación de Calidad

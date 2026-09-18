@@ -11,6 +11,7 @@ import { requireAdmin } from '../utils/require-admin'
 import { generateOrderTrackingToken } from '../utils/crypto'
 import { InventoryService } from './inventory.service'
 import { WebhookService } from './webhook.service'
+import { notifyOrderUpdated } from '../utils/order-events'
 import type { OrderCostSnapshot, CostSnapshotItem, CostSnapshotIngredient } from '~/types/cost-snapshot'
 
 export interface OrderResponseItem {
@@ -702,6 +703,14 @@ export class OrderService {
         result: 'ok',
         request_id: requestId
       })
+
+    // Notificar en tiempo real vía Server-Sent Events (SSE)
+    notifyOrderUpdated({
+      order_id: orderId,
+      tracking_token: order.tracking_token,
+      status: newStatus,
+      timestamp: new Date().toISOString()
+    })
 
     // 7. Despachar webhook asíncrono a n8n (ADR-006 / D6)
     WebhookService.dispatch(
