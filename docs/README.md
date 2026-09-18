@@ -49,6 +49,7 @@ graph TD
 * [`checklist-feature-review.md`](./03%20-%20Arquitectura%20&%20UI/checklist-feature-review.md) — Lista de control obligatoria para revisión de features (§10.6): Dominio, Tipado, Validación, Permiso, Prueba y SQL.
 * [`design-system-tokens.md`](./03%20-%20Arquitectura%20&%20UI/design-system-tokens.md) — SSOT visual de tokens de diseño, colores institucionales, escala tipográfica y sombras.
 * [`guia-diseno-mobile-responsivo.md`](./03%20-%20Arquitectura%20&%20UI/guia-diseno-mobile-responsivo.md) — **Guía Oficial de Ingeniería y Patrones de Diseño Móvil Responsivo** (carruseles táctiles sin saltos, tabs segmentadas, drawer lateral, footer compacto y scrollbars nativas).
+* [`patron-tiempo-real-sse.md`](./03%20-%20Arquitectura%20&%20UI/patron-tiempo-real-sse.md) — **Patrón Oficial de Tiempo Real con Server-Sent Events (SSE)** (política cero polling, bus desacoplado en memoria y consumo reactivo con EventSource).
 * [`patron-animacion-grid-flip.md`](./03%20-%20Arquitectura%20&%20UI/patron-animacion-grid-flip.md) — Patrón de cuadrícula animada FLIP (GPU 60fps) sin parpadeos para catálogos y listados.
 * [`componentes-arquitectura.md`](./03%20-%20Arquitectura%20&%20UI/componentes-arquitectura.md) — Lineamientos para estructurar componentes Vue 3, modales y composables desacoplados.
 * [`arquitectura-patrones.md`](./03%20-%20Arquitectura%20&%20UI/arquitectura-patrones.md) — Patrones de diseño aplicados y guías modulares.

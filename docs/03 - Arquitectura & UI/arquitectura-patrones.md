@@ -20,6 +20,7 @@
    - 4.2. Repository Pattern (Abstracción de Datos)
    - 4.3. DTO Pattern (Data Transfer Objects)
    - 4.4. Middleware & Guards Pattern (Autorización Granular)
+   - 4.5. Server-Sent Events (SSE) Pattern (Tiempo Real Unidireccional & Cero Polling)
 5. [[#5. PATRONES DE BASE DE DATOS & EVENTOS (SUPABASE POSTGRESQL)|Patrones de Base de Datos & Eventos (Supabase PostgreSQL)]]
    - 5.1. Event-Driven Architecture (Database Webhooks & Triggers)
    - 5.2. RLS Security Pattern (Seguridad en Capa de Datos)
@@ -145,6 +146,12 @@ Mapea los nombres de columnas de la base de datos (`purchase_price`, `purchase_q
 
 ### 4.4. Middleware & Guards Pattern
 En `server/middleware/auth.ts`, todo request que apunte a `/api/admin/*` pasa por un interceptor que valida el token JWT del usuario y su rol antes de permitir la ejecución.
+
+### 4.5. Server-Sent Events (SSE) Pattern & Política Cero Polling
+Para erradicar el *polling* periódico agresivo (`setInterval`), el sistema implementa **Server-Sent Events (SSE)** mediante `createEventStream` de H3/Nitro:
+- **Desacoplamiento:** El servidor mantiene un bus de eventos en memoria (`server/utils/order-events.ts`) con `EventEmitter` nativo, garantizando cero vendor lock-in con proveedores externos (Supabase, Firebase, Pusher).
+- **Consumo Ligero:** El frontend escucha mediante el estándar W3C `EventSource`, recibiendo solo notificaciones ante cambios reales y reconectando automáticamente sin intervención manual.
+- **Detalles y Guía de Implementación:** Consultar la guía transversal oficial en [[patron-tiempo-real-sse]].
 
 ---
 

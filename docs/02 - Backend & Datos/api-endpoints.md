@@ -82,6 +82,7 @@ Alimenta el cerebro financiero de escandallos ([[formulas-costeo]]).
 
 ## 📍 8. Módulo: Seguimiento de Invitados (`/api/orders/track`)
 * [[GET-api-orders-track-token|GET /api/orders/track/:token]] — 🌐 Consulta pública de estado de pedido en tiempo real mediante token HMAC-SHA256, con anonimización y protección de datos según Ley 29733 ([[ADR-002-guest-order-tracking]]).
+* `GET /api/orders/track/:token/stream` — 🌐 Transmisión continua Server-Sent Events (SSE) en tiempo real con `createEventStream`, eliminando el polling periódico y notificando cambios de estado inmediatamente ([[patron-tiempo-real-sse]]).
 
 ---
 
