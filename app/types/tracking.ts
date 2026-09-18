@@ -5,6 +5,8 @@
 export interface PublicTrackingItem {
   name: string
   quantity: number
+  price_at_time?: number
+  image_url?: string | null
 }
 
 export interface PublicTimelineStep {
@@ -13,6 +15,7 @@ export interface PublicTimelineStep {
   description: string
   completed: boolean
   current: boolean
+  icon?: string
 }
 
 export interface PublicOrderTrackingDTO {
@@ -22,7 +25,9 @@ export interface PublicOrderTrackingDTO {
   channel: string
   delivery_date: string | null
   delivery_time: string | null
+  address?: string | null
   created_at: string
+  total_amount?: number | null
   items: PublicTrackingItem[]
   timeline: PublicTimelineStep[]
   is_cancelled: boolean

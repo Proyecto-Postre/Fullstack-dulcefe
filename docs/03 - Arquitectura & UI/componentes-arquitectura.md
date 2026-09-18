@@ -144,3 +144,24 @@ Todos los modales de la plataforma (`ProductModal`, `MaterialModal`, `OrderDetai
 2. **Teleport Controlado:** Envueltos en `<ClientOnly>` y teleportados a `#admin-modal-portal` o `body` para prevenir desajustes de hidratación SSR.
 3. **Ergonomía Móvil:** Contenedor interno con `max-h-[85vh]` y scroll interno suave (`custom-scrollbar`) para evitar que el modal desborde la pantalla al desplegarse teclados virtuales en smartphones.
 
+---
+
+## 8. Módulo de Seguimiento de Pedidos (`app/pages/pedido/[token].vue`)
+
+Permite a los clientes (tanto autenticados como invitados) monitorear en tiempo real el ciclo de preparación y despacho de su pedido mediante un token criptográfico HMAC-SHA256 seguro.
+
+### Componentes y Flujo Operativo:
+1. **Acceso Bidireccional desde Mis Pedidos:**
+   - En `ProfileOrdersHistory.vue`, cada orden en curso cuenta con el botón primario `"Ver cómo va mi pedido"` enlazado a `/pedido/[tracking_token]`.
+   - Las órdenes anteriores disponen del enlace secundario `"Ver seguimiento / detalle"`.
+   - La vista de seguimiento incluye el botón `"← Volver a Mis Pedidos"` para navegación fluida.
+2. **Timeline Adaptativo (Dual Display):**
+   - **Móvil (`< sm`):** Stepper vertical continuo con conectores dinámicos, nodos de 38px con iconos representativos y badge animado `"En curso"`.
+   - **Desktop (`sm:`):** Stepper horizontal de 4 columnas conectado por una barra de progreso que avanza porcentualmente según el estado del pedido.
+3. **Contextualización WhatsApp vs Compra Directa:**
+   - Si la orden fue registrada para coordinar por WhatsApp y está en estado `pending`, el paso 1 muestra `"Solicitud Recibida"` en lugar de `"Pedido Registrado"` para evitar asumir falsamente que el pedido ya fue confirmado antes de coordinar en el chat.
+   - La tarjeta de soporte inferior adapta su copy a `"¿Aún no coordinas los detalles de tu pedido?"` con botón de acción directa a WhatsApp prellenado con la referencia `#short_id`.
+4. **Detalle Enriquecido con Imágenes y Montos:**
+   - Muestra miniaturas oficiales de los postres ordenados, precio unitario, desglose por línea, dirección o modalidad de entrega y total financiero en soles.
+
+
