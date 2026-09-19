@@ -27,7 +27,8 @@ export interface AddressOperationResult {
 }
 
 export const useAuthStore = defineStore('auth', () => {
-  const user = ref<User | null>(null)
+  const supabaseUser = useSupabaseUser()
+  const user = ref<User | null>((supabaseUser?.value as unknown as User) || null)
   const profile = ref<UserProfile | null>(null)
   const addresses = ref<UserAddress[]>([])
   const isLoading = ref<boolean>(false)

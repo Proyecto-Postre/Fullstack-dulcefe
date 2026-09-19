@@ -121,38 +121,44 @@ const whatsappCleanUrl = computed(() => {
 
           <!-- Acciones de Usuario (Solo Desktop >= md) -->
           <div class="hidden md:flex items-center gap-2.5 sm:gap-3">
-            <template v-if="authStore.isLoggedIn">
-              <!-- Acceso a Panel Admin si es Administrador (Solo Desktop) -->
-              <NuxtLink 
-                v-if="authStore.isAdmin"
-                to="/admin" 
-                class="flex items-center gap-1.5 bg-brand-secondary text-white hover:bg-brand-primary border border-transparent px-4 py-2.5 rounded-full font-bold text-xs shadow-soft-sm hover:shadow-md hover:-translate-y-0.5 hover:scale-[1.02] active:translate-y-0 active:scale-95 transition-all duration-200 cursor-pointer"
-              >
-                <Icon name="lucide:shield-check" class="w-4 h-4 text-status-success shrink-0" />
-                <span>Panel Admin</span>
-              </NuxtLink>
+            <ClientOnly>
+              <template v-if="authStore.isLoggedIn">
+                <!-- Acceso a Panel Admin si es Administrador (Solo Desktop) -->
+                <NuxtLink 
+                  v-if="authStore.isAdmin"
+                  to="/admin" 
+                  class="flex items-center gap-1.5 bg-brand-secondary text-white hover:bg-brand-primary border border-transparent px-4 py-2.5 rounded-full font-bold text-xs shadow-soft-sm hover:shadow-md hover:-translate-y-0.5 hover:scale-[1.02] active:translate-y-0 active:scale-95 transition-all duration-200 cursor-pointer"
+                >
+                  <Icon name="lucide:shield-check" class="w-4 h-4 text-status-success shrink-0" />
+                  <span>Panel Admin</span>
+                </NuxtLink>
 
-              <!-- Acceso a Mi Perfil / Datos Personales (Solo Desktop) -->
-              <NuxtLink 
-                to="/perfil?tab=personal" 
-                class="group flex items-center gap-2 bg-surface hover:bg-[#EDE8D5] border border-brand-primary/20 hover:border-brand-primary px-3.5 py-2.5 rounded-full shadow-soft-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-all duration-200 cursor-pointer text-brand-secondary hover:text-brand-primary"
-              >
-                <Icon name="lucide:user" class="w-4 h-4 text-brand-primary group-hover:scale-110 transition-transform" />
-                <span class="font-bold text-xs max-w-[130px] truncate">
-                  {{ authStore.profile?.full_name || authStore.user?.user_metadata?.full_name || 'Mi Perfil' }}
-                </span>
-              </NuxtLink>
-            </template>
+                <!-- Acceso a Mi Perfil / Datos Personales (Solo Desktop) -->
+                <NuxtLink 
+                  to="/perfil?tab=personal" 
+                  class="group flex items-center gap-2 bg-surface hover:bg-[#EDE8D5] border border-brand-primary/20 hover:border-brand-primary px-3.5 py-2.5 rounded-full shadow-soft-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-all duration-200 cursor-pointer text-brand-secondary hover:text-brand-primary"
+                >
+                  <Icon name="lucide:user" class="w-4 h-4 text-brand-primary group-hover:scale-110 transition-transform" />
+                  <span class="font-bold text-xs max-w-[130px] truncate">
+                    {{ authStore.profile?.full_name || authStore.user?.user_metadata?.full_name || 'Mi Perfil' }}
+                  </span>
+                </NuxtLink>
+              </template>
 
-            <template v-else>
-              <NuxtLink 
-                to="/login" 
-                class="flex items-center gap-1.5 bg-brand-primary text-white hover:bg-brand-secondary border border-transparent px-4 py-2.5 rounded-full font-bold text-xs shadow-soft-sm hover:shadow-md hover:-translate-y-0.5 hover:scale-[1.02] transition-all duration-200 cursor-pointer active:translate-y-0 active:scale-95"
-              >
-                <Icon name="lucide:user" class="w-4 h-4" />
-                <span>Ingresar</span>
-              </NuxtLink>
-            </template>
+              <template v-else>
+                <NuxtLink 
+                  to="/login" 
+                  class="flex items-center gap-1.5 bg-brand-primary text-white hover:bg-brand-secondary border border-transparent px-4 py-2.5 rounded-full font-bold text-xs shadow-soft-sm hover:shadow-md hover:-translate-y-0.5 hover:scale-[1.02] transition-all duration-200 cursor-pointer active:translate-y-0 active:scale-95"
+                >
+                  <Icon name="lucide:user" class="w-4 h-4" />
+                  <span>Ingresar</span>
+                </NuxtLink>
+              </template>
+
+              <template #fallback>
+                <div class="h-9 w-24 bg-brand-primary/10 rounded-full animate-pulse"></div>
+              </template>
+            </ClientOnly>
           </div>
 
           <!-- Botón Menú Hamburguesa (Exclusivo Mobile / Tablet < md) -->
@@ -277,35 +283,40 @@ const whatsappCleanUrl = computed(() => {
 
             <!-- Footer del Sidebar Móvil -->
             <div class="pt-4 border-t border-brand-primary/10 space-y-3">
-              <template v-if="authStore.isLoggedIn">
-                <NuxtLink 
-                  to="/perfil?tab=personal" 
-                  @click="isMobileMenuOpen = false"
-                  class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-surface border border-brand-primary/15 text-xs font-bold text-brand-secondary"
-                >
-                  <Icon name="lucide:user" class="w-4 h-4 text-brand-primary" />
-                  <span class="truncate">{{ authStore.profile?.full_name || authStore.user?.user_metadata?.full_name || authStore.user?.email || 'Mi Perfil' }}</span>
-                </NuxtLink>
-                <button 
-                  @click="handleLogout" 
-                  type="button"
-                  class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold text-status-danger bg-red-50/60 hover:bg-red-500 hover:text-white border border-red-200/60 hover:border-red-500 shadow-soft-sm hover:shadow-md active:scale-98 transition-all duration-200 cursor-pointer"
-                  aria-label="Cerrar sesión"
-                >
-                  <Icon name="lucide:log-out" class="w-4 h-4" />
-                  <span>Cerrar Sesión</span>
-                </button>
-              </template>
-              <template v-else>
-                <NuxtLink 
-                  to="/login" 
-                  @click="isMobileMenuOpen = false"
-                  class="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-brand-primary text-white font-bold text-xs shadow-soft-sm hover:bg-brand-secondary transition-all"
-                >
-                  <Icon name="lucide:user" class="w-4 h-4" />
-                  <span>Iniciar Sesión</span>
-                </NuxtLink>
-              </template>
+              <ClientOnly>
+                <template v-if="authStore.isLoggedIn">
+                  <NuxtLink 
+                    to="/perfil?tab=personal" 
+                    @click="isMobileMenuOpen = false"
+                    class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-surface border border-brand-primary/15 text-xs font-bold text-brand-secondary"
+                  >
+                    <Icon name="lucide:user" class="w-4 h-4 text-brand-primary" />
+                    <span class="truncate">{{ authStore.profile?.full_name || authStore.user?.user_metadata?.full_name || authStore.user?.email || 'Mi Perfil' }}</span>
+                  </NuxtLink>
+                  <button 
+                    @click="handleLogout" 
+                    type="button"
+                    class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold text-status-danger bg-red-50/60 hover:bg-red-500 hover:text-white border border-red-200/60 hover:border-red-500 shadow-soft-sm hover:shadow-md active:scale-98 transition-all duration-200 cursor-pointer"
+                    aria-label="Cerrar sesión"
+                  >
+                    <Icon name="lucide:log-out" class="w-4 h-4" />
+                    <span>Cerrar Sesión</span>
+                  </button>
+                </template>
+                <template v-else>
+                  <NuxtLink 
+                    to="/login" 
+                    @click="isMobileMenuOpen = false"
+                    class="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-brand-primary text-white font-bold text-xs shadow-soft-sm hover:bg-brand-secondary transition-all"
+                  >
+                    <Icon name="lucide:user" class="w-4 h-4" />
+                    <span>Iniciar Sesión</span>
+                  </NuxtLink>
+                </template>
+                <template #fallback>
+                  <div class="h-10 w-full bg-brand-primary/10 rounded-xl animate-pulse"></div>
+                </template>
+              </ClientOnly>
             </div>
           </aside>
         </div>
