@@ -166,7 +166,7 @@ async function processCheckout(): Promise<void> {
     totalAmount: order.total_amount
   })
 
-  const whatsappNumber = (config.public.whatsappNumber as string) || '51998265700'
+  const whatsappNumber = String(config.public.whatsappNumber || '51998265700')
   const whatsappUrl = buildWhatsAppUrl(whatsappNumber, message)
 
   isOrderCompleted.value = true

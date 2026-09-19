@@ -50,7 +50,7 @@ onUnmounted(() => {
 })
 
 const config = useRuntimeConfig()
-const businessPhone = (config.public?.whatsappNumber as string) || '51998265700'
+const businessPhone = String(config.public?.whatsappNumber || '51998265700')
 
 // Enlace de soporte WhatsApp reactivo ante cualquier estado de carga del pedido
 const whatsappSupportUrl = computed(() => {

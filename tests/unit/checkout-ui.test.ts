@@ -67,6 +67,11 @@ describe('Fase 4: Dominio Checkout UI - Formateo de WhatsApp y Validación de Pe
       expect(url.startsWith('https://wa.me/51998265700?text=')).toBe(true)
       expect(url).toContain(encodeURIComponent('¡Hola Dulce Fe! Pedido #123'))
     })
+
+    it('acepta números además de strings sin lanzar TypeError (compatibilidad con runtimeConfig destr)', () => {
+      const url = buildWhatsAppUrl(51998265700, '¡Hola Dulce Fe!')
+      expect(url.startsWith('https://wa.me/51998265700?text=')).toBe(true)
+    })
   })
 
   describe('Lógica de Validación de Checkout', () => {
