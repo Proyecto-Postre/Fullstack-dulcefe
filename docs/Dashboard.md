@@ -130,6 +130,7 @@ flowchart TD
 
 ### 📁 05 - Operaciones & Resiliencia
 * [[playbook-operaciones]] — Variables por entorno, rotación de claves, runbook de restore V44, Vercel Git-Ops y telemetría de alertas.
+* [[runbook-despliegue-vercel-troubleshooting]] — Diagnóstico, blindaje y prevención del Error 500 en Vercel SSR (cadena Supabase/Pinia).
 
 ### 📁 decisions/ (ADRs Enterprise MADR 3.0.0 — D1 a D8)
 * [[decisions/README|Índice de ADRs Enterprise]] — Registro formal de deudas técnicas (§20.5 D1–D8).
