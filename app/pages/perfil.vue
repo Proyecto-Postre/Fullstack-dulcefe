@@ -4,7 +4,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { navigateTo } from 'nuxt/app'
 import { useAuthStore, type UserAddress } from '~/stores/auth'
 import { useCartStore } from '~/stores/cart'
-import type { ProfileAddressItem, ProfileTab } from '~/types/profile'
+import { toast } from 'vue-sonner'
+import type { ProfileAddressItem, ProfileTab, ProfileOrder } from '~/types/profile'
 import { useProfileOrders } from '~/composables/useProfileOrders'
 import ProfileHeader from '~/components/profile/ProfileHeader.vue'
 import ProfileUserCard from '~/components/profile/ProfileUserCard.vue'
@@ -13,7 +14,6 @@ import ProfilePersonalTab from '~/components/profile/ProfilePersonalTab.vue'
 import ProfileOrdersHistory from '~/components/profile/ProfileOrdersHistory.vue'
 import ProfileAddressesList from '~/components/profile/ProfileAddressesList.vue'
 import ProfileAddressModal from '~/components/profile/ProfileAddressModal.vue'
-import CustomerOrderDetailsModal from '~/components/CustomerOrderDetailsModal.vue'
 
 const authStore = useAuthStore()
 const cartStore = useCartStore()
@@ -87,15 +87,45 @@ const isDeletingAddressId = ref<string | null>(null)
 const {
   orders,
   isLoading: isLoadingOrders,
-  selectedOrder,
-  showOrderDetailsModal,
   fetchOrders,
-  openOrderDetails,
-  closeOrderDetails,
   formatOrderDate,
   getStatusBadgeClass,
-  getStatusLabel
+  getStatusLabel,
+  getStatusIcon,
+  isOrderActive
 } = useProfileOrders()
+
+const handleRepeatOrder = (order: ProfileOrder) => {
+  if (!order.order_items || order.order_items.length === 0) {
+    toast.error('No se encontraron productos para reordenar en este pedido.')
+    return
+  }
+
+  let addedCount = 0
+  for (const item of order.order_items) {
+    const productId = item.products?.id || item.product_id || item.id
+    const productName = item.products?.name || 'Postre Dulce Fe'
+    const productPrice = item.products?.price ?? item.price_at_time
+    const imageUrl = item.products?.image_url || null
+
+    if (productId) {
+      cartStore.addToCart({
+        id: productId,
+        name: productName,
+        price: Number(productPrice) || 0,
+        image_url: imageUrl
+      }, item.quantity || 1)
+      addedCount++
+    }
+  }
+
+  if (addedCount > 0) {
+    toast.success(`¡Se agregaron ${addedCount} postre(s) al carrito!`)
+    cartStore.openDrawer()
+  } else {
+    toast.error('No se pudo reordenar los productos seleccionados.')
+  }
+}
 
 const openNewAddressModal = () => {
   newAddress.value = { id: '', label: '', address_line: '', reference: '' }
@@ -170,13 +200,13 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="max-w-5xl mx-auto py-10 px-6 flex-1 w-full min-h-[calc(100vh-14rem)] flex flex-col justify-start">
+  <div class="max-w-5xl mx-auto py-6 sm:py-10 px-3.5 sm:px-6 flex-1 w-full min-h-[calc(100vh-14rem)] flex flex-col justify-start">
     <!-- Encabezado -->
     <ProfileHeader @logout="logout" />
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1 items-start">
-      <!-- Sidebar (Usuario y Pestañas) -->
-      <div class="lg:col-span-4 space-y-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 lg:gap-8 flex-1 items-start">
+      <!-- Sidebar (Usuario y Pestañas) - Sticky en Desktop, fluida en Mobile -->
+      <div class="lg:col-span-4 space-y-3 sm:space-y-4 lg:space-y-6 lg:sticky lg:top-24">
         <ProfileUserCard 
           :user="authStore.user" 
           :profile="authStore.profile" 
@@ -189,7 +219,7 @@ onMounted(() => {
 
       <!-- Contenido Principal -->
       <div class="lg:col-span-8">
-        <div class="bg-surface border border-brand-primary/10 rounded-[2rem] p-6 sm:p-8 shadow-soft-md min-h-[420px]">
+        <div class="bg-surface border border-brand-primary/10 rounded-3xl sm:rounded-[2rem] p-4 sm:p-8 shadow-soft-md min-h-[380px] sm:min-h-[420px]">
           <!-- Pestaña 1: Datos Personales (FIRST!) -->
           <ProfilePersonalTab
             v-if="activeTab === 'personal'"
@@ -203,7 +233,9 @@ onMounted(() => {
             :format-date="formatOrderDate"
             :get-status-badge="getStatusBadgeClass"
             :get-status-label="getStatusLabel"
-            @select-order="openOrderDetails"
+            :get-status-icon="getStatusIcon"
+            :is-order-active="isOrderActive"
+            @repeat-order="handleRepeatOrder"
           />
 
           <!-- Pestaña 3: Mis Direcciones -->
@@ -220,12 +252,6 @@ onMounted(() => {
     </div>
 
     <!-- Modales -->
-    <CustomerOrderDetailsModal 
-      :show="showOrderDetailsModal" 
-      :order="selectedOrder" 
-      @close="closeOrderDetails" 
-    />
-
     <ProfileAddressModal
       :show="showAddressModal"
       :address="newAddress"

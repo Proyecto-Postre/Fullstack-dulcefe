@@ -76,10 +76,12 @@ describe('Fase 4 (PR-4a): Dominio Perfil - Tipado y Lógica de Pedidos', () => {
       delivery_date: '2026-09-07',
       delivery_time: '15:00',
       notes: 'Sin azúcar adicional',
+      tracking_token: 'b2c6641130705bcf03ddefe01aa35fb829ca0cac8a955b0731077870f9021234',
       order_items: [item]
     }
 
     expect(order.id).toBe('ord-12345678-abcd')
+    expect(order.tracking_token).toBe('b2c6641130705bcf03ddefe01aa35fb829ca0cac8a955b0731077870f9021234')
     expect(order.order_items?.[0].price_at_time).toBe(15.5)
     expect(order.order_items?.[0].products?.name).toBe('Torta de Chocolate')
   })
@@ -101,5 +103,39 @@ describe('Fase 4 (PR-4a): Dominio Perfil - Tipado y Lógica de Pedidos', () => {
     expect(validTabs[0]).toBe('personal')
     expect(validTabs[1]).toBe('history')
     expect(validTabs[2]).toBe('addresses')
+  })
+
+  it('determina correctamente los iconos de estado y si un pedido está activo', () => {
+    const isOrderActive = (status: string | null): boolean => {
+      return status === 'pending' || status === 'processing' || status === 'preparing' || status === 'in_delivery'
+    }
+
+    const getStatusIcon = (status: string | null): string => {
+      switch (status) {
+        case 'completed':
+          return 'lucide:check-circle-2'
+        case 'in_delivery':
+          return 'lucide:truck'
+        case 'processing':
+        case 'preparing':
+          return 'lucide:chef-hat'
+        case 'pending':
+          return 'lucide:clock'
+        case 'cancelled':
+          return 'lucide:x-circle'
+        default:
+          return 'lucide:package'
+      }
+    }
+
+    expect(isOrderActive('pending')).toBe(true)
+    expect(isOrderActive('processing')).toBe(true)
+    expect(isOrderActive('in_delivery')).toBe(true)
+    expect(isOrderActive('completed')).toBe(false)
+    expect(isOrderActive('cancelled')).toBe(false)
+
+    expect(getStatusIcon('completed')).toBe('lucide:check-circle-2')
+    expect(getStatusIcon('in_delivery')).toBe('lucide:truck')
+    expect(getStatusIcon('cancelled')).toBe('lucide:x-circle')
   })
 })

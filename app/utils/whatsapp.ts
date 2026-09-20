@@ -43,8 +43,8 @@ export function buildWhatsAppOrderMessage(params: WhatsAppMessageParams): string
 /**
  * Genera el enlace wa.me codificado de forma segura.
  */
-export function buildWhatsAppUrl(phone: string, message: string): string {
-  const cleanPhone = phone.replace(/\D/g, '')
+export function buildWhatsAppUrl(phone: string | number, message: string): string {
+  const cleanPhone = String(phone ?? '').replace(/\D/g, '')
   const encoded = encodeURIComponent(message)
   return `https://wa.me/${cleanPhone}?text=${encoded}`
 }

@@ -10,8 +10,8 @@ export function validateRequestOrigin(event: H3Event, requestId: string): void {
   // Si no hay Origin (peticiones directas o curl de pruebas), permitimos continuar
   if (!origin) return
 
-  // Permitir desarrollo local en cualquier puerto (3000, 3001, 3002, etc.)
-  const isLocalDev = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)
+  // Permitir desarrollo local en localhost, 127.0.0.1 y redes privadas LAN (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
+  const isLocalDev = /^https?:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(?:1[6-9]|2\d|3[01])\.\d+\.\d+)(:\d+)?$/.test(origin)
   if (isLocalDev) return
 
   let siteUrl: string | null = null

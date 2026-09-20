@@ -10,6 +10,16 @@ const route = useRoute()
 
 const isMobileMenuOpen = ref(false)
 
+// Bloqueo de scroll del body al abrir el menú móvil
+watch(isMobileMenuOpen, (isOpen) => {
+  if (typeof document === 'undefined') return
+  if (isOpen) {
+    document.body.classList.add('overflow-hidden', 'overscroll-none')
+  } else {
+    document.body.classList.remove('overflow-hidden', 'overscroll-none')
+  }
+})
+
 // Cerrar sidebar al cambiar de ruta automáticamente
 watch(() => route.fullPath, () => {
   isMobileMenuOpen.value = false
@@ -30,6 +40,11 @@ const formattedWhatsApp = computed(() => {
     return `+51 ${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}`
   }
   return digits.startsWith('51') ? `+51 ${digits.slice(2)}` : `+${digits}`
+})
+
+const whatsappCleanUrl = computed(() => {
+  const digits = String(config.public.whatsappNumber || '51998265700').replace(/\D/g, '')
+  return `https://wa.me/${digits}?text=${encodeURIComponent('¡Hola Dulce Fe! Deseo realizar una consulta.')}`
 })
 </script>
 
@@ -106,38 +121,44 @@ const formattedWhatsApp = computed(() => {
 
           <!-- Acciones de Usuario (Solo Desktop >= md) -->
           <div class="hidden md:flex items-center gap-2.5 sm:gap-3">
-            <template v-if="authStore.isLoggedIn">
-              <!-- Acceso a Panel Admin si es Administrador (Solo Desktop) -->
-              <NuxtLink 
-                v-if="authStore.isAdmin"
-                to="/admin" 
-                class="flex items-center gap-1.5 bg-brand-secondary text-white hover:bg-brand-primary border border-transparent px-4 py-2.5 rounded-full font-bold text-xs shadow-soft-sm hover:shadow-md hover:-translate-y-0.5 hover:scale-[1.02] active:translate-y-0 active:scale-95 transition-all duration-200 cursor-pointer"
-              >
-                <Icon name="lucide:shield-check" class="w-4 h-4 text-status-success shrink-0" />
-                <span>Panel Admin</span>
-              </NuxtLink>
+            <ClientOnly>
+              <template v-if="authStore.isLoggedIn">
+                <!-- Acceso a Panel Admin si es Administrador (Solo Desktop) -->
+                <NuxtLink 
+                  v-if="authStore.isAdmin"
+                  to="/admin" 
+                  class="flex items-center gap-1.5 bg-brand-secondary text-white hover:bg-brand-primary border border-transparent px-4 py-2.5 rounded-full font-bold text-xs shadow-soft-sm hover:shadow-md hover:-translate-y-0.5 hover:scale-[1.02] active:translate-y-0 active:scale-95 transition-all duration-200 cursor-pointer"
+                >
+                  <Icon name="lucide:shield-check" class="w-4 h-4 text-status-success shrink-0" />
+                  <span>Panel Admin</span>
+                </NuxtLink>
 
-              <!-- Acceso a Mi Perfil / Datos Personales (Solo Desktop) -->
-              <NuxtLink 
-                to="/perfil?tab=personal" 
-                class="group flex items-center gap-2 bg-surface hover:bg-[#EDE8D5] border border-brand-primary/20 hover:border-brand-primary px-3.5 py-2.5 rounded-full shadow-soft-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-all duration-200 cursor-pointer text-brand-secondary hover:text-brand-primary"
-              >
-                <Icon name="lucide:user" class="w-4 h-4 text-brand-primary group-hover:scale-110 transition-transform" />
-                <span class="font-bold text-xs max-w-[130px] truncate">
-                  {{ authStore.profile?.full_name || authStore.user?.user_metadata?.full_name || 'Mi Perfil' }}
-                </span>
-              </NuxtLink>
-            </template>
+                <!-- Acceso a Mi Perfil / Datos Personales (Solo Desktop) -->
+                <NuxtLink 
+                  to="/perfil?tab=personal" 
+                  class="group flex items-center gap-2 bg-surface hover:bg-[#EDE8D5] border border-brand-primary/20 hover:border-brand-primary px-3.5 py-2.5 rounded-full shadow-soft-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-all duration-200 cursor-pointer text-brand-secondary hover:text-brand-primary"
+                >
+                  <Icon name="lucide:user" class="w-4 h-4 text-brand-primary group-hover:scale-110 transition-transform" />
+                  <span class="font-bold text-xs max-w-[130px] truncate">
+                    {{ authStore.profile?.full_name || authStore.user?.user_metadata?.full_name || 'Mi Perfil' }}
+                  </span>
+                </NuxtLink>
+              </template>
 
-            <template v-else>
-              <NuxtLink 
-                to="/login" 
-                class="flex items-center gap-1.5 bg-brand-primary text-white hover:bg-brand-secondary border border-transparent px-4 py-2.5 rounded-full font-bold text-xs shadow-soft-sm hover:shadow-md hover:-translate-y-0.5 hover:scale-[1.02] transition-all duration-200 cursor-pointer active:translate-y-0 active:scale-95"
-              >
-                <Icon name="lucide:user" class="w-4 h-4" />
-                <span>Ingresar</span>
-              </NuxtLink>
-            </template>
+              <template v-else>
+                <NuxtLink 
+                  to="/login" 
+                  class="flex items-center gap-1.5 bg-brand-primary text-white hover:bg-brand-secondary border border-transparent px-4 py-2.5 rounded-full font-bold text-xs shadow-soft-sm hover:shadow-md hover:-translate-y-0.5 hover:scale-[1.02] transition-all duration-200 cursor-pointer active:translate-y-0 active:scale-95"
+                >
+                  <Icon name="lucide:user" class="w-4 h-4" />
+                  <span>Ingresar</span>
+                </NuxtLink>
+              </template>
+
+              <template #fallback>
+                <div class="h-9 w-24 bg-brand-primary/10 rounded-full animate-pulse"></div>
+              </template>
+            </ClientOnly>
           </div>
 
           <!-- Botón Menú Hamburguesa (Exclusivo Mobile / Tablet < md) -->
@@ -169,13 +190,14 @@ const formattedWhatsApp = computed(() => {
         >
           <!-- Backdrop -->
           <div 
-            class="absolute inset-0 bg-[#2A321B]/50 backdrop-blur-sm transition-opacity"
+            class="absolute inset-0 bg-[#2A321B]/50 backdrop-blur-sm transition-opacity touch-none"
             @click="isMobileMenuOpen = false"
+            @touchmove.prevent
           ></div>
 
           <!-- Sidebar Panel -->
           <aside 
-            class="relative w-[85%] max-w-xs bg-brand-cream h-full shadow-2xl border-l border-brand-primary/20 flex flex-col z-10 animate-slide-in p-6"
+            class="relative w-[85%] max-w-xs bg-brand-cream h-full h-[100dvh] max-h-[100dvh] shadow-2xl border-l border-brand-primary/20 flex flex-col z-10 animate-slide-in p-6 overscroll-contain overflow-hidden"
             @click.stop
           >
             <!-- Cabecera del Sidebar -->
@@ -231,6 +253,17 @@ const formattedWhatsApp = computed(() => {
                 <span>Mis Pedidos</span>
               </NuxtLink>
 
+              <a 
+                :href="whatsappCleanUrl" 
+                target="_blank"
+                rel="noopener noreferrer"
+                @click="isMobileMenuOpen = false"
+                class="flex items-center gap-3.5 px-4 py-3 rounded-2xl font-bold text-sm text-brand-secondary hover:bg-surface/80 border border-transparent transition-all cursor-pointer"
+              >
+                <Icon name="lucide:message-circle" class="w-5 h-5 text-emerald-600" />
+                <span>Atención WhatsApp</span>
+              </a>
+
               <!-- Opción Destacada de Panel Admin (Solo Administradores) -->
               <div v-if="authStore.isAdmin" class="pt-4 mt-4 border-t border-brand-primary/10">
                 <p class="text-[10px] font-black uppercase tracking-wider text-brand-primary/60 px-4 mb-2">Administración</p>
@@ -250,71 +283,79 @@ const formattedWhatsApp = computed(() => {
 
             <!-- Footer del Sidebar Móvil -->
             <div class="pt-4 border-t border-brand-primary/10 space-y-3">
-              <template v-if="authStore.isLoggedIn">
-                <NuxtLink 
-                  to="/perfil?tab=personal" 
-                  @click="isMobileMenuOpen = false"
-                  class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-surface border border-brand-primary/15 text-xs font-bold text-brand-secondary"
-                >
-                  <Icon name="lucide:user" class="w-4 h-4 text-brand-primary" />
-                  <span class="truncate">{{ authStore.profile?.full_name || authStore.user?.user_metadata?.full_name || authStore.user?.email || 'Mi Perfil' }}</span>
-                </NuxtLink>
-                <button 
-                  @click="handleLogout" 
-                  type="button"
-                  class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold text-status-danger bg-red-50/60 hover:bg-red-500 hover:text-white border border-red-200/60 hover:border-red-500 shadow-soft-sm hover:shadow-md active:scale-98 transition-all duration-200 cursor-pointer"
-                  aria-label="Cerrar sesión"
-                >
-                  <Icon name="lucide:log-out" class="w-4 h-4" />
-                  <span>Cerrar Sesión</span>
-                </button>
-              </template>
-              <template v-else>
-                <NuxtLink 
-                  to="/login" 
-                  @click="isMobileMenuOpen = false"
-                  class="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-brand-primary text-white font-bold text-xs shadow-soft-sm hover:bg-brand-secondary transition-all"
-                >
-                  <Icon name="lucide:user" class="w-4 h-4" />
-                  <span>Iniciar Sesión</span>
-                </NuxtLink>
-              </template>
+              <ClientOnly>
+                <template v-if="authStore.isLoggedIn">
+                  <NuxtLink 
+                    to="/perfil?tab=personal" 
+                    @click="isMobileMenuOpen = false"
+                    class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-surface border border-brand-primary/15 text-xs font-bold text-brand-secondary"
+                  >
+                    <Icon name="lucide:user" class="w-4 h-4 text-brand-primary" />
+                    <span class="truncate">{{ authStore.profile?.full_name || authStore.user?.user_metadata?.full_name || authStore.user?.email || 'Mi Perfil' }}</span>
+                  </NuxtLink>
+                  <button 
+                    @click="handleLogout" 
+                    type="button"
+                    class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold text-status-danger bg-red-50/60 hover:bg-red-500 hover:text-white border border-red-200/60 hover:border-red-500 shadow-soft-sm hover:shadow-md active:scale-98 transition-all duration-200 cursor-pointer"
+                    aria-label="Cerrar sesión"
+                  >
+                    <Icon name="lucide:log-out" class="w-4 h-4" />
+                    <span>Cerrar Sesión</span>
+                  </button>
+                </template>
+                <template v-else>
+                  <NuxtLink 
+                    to="/login" 
+                    @click="isMobileMenuOpen = false"
+                    class="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-brand-primary text-white font-bold text-xs shadow-soft-sm hover:bg-brand-secondary transition-all"
+                  >
+                    <Icon name="lucide:user" class="w-4 h-4" />
+                    <span>Iniciar Sesión</span>
+                  </NuxtLink>
+                </template>
+                <template #fallback>
+                  <div class="h-10 w-full bg-brand-primary/10 rounded-xl animate-pulse"></div>
+                </template>
+              </ClientOnly>
             </div>
           </aside>
         </div>
       </Transition>
     </Teleport>
 
-    <!-- Footer de la Tienda (Elegante y Proporcionado) -->
-    <footer class="z-20 bg-brand-secondary text-brand-cream py-5 sm:py-6 px-6 sm:px-8 lg:px-12 border-t border-brand-primary/20 mt-auto shrink-0">
-      <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-6">
+    <!-- Footer de la Tienda (Boutique Dulce Fe - Elegante y Armónico) -->
+    <footer class="z-20 bg-brand-secondary text-brand-cream py-3.5 px-4 sm:px-8 border-t border-brand-primary/20 mt-auto shrink-0 pb-[max(0.85rem,env(safe-area-inset-bottom))]">
+      <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
         <!-- Marca e Identidad -->
-        <div class="flex items-center gap-3">
-          <div class="w-9 h-9 border border-white/20 bg-brand-primary/40 rounded-full flex items-center justify-center text-brand-cream shrink-0 shadow-soft-sm">
-            <Icon name="lucide:wheat" class="w-4 h-4 text-brand-cream" />
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-8 h-8 rounded-full bg-brand-cream/10 border border-brand-cream/15 flex items-center justify-center text-brand-accent shrink-0 shadow-soft-sm">
+            <Icon name="lucide:wheat" class="w-4 h-4 text-[#C5A059]" />
           </div>
-          <div class="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3">
-            <span class="text-base sm:text-lg font-playfair font-black text-brand-cream tracking-tight">Dulce Fe</span>
-            <span class="text-xs text-brand-cream/60 font-medium">Pastelería Fina Artesanal</span>
-            <span class="text-xs text-brand-cream/40">© {{ new Date().getFullYear() }}</span>
+          <div class="min-w-0">
+            <div class="flex items-baseline gap-1.5 leading-tight">
+              <span class="text-sm sm:text-base font-playfair font-black text-brand-cream tracking-tight">Dulce Fe</span>
+              <span class="text-[10px] text-brand-cream/40 font-mono">© {{ new Date().getFullYear() }}</span>
+            </div>
+            <p class="text-[10px] text-brand-cream/60 font-medium hidden xs:block leading-none mt-0.5">
+              Pastelería Fina Artesanal
+            </p>
           </div>
         </div>
 
-        <!-- Atención y Contacto Directo WhatsApp -->
-        <div class="flex flex-wrap items-center justify-center sm:justify-end gap-3 sm:gap-5">
-          <span class="text-xs text-brand-cream/60 font-medium hidden md:inline">
-            Atención: Lun-Sáb 8am-8pm | Dom 9am-5pm
+        <!-- Botón WhatsApp Estilo Integrado (Armonía Tonal con el Footer) -->
+        <a 
+          :href="whatsappCleanUrl" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          class="group inline-flex items-center gap-2 px-3 sm:px-3.5 py-1.5 rounded-full bg-brand-cream/10 hover:bg-brand-cream/20 text-brand-cream border border-brand-cream/15 hover:border-brand-cream/30 backdrop-blur-sm shadow-soft-sm transition-all duration-200 active:scale-95 shrink-0 select-none cursor-pointer"
+          aria-label="Atención por WhatsApp"
+        >
+          <Icon name="lucide:message-circle" class="w-4 h-4 text-emerald-400 group-hover:text-emerald-300 transition-colors shrink-0" />
+          <span class="text-xs font-medium tracking-tight text-brand-cream/90 group-hover:text-white transition-colors">
+            <span class="hidden sm:inline">WhatsApp: {{ formattedWhatsApp }}</span>
+            <span class="sm:hidden">WhatsApp</span>
           </span>
-          <a 
-            :href="`https://wa.me/${config.public.whatsappNumber}`" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs sm:text-sm text-brand-cream font-bold transition-all shadow-soft-sm hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
-          >
-            <Icon name="lucide:message-circle" class="w-4 h-4 text-emerald-400" />
-            <span>WhatsApp: {{ formattedWhatsApp }}</span>
-          </a>
-        </div>
+        </a>
       </div>
     </footer>
 

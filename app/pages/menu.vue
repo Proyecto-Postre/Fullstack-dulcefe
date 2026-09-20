@@ -85,7 +85,7 @@ const {
     <AnimatedGrid
       v-else
       :items="filteredProducts"
-      grid-class="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-7"
+      grid-class="grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 lg:gap-7"
     >
       <template #default="{ item: product }">
         <CatalogProductCard

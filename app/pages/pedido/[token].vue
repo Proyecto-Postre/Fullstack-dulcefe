@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { toast } from 'vue-sonner'
 import type { PublicOrderTrackingDTO } from '~/types/tracking'
 import { buildWhatsAppUrl } from '~/utils/whatsapp'
 
@@ -13,47 +14,111 @@ const { data: order, pending, error, refresh } = await useFetch<PublicOrderTrack
   { key: `order-tracking-${token}` }
 )
 
-// Polling inteligente cada 30 segundos si la pestaña está activa
-let pollTimer: ReturnType<typeof setInterval> | null = null
-
-function handleVisibilityChange() {
-  if (document.visibilityState === 'visible') {
-    refresh()
-  }
-}
+// Suscripción en tiempo real vía Server-Sent Events (SSE) - Cero polling
+let eventSource: EventSource | null = null
 
 onMounted(() => {
-  pollTimer = setInterval(() => {
-    if (document.visibilityState === 'visible') {
-      refresh()
-    }
-  }, 30000)
+  if (typeof window !== 'undefined' && 'EventSource' in window && token) {
+    eventSource = new EventSource(`/api/orders/track/${token}/stream`)
 
-  document.addEventListener('visibilitychange', handleVisibilityChange)
+    eventSource.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data)
+        if (payload.type === 'order_updated') {
+          // Actualización en tiempo real desde cocina/admin
+          refresh()
+          toast.info('Estado de tu pedido actualizado', {
+            description: `Tu pedido ahora está: ${getStatusLabel(payload.status)}`
+          })
+        }
+      } catch {
+        // Ignorar eventos que no sean JSON o heartbeats
+      }
+    }
+
+    eventSource.onerror = () => {
+      // Reconexión automática nativa gestionada por el navegador
+    }
+  }
 })
 
 onUnmounted(() => {
-  if (pollTimer) clearInterval(pollTimer)
-  document.removeEventListener('visibilitychange', handleVisibilityChange)
+  if (eventSource) {
+    eventSource.close()
+    eventSource = null
+  }
 })
 
-// Enlace de soporte WhatsApp
-const whatsappSupportUrl = ref('')
 const config = useRuntimeConfig()
-const businessPhone = (config.public?.whatsappNumber as string) || '51998265700'
+const businessPhone = String(config.public?.whatsappNumber || '51998265700')
+
+// Enlace de soporte WhatsApp reactivo ante cualquier estado de carga del pedido
+const whatsappSupportUrl = computed(() => {
+  const shortId = order.value?.short_id || (token ? String(token).slice(0, 8) : '')
+  const isPendingCoordination = order.value?.channel === 'whatsapp_chat' && order.value?.status === 'pending'
+  const msg = isPendingCoordination
+    ? `¡Hola Dulce Fe! Deseo coordinar la confirmación y entrega de mi pedido ${shortId}.`
+    : shortId
+      ? `¡Hola Dulce Fe! Tengo una consulta sobre mi pedido ${shortId}.`
+      : '¡Hola Dulce Fe! Tengo una consulta sobre mi pedido.'
+  return buildWhatsAppUrl(businessPhone, msg)
+})
+
+// Función para copiar el enlace de seguimiento al portapapeles
+const isCopied = ref(false)
+let trackingUrlTimeout: ReturnType<typeof setTimeout> | null = null
+
+async function copyTrackingUrl() {
+  if (typeof window === 'undefined' || isCopied.value) return
+  try {
+    await navigator.clipboard.writeText(window.location.href)
+    isCopied.value = true
+    toast.success('¡Enlace de seguimiento copiado al portapapeles!', {
+      id: 'copy-tracking-url',
+      duration: 2500
+    })
+    if (trackingUrlTimeout) clearTimeout(trackingUrlTimeout)
+    trackingUrlTimeout = setTimeout(() => {
+      isCopied.value = false
+    }, 2500)
+  } catch {
+    toast.error('No se pudo copiar el enlace. Puedes copiar la URL del navegador.', {
+      id: 'copy-tracking-url-error'
+    })
+  }
+}
+
+// Función para copiar la referencia del pedido con animación in-place
+const isShortIdCopied = ref(false)
+let shortIdTimeout: ReturnType<typeof setTimeout> | null = null
+
+async function copyShortId() {
+  if (!order.value?.short_id || isShortIdCopied.value) return
+  if (typeof window === 'undefined') return
+  try {
+    await navigator.clipboard.writeText(order.value.short_id)
+    isShortIdCopied.value = true
+    if (shortIdTimeout) clearTimeout(shortIdTimeout)
+    shortIdTimeout = setTimeout(() => {
+      isShortIdCopied.value = false
+    }, 1400)
+  } catch {
+    // Ignorar si el navegador no tiene permiso
+  }
+}
 
 function getStatusBadgeClass(status: string): string {
   switch (status) {
     case 'pending':
-      return 'bg-amber-100 text-amber-800 border-amber-300'
+      return 'bg-amber-100 text-amber-900 border-amber-300/70'
     case 'processing':
-      return 'bg-blue-100 text-blue-800 border-blue-300'
+      return 'bg-blue-100 text-blue-900 border-blue-300/70'
     case 'ready':
-      return 'bg-emerald-100 text-emerald-800 border-emerald-300'
+      return 'bg-emerald-100 text-emerald-900 border-emerald-300'
     case 'delivered':
-      return 'bg-green-100 text-green-800 border-green-300'
+      return 'bg-[#4A5D23] text-white border-[#4A5D23]'
     case 'cancelled':
-      return 'bg-red-100 text-red-800 border-red-300'
+      return 'bg-red-100 text-red-900 border-red-300/70'
     default:
       return 'bg-stone-100 text-stone-800 border-stone-300'
   }
@@ -62,7 +127,7 @@ function getStatusBadgeClass(status: string): string {
 function getStatusLabel(status: string): string {
   switch (status) {
     case 'pending':
-      return 'Pedido Recibido'
+      return order.value?.channel === 'whatsapp_chat' ? 'Solicitud Recibida' : 'Pedido Registrado'
     case 'processing':
       return 'En Taller / Horneado'
     case 'ready':
@@ -76,179 +141,393 @@ function getStatusLabel(status: string): string {
   }
 }
 
-if (order.value) {
-  const msg = `¡Hola Dulce Fe! Tengo una consulta sobre mi pedido ${order.value.short_id}.`
-  whatsappSupportUrl.value = buildWhatsAppUrl(businessPhone, msg)
+function getStatusIcon(status: string): string {
+  switch (status) {
+    case 'pending':
+      return order.value?.channel === 'whatsapp_chat' ? 'lucide:message-square' : 'lucide:clipboard-check'
+    case 'processing':
+      return 'lucide:chef-hat'
+    case 'ready':
+      return 'lucide:package-check'
+    case 'delivered':
+      return 'lucide:heart-handshake'
+    case 'cancelled':
+      return 'lucide:x-circle'
+    default:
+      return 'lucide:package'
+  }
 }
+
+// Calcular progreso para la barra del stepper horizontal (desktop)
+const progressPercentage = computed(() => {
+  if (!order.value || order.value.is_cancelled) return 0
+  const status = order.value.status
+  switch (status) {
+    case 'pending':
+      return 12
+    case 'processing':
+      return 42
+    case 'ready':
+      return 72
+    case 'delivered':
+      return 100
+    default:
+      return 12
+  }
+})
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#FDFBF7] py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-3xl mx-auto">
-      <!-- Estado de Carga -->
-      <div v-if="pending" class="text-center py-20">
-        <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-[#4A5D23] border-t-transparent mb-4" />
-        <p class="text-stone-600 font-medium font-sans">Localizando tu pedido en taller...</p>
-      </div>
+  <div class="flex-1 w-full bg-gradient-to-b from-[#F4F1E1]/60 via-[#F4F1E1]/40 to-[#F4F1E1]/80 py-4 sm:py-6 md:py-8 lg:py-10 px-3.5 sm:px-6 lg:px-8 flex flex-col justify-start md:justify-center relative overflow-hidden">
+    
+    <!-- Luces Ambientales Cálidas & Elementos Botánicos para Pantallas Medianas y Grandes -->
+    <div class="absolute inset-0 pointer-events-none overflow-hidden z-0 hidden sm:block">
+      <div class="absolute -top-28 -left-28 w-[32rem] h-[32rem] bg-gradient-to-br from-brand-accent/15 via-brand-accent/5 to-transparent rounded-full blur-3xl pointer-events-none" />
+      <div class="absolute -bottom-28 -right-28 w-[36rem] h-[36rem] bg-gradient-to-tl from-brand-primary/10 via-brand-secondary/5 to-transparent rounded-full blur-3xl pointer-events-none" />
+      <Icon name="lucide:leaf" class="absolute top-[6%] left-[1.5%] w-60 h-60 text-brand-primary/[0.035] -rotate-12 pointer-events-none" />
+      <Icon name="lucide:wheat" class="absolute bottom-[8%] right-[2%] w-64 h-64 text-brand-primary/[0.03] rotate-45 pointer-events-none" />
+    </div>
 
-      <!-- Estado de Error / Token Inválido o No Encontrado -->
-      <div v-else-if="error || !order" class="bg-white rounded-3xl p-8 sm:p-12 shadow-sm border border-stone-200 text-center">
-        <div class="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Icon name="lucide:alert-triangle" class="w-8 h-8" />
-        </div>
-        <h1 class="text-2xl font-serif text-[#2A321B] font-bold mb-2">Pedido No Encontrado</h1>
-        <p class="text-stone-600 mb-6 max-w-md mx-auto">
-          El enlace de seguimiento no es válido o la orden ha expirado. Si realizaste un pedido recientemente, por favor contáctanos con tu comprobante.
-        </p>
+    <div class="relative z-10 w-full max-w-5xl xl:max-w-6xl 2xl:max-w-6xl mx-auto my-auto space-y-3.5 sm:space-y-4 lg:space-y-5 transition-all duration-300">
+
+      <!-- ==================== BARRA SUPERIOR DE NAVEGACIÓN Y ACCIONES ==================== -->
+      <div class="flex items-center justify-between gap-2">
         <NuxtLink
-          to="/"
-          class="inline-flex items-center gap-2 px-6 py-3 bg-[#4A5D23] text-white font-medium rounded-full hover:bg-[#3d4d1c] transition-colors"
+          to="/perfil?tab=pedidos"
+          class="inline-flex items-center gap-1.5 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full bg-white/95 hover:bg-white text-xs sm:text-sm font-bold text-[#4A5D23] hover:text-[#2A321B] border border-[#4A5D23]/15 shadow-soft-sm hover:shadow-md transition-all group cursor-pointer"
         >
-          <Icon name="lucide:home" class="w-4 h-4" />
-          Ir al Inicio
+          <Icon name="lucide:arrow-left" class="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform group-hover:-translate-x-1" />
+          <span>Volver a Mis Pedidos</span>
         </NuxtLink>
+
+        <button
+          v-if="order"
+          @click="copyTrackingUrl"
+          type="button"
+          class="inline-flex items-center gap-1.5 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full bg-white/95 hover:bg-white text-xs sm:text-sm font-bold border shadow-soft-sm hover:shadow-md transition-all duration-200 active:scale-95 cursor-pointer"
+          :class="isCopied ? 'border-emerald-500 text-emerald-900 bg-emerald-100 scale-105' : 'text-stone-700 hover:text-[#2A321B] border-[#4A5D23]/15'"
+          :title="'Copiar enlace de seguimiento para compartir'"
+        >
+          <Icon :name="isCopied ? 'lucide:check' : 'lucide:share-2'" class="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform duration-200" :class="isCopied ? 'text-emerald-700 scale-110' : 'text-[#4A5D23]'" />
+          <span class="hidden xs:inline">{{ isCopied ? '¡Copiado!' : 'Compartir enlace' }}</span>
+        </button>
       </div>
 
-      <!-- Vista Principal de Seguimiento -->
-      <div v-else class="space-y-6">
-        <!-- Cabecera de la Orden -->
-        <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-stone-200">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-100 pb-6 mb-6">
-            <div>
-              <div class="flex items-center gap-3">
-                <span class="text-xs font-semibold uppercase tracking-wider text-stone-500 font-sans">
-                  Seguimiento de Pedido
-                </span>
-                <span
-                  class="px-3 py-1 text-xs font-semibold rounded-full border"
-                  :class="getStatusBadgeClass(order.status)"
-                >
-                  {{ getStatusLabel(order.status) }}
-                </span>
-              </div>
-              <h1 class="text-3xl font-serif font-bold text-[#2A321B] mt-1">
-                ¡Hola, {{ order.customer_first_name }}!
-              </h1>
-              <p class="text-stone-500 text-sm mt-1 font-sans">
-                Referencia oficial: <span class="font-bold text-[#4A5D23]">{{ order.short_id }}</span>
-              </p>
-            </div>
+      <!-- ==================== ESTADO DE CARGA ==================== -->
+      <div v-if="pending" class="bg-white rounded-3xl p-8 sm:p-12 text-center shadow-soft-md border border-[#4A5D23]/15 space-y-3">
+        <div class="inline-block animate-spin rounded-full h-10 w-10 border-3 border-[#4A5D23] border-t-transparent mb-1" />
+        <h2 class="font-playfair font-bold text-lg sm:text-xl text-[#2A321B]">Localizando tu pedido en taller...</h2>
+        <p class="text-xs sm:text-sm text-stone-600 max-w-sm mx-auto font-sans">
+          Estamos sincronizando los tiempos de preparación y el estado de despacho de Dulce Fe.
+        </p>
+      </div>
 
-            <!-- Promesa de Entrega -->
-            <div
-              v-if="order.delivery_date"
-              class="bg-[#F4F1E1] rounded-2xl p-4 sm:text-right border border-[#e5dfc5]"
-            >
-              <span class="text-xs text-stone-600 block font-sans">Entrega Programada</span>
-              <p class="text-lg font-bold text-[#2A321B] font-serif">
-                {{ order.delivery_date }}
-                <span v-if="order.delivery_time" class="text-sm font-sans font-normal text-stone-600">
-                  ({{ order.delivery_time }})
-                </span>
-              </p>
-            </div>
-          </div>
-
-          <!-- Alerta si la orden fue cancelada -->
-          <div
-            v-if="order.is_cancelled"
-            class="bg-red-50 border border-red-200 text-red-800 rounded-2xl p-4 flex items-start gap-3 mb-6"
-            role="alert"
+      <!-- ==================== ESTADO DE ERROR / NO ENCONTRADO ==================== -->
+      <div v-else-if="error || !order" class="bg-white rounded-3xl p-6 sm:p-10 shadow-soft-md border border-red-200 text-center space-y-3">
+        <div class="w-14 h-14 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto shadow-2xs">
+          <Icon name="lucide:alert-triangle" class="w-7 h-7" />
+        </div>
+        <h1 class="text-xl sm:text-2xl font-playfair font-black text-[#2A321B]">Pedido No Encontrado</h1>
+        <p class="text-xs sm:text-sm text-stone-600 max-w-md mx-auto leading-relaxed">
+          El enlace de seguimiento no es válido o la orden ha expirado. Si acabas de registrar un pedido, puedes revisar tu historial en tu perfil o escribirnos directamente.
+        </p>
+        <div class="flex flex-wrap items-center justify-center gap-2.5 pt-2">
+          <NuxtLink
+            to="/perfil?tab=pedidos"
+            class="inline-flex items-center gap-2 px-5 py-2.5 bg-[#4A5D23] text-white text-xs font-bold rounded-full hover:bg-[#2A321B] shadow-soft-sm hover:shadow-md transition-all"
           >
-            <Icon name="lucide:x-circle" class="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
-            <div>
-              <p class="font-bold font-sans">Este pedido fue cancelado.</p>
-              <p class="text-sm text-red-700">Para cualquier consulta o reprogramación, comunícate con nuestro taller vía WhatsApp.</p>
-            </div>
-          </div>
+            <Icon name="lucide:shopping-bag" class="w-3.5 h-3.5" />
+            <span>Ir a Mis Pedidos</span>
+          </NuxtLink>
+          <NuxtLink
+            to="/"
+            class="inline-flex items-center gap-2 px-5 py-2.5 bg-stone-100 text-stone-700 text-xs font-bold rounded-full hover:bg-stone-200 transition-all"
+          >
+            <Icon name="lucide:home" class="w-3.5 h-3.5" />
+            <span>Ir al Inicio</span>
+          </NuxtLink>
+        </div>
+      </div>
 
-          <!-- Stepper Visual de Estados -->
-          <div v-if="!order.is_cancelled" class="py-4" role="status" aria-live="polite">
-            <h2 class="sr-only">Estado del Pedido</h2>
-            <div class="relative">
-              <!-- Línea conectora de fondo -->
-              <div class="hidden sm:block absolute top-5 left-6 right-6 h-1 bg-stone-200" aria-hidden="true" />
+      <!-- ==================== VISTA PRINCIPAL (GRID RESPONSIVO INTEGRADO) ==================== -->
+      <div v-else class="space-y-3.5 sm:space-y-4 lg:space-y-5">
 
-              <div class="grid grid-cols-1 sm:grid-cols-4 gap-6 relative">
-                <div
-                  v-for="(step, idx) in order.timeline"
-                  :key="step.status"
-                  class="flex sm:flex-col items-start sm:items-center text-left sm:text-center gap-4 sm:gap-2"
-                >
-                  <!-- Indicador circular del paso -->
-                  <div
-                    class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm z-10 transition-all flex-shrink-0 shadow-sm"
-                    :class="[
-                      step.current
-                        ? 'bg-[#4A5D23] text-white ring-4 ring-[#4A5D23]/20 animate-pulse'
-                        : step.completed
-                          ? 'bg-[#4A5D23] text-white'
-                          : 'bg-stone-200 text-stone-500'
-                    ]"
-                  >
-                    <Icon v-if="step.completed && !step.current" name="lucide:check" class="w-5 h-5" />
-                    <span v-else>{{ idx + 1 }}</span>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-4 lg:gap-5 xl:gap-6 items-stretch">
+
+          <!-- COLUMNA IZQUIERDA: HERO DEL PEDIDO + STEPPER (lg:col-span-7) -->
+          <div class="lg:col-span-7 flex flex-col">
+
+            <!-- TARJETA HERO: ESTADO Y STEPPER -->
+            <div class="bg-white rounded-2xl sm:rounded-3xl shadow-soft-sm hover:shadow-soft-md transition-shadow border border-[#4A5D23]/15 overflow-hidden flex-1 flex flex-col justify-between">
+              <!-- Barra decorativa superior botánica -->
+              <div class="h-1.5 sm:h-2 w-full bg-gradient-to-r from-[#4A5D23] via-[#6a8435] to-[#C5A059]" />
+
+              <div class="p-4 sm:p-5 lg:p-6 xl:p-7 space-y-4 sm:space-y-5 flex-1 flex flex-col justify-between">
+                <div>
+                  <!-- Encabezado: Saludo + Badge + Referencia -->
+                  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 sm:pb-3.5 border-b border-[#4A5D23]/10">
+                    <div>
+                      <div class="flex items-center gap-2 mb-1">
+                        <span class="text-[10px] sm:text-xs font-black uppercase tracking-wider text-stone-500 font-sans">
+                          Seguimiento en Vivo
+                        </span>
+                        <span
+                          class="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[11px] sm:text-xs font-bold rounded-full border shadow-2xs"
+                          :class="getStatusBadgeClass(order.status)"
+                        >
+                          <span 
+                            v-if="!order.is_cancelled && order.status !== 'delivered'" 
+                            class="flex h-1.5 w-1.5 relative"
+                          >
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-500 opacity-75" />
+                            <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-600" />
+                          </span>
+                          <Icon :name="getStatusIcon(order.status)" class="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                          <span>{{ getStatusLabel(order.status) }}</span>
+                        </span>
+                      </div>
+
+                      <h1 class="text-xl sm:text-2xl lg:text-3xl font-playfair font-black text-[#2A321B]">
+                        ¡Hola, {{ order.customer_first_name }}!
+                      </h1>
+
+                      <!-- Referencia con botón de copia rápida -->
+                      <div class="flex items-center gap-1.5 text-xs sm:text-sm text-stone-600 mt-1">
+                        <span>Referencia:</span>
+                        <button
+                          @click="copyShortId"
+                          type="button"
+                          class="inline-flex items-center gap-1.5 font-mono font-bold px-2.5 py-0.5 sm:py-1 rounded-md border transition-all duration-200 select-none cursor-pointer"
+                          :class="[
+                            isShortIdCopied
+                              ? 'bg-emerald-100 text-emerald-900 border-emerald-500 shadow-2xs'
+                              : 'text-[#4A5D23] bg-[#F4F1E1]/80 hover:bg-[#F4F1E1] border-[#4A5D23]/25 hover:border-[#4A5D23]/40 active:scale-95'
+                          ]"
+                          :title="isShortIdCopied ? '¡Referencia copiada!' : 'Clic para copiar referencia'"
+                        >
+                          <Icon
+                            :name="isShortIdCopied ? 'lucide:check' : 'lucide:copy'"
+                            class="w-3.5 h-3.5 transition-transform duration-200"
+                            :class="isShortIdCopied ? 'text-emerald-700 scale-110' : 'opacity-70'"
+                          />
+                          <span>{{ order.short_id }}</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Fecha programada si existe -->
+                    <div
+                      v-if="order.delivery_date"
+                      class="bg-[#F4F1E1]/70 rounded-xl sm:rounded-2xl px-3.5 py-2 border border-[#4A5D23]/15 self-start sm:self-auto sm:text-right shrink-0 text-xs sm:text-sm"
+                    >
+                      <span class="text-[10px] sm:text-xs font-bold text-[#4A5D23] uppercase block">Entrega</span>
+                      <span class="font-bold text-[#2A321B] block font-serif text-xs sm:text-sm">{{ order.delivery_date }}</span>
+                      <span v-if="order.delivery_time" class="text-[10px] sm:text-xs text-stone-600 font-sans block">
+                        {{ order.delivery_time }}
+                      </span>
+                    </div>
                   </div>
 
-                  <!-- Textos del paso -->
-                  <div>
-                    <p
-                      class="font-semibold text-sm font-sans"
-                      :class="step.current || step.completed ? 'text-[#2A321B]' : 'text-stone-400'"
-                    >
-                      {{ step.label }}
-                    </p>
-                    <p class="text-xs text-stone-500 mt-0.5 sm:max-w-[140px]">
-                      {{ step.description }}
-                    </p>
+                  <!-- Alerta de orden cancelada -->
+                  <div
+                    v-if="order.is_cancelled"
+                    class="mt-3 bg-red-50 border border-red-200 text-red-900 rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-start gap-2.5 text-xs sm:text-sm"
+                    role="alert"
+                  >
+                    <Icon name="lucide:x-circle" class="w-4 h-4 sm:w-5 sm:h-5 text-red-600 mt-0.5 shrink-0" />
+                    <div>
+                      <p class="font-bold">Este pedido se encuentra cancelado.</p>
+                      <p class="text-stone-700">Comunícate con nuestro taller vía WhatsApp para resolver cualquier consulta.</p>
+                    </div>
+                  </div>
+
+                  <!-- ==================== STEPPER OPERATIVO ==================== -->
+                  <div v-if="!order.is_cancelled" class="pt-3 sm:pt-4">
+                    <!-- Barra horizontal de 4 pasos -->
+                    <div class="relative pb-1">
+                      <!-- Barra conectora de fondo -->
+                      <div class="absolute top-4 sm:top-4.5 lg:top-5 left-6 right-6 sm:left-8 sm:right-8 h-1 sm:h-1.5 bg-stone-200 rounded-full" aria-hidden="true" />
+                      <!-- Barra de progreso activa coloreada -->
+                      <div 
+                        class="absolute top-4 sm:top-4.5 lg:top-5 left-6 sm:left-8 h-1 sm:h-1.5 bg-[#4A5D23] rounded-full transition-all duration-500" 
+                        :style="{ width: `calc(${progressPercentage}% - 1.5rem)` }"
+                        aria-hidden="true" 
+                      />
+
+                      <div class="grid grid-cols-4 gap-1 sm:gap-2 relative">
+                        <div
+                          v-for="(step, idx) in order.timeline"
+                          :key="step.status"
+                          class="flex flex-col items-center text-center space-y-1.5"
+                        >
+                          <!-- Círculo del paso con icono -->
+                          <div
+                            class="w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm z-10 transition-all shadow-2xs"
+                            :class="[
+                              step.current
+                                ? 'bg-[#4A5D23] text-white ring-4 ring-[#4A5D23]/25 scale-105'
+                                : step.completed
+                                  ? 'bg-[#4A5D23] text-white'
+                                  : 'bg-stone-100 text-stone-400 border border-stone-300'
+                            ]"
+                          >
+                            <Icon v-if="step.completed && !step.current" name="lucide:check" class="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                            <Icon v-else-if="step.icon" :name="step.icon" class="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                            <span v-else>{{ idx + 1 }}</span>
+                          </div>
+
+                          <!-- Nombre del paso -->
+                          <div class="max-w-[85px] sm:max-w-[130px]">
+                            <p
+                              class="text-[10px] sm:text-xs lg:text-sm font-bold leading-tight line-clamp-2"
+                              :class="step.current || step.completed ? 'text-[#2A321B]' : 'text-stone-400'"
+                            >
+                              {{ step.label }}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Caja descriptiva del estado actual -->
+                <div 
+                  v-if="!order.is_cancelled && order.timeline.find(s => s.current)" 
+                  class="mt-3 sm:mt-4 p-3 sm:p-3.5 lg:p-4 rounded-xl sm:rounded-2xl bg-[#F4F1E1]/70 border border-[#4A5D23]/15 flex items-center gap-2.5 text-xs sm:text-sm text-[#2A321B]"
+                >
+                  <Icon name="lucide:info" class="w-4 h-4 sm:w-5 sm:h-5 text-[#4A5D23] shrink-0" />
+                  <p class="leading-snug text-stone-700 text-xs sm:text-sm">
+                    <span class="font-bold text-[#4A5D23]">{{ order.timeline.find(s => s.current)?.label }}:</span>
+                    {{ order.timeline.find(s => s.current)?.description }}
+                  </p>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+
+          <!-- COLUMNA DERECHA: DETALLE DEL PEDIDO Y TOTAL (lg:col-span-5) -->
+          <div class="lg:col-span-5 flex flex-col">
+            <div class="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 lg:p-6 xl:p-7 shadow-soft-sm hover:shadow-soft-md transition-shadow border border-[#4A5D23]/15 flex-1 flex flex-col justify-between">
+              <div>
+                <!-- Título del detalle -->
+                <div class="flex items-center justify-between pb-3 sm:pb-3.5 border-b border-[#4A5D23]/10">
+                  <h2 class="text-sm sm:text-base lg:text-lg font-playfair font-black text-[#2A321B] flex items-center gap-2">
+                    <Icon name="lucide:shopping-bag" class="w-4 h-4 sm:w-5 sm:h-5 text-[#4A5D23]" />
+                    <span>Detalle del Pedido</span>
+                  </h2>
+                  <span class="text-[10px] sm:text-xs font-bold text-stone-600 bg-[#F4F1E1] px-2.5 py-1 rounded-full border border-[#4A5D23]/10">
+                    {{ order.items.length }} {{ order.items.length === 1 ? 'producto' : 'productos' }}
+                  </span>
+                </div>
+
+                <!-- Lista de productos -->
+                <div class="divide-y divide-stone-100 max-h-[260px] sm:max-h-[300px] lg:max-h-[340px] xl:max-h-[380px] overflow-y-auto pr-1 mt-1">
+                  <div
+                    v-for="(item, idx) in order.items"
+                    :key="idx"
+                    class="py-2.5 sm:py-3 first:pt-2 last:pb-0 flex items-center justify-between gap-3"
+                  >
+                    <!-- Miniatura + Nombre + Cantidad -->
+                    <div class="flex items-center gap-3 min-w-0">
+                      <div 
+                        class="rounded-xl sm:rounded-2xl ring-1 ring-[#4A5D23]/15 overflow-hidden bg-[#F4F1E1] shrink-0 aspect-square flex items-center justify-center w-11 h-11 sm:w-13 sm:h-13 lg:w-14 lg:h-14"
+                      >
+                        <img
+                          v-if="item.image_url"
+                          :src="item.image_url"
+                          :alt="item.name"
+                          class="w-full h-full object-cover block aspect-square"
+                          loading="lazy"
+                        />
+                        <div v-else class="w-full h-full flex items-center justify-center text-[#4A5D23]/60 bg-[#EDE8D5]">
+                          <Icon name="lucide:cake" class="w-5 h-5 sm:w-6 sm:h-6" />
+                        </div>
+                      </div>
+
+                      <!-- Textos del producto -->
+                      <div class="min-w-0">
+                        <p class="text-xs sm:text-sm font-bold text-[#2A321B] truncate leading-tight">
+                          {{ item.name }}
+                        </p>
+                        <div class="flex items-center gap-2 mt-0.5 text-xs text-stone-500">
+                          <span class="font-bold text-[#4A5D23] bg-[#F4F1E1] px-2 py-0.5 rounded text-[10px] sm:text-xs">
+                            {{ item.quantity }}x
+                          </span>
+                          <span v-if="item.price_at_time">
+                            S/ {{ Number(item.price_at_time).toFixed(2) }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Subtotal por ítem -->
+                    <div v-if="item.price_at_time" class="text-right shrink-0">
+                      <span class="text-xs sm:text-sm font-bold font-inter text-[#2A321B]">
+                        S/ {{ (Number(item.price_at_time) * item.quantity).toFixed(2) }}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
+
+              <!-- Resumen y Total Financiero (anclado abajo) -->
+              <div class="pt-3 sm:pt-4 border-t border-[#4A5D23]/10 space-y-1.5 text-xs sm:text-sm mt-3">
+                <div class="flex items-center justify-between text-stone-600 text-xs sm:text-sm">
+                  <span>Entrega:</span>
+                  <span class="font-medium text-[#2A321B] text-right truncate max-w-[180px] sm:max-w-[240px]">
+                    {{ order.address || (order.channel === 'whatsapp_chat' ? 'Por coordinar por WhatsApp' : 'Recojo / Entrega pactada') }}
+                  </span>
+                </div>
+
+                <div v-if="order.total_amount" class="flex items-center justify-between pt-2 border-t border-dashed border-stone-200">
+                  <span class="font-playfair font-black text-sm sm:text-base lg:text-lg text-[#2A321B]">Total</span>
+                  <span class="font-inter font-black text-base sm:text-lg lg:text-xl text-[#2A321B]">
+                    S/ {{ Number(order.total_amount).toFixed(2) }}
+                  </span>
+                </div>
+              </div>
+
             </div>
           </div>
+
         </div>
 
-        <!-- Resumen de Productos Solicitados -->
-        <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-stone-200">
-          <h2 class="text-xl font-serif font-bold text-[#2A321B] mb-4 flex items-center gap-2">
-            <Icon name="lucide:shopping-bag" class="w-5 h-5 text-[#4A5D23]" />
-            Detalle del Pedido
-          </h2>
-          <ul class="divide-y divide-stone-100 font-sans">
-            <li
-              v-for="item in order.items"
-              :key="item.name"
-              class="py-3 flex items-center justify-between"
-            >
-              <div class="flex items-center gap-3">
-                <span class="w-7 h-7 bg-[#F4F1E1] text-[#4A5D23] font-bold rounded-lg flex items-center justify-center text-xs">
-                  {{ item.quantity }}x
-                </span>
-                <span class="text-stone-800 font-medium text-sm">{{ item.name }}</span>
-              </div>
-            </li>
-          </ul>
-        </div>
-
-        <!-- Tarjeta de Soporte y Preguntas -->
-        <div class="bg-gradient-to-r from-[#F4F1E1] to-[#ebe5d3] rounded-3xl p-6 sm:p-8 border border-[#ded8c4] flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div>
-            <h3 class="text-lg font-serif font-bold text-[#2A321B]">¿Tienes alguna pregunta sobre tu entrega?</h3>
-            <p class="text-stone-600 text-sm mt-1 font-sans">
-              Estamos en línea para coordinar detalles especiales de tu pedido.
+        <!-- ==================== TARJETA WHATSAPP: ACCIÓN DE SOPORTE ==================== -->
+        <div class="bg-gradient-to-br from-[#F4F1E1] via-white to-[#F4F1E1]/80 rounded-2xl sm:rounded-3xl p-4 sm:p-5 lg:p-6 border border-[#4A5D23]/20 shadow-soft-sm hover:shadow-soft-md transition-all flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
+          <div class="space-y-1 text-center sm:text-left min-w-0">
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100/90 text-emerald-900 text-[10px] sm:text-xs font-bold border border-emerald-300 shadow-2xs">
+              <Icon name="lucide:message-circle" class="w-3.5 h-3.5 text-emerald-700" />
+              <span>Atención Directa</span>
+            </div>
+            <h3 class="text-sm sm:text-base lg:text-lg font-playfair font-black text-[#2A321B]">
+              {{ order.channel === 'whatsapp_chat' && order.status === 'pending'
+                ? '¿Aún no coordinas los detalles de tu pedido?'
+                : '¿Tienes alguna duda sobre tu entrega?' }}
+            </h3>
+            <p class="text-xs sm:text-sm text-stone-600 leading-snug">
+              {{ order.channel === 'whatsapp_chat' && order.status === 'pending'
+                ? 'Escríbenos para confirmar stock, horario y medio de pago.'
+                : 'Estamos en línea en nuestro taller para ayudarte.' }}
             </p>
           </div>
+
+          <!-- Botón de WhatsApp Responsive -->
           <a
             :href="whatsappSupportUrl"
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex items-center gap-2 px-6 py-3.5 bg-[#4A5D23] text-white font-medium rounded-full hover:bg-[#3d4d1c] transition-all shadow-sm flex-shrink-0"
+            class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 lg:px-8 lg:py-3.5 bg-[#25D366] hover:bg-[#1EBE5D] text-white font-black text-xs sm:text-sm rounded-full shadow-soft-sm hover:shadow-md hover:scale-[1.02] active:scale-95 transition-all shrink-0 cursor-pointer"
           >
-            <Icon name="lucide:message-circle" class="w-5 h-5 text-white" />
-            Escribir por WhatsApp
+            <Icon name="lucide:message-circle" class="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+            <span>{{ order.channel === 'whatsapp_chat' && order.status === 'pending' ? 'Coordinar por WhatsApp' : 'Escribir por WhatsApp' }}</span>
           </a>
         </div>
+
       </div>
+
     </div>
   </div>
 </template>

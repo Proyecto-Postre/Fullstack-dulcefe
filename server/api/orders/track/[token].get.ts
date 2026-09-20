@@ -26,7 +26,7 @@ export default defineEventHandler(async (event): Promise<PublicOrderTrackingDTO>
   // 2. Consultar la orden por token único usando Service Role
   const { data: order, error: orderError } = await supabase
     .from('orders')
-    .select('id, status, customer_name, delivery_date, delivery_time, created_at, tracking_token')
+    .select('id, status, customer_name, delivery_date, delivery_time, created_at, tracking_token, address, notes, total_amount, payment_method, payment_status')
     .eq('tracking_token', token)
     .maybeSingle()
 
@@ -46,7 +46,7 @@ export default defineEventHandler(async (event): Promise<PublicOrderTrackingDTO>
   // 3. Consultar los ítems de la orden y sus nombres de producto
   const { data: itemsData, error: itemsError } = await supabase
     .from('order_items')
-    .select('quantity, products(name)')
+    .select('quantity, price_at_time, products(name, image_url)')
     .eq('order_id', order.id)
 
   if (itemsError) {
@@ -64,10 +64,12 @@ export default defineEventHandler(async (event): Promise<PublicOrderTrackingDTO>
 
   const items: PublicTrackingItem[] = (itemsData || []).map((it) => {
     // Type-safe mapping without 'any'
-    const prod = it.products as { name?: string } | null
+    const prod = it.products as { name?: string; image_url?: string | null } | null
     return {
       name: prod?.name || 'Producto artesanal',
-      quantity: it.quantity
+      quantity: it.quantity,
+      price_at_time: Number(it.price_at_time) || 0,
+      image_url: prod?.image_url || null
     }
   })
 
@@ -79,35 +81,42 @@ export default defineEventHandler(async (event): Promise<PublicOrderTrackingDTO>
   // 5. Construcción de la línea de tiempo operativa
   const currentStatus = order.status || 'pending'
   const isCancelled = currentStatus === 'cancelled'
+  const isWhatsAppCoordination = !order.address || (order.notes ? order.notes.toLowerCase().includes('whatsapp') : false)
 
   const timeline: PublicTimelineStep[] = [
     {
       status: 'pending',
-      label: 'Pedido Registrado',
-      description: 'Tu orden fue recibida y confirmada por el sistema.',
+      label: isWhatsAppCoordination ? 'Solicitud Recibida' : 'Pedido Registrado',
+      description: isWhatsAppCoordination
+        ? 'Tu solicitud fue recibida. Estamos coordinando la confirmación y detalles de tu pedido por WhatsApp.'
+        : 'Tu orden fue recibida y registrada por nuestro taller para su preparación.',
       completed: true,
-      current: currentStatus === 'pending'
+      current: currentStatus === 'pending',
+      icon: isWhatsAppCoordination ? 'lucide:message-square' : 'lucide:clipboard-check'
     },
     {
       status: 'processing',
       label: 'En Taller / Horneado',
       description: 'Nuestros pasteleros están preparando las masas y horneando los bizcochos.',
       completed: ['processing', 'ready', 'delivered'].includes(currentStatus),
-      current: currentStatus === 'processing'
+      current: currentStatus === 'processing',
+      icon: 'lucide:chef-hat'
     },
     {
       status: 'ready',
       label: 'Listo para Entrega',
       description: 'El pedido está decorado, empacado y listo para despacho o recojo.',
       completed: ['ready', 'delivered'].includes(currentStatus),
-      current: currentStatus === 'ready'
+      current: currentStatus === 'ready',
+      icon: 'lucide:package-check'
     },
     {
       status: 'delivered',
       label: 'Entregado',
       description: '¡El pedido fue entregado! Disfruta tus postres Dulce Fe.',
       completed: currentStatus === 'delivered',
-      current: currentStatus === 'delivered'
+      current: currentStatus === 'delivered',
+      icon: 'lucide:heart-handshake'
     }
   ]
 
@@ -115,9 +124,11 @@ export default defineEventHandler(async (event): Promise<PublicOrderTrackingDTO>
     short_id: `#${order.id.slice(0, 8)}`,
     status: currentStatus,
     customer_first_name: firstName,
-    channel: 'web_guest_tracking',
+    channel: isWhatsAppCoordination ? 'whatsapp_chat' : 'direct',
     delivery_date: order.delivery_date,
     delivery_time: order.delivery_time,
+    address: order.address || null,
+    total_amount: Number(order.total_amount) || 0,
     created_at: order.created_at,
     items,
     timeline,

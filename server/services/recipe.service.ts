@@ -67,14 +67,14 @@ export class RecipeService {
         material_name: mat?.name ?? 'Desconocido',
         unit: mat?.unit ?? 'g',
         quantity_used: quantityUsed,
-        unit_cost: centsToSoles(Math.round(costPerGramCents)),
-        item_cost: centsToSoles(itemCostCents)
+        unit_cost: Number(centsToSoles(Math.round(costPerGramCents))),
+        item_cost: Number(centsToSoles(itemCostCents))
       }
     })
 
     return {
       product_id: productId,
-      total_cost: centsToSoles(totalRecipeCostCents),
+      total_cost: Number(centsToSoles(totalRecipeCostCents)),
       items: calculatedItems
     }
   }

@@ -34,12 +34,16 @@ export function useProfileOrders() {
           delivery_time,
           notes,
           address,
+          tracking_token,
           order_items (
             id,
+            product_id,
             quantity,
             price_at_time,
             products (
+              id,
               name,
+              price,
               image_url
             )
           )
@@ -119,6 +123,28 @@ export function useProfileOrders() {
     }
   }
 
+  const getStatusIcon = (status: string | null): string => {
+    switch (status) {
+      case 'completed':
+        return 'lucide:check-circle-2'
+      case 'in_delivery':
+        return 'lucide:truck'
+      case 'processing':
+      case 'preparing':
+        return 'lucide:chef-hat'
+      case 'pending':
+        return 'lucide:clock'
+      case 'cancelled':
+        return 'lucide:x-circle'
+      default:
+        return 'lucide:package'
+    }
+  }
+
+  const isOrderActive = (status: string | null): boolean => {
+    return status === 'pending' || status === 'processing' || status === 'preparing' || status === 'in_delivery'
+  }
+
   return {
     orders,
     isLoading,
@@ -130,6 +156,8 @@ export function useProfileOrders() {
     closeOrderDetails,
     formatOrderDate,
     getStatusBadgeClass,
-    getStatusLabel
+    getStatusLabel,
+    getStatusIcon,
+    isOrderActive
   }
 }

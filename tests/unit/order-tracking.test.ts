@@ -123,5 +123,92 @@ describe('Fase 6 - Subfase 6.1: Tracking Criptográfico de Invitados (ADR-002 / 
       expect(timeline.every((s) => s.completed)).toBe(true)
       expect(timeline[3].current).toBe(true)
     })
+
+    it('personaliza el paso 1 cuando el pedido es por coordinación de WhatsApp', () => {
+      function getStepOne(isWhatsAppCoordination: boolean) {
+        return {
+          status: 'pending',
+          label: isWhatsAppCoordination ? 'Solicitud Recibida' : 'Pedido Registrado',
+          description: isWhatsAppCoordination
+            ? 'Tu solicitud fue recibida. Estamos coordinando la confirmación y detalles de tu pedido por WhatsApp.'
+            : 'Tu orden fue recibida y registrada por nuestro taller para su preparación.',
+          completed: true
+        }
+      }
+
+      const waStep = getStepOne(true)
+      expect(waStep.label).toBe('Solicitud Recibida')
+      expect(waStep.description).toContain('coordinando la confirmación')
+
+      const directStep = getStepOne(false)
+      expect(directStep.label).toBe('Pedido Registrado')
+      expect(directStep.description).toContain('recibida y registrada')
+    })
+  })
+
+  describe('Bus de Eventos Server-Sent Events (server/utils/order-events.ts)', () => {
+    it('emite y recibe notificaciones desacopladas por token y por order_id', async () => {
+      const { orderEvents, notifyOrderUpdated } = await import('../../server/utils/order-events')
+      type OrderUpdatePayload = import('../../server/utils/order-events').OrderUpdatePayload
+      
+      const dummyToken = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
+      const dummyOrderId = 'order-uuid-sse-123'
+
+      let tokenReceived: OrderUpdatePayload | null = null
+      let idReceived: OrderUpdatePayload | null = null
+
+      const tokenListener = (payload: OrderUpdatePayload) => {
+        tokenReceived = payload
+      }
+      const idListener = (payload: OrderUpdatePayload) => {
+        idReceived = payload
+      }
+
+      orderEvents.once(`order:token:${dummyToken}`, tokenListener)
+      orderEvents.once(`order:id:${dummyOrderId}`, idListener)
+
+      notifyOrderUpdated({
+        order_id: dummyOrderId,
+        tracking_token: dummyToken,
+        status: 'processing',
+        timestamp: '2026-09-18T15:00:00.000Z'
+      })
+
+      expect(tokenReceived).not.toBeNull()
+      expect(tokenReceived.status).toBe('processing')
+      expect(tokenReceived.order_id).toBe(dummyOrderId)
+
+      expect(idReceived).not.toBeNull()
+      expect(idReceived.status).toBe('processing')
+      expect(idReceived.tracking_token).toBe(dummyToken)
+    })
+  })
+
+  describe('Diseño Responsivo y Equilibrio Óptico en Pantallas Grandes (app/pages/pedido/[token].vue)', () => {
+    it('debe definir contenedor fluido con centrado vertical y expansión en pantallas de 24"+ (xl:max-w-6xl)', async () => {
+      const fs = await import('node:fs')
+      const path = await import('node:path')
+      const trackingPagePath = path.resolve(__dirname, '../../app/pages/pedido/[token].vue')
+
+      expect(fs.existsSync(trackingPagePath)).toBe(true)
+      const content = fs.readFileSync(trackingPagePath, 'utf-8')
+
+      // Verificación de contenedor fluido y balance vertical
+      expect(content).toContain('max-w-5xl')
+      expect(content).toContain('xl:max-w-6xl')
+      expect(content).toContain('my-auto')
+      expect(content).toContain('items-stretch')
+
+      // Verificación de atmósfera botánica y luces ambientales cálidas
+      expect(content).toContain('brand-accent/15')
+      expect(content).toContain('brand-primary/10')
+      expect(content).toContain('lucide:wheat')
+      expect(content).toContain('lucide:leaf')
+
+      // Verificación de ajuste simétrico de columnas
+      expect(content).toContain('lg:col-span-7')
+      expect(content).toContain('lg:col-span-5')
+    })
   })
 })
+

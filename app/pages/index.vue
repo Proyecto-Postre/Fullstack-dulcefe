@@ -5,7 +5,7 @@ import { toast } from 'vue-sonner'
 const cartStore = useCartStore()
 
 interface FeaturedProduct {
-  id: string
+  id: number | string
   name: string
   price: number
   stock: number
@@ -15,7 +15,7 @@ interface FeaturedProduct {
 
 const featuredProducts: FeaturedProduct[] = [
   {
-    id: 'fav-1',
+    id: 13,
     name: 'Torta Artesanal de Chocolate & Frutos Rojos',
     price: 95.00,
     stock: 6,
@@ -23,7 +23,7 @@ const featuredProducts: FeaturedProduct[] = [
     description: 'Bizcocho húmedo de cacao intenso con ganache bitter, frambuesas frescas, arándanos e higos seleccionados.'
   },
   {
-    id: 'fav-2',
+    id: 10,
     name: 'Tartaletas Gourmet de Fresas & Pistacho',
     price: 45.00,
     stock: 8,
@@ -31,7 +31,7 @@ const featuredProducts: FeaturedProduct[] = [
     description: 'Masa sableé crujiente rellena de suave crema pastelera a la vainilla de Madagascar y lluvia de pistachos tostados.'
   },
   {
-    id: 'fav-3',
+    id: 12,
     name: 'Cheesecake Estilo New York de Fresa',
     price: 85.00,
     stock: 3,
