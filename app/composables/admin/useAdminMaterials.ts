@@ -1,4 +1,4 @@
-import { ref, computed, type Ref } from 'vue'
+import { ref, computed, isRef, watch, type Ref } from 'vue'
 import type { RawMaterialRow } from '../../types/inventory'
 
 export function getMaterialIcon(name: string | null | undefined): string {
@@ -60,11 +60,11 @@ export function calculateUnitCost(price: number | null | undefined, quantity: nu
   return price / quantity
 }
 
-export function useAdminMaterials(materialsList: Ref<RawMaterialRow[]>, pageSize = 7) {
+export function useAdminMaterials(materialsList: Ref<RawMaterialRow[]>, pageSize: Ref<number> | number = 7) {
   const searchQuery = ref<string>('')
   const isSearchFocused = ref<boolean>(false)
   const currentPage = ref<number>(1)
-  const itemsPerPage = pageSize
+  const itemsPerPage = isRef(pageSize) ? pageSize : ref(pageSize)
 
   const filteredMaterials = computed<RawMaterialRow[]>(() => {
     const list = materialsList.value || []
@@ -86,14 +86,20 @@ export function useAdminMaterials(materialsList: Ref<RawMaterialRow[]>, pageSize
 
   const paginatedMaterials = computed<RawMaterialRow[]>(() => {
     if (!filteredMaterials.value.length) return []
-    const start = (currentPage.value - 1) * itemsPerPage
-    const end = start + itemsPerPage
+    const start = (currentPage.value - 1) * itemsPerPage.value
+    const end = start + itemsPerPage.value
     return filteredMaterials.value.slice(start, end)
   })
 
   const totalPages = computed<number>(() => {
     if (!filteredMaterials.value.length) return 1
-    return Math.ceil(filteredMaterials.value.length / itemsPerPage)
+    return Math.ceil(filteredMaterials.value.length / itemsPerPage.value)
+  })
+
+  watch(itemsPerPage, () => {
+    if (currentPage.value > totalPages.value) {
+      currentPage.value = Math.max(1, totalPages.value)
+    }
   })
 
   function selectSuggestion(item: RawMaterialRow): void {
