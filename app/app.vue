@@ -1,20 +1,51 @@
+<script setup lang="ts">
+import { onMounted } from 'vue'
+import { Toaster } from 'vue-sonner'
+import 'vue-sonner/style.css'
+import { useAuthStore } from '~/stores/auth'
+
+const authStore = useAuthStore()
+
+onMounted(() => {
+  authStore.initAuth()
+})
+</script>
+
 <template>
-  <div>
-    <NuxtPage />
+  <div class="min-h-screen bg-brand-cream font-inter text-brand-secondary selection:bg-brand-primary selection:text-brand-cream">
+    <NuxtLayout>
+      <NuxtPage />
+    </NuxtLayout>
+    <Toaster 
+      position="top-right" 
+      richColors 
+      closeButton
+      :toastOptions="{
+        style: {
+          fontFamily: 'Inter, sans-serif',
+          borderRadius: '12px',
+          border: '1px solid rgba(74, 93, 35, 0.2)',
+          boxShadow: '0 4px 16px -4px rgba(42, 50, 27, 0.1)'
+        }
+      }"
+    />
+    <div id="admin-modal-portal" class="fixed inset-0 z-[9999] pointer-events-none empty:hidden"></div>
   </div>
 </template>
 
 <style>
-/* Estilos globales para los scrollbars (Neo-Brutalismo Botánico) */
-.custom-scrollbar::-webkit-scrollbar {
-  display: none;
+/* Estilos globales para los scrollbars */
+.custom-scrollbar::-webkit-scrollbar,
+.hide-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
-.custom-scrollbar {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+.custom-scrollbar,
+.hide-scrollbar {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
 }
-
-
 
 /* Quitar flechas de incremento/decremento en inputs numéricos globalmente */
 input[type=number]::-webkit-inner-spin-button, 
@@ -26,84 +57,34 @@ input[type=number] {
   -moz-appearance: textfield;
 }
 
-/* Transiciones de Página (Neo-Brutalismo) */
+/* Transiciones de Página */
 .page-enter-active,
 .page-leave-active {
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: all 0.25s ease-out;
 }
 .page-enter-from {
   opacity: 0;
-  transform: translateY(20px) scale(0.98);
+  transform: translateY(12px);
 }
 .page-leave-to {
   opacity: 0;
-  transform: translateY(-20px) scale(0.98);
+  transform: translateY(-12px);
 }
 
-/* Transiciones de Lista (Staggered Pop-ins) */
+/* Animaciones de Lista */
+.list-move,
 .list-enter-active,
 .list-leave-active {
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: all 0.4s cubic-bezier(0.55, 0, 0.1, 1);
 }
-.list-enter-from {
-  opacity: 0;
-  transform: scale(0.8) translateY(30px);
-}
+
+.list-enter-from,
 .list-leave-to {
   opacity: 0;
-  transform: scale(0.8);
+  transform: scale(0.9) translateY(20px);
 }
 
-/* Transiciones de Popups (Calendario, Hora) */
-.pop-enter-active,
-.pop-leave-active {
-  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-.pop-enter-from,
-.pop-leave-to {
-  opacity: 0;
-  transform: scale(0.95) translateY(10px);
-}
-
-/* Transiciones para items del carrito */
-.cart-item-move,
-.cart-item-enter-active,
-.cart-item-leave-active {
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-.cart-item-leave-active {
-  overflow: hidden;
-  max-height: 200px; /* Permite que la altura se anime a 0 */
-}
-.cart-item-enter-from {
-  opacity: 0;
-  transform: translateX(100%);
-}
-.cart-item-leave-to {
-  opacity: 0;
-  transform: translateX(100%);
-  max-height: 0;
-  padding-top: 0;
-  padding-bottom: 0;
-  margin-bottom: 0;
-  border-width: 0;
-}
-
-/* Transiciones del Drawer (Panel Lateral) */
-.drawer-root-enter-active .drawer-backdrop,
-.drawer-root-leave-active .drawer-backdrop,
-.drawer-root-enter-active .drawer-panel,
-.drawer-root-leave-active .drawer-panel {
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.drawer-root-enter-from .drawer-backdrop,
-.drawer-root-leave-to .drawer-backdrop {
-  opacity: 0;
-}
-
-.drawer-root-enter-from .drawer-panel,
-.drawer-root-leave-to .drawer-panel {
-  transform: translateX(100%);
+.list-leave-active {
+  position: absolute;
 }
 </style>

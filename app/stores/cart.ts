@@ -1,62 +1,76 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import type { CartItem, AddToCartInput } from '~/types/cart'
 
-export interface CartItem {
-  id: string
-  product_id: string
-  name: string
-  price: number
-  image_url?: string
-  quantity: number
-}
+export type { CartItem, AddToCartInput }
 
 export const useCartStore = defineStore('cart', () => {
   const items = ref<CartItem[]>([])
-  const isDrawerOpen = ref(false)
-  const isSyncing = ref(false)
+  const isDrawerOpen = ref<boolean>(false)
+  const isSyncing = ref<boolean>(false)
 
-  const cartTotal = computed(() => {
-    return items.value.reduce((total, item) => total + (item.price * item.quantity), 0)
+  const cartTotal = computed<number>(() => {
+    return items.value.reduce((total, item) => total + (Number(item.price) * item.quantity), 0)
   })
 
-  const cartItemCount = computed(() => {
+  const cartItemCount = computed<number>(() => {
     return items.value.reduce((count, item) => count + item.quantity, 0)
   })
 
-  function toggleDrawer() {
+  function toggleDrawer(): void {
     isDrawerOpen.value = !isDrawerOpen.value
   }
 
-  function addToCart(product: any, quantity: number = 1) {
-    const existingItem = items.value.find(item => item.product_id === product.id)
+  function openDrawer(): void {
+    isDrawerOpen.value = true
+  }
+
+  function closeDrawer(): void {
+    isDrawerOpen.value = false
+  }
+
+  function addToCart(product: AddToCartInput, quantity: number = 1): void {
+    if (!product) return
+    const pId = String(product.id)
+    const existingItem = items.value.find(item => String(item.product_id) === pId)
+    
     if (existingItem) {
       existingItem.quantity += quantity
     } else {
+      const generatedId = (typeof crypto !== 'undefined' && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : String(Date.now() + Math.random())
+
       items.value.push({
-        id: crypto.randomUUID(),
+        id: generatedId,
         product_id: product.id,
         name: product.name,
-        price: Number(product.price),
-        image_url: product.image_url,
-        quantity: quantity
+        price: Number(product.price) || 0,
+        image_url: product.image_url || '',
+        quantity: Math.max(1, quantity)
       })
     }
-    isDrawerOpen.value = true // Open drawer to show feedback
+    isDrawerOpen.value = true
   }
 
-  function removeFromCart(productId: string) {
-    items.value = items.value.filter(item => item.product_id !== productId)
+  function removeFromCart(productId: string | number): void {
+    const pId = String(productId)
+    items.value = items.value.filter(item => String(item.product_id) !== pId)
   }
 
-  function updateQuantity(productId: string, quantity: number) {
-    if (quantity < 1) return
-    const item = items.value.find(item => item.product_id === productId)
+  function updateQuantity(productId: string | number, quantity: number): void {
+    const pId = String(productId)
+    if (quantity <= 0) {
+      removeFromCart(pId)
+      return
+    }
+    const item = items.value.find(item => String(item.product_id) === pId)
     if (item) {
       item.quantity = quantity
     }
   }
 
-  function clearCart() {
+  function clearCart(): void {
     items.value = []
   }
 
@@ -67,6 +81,8 @@ export const useCartStore = defineStore('cart', () => {
     cartTotal,
     cartItemCount,
     toggleDrawer,
+    openDrawer,
+    closeDrawer,
     addToCart,
     removeFromCart,
     updateQuantity,

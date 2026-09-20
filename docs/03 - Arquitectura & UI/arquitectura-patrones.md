@@ -1,0 +1,208 @@
+# 🏛️ ARQUITECTURA DE SOFTWARE & PATRONES DE DISEÑO
+> **Guía Técnica de Patrones, Capas de Abstracción y Escalabilidad**  
+> **Proyecto:** Dulce Fe ERP & E-Commerce  
+> **Versión:** 1.0.0  
+> **Ámbito:** Frontend (Vue 3), Backend (Nuxt Nitro), Database (Supabase PostgreSQL) y Automatizaciones (n8n).
+
+---
+
+## 📋 TABLA DE CONTENIDOS
+
+1. [[#1. PRINCIPIOS FUNDAMENTALES DE SOFTWARE|Principios Fundamentales de Software]]
+2. [[#2. ARQUITECTURA EN CAPAS (CLEAN ARCHITECTURE EN NUXT 4)|Arquitectura en Capas (Clean Architecture en Nuxt 4)]]
+3. [[#3. PATRONES DE DISEÑO FRONTEND (VUE 3 / NUXT)|Patrones de Diseño Frontend (Vue 3 / Nuxt)]]
+   - 3.1. Smart vs. Dumb Components (Container / Presentational)
+   - 3.2. Composables Pattern (Reusabilidad de Lógica de Estado)
+   - 3.3. Strategy Pattern (Motor de Cálculo de Precios y Personalización)
+   - 3.4. State Management & Reactividad Unidireccional
+4. [[#4. PATRONES DE BACKEND & SERVIDOR (NITRO ENGINE & BFF)|Patrones de Backend & Servidor (Nitro Engine & BFF)]]
+   - 4.1. Pattern BFF (Backend-For-Frontend)
+   - 4.2. Repository Pattern (Abstracción de Datos)
+   - 4.3. DTO Pattern (Data Transfer Objects)
+   - 4.4. Middleware & Guards Pattern (Autorización Granular)
+   - 4.5. Server-Sent Events (SSE) Pattern (Tiempo Real Unidireccional & Cero Polling)
+5. [[#5. PATRONES DE BASE DE DATOS & EVENTOS (SUPABASE POSTGRESQL)|Patrones de Base de Datos & Eventos (Supabase PostgreSQL)]]
+   - 5.1. Event-Driven Architecture (Database Webhooks & Triggers)
+   - 5.2. RLS Security Pattern (Seguridad en Capa de Datos)
+6. [[#6. ARQUITECTURA DE AUTOMATIZACIONES (N8N WEBHOOK ARCHITECTURE)|Arquitectura de Automatizaciones (n8n Webhook Architecture)]]
+7. [[#7. ESTRATEGIA DE ESCALABILIDAD & DECOUPLING A FUTURO|Estrategia de Escalabilidad & Decoupling a Futuro]]
+
+---
+
+## 1. PRINCIPIOS FUNDAMENTALES DE SOFTWARE
+
+Para asegurar que el proyecto se mantenga mantenible, testeable y libre de deuda técnica a largo plazo, el desarrollo en Dulce Fe sigue estrictamente los siguientes principios:
+
+### 1.1 SOLID Aplicado a TypeScript y Vue
+- **S - Single Responsibility Principle (SRP):** Cada archivo, componente o composable debe tener una sola razón para cambiar. Un componente de botón no calcula precios; un endpoint de recetas no envía correos.
+- **O - Open/Closed Principle (OCP):** El código debe estar abierto a extensión pero cerrado a modificación. La adición de un nuevo método de pago o un nuevo tipo de masa no debe alterar el core del carrito de compras.
+- **L - Liskov Substitution Principle (LSP):** Los tipos e interfaces definidos en TypeScript (`Database['public']['Tables']`) deben respetarse sin forzar castings inseguros (`any`).
+- **I - Interface Segregation Principle (ISP):** Preferir interfaces pequeñas y específicas a objetos gigantescos monolithic.
+- **D - Dependency Inversion Principle (DIP):** Los componentes de alto nivel no dependen de implementaciones concretas de base de datos, sino de la abstracción proveída por Nitro Server Engine o Composables.
+
+### 1.2 DRY (Don't Repeat Yourself) & KISS (Keep It Simple, Stupid)
+- La lógica de cálculo de precios y formateo de moneda (`S/ #,##0.00`) vive en utilidades centralizadas, nunca duplicada en plantillas HTML.
+
+---
+
+## 2. ARQUITECTURA EN CAPAS (CLEAN ARCHITECTURE EN NUXT 4)
+
+El proyecto organiza sus componentes siguiendo una Clean Architecture adaptada a Nuxt 4:
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│ 1. PRESENTATION LAYER (Vue Components, Pages, UI System)               │
+├────────────────────────────────────────────────────────────────────────┤
+│ 2. APPLICATION LAYER (Composables: useCart, useRecipes, useAuth)      │
+├────────────────────────────────────────────────────────────────────────┤
+│ 3. DOMAIN LAYER (Business Rules, Costing Formulas, DTOs, Interfaces)   │
+├────────────────────────────────────────────────────────────────────────┤
+│ 4. INFRASTRUCTURE LAYER (Nitro Handlers, Supabase Client, ExcelJS, n8n)│
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+- **Capa de Presentación (`app/pages/`, `app/components/`):** Se encarga únicamente del renderizado HTML/CSS, captura de eventos de usuario y animaciones.
+- **Capa de Aplicación (`app/composables/`):** Coordina el estado reactivo, valida formularios y conecta la UI con el Backend.
+- **Capa de Dominio (`app/types/`, `docs/formulas-costeo.md`):** Contiene los modelos de datos, tipos TypeScript y reglas financieras sagradas del negocio.
+- **Capa de Infraestructura (`server/api/`, `server/middleware/`):** Conexión con Supabase PostgreSQL, generación de buffers binarios de ExcelJS y despacho de Webhooks a n8n.
+
+---
+
+## 3. PATRONES DE DISEÑO FRONTEND (VUE 3 / NUXT)
+
+### 3.1. Smart vs. Dumb Components (Container / Presentational)
+- **Container / Smart Components (`AdminRecipesTab.vue`, `AdminMaterialsTab.vue`):**
+  - Conocen el origen de los datos (hacen peticiones fetch a `/api/...`).
+  - Manejan el estado complejo de la pestaña y los modales.
+- **Presentational / Dumb Components (`CustomSelect.vue`, `BaseButton.vue`):**
+  - **Agnósticos a la lógica de negocio.**
+  - Reciben datos vía `props` y emiten cambios vía `emits`.
+  - Altamente reutilizables en cualquier parte de la aplicación.
+
+### 3.2. Composables Pattern (Reusabilidad de Lógica de Estado)
+En lugar de saturar las vistas `.vue` con lógica reactiva de decenas de líneas, extraemos la lógica de estado en **Composables especializados y desacoplados** dentro de `app/composables/`:
+
+#### Módulos de Tienda Pública:
+* **`useCatalog()` (`app/composables/useCatalog.ts`):** Gestiona la consulta reactiva de postres, lectura de categorías dinámicas (`/api/categories`), filtrado por categoría y búsqueda en tiempo real con debounce.
+* **`useCheckout()` (`app/composables/useCheckout.ts`):** Orquesta el flujo de checkout transaccional, cálculo estricto de céntimos, validaciones de teléfono móvil Perú, generación de llaves de idempotencia y enlace seguro de WhatsApp.
+* **`useProfileOrders()` (`app/composables/useProfileOrders.ts`):** Carga y pagina el historial de compras del cliente autenticado conectando con Supabase de forma segura sin exponer credenciales.
+* **`useConfetti()` (`app/composables/useConfetti.ts`):** Micro-interacción visual de celebración al confirmar una orden con éxito.
+
+#### Módulos de Administración ERP (`app/composables/admin/`):
+* **`useAdminNavState()` (`app/composables/admin/useAdminNavState.ts`):** Centraliza la navegación del panel administrativo, sincroniza bidireccionalmente la pestaña activa con el query param `?tab=...` en la URL y previene redirecciones no deseadas a `/perfil` al presionar F5.
+* **`useAdminOrders()` (`app/composables/admin/useAdminOrders.ts`):** Controla el tablero Kanban de pedidos, transiciones de estado (`pending` -> `processing` -> `ready` -> `completed`), confirmación de vouchers de pago en 1-click y emisión de eventos auditables.
+* **`useAdminMaterials()` (`app/composables/admin/useAdminMaterials.ts`):** Administra el inventario de materias primas, cálculo de costo unitario base (S/ por gramo/ml), kardex de movimientos y altas/bajas en almacén.
+* **`useAdminRecipes()` (`app/composables/admin/useAdminRecipes.ts`):** Motor financiero de escandallos. Calcula en tiempo real el costo de ingredientes, costos fijos (CIF: mano de obra, luz, empaque), margen comercial y descarga de reportes vivos en Excel (`.xlsx`).
+
+### 3.3. Strategy Pattern (Motor de Personalización de Tortas)
+Para calcular el precio dinámico de una torta personalizada en el E-Commerce según la combinación de opciones (tamaño, bizcocho, relleno, cubierta, toppers), aplicamos el patrón **Strategy**:
+
+```typescript
+interface PricingStrategy {
+  calculate(basePrice: number, options: CustomCakeOptions): number
+}
+
+class TieredCakeStrategy implements PricingStrategy {
+  calculate(basePrice: number, options: CustomCakeOptions): number {
+    let total = basePrice * options.portionsMultiplier
+    if (options.filling === 'frutos_rojos') total += 15.00
+    if (options.topper === 'acrilico_personalizado') total += 25.00
+    return total
+  }
+}
+```
+
+---
+
+## 4. PATRONES DE BACKEND & SERVIDOR (NITRO ENGINE & BFF)
+
+### 4.1. Pattern BFF (Backend-For-Frontend)
+Nuxt Nitro actúa como una capa **BFF**. En lugar de que el cliente web consulte directamente la base de datos de Supabase para operaciones financieras complejas, realiza peticiones a `/server/api/recipes/export.get.ts`.
+
+**Ventajas del BFF:**
+1. Oculta las credenciales privadas y claves maestras en el servidor.
+2. Agrupa múltiples consultas a la base de datos en 1 sola respuesta limpia.
+3. Ejecuta la generación de archivos pesados (ExcelJS) en el servidor sin congelar el navegador del usuario.
+
+### 4.2. Repository Pattern (Abstracción de Datos)
+Para evitar acoplar los endpoints de Nitro directamente a la sintaxis SQL o SDK de Supabase, encapsulamos las consultas en funciones de repositorio:
+
+```typescript
+// server/utils/repositories/recipeRepository.ts
+import { H3Event } from 'h3'
+import { serverSupabaseClient } from '#supabase/server'
+
+export async function getRecipeWithDetails(event: H3Event, productId: string) {
+  const supabase = await serverSupabaseClient(event)
+  return await supabase
+    .from('recipe_items')
+    .select('quantity_used, raw_materials(name, unit, purchase_price, purchase_quantity)')
+    .eq('product_id', productId)
+}
+```
+
+### 4.3. DTO Pattern (Data Transfer Objects)
+Mapea los nombres de columnas de la base de datos (`purchase_price`, `purchase_quantity`) a un objeto limpio de dominio que el frontend o el exportador consumen con seguridad de tipos.
+
+### 4.4. Middleware & Guards Pattern
+En `server/middleware/auth.ts`, todo request que apunte a `/api/admin/*` pasa por un interceptor que valida el token JWT del usuario y su rol antes de permitir la ejecución.
+
+### 4.5. Server-Sent Events (SSE) Pattern & Política Cero Polling
+Para erradicar el *polling* periódico agresivo (`setInterval`), el sistema implementa **Server-Sent Events (SSE)** mediante `createEventStream` de H3/Nitro:
+- **Desacoplamiento:** El servidor mantiene un bus de eventos en memoria (`server/utils/order-events.ts`) con `EventEmitter` nativo, garantizando cero vendor lock-in con proveedores externos (Supabase, Firebase, Pusher).
+- **Consumo Ligero:** El frontend escucha mediante el estándar W3C `EventSource`, recibiendo solo notificaciones ante cambios reales y reconectando automáticamente sin intervención manual.
+- **Detalles y Guía de Implementación:** Consultar la guía transversal oficial en [[patron-tiempo-real-sse]].
+
+---
+
+## 5. PATRONES DE BASE DE DATOS & EVENTOS (SUPABASE POSTGRESQL)
+
+### 5.1. Event-Driven Architecture (Database Webhooks & Triggers)
+Supabase permite reaccionar a cambios en la base de datos sin sobrecargar el código de la aplicación:
+
+```
+[INSERT en tabla 'orders'] ➔ [PostgreSQL Trigger] ➔ [HTTP Webhook Dispatcher] ➔ [n8n Automation Engine]
+```
+
+### 5.2. RLS Security Pattern (Row Level Security)
+Seguridad declarativa directamente en el motor de base de datos PostgreSQL:
+
+```sql
+-- Solo administradores pueden leer/modificar insumos de almacén
+CREATE POLICY "Acceso total a Almacen solo para Admins"
+ON raw_materials
+FOR ALL
+TO authenticated
+USING (auth.jwt() ->> 'role' = 'admin');
+```
+
+---
+
+## 6. ARQUITECTURA DE AUTOMATIZACIONES (N8N WEBHOOK ARCHITECTURE)
+
+La orquestación de procesos externos no vive en el código del frontend ni sobrecarga el servidor Nuxt. Se delega a **n8n**:
+
+```
+ ┌─────────────────┐       HTTP POST       ┌─────────────────┐       API WhatsApp       ┌─────────────────┐
+ │   Nuxt / Nitro  │ ────────────────────► │   n8n Engine    │ ─────────────────────► │ Cliente Final   │
+ │ (Cambio Estado) │   (Payload JSON)      │ (Workflow DAG)  │    (Mensaje Texto)     │ (Celular/WA)    │
+ └─────────────────┘                       └─────────────────┘                          └─────────────────┘
+```
+
+- **Desacoplamiento:** Si el proveedor de WhatsApp cambia o falla, la aplicación web sigue funcionando al 100% sin romperse.
+- **Resiliencia:** n8n reintenta automáticamente el envío en caso de fallas de red (Retry Policy).
+
+---
+
+## 7. ESTRATEGIA DE ESCALABILIDAD & DECOUPLING A FUTURO
+
+### ¿Cómo escalar el sistema de 100 a 100,000 usuarios sin reescribir?
+
+1. **Fase Actual (Monolito Serverless en Nuxt 4):**
+   - Frontend SSR + Backend Nitro API + Supabase DB.
+   - Excelente para iniciar, costo casi cero, despliegue instantáneo en Vercel / Netlify.
+
+2. **Fase de Crecimiento (Separación de Capas):**
+   - **Frontend:** Se mantiene en Nuxt 4 optimizado con CDN global (Cloudflare).
+   - **API Backend:** Los endpoints de `/server/api/` se pueden extraer a un servicio Node.js / Express / NestJS independiente en un contenedor Docker si se necesita procesamiento intensivo.
+   - **Caché & Búsqueda:** Adición de **Redis** para almacenar carritos activos y **Meilisearch** para búsqueda instantánea en el catálogo.

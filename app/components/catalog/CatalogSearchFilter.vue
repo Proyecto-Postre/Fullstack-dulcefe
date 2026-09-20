@@ -1,0 +1,76 @@
+<script setup lang="ts">
+import type { CatalogCategory } from '~/types/catalog'
+
+defineProps<{
+  searchQuery: string
+  selectedCategory: string
+  categories: CatalogCategory[]
+}>()
+
+defineEmits<{
+  (e: 'update:searchQuery', val: string): void
+  (e: 'update:selectedCategory', val: string): void
+}>()
+</script>
+
+<template>
+  <div class="mb-6 sm:mb-10 space-y-3 sm:space-y-4 max-w-3xl mx-auto">
+    <!-- Barra de Búsqueda -->
+    <div class="relative w-full">
+      <Icon 
+        name="lucide:search" 
+        class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-brand-primary/60 pointer-events-none" 
+      />
+      <input 
+        :value="searchQuery" 
+        @input="$emit('update:searchQuery', ($event.target as HTMLInputElement).value)"
+        type="text" 
+        placeholder="Buscar por nombre o sabor (ej. chocolate, fresa, torta, brownie, alfajores)..." 
+        class="w-full pl-12 pr-10 py-3.5 bg-surface rounded-2xl border border-brand-primary/25 text-sm font-semibold text-brand-secondary placeholder:text-brand-primary/40 focus:outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10 transition-all shadow-soft-sm"
+      />
+      <button 
+        v-if="searchQuery" 
+        @click="$emit('update:searchQuery', '')"
+        type="button"
+        class="absolute right-3.5 top-1/2 -translate-y-1/2 text-brand-primary/50 hover:text-status-danger p-1 cursor-pointer"
+        aria-label="Limpiar búsqueda"
+      >
+        <Icon name="lucide:x" class="w-4 h-4" />
+      </button>
+    </div>
+
+    <!-- Píldoras de Categoría -->
+    <div v-if="categories && categories.length > 0" class="relative w-full overflow-hidden">
+      <!-- Contenedor con scroll suave horizontal y padding de seguridad -->
+      <div class="overflow-x-auto py-2 px-2 hide-scrollbar scroll-smooth">
+        <div class="flex items-center gap-2.5 min-w-max mx-auto justify-start sm:justify-center px-2">
+          <button
+            v-for="cat in categories"
+            :key="cat.id"
+            @click="$emit('update:selectedCategory', cat.id)"
+            type="button"
+            :class="[
+              'inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold transition-all duration-300 shrink-0 border cursor-pointer select-none active:scale-95',
+              selectedCategory === cat.id
+                ? 'bg-brand-primary text-white border-brand-primary shadow-soft-sm scale-102'
+                : 'bg-surface text-brand-secondary border-brand-primary/15 hover:bg-brand-cream hover:border-brand-primary/30 shadow-soft-sm'
+            ]"
+          >
+            <Icon :name="cat.icon" class="w-3.5 h-3.5" />
+            <span>{{ cat.name }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+</style>

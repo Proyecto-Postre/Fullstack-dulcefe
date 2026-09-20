@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, watch } from 'vue'
+import type { RawMaterialRow } from '~/types/inventory'
+import { useAdminMaterials } from '~/composables/admin/useAdminMaterials'
+import MaterialModal from './MaterialModal.vue'
 
 const props = defineProps<{
-  materials: any
+  materials: { success: boolean; data: RawMaterialRow[] } | null | undefined
   pendingMaterials: boolean
 }>()
 
@@ -10,73 +13,37 @@ const emit = defineEmits<{
   (e: 'refresh'): void
 }>()
 
-const newMaterial = ref({ name: '', unit: 'g', purchase_price: '', purchase_quantity: '', stock: '' })
-const editingMaterialId = ref<string | null>(null)
-const isSubmitting = ref(false)
-const errorMessage = ref('')
 
 // Local state for Optimistic UI
-const localMaterials = ref<any[]>([]);
+const localMaterials = ref<RawMaterialRow[]>([])
 
 watch(() => props.materials?.data, (newData) => {
   if (newData) {
-    localMaterials.value = [...newData];
+    localMaterials.value = [...newData]
   }
-}, { immediate: true });
+}, { immediate: true })
 
-// Search & Filter state
-const searchQuery = ref('')
-const isSearchFocused = ref(false)
+// Composable de gestión de insumos
+const {
+  searchQuery,
+  isSearchFocused,
+  currentPage,
+  paginatedMaterials,
+  filteredMaterials,
+  searchSuggestions,
+  totalPages,
+  selectSuggestion,
+  clearSearch,
+  nextPage,
+  prevPage,
+  getMaterialIcon,
+  calculateUnitCost
+} = useAdminMaterials(localMaterials)
 
-const filteredMaterials = computed(() => {
-  if (!localMaterials.value.length) return []
-  if (!searchQuery.value.trim()) return localMaterials.value
-  
-  const q = searchQuery.value.toLowerCase().trim()
-  return localMaterials.value.filter((item: any) => 
-    item.name.toLowerCase().includes(q) ||
-    (item.unit && item.unit.toLowerCase().includes(q))
-  )
-})
-
-// Top 5 suggestions for live dropdown menu
-const searchSuggestions = computed(() => {
-  if (!searchQuery.value.trim()) return []
-  return filteredMaterials.value.slice(0, 5)
-})
-
-function selectSuggestion(item: any) {
-  searchQuery.value = item.name
-  isSearchFocused.value = false
-}
-
-function clearSearch() {
-  searchQuery.value = ''
-  isSearchFocused.value = false
-}
-
-// Pagination
-const currentPage = ref(1)
-const itemsPerPage = 10
-
-const paginatedMaterials = computed(() => {
-  if (!filteredMaterials.value.length) return []
-  const start = (currentPage.value - 1) * itemsPerPage
-  const end = start + itemsPerPage
-  return filteredMaterials.value.slice(start, end)
-})
-
-const totalPages = computed(() => {
-  if (!filteredMaterials.value.length) return 1
-  return Math.ceil(filteredMaterials.value.length / itemsPerPage)
-})
-
-function nextPage() {
-  if (currentPage.value < totalPages.value) currentPage.value++
-}
-
-function prevPage() {
-  if (currentPage.value > 1) currentPage.value--
+function handleSearchBlur(): void {
+  setTimeout(() => {
+    isSearchFocused.value = false
+  }, 150)
 }
 
 watch(searchQuery, () => {
@@ -87,83 +54,34 @@ watch(() => props.materials?.data?.length, () => {
   currentPage.value = 1
 })
 
-async function handleCreateMaterial() {
-  if (!newMaterial.value.name || !newMaterial.value.purchase_price || !newMaterial.value.purchase_quantity) {
-    errorMessage.value = 'Completa el precio y la cantidad del paquete.'
-    return
-  }
-  isSubmitting.value = true
-  errorMessage.value = ''
-  try {
-    const method = editingMaterialId.value ? 'PUT' : 'POST'
-    const endpoint = editingMaterialId.value ? `/api/raw-materials/${editingMaterialId.value}` : '/api/raw-materials'
 
-    await $fetch(endpoint, {
-      method,
-      body: {
-        name: newMaterial.value.name,
-        unit: newMaterial.value.unit,
-        purchase_price: Number(newMaterial.value.purchase_price),
-        purchase_quantity: Number(newMaterial.value.purchase_quantity),
-        stock: Number(newMaterial.value.stock || 0)
-      }
-    })
-    
-    cancelEditMaterial()
-    emit('refresh')
-  } catch (err: any) {
-    errorMessage.value = err.data?.statusMessage || 'Error al guardar insumo.'
-  } finally {
-    isSubmitting.value = false
-  }
-}
-
-function handleEditMaterial(item: any) {
-  errorMessage.value = ''
-  editingMaterialId.value = item.id
-  newMaterial.value = { 
-    name: item.name, 
-    unit: item.unit, 
-    purchase_price: item.purchase_price, 
-    purchase_quantity: item.purchase_quantity, 
-    stock: item.stock 
-  }
-  window.scrollTo({ top: 0, behavior: 'smooth' })
-}
-
-function cancelEditMaterial() {
-  editingMaterialId.value = null
-  newMaterial.value = { name: '', unit: 'g', purchase_price: '', purchase_quantity: '', stock: '' }
-  errorMessage.value = ''
-}
-
-async function handleDeleteMaterial(id: string, name: string) {
+async function handleDeleteMaterial(id: number | string, name: string): Promise<void> {
   if (!confirm(`¿Estás seguro de eliminar "${name}" del inventario de insumos?`)) return
   
-  // Optimistic UI update: Eliminar localmente primero para disparar la animación al instante
-  const index = localMaterials.value.findIndex((m: any) => m.id === id);
-  let deletedItem = null;
+  const numId = Number(id)
+  const index = localMaterials.value.findIndex((m: RawMaterialRow) => m.id === numId)
+  let deletedItem: RawMaterialRow | null = null
   if (index !== -1) {
-    deletedItem = localMaterials.value[index];
-    localMaterials.value.splice(index, 1);
+    deletedItem = localMaterials.value[index] ?? null
+    localMaterials.value.splice(index, 1)
   }
 
   try {
     await $fetch(`/api/raw-materials/${id}`, { method: 'DELETE' })
-    // No llamamos a emit("refresh") para evitar el spinner y el retraso
-  } catch (err: any) {
-    // Si falla, revertimos el cambio local
+  } catch (err: unknown) {
     if (deletedItem && index !== -1) {
-      localMaterials.value.splice(index, 0, deletedItem);
+      localMaterials.value.splice(index, 0, deletedItem)
     }
-    alert('Error al eliminar: ' + (err.data?.statusMessage || err.message))
+    const fetchErr = err as { data?: { statusMessage?: string }; message?: string }
+    alert('Error al eliminar: ' + (fetchErr.data?.statusMessage || fetchErr.message || 'Error desconocido'))
   }
 }
 
-const updatingStockId = ref<string | null>(null)
+const updatingStockId = ref<number | string | null>(null)
 
-async function updateStockInline(item: any, event: any) {
-  const newStock = Number(event.target.value)
+async function updateStockInline(item: RawMaterialRow, event: Event): Promise<void> {
+  const target = event.target as HTMLInputElement
+  const newStock = Number(target.value)
   if (newStock === item.stock || isNaN(newStock)) return
   
   updatingStockId.value = item.id
@@ -179,322 +97,484 @@ async function updateStockInline(item: any, event: any) {
       }
     })
     emit('refresh')
-  } catch (err: any) {
-    alert('Error al actualizar stock: ' + (err.data?.statusMessage || err.message))
-    event.target.value = item.stock // revert
+  } catch (err: unknown) {
+    const fetchErr = err as { data?: { statusMessage?: string }; message?: string }
+    alert('Error al actualizar stock: ' + (fetchErr.data?.statusMessage || fetchErr.message || 'Error desconocido'))
+    target.value = String(item.stock ?? 0)
   } finally {
     updatingStockId.value = null
   }
 }
 
+// Modal State
 const showModal = ref(false)
-const selectedMaterial = ref<any>(null)
+const selectedMaterial = ref<RawMaterialRow | null>(null)
 
-function openNewMaterialModal() {
+function openNewMaterialModal(): void {
   selectedMaterial.value = null
   showModal.value = true
 }
 
-function openEditMaterial(item: any) {
+function openEditMaterial(item: RawMaterialRow): void {
   selectedMaterial.value = item
   showModal.value = true
 }
-
-function getMaterialIcon(name: string): string {
-  if (!name) return 'lucide:box'
-  const n = name.toLowerCase()
-  
-  // 1. Carnes, Aves, Pescados y Charcutería (Insumos Salados)
-  if (n.includes('carne') || n.includes('res') || n.includes('lomo') || n.includes('asado') || n.includes('bife') || n.includes('cerdo') || n.includes('chancho') || n.includes('tocino') || n.includes('panceta') || n.includes('jamon') || n.includes('jamón') || n.includes('jamonada') || n.includes('salame') || n.includes('salchicha') || n.includes('chorizo') || n.includes('hotdog') || n.includes('chicharron')) return 'lucide:beef'
-  if (n.includes('pollo') || n.includes('gallina') || n.includes('pavo') || n.includes('alitas') || n.includes('pechuga') || n.includes('nugget')) return 'lucide:drumstick'
-  if (n.includes('pescado') || n.includes('atun') || n.includes('atún') || n.includes('salmon') || n.includes('salmón') || n.includes('marisco') || n.includes('camaron') || n.includes('langostino')) return 'lucide:fish'
-
-  // 2. Lácteos, Quesos y Grasas
-  if (n.includes('leche') || n.includes('condensada') || n.includes('evaporada') || n.includes('lacteo')) return 'lucide:milk'
-  if (n.includes('queso') || n.includes('cheese') || n.includes('mozzarella') || n.includes('parmesano') || n.includes('edam') || n.includes('gouda') || n.includes('cheddar') || n.includes('crema') || n.includes('chantilly') || n.includes('yogurt')) return 'lucide:ice-cream-2'
-  if (n.includes('mantequilla') || n.includes('margarina') || n.includes('manteca') || n.includes('grasa')) return 'lucide:sandwich'
-
-  // 3. Masas, Panes e Insumos Salados
-  if (n.includes('pan') || n.includes('panes') || n.includes('baguette') || n.includes('ciabatta') || n.includes('brioche') || n.includes('miga')) return 'lucide:sandwich'
-  if (n.includes('hojaldre') || n.includes('empanada') || n.includes('croissant') || n.includes('medialuna') || n.includes('milhojas') || n.includes('cachito')) return 'lucide:croissant'
-  if (n.includes('pizza') || n.includes('focaccia') || n.includes('quiche') || n.includes('calzone')) return 'lucide:pizza'
-
-  // 4. Harinas, Polvos, Féculas y Cereales
-  if (n.includes('harina') || n.includes('trigo') || n.includes('maizena') || n.includes('fecula') || n.includes('fécula') || n.includes('chuño') || n.includes('avena') || n.includes('polvo de hornear') || n.includes('premix') || n.includes('salvado')) return 'lucide:wheat'
-
-  // 5. Dulces, Rellenos, Mermeladas y Azúcares
-  if (n.includes('mermelada') || n.includes('jalea') || n.includes('almibar') || n.includes('almíbar') || n.includes('jarabe') || n.includes('sirope') || n.includes('miel') || n.includes('compota')) return 'lucide:amphora'
-  if (n.includes('manjar') || n.includes('dulce de leche') || n.includes('fudge') || n.includes('nutella') || n.includes('fondant') || n.includes('glaseado') || n.includes('cobertura')) return 'lucide:donut'
-  if (n.includes('azucar') || n.includes('azúcar') || n.includes('impalpable') || n.includes('caramelo') || n.includes('rubia') || n.includes('blanca')) return 'lucide:candy'
-
-  // 6. Huevos
-  if (n.includes('huevo') || n.includes('huevos') || n.includes('yema') || n.includes('clara')) return 'lucide:egg'
-
-  // 7. Chocolates, Cacao y Galletas
-  if (n.includes('chocolate') || n.includes('cacao') || n.includes('chispas') || n.includes('chips') || n.includes('cocoa')) return 'lucide:cookie'
-  if (n.includes('oblea') || n.includes('galleta') || n.includes('bizcocho') || n.includes('wafer')) return 'lucide:croissant'
-
-  // 8. Frutas, Cítricos y Verduras/Hortalizas
-  if (n.includes('fresa') || n.includes('frutilla') || n.includes('cereza') || n.includes('frambuesa') || n.includes('guinda') || n.includes('berrie') || n.includes('arándano') || n.includes('arandano')) return 'lucide:cherry'
-  if (n.includes('limon') || n.includes('limón') || n.includes('naranja') || n.includes('citrico') || n.includes('maracuya') || n.includes('maracuyá') || n.includes('lima')) return 'lucide:citrus'
-  if (n.includes('manzana') || n.includes('durazno') || n.includes('pera') || n.includes('damasco') || n.includes('membrillo')) return 'lucide:apple'
-  if (n.includes('platano') || n.includes('plátano') || n.includes('banana')) return 'lucide:banana'
-  if (n.includes('uva') || n.includes('pasa') || n.includes('pasas') || n.includes('higo')) return 'lucide:grape'
-  if (n.includes('cebolla') || n.includes('tomate') || n.includes('aceituna') || n.includes('espinaca') || n.includes('pimiento') || n.includes('perejil') || n.includes('verdura')) return 'lucide:carrot'
-
-  // 9. Frutos Secos
-  if (n.includes('almendra') || n.includes('nuez') || n.includes('pecana') || n.includes('mani') || n.includes('maní') || n.includes('pistacho') || n.includes('castaña') || n.includes('avellana') || n.includes('ajonjoli')) return 'lucide:nut'
-
-  // 10. Líquidos, Aceites, Esencias y Licores
-  if (n.includes('aceite') || n.includes('oliva') || n.includes('vegetal')) return 'lucide:droplet'
-  if (n.includes('esencia') || n.includes('vainilla') || n.includes('aroma') || n.includes('colorante') || n.includes('tinta')) return 'lucide:amphora'
-  if (n.includes('ron') || n.includes('pisco') || n.includes('licor') || n.includes('vino') || n.includes('cerveza')) return 'lucide:glass-water'
-
-  // 11. Levadura, Sal y Condimentos / Especias
-  if (n.includes('levadura') || n.includes('fermento') || n.includes('masa madre')) return 'lucide:hop'
-  if (n.includes('sal') || n.includes('bicarbonato') || n.includes('canela') || n.includes('clavo') || n.includes('especias') || n.includes('oregano') || n.includes('orégano') || n.includes('pimienta')) return 'lucide:sparkles'
-  if (n.includes('cafe') || n.includes('café') || n.includes('matcha') || n.includes('te') || n.includes('té')) return 'lucide:coffee'
-
-  // 12. Empaques, Cajas, Moldes y Pirotines
-  if (n.includes('caja') || n.includes('empaque') || n.includes('bolsa') || n.includes('envase') || n.includes('pirotin') || n.includes('papel') || n.includes('domo') || n.includes('cinta')) return 'lucide:package'
-
-  return 'lucide:box'
-}
 </script>
-
 <template>
-  <div class="space-y-6">
-    <!-- Header Controls: Title, Search & Actions -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-dashed border-[#4A5D23]/30">
-      <div class="flex items-center gap-3">
-        <Icon name="lucide:scale" class="w-6 h-6 text-[#4A5D23]" />
-        <h2 class="text-2xl font-playfair font-black text-[#2A321B] tracking-tight">
-          Almacén de Insumos & Costos
-        </h2>
+  <div class="space-y-3.5 sm:space-y-4">
+    <!-- Header Section con Búsqueda y Acción integradas -->
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-5 sm:p-6 rounded-[2rem] border border-[#4A5D23]/10 shadow-soft-sm">
+      <div class="shrink-0">
+        <div class="flex items-center gap-3">
+          <h2 class="text-2xl font-black font-playfair text-[#2A321B]">Almacén de Insumos</h2>
+          <span v-if="localMaterials.length" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#4A5D23]/10 text-[#4A5D23] border border-[#4A5D23]/15">
+            {{ searchQuery ? `${filteredMaterials.length} de ${localMaterials.length} ${localMaterials.length === 1 ? 'insumo' : 'insumos'}` : `${localMaterials.length} ${localMaterials.length === 1 ? 'insumo' : 'insumos'}` }}
+          </span>
+        </div>
+        <p class="text-xs text-[#4A5D23]/70 font-medium mt-0.5">Control de materias primas, costos de adquisición y stock físico</p>
       </div>
-      
-      <div class="flex flex-wrap items-center gap-3">
-        <!-- Buscador Inteligente con Sugerencias en Tiempo Real -->
-        <div class="relative flex-1 sm:w-72" @focusin="isSearchFocused = true" @blur="setTimeout(() => isSearchFocused = false, 200)">
-          <div class="relative flex items-center">
-            <Icon name="lucide:search" class="w-4 h-4 text-[#4A5D23]/50 absolute left-3.5 pointer-events-none" />
+
+      <!-- Barra de herramientas compacta: Búsqueda focalizada + Botón Nuevo Insumo -->
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        <!-- Search Bar with Suggestions -->
+        <div class="relative w-full sm:w-64 md:w-72 lg:w-80">
+          <div class="relative">
+            <Icon name="lucide:search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#4A5D23]/40" />
             <input 
-              v-model="searchQuery" 
+              v-model="searchQuery"
+              @focus="isSearchFocused = true"
+              @blur="handleSearchBlur"
               type="text" 
-              placeholder="Buscar insumo..."
-              class="w-full pl-9 pr-9 py-2.5 bg-white rounded-xl border border-[#4A5D23]/20 focus:outline-none focus:border-[#4A5D23] focus:ring-2 focus:ring-[#4A5D23]/10 text-xs font-bold text-[#2A321B] placeholder:text-[#4A5D23]/40 shadow-sm transition-all"
+              placeholder="Buscar insumos o unidad..."
+              class="w-full pl-10 pr-10 py-2.5 bg-[#F4F1E1]/40 hover:bg-[#F4F1E1]/70 focus:bg-white border border-[#4A5D23]/15 rounded-xl text-xs font-bold text-[#2A321B] placeholder:text-[#4A5D23]/40 focus:outline-none focus:border-[#4A5D23] focus:ring-2 focus:ring-[#4A5D23]/15 transition-all shadow-xs"
             />
-            <button 
-              v-if="searchQuery" 
-              @click="clearSearch" 
-              class="absolute right-3 text-[#4A5D23]/40 hover:text-[#4A5D23] transition-colors"
-              title="Limpiar búsqueda"
-            >
-              <Icon name="lucide:x" class="w-3.5 h-3.5" />
-            </button>
+            <Transition name="fade">
+              <button 
+                v-if="searchQuery" 
+                @click="clearSearch" 
+                type="button" 
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-[#4A5D23]/40 hover:text-red-600 p-0.5 cursor-pointer transition-colors"
+                aria-label="Limpiar búsqueda"
+              >
+                <Icon name="lucide:x" class="w-3.5 h-3.5" />
+              </button>
+            </Transition>
           </div>
 
-          <!-- Sugerencias en tiempo real -->
-          <Transition name="fade">
+          <!-- Dropdown de sugerencias -->
+          <Transition name="dropdown">
             <div 
-              v-if="isSearchFocused && searchQuery && searchSuggestions.length > 0" 
-              class="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl border border-[#4A5D23]/20 shadow-lg overflow-hidden z-50 py-1 max-h-60 overflow-y-auto custom-scrollbar divide-y divide-[#4A5D23]/5"
+              v-if="isSearchFocused && searchSuggestions.length > 0 && searchQuery"
+              class="absolute left-0 right-0 top-full mt-1.5 bg-white border border-[#4A5D23]/15 rounded-xl shadow-lg z-50 overflow-hidden divide-y divide-[#4A5D23]/5"
             >
               <button
-                v-for="suggestion in searchSuggestions"
-                :key="suggestion.id"
-                @mousedown="selectSuggestion(suggestion)"
-                class="w-full text-left px-4 py-2.5 hover:bg-[#F4F1E1]/60 text-xs font-bold text-[#2A321B] hover:text-[#4A5D23] transition-colors cursor-pointer truncate block"
+                v-for="sugg in searchSuggestions"
+                :key="sugg.id"
+                @mousedown.prevent="selectSuggestion(sugg)"
+                type="button"
+                class="w-full text-left px-4 py-2 text-xs font-bold text-[#2A321B] hover:bg-[#F4F1E1]/40 flex items-center justify-between cursor-pointer"
               >
-                {{ suggestion.name }}
+                <span>{{ sugg.name }}</span>
+                <span class="text-[10px] text-[#4A5D23]/60">{{ sugg.unit }}</span>
               </button>
             </div>
           </Transition>
         </div>
 
         <!-- Botón Nuevo Insumo -->
-        <button 
-          @click="openNewMaterialModal" 
-          class="flex items-center gap-2 px-4 py-2.5 bg-[#4A5D23] text-white rounded-xl font-bold text-xs shadow-sm hover:bg-[#3C4A1C] active:translate-y-0.5 transition-all cursor-pointer"
+        <button
+          @click="openNewMaterialModal"
+          type="button"
+          class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#4A5D23] text-white text-xs font-bold hover:bg-[#3C4A1C] transition-all shadow-sm active:scale-95 cursor-pointer shrink-0"
         >
           <Icon name="lucide:plus" class="w-4 h-4" />
-          Nuevo Insumo
-        </button>
-
-        <!-- Botón Actualizar -->
-        <button 
-          @click="$emit('refresh')" 
-          class="w-9 h-9 rounded-xl bg-white border border-[#4A5D23]/20 text-[#4A5D23] hover:bg-[#F4F1E1] flex items-center justify-center transition-all shadow-sm shrink-0" 
-          title="Actualizar"
-        >
-          <Icon name="lucide:refresh-cw" :class="['w-4 h-4', pendingMaterials ? 'animate-spin' : '']" />
+          <span>Nuevo Insumo</span>
         </button>
       </div>
     </div>
 
-    <!-- Error Message -->
-    <div v-if="errorMessage" class="mb-4 bg-white border-2 border-red-800 text-red-900 p-4 rounded-xl text-sm flex items-start gap-3 shadow-sm">
-      <Icon name="lucide:triangle-alert" class="w-5 h-5 shrink-0 mt-0.5" />
-      <span class="font-medium leading-relaxed">{{ errorMessage }}</span>
+    <!-- Loading State -->
+    <div v-if="pendingMaterials" class="flex justify-center py-20">
+      <Icon name="lucide:loader-2" class="w-8 h-8 text-[#4A5D23] animate-spin" />
     </div>
 
-    <!-- State: Loading -->
-    <div v-if="pendingMaterials && (!materials?.data)" class="flex flex-col items-center justify-center py-16">
-      <div class="relative w-12 h-12 mb-4 text-[#4A5D23]">
-         <Icon name="lucide:loader-2" class="w-full h-full animate-spin" />
+    <!-- Empty State General (Sin insumos registrados) -->
+    <div v-else-if="!localMaterials.length" class="text-center py-16 bg-white rounded-2xl sm:rounded-[1.75rem] border border-[#4A5D23]/10 p-6 sm:p-8 shadow-soft-sm">
+      <div class="w-16 h-16 rounded-full bg-[#F4F1E1] flex items-center justify-center mx-auto mb-4 text-[#4A5D23]">
+        <Icon name="lucide:scale" class="w-8 h-8" />
       </div>
-      <p class="text-[11px] font-bold tracking-widest uppercase text-[#4A5D23] animate-pulse">Cargando inventario...</p>
-    </div>
-
-    <!-- State: Empty (No materials) -->
-    <div v-else-if="!materials?.data || materials.data.length === 0" class="text-center py-20 bg-white rounded-3xl border border-[#4A5D23]/20 shadow-sm">
-      <Icon name="lucide:package-open" class="w-12 h-12 text-[#4A5D23]/50 mx-auto mb-4" />
-      <h3 class="text-lg font-playfair font-bold text-[#2A321B] mb-2 tracking-tight">Sin Insumos Registrados</h3>
-      <p class="text-[#4A5D23]/80 font-medium text-sm max-w-sm mx-auto text-balance leading-relaxed mb-6">
-        Agrega tu primer insumo para comenzar a calcular tus costos reales.
-      </p>
-      <button 
-        @click="openNewMaterialModal" 
-        class="inline-flex items-center gap-2 px-5 py-3 bg-[#4A5D23] text-white rounded-xl font-bold text-sm shadow-sm hover:bg-[#3C4A1C] transition-all"
+      <h3 class="text-xl font-bold font-playfair text-[#2A321B] mb-1">Sin insumos registrados</h3>
+      <p class="text-xs text-[#4A5D23]/70 max-w-sm mx-auto mb-6">Comienza registrando tus materias primas para calcular recetas y escandallos.</p>
+      <button
+        @click="openNewMaterialModal"
+        type="button"
+        class="px-5 py-2.5 rounded-xl bg-[#4A5D23] text-white text-xs font-bold hover:bg-[#3C4A1C] transition-all cursor-pointer shadow-sm"
       >
-        <Icon name="lucide:plus" class="w-4 h-4" />
-        Agregar Insumo Ahora
+        Crear Primer Insumo
       </button>
     </div>
 
-    <!-- State: No Search Results -->
-    <div v-else-if="filteredMaterials.length === 0 && searchQuery" class="text-center py-16 bg-white rounded-3xl border border-[#4A5D23]/10 shadow-sm p-6">
-      <Icon name="lucide:search-x" class="w-12 h-12 text-[#4A5D23]/40 mx-auto mb-3" />
-      <h3 class="text-base font-playfair font-bold text-[#2A321B] mb-1">Sin resultados para "{{ searchQuery }}"</h3>
-      <p class="text-xs text-[#4A5D23]/70 font-medium mb-4">No encontramos ningún insumo que coincida con tu búsqueda.</p>
-      <button @click="clearSearch" class="px-4 py-2 bg-[#F4F1E1] text-[#4A5D23] rounded-xl text-xs font-bold hover:bg-[#e6e2cc] transition-colors">
-        Limpiar búsqueda
-      </button>
-    </div>
-
-    <!-- State: List -->
-    <TransitionGroup 
-      v-else 
-      name="list" 
-      tag="div" 
-      class="flex-1 flex flex-col gap-3 relative"
-    >
-      <div v-for="item in paginatedMaterials" :key="item.id" class="bg-white rounded-2xl border border-[#4A5D23]/10 shadow-sm p-4 flex items-center gap-4 hover:shadow-md transition-all duration-300 group">
-        
-        <!-- Ícono Temático Inteligente por Insumo -->
-        <div class="w-12 h-12 rounded-2xl bg-[#F4F1E1] border border-[#4A5D23]/15 flex items-center justify-center text-[#4A5D23] shrink-0 shadow-sm group-hover:scale-105 group-hover:bg-[#4A5D23] group-hover:text-white transition-all duration-300">
-          <Icon :name="getMaterialIcon(item.name)" class="w-6 h-6" />
+    <!-- Main Content: Mobile Cards (< md) & Desktop Table (>= md) -->
+    <div v-else class="space-y-3 sm:space-y-4">
+      <!-- Empty State para búsquedas sin resultados (Mobile & Desktop) -->
+      <div 
+        v-if="!paginatedMaterials.length"
+        class="bg-white rounded-2xl sm:rounded-[1.75rem] border border-[#4A5D23]/10 shadow-soft-sm text-center py-12 px-4 text-[#4A5D23]/60"
+      >
+        <div class="w-12 h-12 rounded-full bg-[#F4F1E1] flex items-center justify-center mx-auto mb-2 text-[#4A5D23]">
+          <Icon name="lucide:search-x" class="w-6 h-6" />
         </div>
+        <p class="text-xs sm:text-sm font-bold text-[#2A321B]">No se encontraron insumos</p>
+        <p class="text-[11px] sm:text-xs text-[#4A5D23]/60 mt-0.5">No hay materias primas que coincidan con "{{ searchQuery }}"</p>
+        <button 
+          v-if="searchQuery" 
+          @click="clearSearch" 
+          type="button" 
+          class="mt-3 px-3.5 py-1.5 text-xs font-bold text-[#4A5D23] bg-[#F4F1E1] hover:bg-[#4A5D23] hover:text-white rounded-xl transition-all cursor-pointer shadow-2xs"
+        >
+          Limpiar búsqueda
+        </button>
+      </div>
 
-        <!-- Info -->
-        <div class="flex-1 min-w-0 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-          <!-- Name & Purchase -->
-          <div>
-            <h3 class="font-bold text-[#2A321B] text-base truncate">{{ item.name }}</h3>
-            <p class="text-[10px] font-bold text-[#4A5D23]/70 uppercase tracking-widest mt-0.5">
-              Compra: S/ {{ Number(item.purchase_price).toFixed(2) }} / {{ item.purchase_quantity }}{{ item.unit }}
-            </p>
-          </div>
-          
-          <!-- Stock Input -->
-          <div class="flex items-center gap-2">
-            <span class="text-[10px] font-bold text-[#4A5D23]/70 uppercase tracking-widest">Stock:</span>
-            <div class="inline-flex items-center gap-1 bg-[#F4F1E1]/60 border border-[#4A5D23]/20 rounded-xl px-2.5 py-1 focus-within:border-[#4A5D23] focus-within:bg-white transition-all relative">
-              <input 
-                type="number" 
-                :value="item.stock" 
-                @blur="updateStockInline(item, $event)"
-                @keyup.enter="updateStockInline(item, $event)"
-                :disabled="updatingStockId === item.id"
-                class="w-14 text-center text-xs font-bold text-[#2A321B] bg-transparent focus:outline-none disabled:opacity-50"
-              />
-              <span class="text-[10px] font-bold text-[#4A5D23]">{{ item.unit }}</span>
-              <Icon v-if="updatingStockId === item.id" name="lucide:loader-2" class="absolute -right-5 w-4 h-4 text-[#4A5D23] animate-spin" />
+      <template v-else>
+        <!-- Vista Móvil (< md): Mobile Cards Táctiles con Barra de Acciones Inferior -->
+        <TransitionGroup
+          name="material-card"
+          tag="div"
+          class="space-y-3 md:hidden relative"
+        >
+          <div
+            v-for="item in paginatedMaterials"
+            :key="item.id"
+            class="bg-white rounded-2xl border border-[#4A5D23]/10 shadow-soft-sm overflow-hidden flex flex-col justify-between transition-all hover:border-[#4A5D23]/25"
+          >
+            <!-- Cabecera de la Tarjeta (Top Body) -->
+            <div class="p-3.5 space-y-3">
+              <div class="flex items-start justify-between gap-3">
+                <!-- Izquierda: Icono temático (44x44px) + Nombre + Unidad -->
+                <div class="flex items-center gap-3 min-w-0">
+                  <div class="w-11 h-11 rounded-xl bg-[#F4F1E1] border border-[#4A5D23]/10 flex items-center justify-center text-[#4A5D23] shrink-0">
+                    <Icon :name="getMaterialIcon(item.name)" class="w-5 h-5" />
+                  </div>
+                  <div class="min-w-0">
+                    <h4 class="font-bold text-sm text-[#2A321B] truncate leading-snug">{{ item.name }}</h4>
+                    <p class="text-[10px] text-[#4A5D23]/60 uppercase tracking-wider font-bold mt-0.5">Unidad: {{ item.unit }}</p>
+                  </div>
+                </div>
+
+                <!-- Derecha: Costo Unitario Destacado -->
+                <div class="text-right shrink-0">
+                  <p class="text-[10px] font-bold text-[#4A5D23]/70 uppercase tracking-wider">Costo / {{ item.unit }}</p>
+                  <p class="font-black text-sm text-[#4A5D23] font-inter">
+                    S/ {{ calculateUnitCost(item.purchase_price, item.purchase_quantity).toFixed(4) }}
+                  </p>
+                </div>
+              </div>
+
+              <!-- Fila Secundaria: Precios y Stock Físico editable -->
+              <div class="grid grid-cols-2 gap-2 pt-2.5 border-t border-[#4A5D23]/10">
+                <div>
+                  <p class="text-[10px] text-[#4A5D23]/70 font-medium">Compra / Paquete</p>
+                  <p class="text-xs font-bold text-[#2A321B]">
+                    S/ {{ Number(item.purchase_price ?? 0).toFixed(2) }} <span class="text-[10px] font-normal text-[#4A5D23]/60">({{ Number(item.purchase_quantity ?? 0).toLocaleString() }} {{ item.unit }})</span>
+                  </p>
+                </div>
+                <div class="text-right">
+                  <p class="text-[10px] text-[#4A5D23]/70 font-medium">Stock Físico</p>
+                  <div class="inline-flex items-center gap-1 justify-end">
+                    <input
+                      :value="item.stock ?? 0"
+                      @change="updateStockInline(item, $event)"
+                      type="number"
+                      step="any"
+                      class="w-16 px-1.5 py-0.5 bg-[#F4F1E1]/40 border border-[#4A5D23]/20 rounded-md text-xs font-bold text-center text-[#2A321B] focus:outline-none focus:bg-white focus:border-[#4A5D23]"
+                      :aria-label="`Editar stock de ${item.name}`"
+                    />
+                    <span class="text-[10px] font-bold text-[#4A5D23]/60">{{ item.unit }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pie de la Tarjeta: Barra de Acciones para el Pulgar -->
+            <div class="border-t border-[#4A5D23]/10 bg-[#F4F1E1]/30 grid grid-cols-2 divide-x divide-[#4A5D23]/10">
+              <!-- 1. Editar -->
+              <button
+                @click="openEditMaterial(item)"
+                type="button"
+                class="h-10 flex items-center justify-center gap-1.5 text-xs font-bold text-[#2A321B] hover:bg-[#F4F1E1] active:bg-[#4A5D23]/15 transition-colors cursor-pointer"
+                :aria-label="`Editar insumo ${item.name}`"
+              >
+                <Icon name="lucide:pencil" class="w-3.5 h-3.5 text-[#4A5D23]" />
+                <span>Editar</span>
+              </button>
+
+              <!-- 2. Eliminar -->
+              <button
+                @click="handleDeleteMaterial(item.id, item.name || '')"
+                type="button"
+                class="h-10 flex items-center justify-center gap-1.5 text-xs font-bold text-status-danger hover:bg-red-50 active:bg-red-100 transition-colors cursor-pointer"
+                :aria-label="`Eliminar insumo ${item.name}`"
+              >
+                <Icon name="lucide:trash-2" class="w-3.5 h-3.5" />
+                <span>Eliminar</span>
+              </button>
             </div>
           </div>
+        </TransitionGroup>
 
-          <!-- Unit Cost -->
-          <div class="text-right">
-            <p class="text-base font-black text-[#2A321B]">
-              S/ {{ Number(item.cost_per_unit || (item.purchase_price / item.purchase_quantity)).toFixed(2) }}
-            </p>
-            <p class="text-[10px] font-bold text-[#4A5D23]/70 uppercase tracking-widest mt-0.5">
-              por {{ item.unit }}
-            </p>
+        <!-- Vista Escritorio (>= md): Tabla Completa -->
+        <div class="hidden md:block bg-white rounded-2xl sm:rounded-[1.75rem] border border-[#4A5D23]/10 shadow-soft-sm overflow-hidden">
+          <div class="overflow-x-auto custom-scrollbar">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="border-b border-[#4A5D23]/10 bg-[#F4F1E1]/40">
+                  <th class="py-3 px-5 sm:px-6 text-[11px] font-bold text-[#4A5D23] uppercase tracking-wider">Insumo</th>
+                  <th class="py-3 px-5 sm:px-6 text-[11px] font-bold text-[#4A5D23] uppercase tracking-wider text-right">Precio Compra</th>
+                  <th class="py-3 px-5 sm:px-6 text-[11px] font-bold text-[#4A5D23] uppercase tracking-wider text-right">Cant. Paquete</th>
+                  <th class="py-3 px-5 sm:px-6 text-[11px] font-bold text-[#4A5D23] uppercase tracking-wider text-right">Costo x Unidad</th>
+                  <th class="py-3 px-5 sm:px-6 text-[11px] font-bold text-[#4A5D23] uppercase tracking-wider text-center">Stock Actual</th>
+                  <th class="py-3 px-5 sm:px-6 text-[11px] font-bold text-[#4A5D23] uppercase tracking-wider text-right">Acciones</th>
+                </tr>
+              </thead>
+              <TransitionGroup
+                name="material-row"
+                tag="tbody"
+                class="divide-y divide-[#4A5D23]/5 relative"
+              >
+                <tr 
+                  v-for="item in paginatedMaterials" 
+                  :key="item.id" 
+                  class="hover:bg-[#F4F1E1]/20 transition-colors group"
+                >
+                  <!-- Insumo: Icono + Nombre -->
+                  <td class="py-2.5 sm:py-3 px-5 sm:px-6">
+                    <div class="flex items-center gap-3">
+                      <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#F4F1E1] border border-[#4A5D23]/10 flex items-center justify-center text-[#4A5D23] shrink-0">
+                        <Icon :name="getMaterialIcon(item.name)" class="w-4 h-4 sm:w-5 sm:h-5" />
+                      </div>
+                      <div>
+                        <h4 class="font-bold text-xs sm:text-sm text-[#2A321B]">{{ item.name }}</h4>
+                        <p class="text-[10px] text-[#4A5D23]/60 uppercase tracking-wider font-bold">Unidad: {{ item.unit }}</p>
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- Precio de Compra -->
+                  <td class="py-2.5 sm:py-3 px-5 sm:px-6 text-right">
+                    <span class="font-bold text-xs sm:text-sm text-[#2A321B] font-inter">
+                      S/ {{ Number(item.purchase_price ?? 0).toFixed(2) }}
+                    </span>
+                  </td>
+
+                  <!-- Cantidad Paquete -->
+                  <td class="py-2.5 sm:py-3 px-5 sm:px-6 text-right">
+                    <span class="font-bold text-xs text-[#2A321B] font-inter">
+                      {{ Number(item.purchase_quantity ?? 0).toLocaleString() }} {{ item.unit }}
+                    </span>
+                  </td>
+
+                  <!-- Costo x Unidad -->
+                  <td class="py-2.5 sm:py-3 px-5 sm:px-6 text-right">
+                    <span class="font-bold text-xs text-[#4A5D23] font-inter">
+                      S/ {{ calculateUnitCost(item.purchase_price, item.purchase_quantity).toFixed(4) }} / {{ item.unit }}
+                    </span>
+                  </td>
+
+                  <!-- Stock Actual (con edición inline rápida) -->
+                  <td class="py-2.5 sm:py-3 px-5 sm:px-6 text-center">
+                    <div class="inline-flex items-center gap-1">
+                      <input
+                        :value="item.stock ?? 0"
+                        @change="updateStockInline(item, $event)"
+                        type="number"
+                        step="any"
+                        class="w-18 sm:w-20 px-2 py-1 bg-[#F4F1E1]/40 border border-[#4A5D23]/20 rounded-lg text-xs font-bold text-center text-[#2A321B] focus:outline-none focus:border-[#4A5D23]"
+                        aria-label="Editar stock físico"
+                      />
+                      <span class="text-[10px] font-bold text-[#4A5D23]/60">{{ item.unit }}</span>
+                    </div>
+                  </td>
+
+                  <!-- Acciones -->
+                  <td class="py-2.5 sm:py-3 px-5 sm:px-6 text-right">
+                    <div class="inline-flex items-center gap-1.5">
+                      <button
+                        @click="openEditMaterial(item)"
+                        type="button"
+                        class="w-8 h-8 rounded-lg bg-[#F4F1E1]/60 text-[#4A5D23] hover:bg-[#4A5D23] hover:text-white transition-all flex items-center justify-center shadow-xs cursor-pointer"
+                        aria-label="Editar Insumo"
+                      >
+                        <Icon name="lucide:pencil" class="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        @click="handleDeleteMaterial(item.id, item.name || '')"
+                        type="button"
+                        class="w-8 h-8 rounded-lg bg-red-50 text-status-danger hover:bg-status-danger hover:text-white transition-all flex items-center justify-center shadow-xs cursor-pointer"
+                        aria-label="Eliminar Insumo"
+                      >
+                        <Icon name="lucide:trash-2" class="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </TransitionGroup>
+            </table>
+          </div>
+
+          <!-- Pagination Footer de Tabla Desktop (después del 7mo elemento) -->
+          <div v-if="totalPages > 1" class="flex items-center justify-between p-3.5 sm:p-4 border-t border-[#4A5D23]/10 bg-[#F4F1E1]/20">
+            <span class="text-xs text-[#4A5D23]/70 font-medium">
+              Página {{ currentPage }} de {{ totalPages }}
+            </span>
+            <div class="flex items-center gap-2">
+              <button
+                @click="prevPage"
+                :disabled="currentPage <= 1"
+                class="px-3 py-1.5 rounded-lg border border-[#4A5D23]/20 text-xs font-bold text-[#2A321B] hover:bg-white transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              >
+                Anterior
+              </button>
+              <button
+                @click="nextPage"
+                :disabled="currentPage >= totalPages"
+                class="px-3 py-1.5 rounded-lg border border-[#4A5D23]/20 text-xs font-bold text-[#2A321B] hover:bg-white transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              >
+                Siguiente
+              </button>
+            </div>
           </div>
         </div>
 
-        <!-- Actions -->
-        <div class="flex items-center gap-2 shrink-0 border-l border-[#4A5D23]/10 pl-4 ml-2">
-          <button 
-            @click="openEditMaterial(item)"
-            class="w-9 h-9 rounded-xl flex items-center justify-center text-[#4A5D23] bg-[#F4F1E1]/60 hover:bg-[#4A5D23] hover:text-white transition-colors"
-            title="Editar"
-          >
-            <Icon name="lucide:pencil" class="w-4 h-4" />
-          </button>
-          <button 
-            @click="handleDeleteMaterial(item.id, item.name)"
-            class="w-9 h-9 rounded-xl flex items-center justify-center text-red-600 bg-red-50 hover:bg-red-600 hover:text-white transition-colors"
-            title="Eliminar"
-          >
-            <Icon name="lucide:trash-2" class="w-4 h-4" />
-          </button>
+        <!-- Paginación Mobile (< md) (después del 7mo elemento) -->
+        <div 
+          v-if="totalPages > 1" 
+          class="flex md:hidden items-center justify-between p-3.5 rounded-2xl bg-white border border-[#4A5D23]/10 shadow-soft-sm"
+        >
+          <span class="text-xs text-[#4A5D23]/70 font-medium">
+            Página {{ currentPage }} de {{ totalPages }}
+          </span>
+          <div class="flex items-center gap-1.5">
+            <button
+              @click="prevPage"
+              :disabled="currentPage <= 1"
+              type="button"
+              class="px-3 py-1.5 rounded-xl border border-[#4A5D23]/20 bg-[#F4F1E1]/30 hover:bg-[#F4F1E1] text-xs font-bold text-[#2A321B] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shadow-2xs"
+              aria-label="Página anterior"
+            >
+              Anterior
+            </button>
+            <button
+              @click="nextPage"
+              :disabled="currentPage >= totalPages"
+              type="button"
+              class="px-3 py-1.5 rounded-xl border border-[#4A5D23]/20 bg-[#F4F1E1]/30 hover:bg-[#F4F1E1] text-xs font-bold text-[#2A321B] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shadow-2xs"
+              aria-label="Página siguiente"
+            >
+              Siguiente
+            </button>
+          </div>
         </div>
-      </div>
-    </TransitionGroup>
-
-    <!-- Pagination Controls -->
-    <div v-if="totalPages > 1" class="flex items-center justify-between pt-4 px-4 py-3 bg-white rounded-2xl border border-[#4A5D23]/10 shadow-sm">
-      <p class="text-xs font-bold text-[#4A5D23]/80 uppercase tracking-widest">
-        Página {{ currentPage }} de {{ totalPages }}
-      </p>
-      <div class="flex items-center gap-3">
-        <button 
-          @click="prevPage" 
-          :disabled="currentPage === 1"
-          class="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all duration-300 border-2 shadow-sm text-[#2A321B] bg-white border-[#2A321B] hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed active:translate-y-0.5 active:shadow-none"
-        >
-          <Icon name="lucide:chevron-left" class="w-4 h-4" />
-          Atrás
-        </button>
-        <button 
-          @click="nextPage" 
-          :disabled="currentPage === totalPages"
-          class="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all duration-300 border-2 shadow-sm text-[#2A321B] bg-white border-[#2A321B] hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed active:translate-y-0.5 active:shadow-none"
-        >
-          Siguiente
-          <Icon name="lucide:chevron-right" class="w-4 h-4" />
-        </button>
-      </div>
+      </template>
     </div>
 
-    <!-- Modal de Insumo (Crear / Editar) -->
-    <AdminMaterialModal 
+    <!-- Modal de Insumo -->
+    <MaterialModal
       :show="showModal"
-      :materialToEdit="selectedMaterial"
+      :material-to-edit="selectedMaterial"
       @close="showModal = false"
-      @saved="$emit('refresh')"
+      @saved="emit('refresh')"
     />
   </div>
 </template>
 
 <style scoped>
-/* Animaciones de Lista (Pop y Deslizamiento) */
-.list-move,
-.list-enter-active,
-.list-leave-active {
-  transition: all 0.4s cubic-bezier(0.55, 0, 0.1, 1);
+/* ==========================================================================
+   Animaciones FLIP y Transiciones para Insumos (Desktop & Mobile)
+   ========================================================================== */
+
+/* 1. Deslizamiento suave FLIP de las filas de insumos en tabla (Desktop) */
+.material-row-move {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
 }
 
-.list-enter-from,
-.list-leave-to {
+.material-row-enter-active {
+  transition: opacity 0.25s ease-out, transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.material-row-enter-from {
   opacity: 0;
-  transform: scale(0.8) translateY(20px);
+  transform: translateY(-8px);
 }
 
-.list-leave-active {
+.material-row-leave-active {
   position: absolute;
   width: 100%;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.05s ease;
+}
+
+/* 2. Deslizamiento suave FLIP para Mobile Cards (Mobile) */
+.material-card-move {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+.material-card-enter-active {
+  transition: opacity 0.25s ease-out, transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.material-card-enter-from {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+.material-card-leave-active {
+  position: absolute;
+  width: 100%;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.05s ease;
+}
+
+/* Transiciones para el botón de limpiar búsqueda */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.15s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* Transición para el dropdown de sugerencias */
+.dropdown-enter-active,
+.dropdown-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dropdown-enter-from,
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .material-row-move,
+  .material-row-enter-active,
+  .material-row-leave-active,
+  .material-card-move,
+  .material-card-enter-active,
+  .material-card-leave-active,
+  .dropdown-enter-active,
+  .dropdown-leave-active {
+    transition: none !important;
+    transform: none !important;
+  }
 }
 </style>

@@ -1,4 +1,5 @@
 import { serverSupabaseClient } from '#supabase/server'
+import type { Database } from '~/types/database.types'
 
 export default defineEventHandler(async (event) => {
   // 1. Capturamos el ID de la URL
@@ -12,13 +13,13 @@ export default defineEventHandler(async (event) => {
   }
 
   // 2. Conectamos con Supabase
-  const supabase = await serverSupabaseClient<any>(event)
+  const supabase = await serverSupabaseClient<Database>(event)
 
   // 3. Consultamos un solo producto que coincida con el ID
   const { data, error } = await supabase
     .from('products')
     .select('*')
-    .eq('id', id)
+    .eq('id', Number(id))
     .single() // .single() le dice a Postgres que devuelva un solo objeto { ... } en vez de una lista [ { ... } ]
 
   // 4. Si no existe en la base de datos, mandamos un 404 (No encontrado)
