@@ -84,6 +84,7 @@ Registro cronológico inmutable de auditorías y entregas por fase:
   * Despliegue Git-Ops en Vercel y Rollback instantáneo (< 15 segundos).
   * Catálogo de alertas y telemetría de checkout.
   * Incident Response Playbook (IRP) con matriz RACI.
+* [`runbook-despliegue-vercel-troubleshooting.md`](./05%20-%20Operaciones/runbook-despliegue-vercel-troubleshooting.md) — **Runbook de Troubleshooting Vercel SSR**: Diagnóstico, blindaje y prevención del Error 500 en la cadena de inicialización de Supabase y Pinia.
 
 ### 6. 🏛️ [decisions/ (Architecture Decision Records)](./decisions/)
 Registro de decisiones de arquitectura bajo formato estándar MADR 3.0.0 que documenta la gestión de la deuda técnica explícita (§20.5 D1–D8):

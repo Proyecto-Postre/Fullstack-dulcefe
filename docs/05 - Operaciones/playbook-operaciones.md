@@ -1,4 +1,4 @@
-﻿# Playbook de Operaciones, Resiliencia y Observabilidad — Dulce Fe
+# Playbook de Operaciones, Resiliencia y Observabilidad — Dulce Fe
 
 **Versión:** 1.0.0 (Enterprise)  
 **Fecha de Emisión:** 2026-09-06  
@@ -9,7 +9,7 @@
 
 ## 1. Matriz de Variables de Entorno y Configuración
 
-Toda variable debe gestionarse a través del panel de configuración de Vercel y el archivo local `.env`. Prohibido hardcodear llaves o URLs en `nuxt.config.ts` o en código fuente.
+Toda variable debe gestionarse a través del panel de configuración de Vercel y el archivo local `.env`. En el panel de Vercel, es **estrictamente obligatorio** habilitar cada variable para los 3 ámbitos: **Production**, **Preview** y **Development** (evita caídas en Pull Requests o ramas de desarrollo).
 
 | Variable | Descripción | Ámbito / Nivel | Local | Staging | Producción |
 |---|---|---|---|---|---|
@@ -18,6 +18,12 @@ Toda variable debe gestionarse a través del panel de configuración de Vercel y
 | `SUPABASE_SERVICE_ROLE_KEY` | Llave de administración con bypass RLS | **Estrictamente Privado** | Token local service | Token staging service | Token producción service |
 | `NUXT_PUBLIC_WHATSAPP_NUMBER` | Teléfono oficial de confirmación | Público / Cliente | `51998265700` | `51998265700` | `51998265700` |
 | `NUXT_PUBLIC_SITE_URL` | Dominio base para Origin y CORS | Público / Runtime | `http://localhost:3000` | `https://staging.dulcefe.com` | `https://dulcefe.com` |
+| `CLOUDINARY_CLOUD_NAME` | Cloud Name de Cloudinary para imágenes | Público / Assets | `dwiogiyei` | `dwiogiyei` | `dwiogiyei` |
+| `CLOUDINARY_API_KEY` | Llave de API para upload de fotos | Privado / Server | Token local | Token staging | Token producción |
+| `CLOUDINARY_API_SECRET` | Secreto de API Cloudinary | **Estrictamente Privado** | Token local | Token staging | Token producción |
+
+> [!TIP]
+> **Resiliencia SSR:** En `nuxt.config.ts` se han incorporado fallbacks canónicos de Supabase para evitar caídas catastróficas 500 durante despliegues de ramas Preview virgen. Consulta el runbook detallado en la [Sección 8](#8-runbook-de-incidencias-vercel-ssr-error-500-cadena-supabase--pinia).
 
 ---
 
@@ -148,3 +154,16 @@ Tras la resolución de cualquier incidente clasificado como P1 o P2:
 1. Redactar reporte post-mortem sin culpas (*Blameless Post-Mortem*) en `docs/04 - Informes de Ejecucion/`.
 2. Registrar la causa raíz (5 Porqués), impacto económico/operativo y tiempo total de restablecimiento.
 3. Abrir issues preventivos y tareas de mejora técnica para evitar la repetición del incidente.
+
+---
+
+## 8. Runbook de Incidencias Vercel SSR: Error 500 (Cadena Supabase / Pinia)
+
+Para detalles técnicos exhaustivos sobre la resolución y blindaje del fallo de Serverless SSR en Vercel originado por dependencias entre Supabase y el hook `app:rendered` de Pinia:
+
+* **Documento Maestro de Operaciones:** [`runbook-despliegue-vercel-troubleshooting.md`](./runbook-despliegue-vercel-troubleshooting.md)
+* **Checklist Rápido:**
+  1. Verificar que en **Vercel -> Settings -> Environment Variables** existan las 8 variables del sistema marcadas para **Production**, **Preview** y **Development**.
+  2. Comprobar que `nuxt.config.ts` mantenga los fallbacks canónicos de Supabase en `runtimeConfig` y en el bloque `supabase: { url, key, serviceKey }`.
+  3. Ejecutar simulación local sin `.env` con `$env:NITRO_PRESET="vercel"; npx nuxi build` antes de fusiones mayores.
+
