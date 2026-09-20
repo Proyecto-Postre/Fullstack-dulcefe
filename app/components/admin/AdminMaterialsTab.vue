@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import type { RawMaterialRow } from '~/types/inventory'
 import { useAdminMaterials } from '~/composables/admin/useAdminMaterials'
 import MaterialModal from './MaterialModal.vue'
@@ -23,6 +23,34 @@ watch(() => props.materials?.data, (newData) => {
   }
 }, { immediate: true })
 
+// Paginación dinámica según la altura disponible en pantalla
+const dynamicPageSize = ref<number>(7)
+
+function updateDynamicMaterialsPerPage(): void {
+  if (typeof window === 'undefined') return
+  if (window.innerWidth < 768) {
+    dynamicPageSize.value = 6
+    return
+  }
+  // Altura disponible = window.innerHeight - header ERP, tarjeta de buscador, thead y pie de tabla (~340px de elementos fijos)
+  const availableHeight = window.innerHeight - 340
+  const rowHeight = 64
+  // Restamos 1 elemento para que la barra de paginación tenga suficiente distancia del borde
+  const calculated = Math.floor(availableHeight / rowHeight) - 1
+  dynamicPageSize.value = Math.max(5, Math.min(calculated, 10))
+}
+
+onMounted(() => {
+  updateDynamicMaterialsPerPage()
+  window.addEventListener('resize', updateDynamicMaterialsPerPage)
+})
+
+onUnmounted(() => {
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('resize', updateDynamicMaterialsPerPage)
+  }
+})
+
 // Composable de gestión de insumos
 const {
   searchQuery,
@@ -38,7 +66,7 @@ const {
   prevPage,
   getMaterialIcon,
   calculateUnitCost
-} = useAdminMaterials(localMaterials)
+} = useAdminMaterials(localMaterials, dynamicPageSize)
 
 function handleSearchBlur(): void {
   setTimeout(() => {

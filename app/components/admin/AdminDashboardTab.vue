@@ -57,18 +57,33 @@ const totalInventoryValue = computed<number>(() => {
   }, 0);
 });
 
-// Paginación para Alertas de Stock (5 elementos por página)
-const ITEMS_PER_PAGE = 5;
+// Paginación adaptativa según la altura de la pantalla (Viewport Height)
+// Calcula cuántas filas caben exactamente en el espacio libre para no dejar vacío ni causar scroll
+const itemsPerPage = ref<number>(5);
+
+function updateItemsPerPage(): void {
+  if (typeof window === "undefined") return;
+  if (window.innerWidth < 1024) {
+    itemsPerPage.value = 5;
+    return;
+  }
+  // Altura disponible descontando header ERP, saludo, 4 KPIs, cabecera y paginador
+  const availableHeight = window.innerHeight - 420;
+  const rowHeight = 54;
+  // Restamos 1 elemento para que la barra de paginación inferior tenga holgura y nunca quede pegada al borde
+  const calculated = Math.floor(availableHeight / rowHeight) - 1;
+  itemsPerPage.value = Math.max(5, Math.min(calculated, 10));
+}
 
 // Paginación de Productos por Agotarse
 const currentProductsPage = ref<number>(1);
 const totalProductsPages = computed<number>(() => {
   if (!lowStockProducts.value.length) return 1;
-  return Math.ceil(lowStockProducts.value.length / ITEMS_PER_PAGE);
+  return Math.ceil(lowStockProducts.value.length / itemsPerPage.value);
 });
 const paginatedLowStockProducts = computed<ProductRow[]>(() => {
-  const start = (currentProductsPage.value - 1) * ITEMS_PER_PAGE;
-  return lowStockProducts.value.slice(start, start + ITEMS_PER_PAGE);
+  const start = (currentProductsPage.value - 1) * itemsPerPage.value;
+  return lowStockProducts.value.slice(start, start + itemsPerPage.value);
 });
 
 function nextProductsPage(): void {
@@ -96,11 +111,11 @@ watch(
 const currentMaterialsPage = ref<number>(1);
 const totalMaterialsPages = computed<number>(() => {
   if (!lowStockMaterials.value.length) return 1;
-  return Math.ceil(lowStockMaterials.value.length / ITEMS_PER_PAGE);
+  return Math.ceil(lowStockMaterials.value.length / itemsPerPage.value);
 });
 const paginatedLowStockMaterials = computed<RawMaterialRow[]>(() => {
-  const start = (currentMaterialsPage.value - 1) * ITEMS_PER_PAGE;
-  return lowStockMaterials.value.slice(start, start + ITEMS_PER_PAGE);
+  const start = (currentMaterialsPage.value - 1) * itemsPerPage.value;
+  return lowStockMaterials.value.slice(start, start + itemsPerPage.value);
 });
 
 function nextMaterialsPage(): void {
@@ -123,6 +138,15 @@ watch(
     }
   }
 );
+
+watch(itemsPerPage, () => {
+  if (currentProductsPage.value > totalProductsPages.value) {
+    currentProductsPage.value = Math.max(1, totalProductsPages.value);
+  }
+  if (currentMaterialsPage.value > totalMaterialsPages.value) {
+    currentMaterialsPage.value = Math.max(1, totalMaterialsPages.value);
+  }
+});
 
 // Modal state
 const showProductModal = ref(false);
@@ -234,10 +258,15 @@ function stopCarousel(): void {
 const activeAlertTab = ref<"products" | "materials">("products");
 
 onMounted(() => {
+  updateItemsPerPage();
+  window.addEventListener("resize", updateItemsPerPage);
   startCarousel();
 });
 
 onUnmounted(() => {
+  if (typeof window !== "undefined") {
+    window.removeEventListener("resize", updateItemsPerPage);
+  }
   stopCarousel();
 });
 </script>

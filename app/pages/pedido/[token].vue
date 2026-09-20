@@ -178,7 +178,7 @@ const progressPercentage = computed(() => {
 </script>
 
 <template>
-  <div class="flex-1 w-full bg-gradient-to-b from-[#F4F1E1]/60 via-[#F4F1E1]/40 to-[#F4F1E1]/80 py-4 sm:py-6 md:py-8 lg:py-10 px-3.5 sm:px-6 lg:px-8 flex flex-col justify-start md:justify-center relative overflow-hidden">
+  <div class="flex-1 w-full bg-gradient-to-b from-[#F4F1E1]/60 via-[#F4F1E1]/40 to-[#F4F1E1]/80 py-4 sm:py-6 md:py-8 lg:py-10 px-4 sm:px-6 lg:px-8 flex flex-col justify-start md:justify-center relative overflow-hidden">
     
     <!-- Luces Ambientales Cálidas & Elementos Botánicos para Pantallas Medianas y Grandes -->
     <div class="absolute inset-0 pointer-events-none overflow-hidden z-0 hidden sm:block">
@@ -188,7 +188,7 @@ const progressPercentage = computed(() => {
       <Icon name="lucide:wheat" class="absolute bottom-[8%] right-[2%] w-64 h-64 text-brand-primary/[0.03] rotate-45 pointer-events-none" />
     </div>
 
-    <div class="relative z-10 w-full max-w-5xl xl:max-w-6xl 2xl:max-w-6xl mx-auto my-auto space-y-3.5 sm:space-y-4 lg:space-y-5 transition-all duration-300">
+    <div class="relative z-10 w-full max-w-5xl xl:max-w-6xl 2xl:max-w-7xl mx-auto my-auto space-y-4 sm:space-y-5 lg:space-y-6 transition-all duration-300">
 
       <!-- ==================== BARRA SUPERIOR DE NAVEGACIÓN Y ACCIONES ==================== -->
       <div class="flex items-center justify-between gap-2">
@@ -249,30 +249,28 @@ const progressPercentage = computed(() => {
         </div>
       </div>
 
-      <!-- ==================== VISTA PRINCIPAL (GRID RESPONSIVO INTEGRADO) ==================== -->
-      <div v-else class="space-y-3.5 sm:space-y-4 lg:space-y-5">
+      <!-- ==================== VISTA PRINCIPAL MODULAR (ARQUITECTURA DE TARJETAS 2.0) ==================== -->
+      <div v-else class="space-y-4 sm:space-y-5 lg:space-y-6">
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-4 lg:gap-5 xl:gap-6 items-stretch">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 lg:gap-6 items-stretch">
 
-          <!-- COLUMNA IZQUIERDA: HERO DEL PEDIDO + STEPPER (lg:col-span-7) -->
+          <!-- COLUMNA IZQUIERDA: HERO DEL PEDIDO + STEPPER EN VIVO (lg:col-span-7) -->
           <div class="lg:col-span-7 flex flex-col">
-
-            <!-- TARJETA HERO: ESTADO Y STEPPER -->
             <div class="bg-white rounded-2xl sm:rounded-3xl shadow-soft-sm hover:shadow-soft-md transition-shadow border border-[#4A5D23]/15 overflow-hidden flex-1 flex flex-col justify-between">
-              <!-- Barra decorativa superior botánica -->
-              <div class="h-1.5 sm:h-2 w-full bg-gradient-to-r from-[#4A5D23] via-[#6a8435] to-[#C5A059]" />
+              <!-- Barra decorativa superior artesanal -->
+              <div class="h-2 w-full bg-gradient-to-r from-[#4A5D23] via-[#6a8435] to-[#C5A059]" />
 
-              <div class="p-4 sm:p-5 lg:p-6 xl:p-7 space-y-4 sm:space-y-5 flex-1 flex flex-col justify-between">
+              <div class="p-5 sm:p-7 lg:p-8 space-y-5 sm:space-y-6 flex-1 flex flex-col justify-between">
                 <div>
                   <!-- Encabezado: Saludo + Badge + Referencia -->
-                  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 sm:pb-3.5 border-b border-[#4A5D23]/10">
+                  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#4A5D23]/10">
                     <div>
-                      <div class="flex items-center gap-2 mb-1">
+                      <div class="flex items-center gap-2 mb-1.5 flex-wrap">
                         <span class="text-[10px] sm:text-xs font-black uppercase tracking-wider text-stone-500 font-sans">
                           Seguimiento en Vivo
                         </span>
                         <span
-                          class="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[11px] sm:text-xs font-bold rounded-full border shadow-2xs"
+                          class="inline-flex items-center gap-1.5 px-3 py-1 text-[11px] sm:text-xs font-bold rounded-full border shadow-2xs"
                           :class="getStatusBadgeClass(order.status)"
                         >
                           <span 
@@ -282,17 +280,17 @@ const progressPercentage = computed(() => {
                             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-500 opacity-75" />
                             <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-600" />
                           </span>
-                          <Icon :name="getStatusIcon(order.status)" class="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                          <Icon :name="getStatusIcon(order.status)" class="w-3.5 h-3.5" />
                           <span>{{ getStatusLabel(order.status) }}</span>
                         </span>
                       </div>
 
-                      <h1 class="text-xl sm:text-2xl lg:text-3xl font-playfair font-black text-[#2A321B]">
+                      <h1 class="text-2xl sm:text-3xl font-playfair font-black text-[#2A321B]">
                         ¡Hola, {{ order.customer_first_name }}!
                       </h1>
 
                       <!-- Referencia con botón de copia rápida -->
-                      <div class="flex items-center gap-1.5 text-xs sm:text-sm text-stone-600 mt-1">
+                      <div class="flex items-center gap-2 text-xs sm:text-sm text-stone-600 mt-1.5">
                         <span>Referencia:</span>
                         <button
                           @click="copyShortId"
@@ -303,7 +301,7 @@ const progressPercentage = computed(() => {
                               ? 'bg-emerald-100 text-emerald-900 border-emerald-500 shadow-2xs'
                               : 'text-[#4A5D23] bg-[#F4F1E1]/80 hover:bg-[#F4F1E1] border-[#4A5D23]/25 hover:border-[#4A5D23]/40 active:scale-95'
                           ]"
-                          :title="isShortIdCopied ? '¡Referencia copiada!' : 'Clic para copiar referencia'"
+                          :title="isShortIdCopied ? '¡Referencia copiada!' : 'Clic para copiar comanda'"
                         >
                           <Icon
                             :name="isShortIdCopied ? 'lucide:check' : 'lucide:copy'"
@@ -315,14 +313,14 @@ const progressPercentage = computed(() => {
                       </div>
                     </div>
 
-                    <!-- Fecha programada si existe -->
+                    <!-- Fecha y hora programada si existe -->
                     <div
                       v-if="order.delivery_date"
-                      class="bg-[#F4F1E1]/70 rounded-xl sm:rounded-2xl px-3.5 py-2 border border-[#4A5D23]/15 self-start sm:self-auto sm:text-right shrink-0 text-xs sm:text-sm"
+                      class="bg-[#F4F1E1]/80 rounded-2xl px-4 py-2.5 border border-[#4A5D23]/15 self-start sm:self-auto sm:text-right shrink-0"
                     >
-                      <span class="text-[10px] sm:text-xs font-bold text-[#4A5D23] uppercase block">Entrega</span>
-                      <span class="font-bold text-[#2A321B] block font-serif text-xs sm:text-sm">{{ order.delivery_date }}</span>
-                      <span v-if="order.delivery_time" class="text-[10px] sm:text-xs text-stone-600 font-sans block">
+                      <span class="text-[10px] sm:text-xs font-bold text-[#4A5D23] uppercase block">Entrega Programada</span>
+                      <span class="font-bold text-[#2A321B] block font-serif text-sm sm:text-base">{{ order.delivery_date }}</span>
+                      <span v-if="order.delivery_time" class="text-xs text-stone-600 font-sans block">
                         {{ order.delivery_time }}
                       </span>
                     </div>
@@ -331,25 +329,24 @@ const progressPercentage = computed(() => {
                   <!-- Alerta de orden cancelada -->
                   <div
                     v-if="order.is_cancelled"
-                    class="mt-3 bg-red-50 border border-red-200 text-red-900 rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-start gap-2.5 text-xs sm:text-sm"
+                    class="mt-4 bg-red-50 border border-red-200 text-red-900 rounded-2xl p-3.5 sm:p-4 flex items-start gap-2.5 text-xs sm:text-sm"
                     role="alert"
                   >
-                    <Icon name="lucide:x-circle" class="w-4 h-4 sm:w-5 sm:h-5 text-red-600 mt-0.5 shrink-0" />
+                    <Icon name="lucide:x-circle" class="w-5 h-5 text-red-600 mt-0.5 shrink-0" />
                     <div>
                       <p class="font-bold">Este pedido se encuentra cancelado.</p>
                       <p class="text-stone-700">Comunícate con nuestro taller vía WhatsApp para resolver cualquier consulta.</p>
                     </div>
                   </div>
 
-                  <!-- ==================== STEPPER OPERATIVO ==================== -->
-                  <div v-if="!order.is_cancelled" class="pt-3 sm:pt-4">
-                    <!-- Barra horizontal de 4 pasos -->
-                    <div class="relative pb-1">
+                  <!-- ==================== STEPPER OPERATIVO EN VIVO ==================== -->
+                  <div v-if="!order.is_cancelled" class="pt-4 sm:pt-5">
+                    <div class="relative pb-2">
                       <!-- Barra conectora de fondo -->
-                      <div class="absolute top-4 sm:top-4.5 lg:top-5 left-6 right-6 sm:left-8 sm:right-8 h-1 sm:h-1.5 bg-stone-200 rounded-full" aria-hidden="true" />
+                      <div class="absolute top-4 sm:top-5 left-6 right-6 sm:left-8 sm:right-8 h-1.5 bg-stone-200 rounded-full" aria-hidden="true" />
                       <!-- Barra de progreso activa coloreada -->
                       <div 
-                        class="absolute top-4 sm:top-4.5 lg:top-5 left-6 sm:left-8 h-1 sm:h-1.5 bg-[#4A5D23] rounded-full transition-all duration-500" 
+                        class="absolute top-4 sm:top-5 left-6 sm:left-8 h-1.5 bg-[#4A5D23] rounded-full transition-all duration-500" 
                         :style="{ width: `calc(${progressPercentage}% - 1.5rem)` }"
                         aria-hidden="true" 
                       />
@@ -362,7 +359,7 @@ const progressPercentage = computed(() => {
                         >
                           <!-- Círculo del paso con icono -->
                           <div
-                            class="w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm z-10 transition-all shadow-2xs"
+                            class="w-9 h-9 sm:w-10 sm:h-10 lg:w-11 lg:h-11 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm z-10 transition-all shadow-2xs"
                             :class="[
                               step.current
                                 ? 'bg-[#4A5D23] text-white ring-4 ring-[#4A5D23]/25 scale-105'
@@ -371,15 +368,15 @@ const progressPercentage = computed(() => {
                                   : 'bg-stone-100 text-stone-400 border border-stone-300'
                             ]"
                           >
-                            <Icon v-if="step.completed && !step.current" name="lucide:check" class="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                            <Icon v-else-if="step.icon" :name="step.icon" class="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                            <Icon v-if="step.completed && !step.current" name="lucide:check" class="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+                            <Icon v-else-if="step.icon" :name="step.icon" class="w-4 h-4 sm:w-4.5 sm:h-4.5" />
                             <span v-else>{{ idx + 1 }}</span>
                           </div>
 
                           <!-- Nombre del paso -->
                           <div class="max-w-[85px] sm:max-w-[130px]">
                             <p
-                              class="text-[10px] sm:text-xs lg:text-sm font-bold leading-tight line-clamp-2"
+                              class="text-[11px] sm:text-xs lg:text-sm font-bold leading-tight line-clamp-2"
                               :class="step.current || step.completed ? 'text-[#2A321B]' : 'text-stone-400'"
                             >
                               {{ step.label }}
@@ -394,9 +391,11 @@ const progressPercentage = computed(() => {
                 <!-- Caja descriptiva del estado actual -->
                 <div 
                   v-if="!order.is_cancelled && order.timeline.find(s => s.current)" 
-                  class="mt-3 sm:mt-4 p-3 sm:p-3.5 lg:p-4 rounded-xl sm:rounded-2xl bg-[#F4F1E1]/70 border border-[#4A5D23]/15 flex items-center gap-2.5 text-xs sm:text-sm text-[#2A321B]"
+                  class="mt-4 p-4 sm:p-4.5 rounded-2xl bg-[#F4F1E1]/70 border border-[#4A5D23]/15 flex items-center gap-3 text-xs sm:text-sm text-[#2A321B]"
                 >
-                  <Icon name="lucide:info" class="w-4 h-4 sm:w-5 sm:h-5 text-[#4A5D23] shrink-0" />
+                  <div class="w-9 h-9 rounded-xl bg-white text-[#4A5D23] flex items-center justify-center shrink-0 border border-[#4A5D23]/15 shadow-2xs">
+                    <Icon name="lucide:info" class="w-5 h-5" />
+                  </div>
                   <p class="leading-snug text-stone-700 text-xs sm:text-sm">
                     <span class="font-bold text-[#4A5D23]">{{ order.timeline.find(s => s.current)?.label }}:</span>
                     {{ order.timeline.find(s => s.current)?.description }}
@@ -405,35 +404,34 @@ const progressPercentage = computed(() => {
 
               </div>
             </div>
-
           </div>
 
-          <!-- COLUMNA DERECHA: DETALLE DEL PEDIDO Y TOTAL (lg:col-span-5) -->
+          <!-- COLUMNA DERECHA: DETALLE DEL PEDIDO, GARANTÍA Y TOTAL (lg:col-span-5) -->
           <div class="lg:col-span-5 flex flex-col">
-            <div class="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 lg:p-6 xl:p-7 shadow-soft-sm hover:shadow-soft-md transition-shadow border border-[#4A5D23]/15 flex-1 flex flex-col justify-between">
-              <div>
+            <div class="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-7 lg:p-8 shadow-soft-sm hover:shadow-soft-md transition-shadow border border-[#4A5D23]/15 flex-1 flex flex-col justify-between space-y-4">
+              <div class="space-y-4">
                 <!-- Título del detalle -->
-                <div class="flex items-center justify-between pb-3 sm:pb-3.5 border-b border-[#4A5D23]/10">
-                  <h2 class="text-sm sm:text-base lg:text-lg font-playfair font-black text-[#2A321B] flex items-center gap-2">
-                    <Icon name="lucide:shopping-bag" class="w-4 h-4 sm:w-5 sm:h-5 text-[#4A5D23]" />
+                <div class="flex items-center justify-between pb-3.5 border-b border-[#4A5D23]/10">
+                  <h2 class="text-base sm:text-lg font-playfair font-black text-[#2A321B] flex items-center gap-2">
+                    <Icon name="lucide:shopping-bag" class="w-5 h-5 text-[#4A5D23]" />
                     <span>Detalle del Pedido</span>
                   </h2>
-                  <span class="text-[10px] sm:text-xs font-bold text-stone-600 bg-[#F4F1E1] px-2.5 py-1 rounded-full border border-[#4A5D23]/10">
+                  <span class="text-xs font-bold text-stone-600 bg-[#F4F1E1] px-3 py-1 rounded-full border border-[#4A5D23]/10">
                     {{ order.items.length }} {{ order.items.length === 1 ? 'producto' : 'productos' }}
                   </span>
                 </div>
 
                 <!-- Lista de productos -->
-                <div class="divide-y divide-stone-100 max-h-[260px] sm:max-h-[300px] lg:max-h-[340px] xl:max-h-[380px] overflow-y-auto pr-1 mt-1">
+                <div class="divide-y divide-stone-100 max-h-[260px] sm:max-h-[300px] lg:max-h-[340px] overflow-y-auto pr-1">
                   <div
                     v-for="(item, idx) in order.items"
                     :key="idx"
-                    class="py-2.5 sm:py-3 first:pt-2 last:pb-0 flex items-center justify-between gap-3"
+                    class="py-3 first:pt-1 last:pb-1 flex items-center justify-between gap-3"
                   >
                     <!-- Miniatura + Nombre + Cantidad -->
                     <div class="flex items-center gap-3 min-w-0">
                       <div 
-                        class="rounded-xl sm:rounded-2xl ring-1 ring-[#4A5D23]/15 overflow-hidden bg-[#F4F1E1] shrink-0 aspect-square flex items-center justify-center w-11 h-11 sm:w-13 sm:h-13 lg:w-14 lg:h-14"
+                        class="rounded-2xl ring-1 ring-[#4A5D23]/15 overflow-hidden bg-[#F4F1E1] shrink-0 aspect-square flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 shadow-2xs"
                       >
                         <img
                           v-if="item.image_url"
@@ -443,17 +441,16 @@ const progressPercentage = computed(() => {
                           loading="lazy"
                         />
                         <div v-else class="w-full h-full flex items-center justify-center text-[#4A5D23]/60 bg-[#EDE8D5]">
-                          <Icon name="lucide:cake" class="w-5 h-5 sm:w-6 sm:h-6" />
+                          <Icon name="lucide:cake" class="w-6 h-6" />
                         </div>
                       </div>
 
-                      <!-- Textos del producto -->
                       <div class="min-w-0">
                         <p class="text-xs sm:text-sm font-bold text-[#2A321B] truncate leading-tight">
                           {{ item.name }}
                         </p>
-                        <div class="flex items-center gap-2 mt-0.5 text-xs text-stone-500">
-                          <span class="font-bold text-[#4A5D23] bg-[#F4F1E1] px-2 py-0.5 rounded text-[10px] sm:text-xs">
+                        <div class="flex items-center gap-2 mt-1 text-xs text-stone-500">
+                          <span class="font-bold text-[#4A5D23] bg-[#F4F1E1] px-2.5 py-0.5 rounded text-xs border border-[#4A5D23]/10">
                             {{ item.quantity }}x
                           </span>
                           <span v-if="item.price_at_time">
@@ -471,20 +468,34 @@ const progressPercentage = computed(() => {
                     </div>
                   </div>
                 </div>
+
+                <!-- Sello de Elaboración Artesanal (Complementa y equilibra la altura) -->
+                <div class="p-3.5 sm:p-4 rounded-2xl bg-[#F4F1E1]/70 border border-[#4A5D23]/15 flex items-start gap-2.5 text-xs text-stone-600">
+                  <Icon name="lucide:sparkles" class="w-4 h-4 text-[#C5A059] shrink-0 mt-0.5" />
+                  <div>
+                    <p class="font-bold text-[#2A321B]">Garantía Artesanal Dulce Fe</p>
+                    <p class="text-[11px] sm:text-xs text-stone-600 leading-snug">
+                      Elaborado fresco el mismo día con ingredientes de primera calidad para una textura y sabor inigualables.
+                    </p>
+                  </div>
+                </div>
               </div>
 
               <!-- Resumen y Total Financiero (anclado abajo) -->
-              <div class="pt-3 sm:pt-4 border-t border-[#4A5D23]/10 space-y-1.5 text-xs sm:text-sm mt-3">
+              <div class="pt-4 border-t border-[#4A5D23]/15 space-y-2 mt-2">
                 <div class="flex items-center justify-between text-stone-600 text-xs sm:text-sm">
-                  <span>Entrega:</span>
-                  <span class="font-medium text-[#2A321B] text-right truncate max-w-[180px] sm:max-w-[240px]">
+                  <span class="flex items-center gap-1.5">
+                    <Icon name="lucide:map-pin" class="w-4 h-4 text-[#4A5D23]" />
+                    <span>Entrega:</span>
+                  </span>
+                  <span class="font-medium text-[#2A321B] text-right truncate max-w-[190px] sm:max-w-[250px]">
                     {{ order.address || (order.channel === 'whatsapp_chat' ? 'Por coordinar por WhatsApp' : 'Recojo / Entrega pactada') }}
                   </span>
                 </div>
 
-                <div v-if="order.total_amount" class="flex items-center justify-between pt-2 border-t border-dashed border-stone-200">
-                  <span class="font-playfair font-black text-sm sm:text-base lg:text-lg text-[#2A321B]">Total</span>
-                  <span class="font-inter font-black text-base sm:text-lg lg:text-xl text-[#2A321B]">
+                <div v-if="order.total_amount" class="flex items-center justify-between pt-2.5 border-t border-dashed border-stone-200">
+                  <span class="font-playfair font-black text-base sm:text-lg text-[#2A321B]">Total</span>
+                  <span class="font-inter font-black text-lg sm:text-xl text-[#2A321B]">
                     S/ {{ Number(order.total_amount).toFixed(2) }}
                   </span>
                 </div>
@@ -495,14 +506,14 @@ const progressPercentage = computed(() => {
 
         </div>
 
-        <!-- ==================== TARJETA WHATSAPP: ACCIÓN DE SOPORTE ==================== -->
-        <div class="bg-gradient-to-br from-[#F4F1E1] via-white to-[#F4F1E1]/80 rounded-2xl sm:rounded-3xl p-4 sm:p-5 lg:p-6 border border-[#4A5D23]/20 shadow-soft-sm hover:shadow-soft-md transition-all flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
+        <!-- ==================== TARJETA INDEPENDIENTE DE WHATSAPP: ACCIÓN DE SOPORTE ==================== -->
+        <div class="bg-gradient-to-r from-[#F4F1E1]/90 via-white to-[#F4F1E1]/70 rounded-2xl sm:rounded-3xl p-5 sm:p-6 lg:p-7 border border-[#4A5D23]/20 shadow-soft-sm hover:shadow-soft-md transition-all flex flex-col sm:flex-row items-center justify-between gap-4">
           <div class="space-y-1 text-center sm:text-left min-w-0">
-            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100/90 text-emerald-900 text-[10px] sm:text-xs font-bold border border-emerald-300 shadow-2xs">
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100/90 text-emerald-900 text-xs font-bold border border-emerald-300 shadow-2xs">
               <Icon name="lucide:message-circle" class="w-3.5 h-3.5 text-emerald-700" />
-              <span>Atención Directa</span>
+              <span>Atención Directa de Taller</span>
             </div>
-            <h3 class="text-sm sm:text-base lg:text-lg font-playfair font-black text-[#2A321B]">
+            <h3 class="text-base sm:text-lg lg:text-xl font-playfair font-black text-[#2A321B]">
               {{ order.channel === 'whatsapp_chat' && order.status === 'pending'
                 ? '¿Aún no coordinas los detalles de tu pedido?'
                 : '¿Tienes alguna duda sobre tu entrega?' }}

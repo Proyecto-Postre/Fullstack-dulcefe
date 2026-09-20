@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, onMounted, onUnmounted } from "vue";
 import type { ProductRow } from "~/types/catalog";
 import ProductModal from "./ProductModal.vue";
 
@@ -88,9 +88,40 @@ const searchSuggestions = computed<ProductRow[]>(() => {
   return filteredProducts.value.slice(0, 5);
 });
 
-// Pagination (7 items por página para ajuste perfecto en viewport)
+// Paginación adaptativa según altura de pantalla (itemsPerPage = 7 base)
 const currentPage = ref(1);
-const itemsPerPage = 7;
+const itemsPerPage = ref(7);
+
+function updateDynamicProductsPerPage(): void {
+  if (typeof window === "undefined") return;
+  if (window.innerWidth < 768) {
+    itemsPerPage.value = 6;
+    return;
+  }
+  // Altura disponible = window.innerHeight - header ERP, tarjeta de buscador, thead y pie de tabla (~340px de elementos fijos)
+  const availableHeight = window.innerHeight - 340;
+  const rowHeight = 68;
+  // Restamos 1 elemento para que la barra de paginación tenga suficiente holgura inferior
+  const calculated = Math.floor(availableHeight / rowHeight) - 1;
+  itemsPerPage.value = Math.max(5, Math.min(calculated, 10));
+}
+
+onMounted(() => {
+  updateDynamicProductsPerPage();
+  window.addEventListener("resize", updateDynamicProductsPerPage);
+});
+
+onUnmounted(() => {
+  if (typeof window !== "undefined") {
+    window.removeEventListener("resize", updateDynamicProductsPerPage);
+  }
+});
+
+watch(itemsPerPage, () => {
+  if (currentPage.value > totalPages.value) {
+    currentPage.value = Math.max(1, totalPages.value);
+  }
+});
 
 watch(searchQuery, () => {
   currentPage.value = 1;
@@ -98,14 +129,14 @@ watch(searchQuery, () => {
 
 const paginatedCatalog = computed<ProductRow[]>(() => {
   if (!filteredProducts.value.length) return [];
-  const start = (currentPage.value - 1) * itemsPerPage;
-  const end = start + itemsPerPage;
+  const start = (currentPage.value - 1) * itemsPerPage.value;
+  const end = start + itemsPerPage.value;
   return filteredProducts.value.slice(start, end);
 });
 
 const totalPages = computed<number>(() => {
   if (!filteredProducts.value.length) return 1;
-  return Math.ceil(filteredProducts.value.length / itemsPerPage);
+  return Math.ceil(filteredProducts.value.length / itemsPerPage.value);
 });
 
 function nextPage(): void {
