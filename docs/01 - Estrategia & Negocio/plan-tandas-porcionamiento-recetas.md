@@ -42,6 +42,13 @@ En la pastelería artesanal **a pedido (Make to Order)**, la producción no se i
    - **ADR-008 (COGS Freeze):** Al pasar a `processing`, se toma un snapshot inmutable en `orders.cost_snapshot`. El nuevo motor debe registrar el desglose proporcional en céntimos enteros.
    - **ADR-001 (No reversión automática):** El stock deducido tras entrar a taller no se devuelve automáticamente si hay cancelación.
    - **ADR-004 (Desacoplamiento de stock de vitrina):** En un negocio a pedido no existen avisos de "quedan 2 unidades". Los postres están disponibles bajo demanda y se pausan con un interruptor on/off.
+6. **Protección Total del Almacén de Insumos (`raw_materials`):**
+   - **Los insumos físicos del almacén jamás se eliminan ni disminuyen al borrar una receta o tanda.**
+   - Si se elimina una receta, solo se borra la ficha técnica anotada en el sistema (`base_recipe_items`). Los sacos de harina o bloques de mantequilla en el almacén físico permanecen 100% intactos.
+   - Las materias primas **únicamente se descuentan o modifican** bajo tres eventos explícitos y controlados:
+     1. Venta real de un pedido que entra a cocina (`processing`).
+     2. Registro voluntario del pastelero mediante el botón de descargo rápido de piezas sueltas.
+     3. Edición o ajuste manual directo de existencias realizado conscientemente por el administrador en la tabla de insumos del almacén.
 
 ---
 

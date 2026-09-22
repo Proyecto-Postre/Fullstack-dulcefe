@@ -537,6 +537,230 @@ export type Database = {
           },
         ]
       }
+      base_recipes: {
+        Row: {
+          id: number
+          name: string
+          description: string | null
+          labor_cost: number
+          utilities_cost: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          name: string
+          description?: string | null
+          labor_cost?: number
+          utilities_cost?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          name?: string
+          description?: string | null
+          labor_cost?: number
+          utilities_cost?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      base_recipe_items: {
+        Row: {
+          id: number
+          base_recipe_id: number
+          raw_material_id: number
+          quantity_used: number
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          base_recipe_id: number
+          raw_material_id: number
+          quantity_used: number
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          base_recipe_id?: number
+          raw_material_id?: number
+          quantity_used?: number
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "base_recipe_items_base_recipe_id_fkey"
+            columns: ["base_recipe_id"]
+            isOneToOne: false
+            referencedRelation: "base_recipes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "base_recipe_items_raw_material_id_fkey"
+            columns: ["raw_material_id"]
+            isOneToOne: false
+            referencedRelation: "raw_materials"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      recipe_yields: {
+        Row: {
+          id: number
+          base_recipe_id: number
+          size_name: string
+          yield_units: number
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          base_recipe_id: number
+          size_name: string
+          yield_units: number
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          base_recipe_id?: number
+          size_name?: string
+          yield_units?: number
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipe_yields_base_recipe_id_fkey"
+            columns: ["base_recipe_id"]
+            isOneToOne: false
+            referencedRelation: "base_recipes"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      product_recipe_mappings: {
+        Row: {
+          id: number
+          product_id: number
+          recipe_yield_id: number
+          units_contained: number
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          product_id: number
+          recipe_yield_id: number
+          units_contained: number
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          product_id?: number
+          recipe_yield_id?: number
+          units_contained?: number
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_recipe_mappings_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_recipe_mappings_recipe_yield_id_fkey"
+            columns: ["recipe_yield_id"]
+            isOneToOne: false
+            referencedRelation: "recipe_yields"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      product_packaging_items: {
+        Row: {
+          id: number
+          product_id: number
+          raw_material_id: number
+          quantity_used: number
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          product_id: number
+          raw_material_id: number
+          quantity_used: number
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          product_id?: number
+          raw_material_id?: number
+          quantity_used?: number
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_packaging_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_packaging_items_raw_material_id_fkey"
+            columns: ["raw_material_id"]
+            isOneToOne: false
+            referencedRelation: "raw_materials"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      piece_waste_logs: {
+        Row: {
+          id: string
+          recipe_yield_id: number
+          pieces_count: number
+          reason: string
+          notes: string | null
+          profile_id: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          recipe_yield_id: number
+          pieces_count: number
+          reason: string
+          notes?: string | null
+          profile_id?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          recipe_yield_id?: number
+          pieces_count?: number
+          reason?: string
+          notes?: string | null
+          profile_id?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "piece_waste_logs_recipe_yield_id_fkey"
+            columns: ["recipe_yield_id"]
+            isOneToOne: false
+            referencedRelation: "recipe_yields"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "piece_waste_logs_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never
