@@ -31,4 +31,8 @@ export interface PublicOrderTrackingDTO {
   items: PublicTrackingItem[]
   timeline: PublicTimelineStep[]
   is_cancelled: boolean
+  payment_method?: string | null
+  payment_status?: string | null
+  payment_reference?: string | null
+  payment_receipt_url?: string | null
 }

@@ -32,6 +32,10 @@ export interface CheckoutResponseOrder {
   delivery_date: string | null
   delivery_time: string | null
   notes: string | null
+  payment_method?: string | null
+  payment_reference?: string | null
+  payment_receipt_url?: string | null
+  payment_status?: string | null
   items: OrderResponseItem[]
   tracking_token?: string | null
   tracking_url?: string | null
@@ -347,6 +351,10 @@ export class OrderService {
         delivery_date: createdOrder.delivery_date,
         delivery_time: createdOrder.delivery_time,
         notes: createdOrder.notes,
+        payment_method: createdOrder.payment_method || dto.payment_method || 'cash',
+        payment_reference: createdOrder.payment_reference || dto.payment_reference || null,
+        payment_receipt_url: createdOrder.payment_receipt_url || dto.payment_receipt_url || null,
+        payment_status: createdOrder.payment_status || 'pending',
         items: orderItemsToInsert.map(it => ({
           product_id: it.product_id,
           name: it.name,

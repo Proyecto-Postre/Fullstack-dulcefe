@@ -20,8 +20,31 @@ const copiedNumber = ref(false)
 const PHONE_NUMBER = '998 265 700'
 const RECIPIENT_NAME = 'Dulce Fé Repostería Fina'
 
+function fallbackCopy(text: string) {
+  try {
+    const textArea = document.createElement('textarea')
+    textArea.value = text
+    textArea.style.position = 'fixed'
+    textArea.style.opacity = '0'
+    document.body.appendChild(textArea)
+    textArea.focus()
+    textArea.select()
+    document.execCommand('copy')
+    document.body.removeChild(textArea)
+  } catch {
+    // Silencioso si no hay soporte
+  }
+}
+
 function copyPhoneNumber() {
-  navigator.clipboard.writeText('998265700').catch(() => {})
+  const num = '998265700'
+  if (typeof navigator !== 'undefined' && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+    navigator.clipboard.writeText(num).catch(() => {
+      fallbackCopy(num)
+    })
+  } else {
+    fallbackCopy(num)
+  }
   copiedNumber.value = true
   setTimeout(() => {
     copiedNumber.value = false

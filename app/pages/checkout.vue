@@ -163,7 +163,10 @@ async function processCheckout(): Promise<void> {
     deliveryTime: order.delivery_time,
     notes: order.notes,
     items: order.items,
-    totalAmount: order.total_amount
+    totalAmount: order.total_amount,
+    paymentMethod: formData.value.paymentMethod || order.payment_method || 'cash',
+    paymentReference: formData.value.paymentReference || order.payment_reference || undefined,
+    paymentReceiptUrl: formData.value.paymentReceiptUrl || order.payment_receipt_url || undefined
   })
 
   const whatsappNumber = String(config.public.whatsappNumber || '51998265700')
@@ -222,8 +225,11 @@ async function processCheckout(): Promise<void> {
             :payment-reference="formData.paymentReference || ''"
             :payment-receipt-url="formData.paymentReceiptUrl || ''"
             @update:payment-method="formData.paymentMethod = $event"
+            @update:paymentMethod="formData.paymentMethod = $event"
             @update:payment-reference="formData.paymentReference = $event"
+            @update:paymentReference="formData.paymentReference = $event"
             @update:payment-receipt-url="formData.paymentReceiptUrl = $event"
+            @update:paymentReceiptUrl="formData.paymentReceiptUrl = $event"
           />
           <CheckoutItemsList />
         </div>

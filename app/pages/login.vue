@@ -74,6 +74,19 @@ const handleSubmit = async () => {
         }
       })
       if (error) throw error
+
+      // Si identities está vacío, Supabase indica que el correo ya existe
+      if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+        errorMessage.value = 'Este correo electrónico ya se encuentra registrado. Por favor inicia sesión.'
+        return
+      }
+
+      // Si requiere confirmación por email (sesión no iniciada inmediatamente)
+      if (!data.session) {
+        successMessage.value = '¡Cuenta creada con éxito! Por favor revisa tu bandeja de entrada para verificar tu correo e iniciar sesión.'
+        password.value = ''
+        return
+      }
       
       if (data.user) {
         authStore.setUser(data.user)

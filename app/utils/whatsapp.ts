@@ -36,7 +36,34 @@ export function buildWhatsAppOrderMessage(params: WhatsAppMessageParams): string
     message += `- ${item.quantity}x ${item.name} (S/ ${Number(item.price_at_time).toFixed(2)})\n`
   }
 
-  message += `\n*Total a Pagar Oficial:* S/ ${Number(params.totalAmount).toFixed(2)}`
+  message += `\n*Total a Pagar Oficial:* S/ ${Number(params.totalAmount).toFixed(2)}\n`
+
+  if (params.paymentMethod === 'yape') {
+    message += `*Método de Pago:* Yape (Billetera digital)`
+    if (params.paymentReference) {
+      message += `\n*N° Operación:* ${params.paymentReference}`
+    }
+    if (params.paymentReceiptUrl) {
+      message += `\n*Comprobante:* ${params.paymentReceiptUrl}`
+    } else {
+      message += `\n*Comprobante:* (Te adjunto la captura por aquí)`
+    }
+  } else if (params.paymentMethod === 'plin') {
+    message += `*Método de Pago:* Plin (Interbancario)`
+    if (params.paymentReference) {
+      message += `\n*N° Operación:* ${params.paymentReference}`
+    }
+    if (params.paymentReceiptUrl) {
+      message += `\n*Comprobante:* ${params.paymentReceiptUrl}`
+    } else {
+      message += `\n*Comprobante:* (Te adjunto la captura por aquí)`
+    }
+  } else if (params.paymentMethod === 'card') {
+    message += `*Método de Pago:* Tarjeta de Crédito / Débito`
+  } else if (params.paymentMethod === 'cash') {
+    message += `*Método de Pago:* Efectivo (Contra entrega)`
+  }
+
   return message
 }
 

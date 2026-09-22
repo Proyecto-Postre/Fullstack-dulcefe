@@ -64,14 +64,49 @@ const whatsappSupportUrl = computed(() => {
   return buildWhatsAppUrl(businessPhone, msg)
 })
 
+function fallbackCopyText(text: string): boolean {
+  if (typeof document === 'undefined') return false
+  const textArea = document.createElement('textarea')
+  textArea.value = text
+  textArea.style.position = 'fixed'
+  textArea.style.top = '0'
+  textArea.style.left = '0'
+  textArea.style.opacity = '0'
+  textArea.style.pointerEvents = 'none'
+  document.body.appendChild(textArea)
+  textArea.focus()
+  textArea.select()
+  try {
+    const successful = document.execCommand('copy')
+    document.body.removeChild(textArea)
+    return successful
+  } catch {
+    document.body.removeChild(textArea)
+    return false
+  }
+}
+
 // Función para copiar el enlace de seguimiento al portapapeles
 const isCopied = ref(false)
 let trackingUrlTimeout: ReturnType<typeof setTimeout> | null = null
 
 async function copyTrackingUrl() {
   if (typeof window === 'undefined' || isCopied.value) return
+  let copied = false
   try {
-    await navigator.clipboard.writeText(window.location.href)
+    if (navigator?.clipboard?.writeText) {
+      await navigator.clipboard.writeText(window.location.href)
+      copied = true
+    }
+  } catch {
+    // fallback
+  }
+
+  if (!copied) {
+    copied = fallbackCopyText(window.location.href)
+  }
+
+  if (copied) {
     isCopied.value = true
     toast.success('¡Enlace de seguimiento copiado al portapapeles!', {
       id: 'copy-tracking-url',
@@ -81,7 +116,7 @@ async function copyTrackingUrl() {
     trackingUrlTimeout = setTimeout(() => {
       isCopied.value = false
     }, 2500)
-  } catch {
+  } else {
     toast.error('No se pudo copiar el enlace. Puedes copiar la URL del navegador.', {
       id: 'copy-tracking-url-error'
     })
@@ -95,15 +130,68 @@ let shortIdTimeout: ReturnType<typeof setTimeout> | null = null
 async function copyShortId() {
   if (!order.value?.short_id || isShortIdCopied.value) return
   if (typeof window === 'undefined') return
+  let copied = false
   try {
-    await navigator.clipboard.writeText(order.value.short_id)
+    if (navigator?.clipboard?.writeText) {
+      await navigator.clipboard.writeText(order.value.short_id)
+      copied = true
+    }
+  } catch {
+    // fallback
+  }
+
+  if (!copied) {
+    copied = fallbackCopyText(order.value.short_id)
+  }
+
+  if (copied) {
     isShortIdCopied.value = true
     if (shortIdTimeout) clearTimeout(shortIdTimeout)
     shortIdTimeout = setTimeout(() => {
       isShortIdCopied.value = false
     }, 1400)
-  } catch {
-    // Ignorar si el navegador no tiene permiso
+  }
+}
+
+function getPaymentStatusLabel(status?: string | null): string {
+  switch (status) {
+    case 'verified':
+      return 'Pago Verificado'
+    case 'pending_verification':
+      return 'En Verificación'
+    case 'rejected':
+      return 'Pago Observado'
+    case 'pending':
+    default:
+      return 'Pendiente de Pago'
+  }
+}
+
+function getPaymentStatusBadgeClass(status?: string | null): string {
+  switch (status) {
+    case 'verified':
+      return 'bg-emerald-100 text-emerald-900 border-emerald-300'
+    case 'pending_verification':
+      return 'bg-amber-100 text-amber-900 border-amber-300'
+    case 'rejected':
+      return 'bg-red-100 text-red-900 border-red-300'
+    case 'pending':
+    default:
+      return 'bg-stone-100 text-stone-700 border-stone-300'
+  }
+}
+
+function getPaymentStatusIcon(status?: string | null): string {
+  switch (status) {
+    case 'verified':
+      return 'lucide:check-circle'
+    case 'pending_verification':
+      return 'lucide:clock'
+    case 'rejected':
+      return 'lucide:alert-circle'
+    case 'pending':
+    default:
+      return 'lucide:hourglass'
   }
 }
 
@@ -402,7 +490,69 @@ const progressPercentage = computed(() => {
                   </p>
                 </div>
 
-              </div>
+                <!-- Tarjeta de Estado e Información del Pago (Yape / Plin / Efectivo) -->
+                <div 
+                  v-if="order.payment_method" 
+                  class="mt-4 p-4 sm:p-5 rounded-2xl bg-white border border-[#4A5D23]/15 shadow-2xs space-y-3"
+                >
+                  <div class="flex items-center justify-between flex-wrap gap-2 pb-2.5 border-b border-[#4A5D23]/10">
+                    <div class="flex items-center gap-2">
+                      <div class="w-7 h-7 rounded-lg bg-[#F4F1E1] text-[#4A5D23] flex items-center justify-center font-bold shrink-0">
+                        <Icon 
+                          :name="order.payment_method === 'efectivo' ? 'lucide:banknote' : 'lucide:smartphone'" 
+                          class="w-4 h-4" 
+                        />
+                      </div>
+                      <span class="text-xs sm:text-sm font-bold text-[#2A321B]">
+                        Método de Pago: 
+                        <span class="text-[#4A5D23] font-black uppercase">{{ order.payment_method }}</span>
+                      </span>
+                    </div>
+
+                    <!-- Badge de estado de pago -->
+                    <span 
+                      class="px-2.5 py-1 rounded-full text-xs font-bold border inline-flex items-center gap-1.5"
+                      :class="getPaymentStatusBadgeClass(order.payment_status)"
+                    >
+                      <Icon :name="getPaymentStatusIcon(order.payment_status)" class="w-3.5 h-3.5" />
+                      {{ getPaymentStatusLabel(order.payment_status) }}
+                    </span>
+                  </div>
+
+                  <!-- Detalles de Pago Yape / Plin -->
+                  <div 
+                    v-if="order.payment_method === 'yape' || order.payment_method === 'plin'" 
+                    class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs text-stone-600"
+                  >
+                    <div v-if="order.payment_reference" class="p-2.5 rounded-xl bg-[#F4F1E1]/40 border border-[#4A5D23]/10 flex flex-col justify-center">
+                      <span class="text-[11px] font-semibold text-stone-500 uppercase tracking-wider">N° de Operación</span>
+                      <span class="font-mono font-bold text-[#2A321B] text-xs sm:text-sm mt-0.5">{{ order.payment_reference }}</span>
+                    </div>
+                    
+                    <div v-if="order.payment_receipt_url" class="p-2.5 rounded-xl bg-[#F4F1E1]/40 border border-[#4A5D23]/10 flex flex-col justify-center">
+                      <span class="text-[11px] font-semibold text-stone-500 uppercase tracking-wider">Comprobante</span>
+                      <a 
+                        :href="order.payment_receipt_url" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        class="text-[#4A5D23] hover:underline font-bold text-xs inline-flex items-center gap-1 mt-0.5"
+                      >
+                        <Icon name="lucide:external-link" class="w-3.5 h-3.5" />
+                        Ver voucher adjunto
+                      </a>
+                    </div>
+                  </div>
+
+                  <p v-if="order.payment_method === 'efectivo'" class="text-xs text-stone-600">
+                    Pago a contraentrega en efectivo al momento de recibir tus postres.
+                  </p>
+                  <p v-else-if="order.payment_status === 'pending_verification'" class="text-[11px] sm:text-xs text-stone-500 italic">
+                    Estamos validando tu comprobante con el taller/tesorería.
+                  </p>
+                  <p v-else-if="order.payment_status === 'verified'" class="text-[11px] sm:text-xs text-emerald-700 font-medium">
+                    Pago 100% verificado y conforme.
+                  </p>
+                </div>
             </div>
           </div>
 

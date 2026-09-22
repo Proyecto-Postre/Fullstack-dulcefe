@@ -26,7 +26,7 @@ export default defineEventHandler(async (event): Promise<PublicOrderTrackingDTO>
   // 2. Consultar la orden por token único usando Service Role
   const { data: order, error: orderError } = await supabase
     .from('orders')
-    .select('id, status, customer_name, delivery_date, delivery_time, created_at, tracking_token, address, notes, total_amount, payment_method, payment_status')
+    .select('id, status, customer_name, delivery_date, delivery_time, created_at, tracking_token, address, notes, total_amount, payment_method, payment_status, payment_reference, payment_receipt_url')
     .eq('tracking_token', token)
     .maybeSingle()
 
@@ -132,6 +132,10 @@ export default defineEventHandler(async (event): Promise<PublicOrderTrackingDTO>
     created_at: order.created_at,
     items,
     timeline,
-    is_cancelled: isCancelled
+    is_cancelled: isCancelled,
+    payment_method: order.payment_method || 'cash',
+    payment_status: order.payment_status || 'pending',
+    payment_reference: order.payment_reference || null,
+    payment_receipt_url: order.payment_receipt_url || null
   }
 })

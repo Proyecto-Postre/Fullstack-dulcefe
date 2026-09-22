@@ -59,6 +59,47 @@ describe('Fase 4: Dominio Checkout UI - Formateo de WhatsApp y Validación de Pe
       expect(msg).toContain('- 1x Cheesecake Frutos Rojos (S/ 38.00)')
       expect(msg).toContain('*Total a Pagar Oficial:* S/ 38.00')
     })
+
+    it('construye el mensaje con método de pago Yape, número de operación y voucher', () => {
+      const params: WhatsAppMessageParams = {
+        orderId: 'a1b2c3d4-1111-2222-3333-444455556666',
+        customerName: 'Renzo Salazar',
+        customerPhone: '987654321',
+        mode: 'direct',
+        address: 'Calle Los Sauces 123',
+        items: [{ name: 'Pie de Limón', quantity: 1, price_at_time: '35.00' }],
+        totalAmount: '35.00',
+        paymentMethod: 'yape',
+        paymentReference: 'OP-123456',
+        paymentReceiptUrl: 'https://dulcefe.pe/vouchers/voucher-123.jpg'
+      }
+
+      const msg = buildWhatsAppOrderMessage(params)
+
+      expect(msg).toContain('*Método de Pago:* Yape (Billetera digital)')
+      expect(msg).toContain('*N° Operación:* OP-123456')
+      expect(msg).toContain('*Comprobante:* https://dulcefe.pe/vouchers/voucher-123.jpg')
+    })
+
+    it('construye el mensaje con método de pago Plin y nota de comprobante pendiente si no hay voucher', () => {
+      const params: WhatsAppMessageParams = {
+        orderId: 'b2c3d4e5-2222-3333-4444-555566667777',
+        customerName: 'Lucía Torres',
+        customerPhone: '912345678',
+        mode: 'direct',
+        address: 'Av. Brasil 456',
+        items: [{ name: 'Alfajores x12', quantity: 1, price_at_time: '28.00' }],
+        totalAmount: '28.00',
+        paymentMethod: 'plin',
+        paymentReference: 'OP-998877'
+      }
+
+      const msg = buildWhatsAppOrderMessage(params)
+
+      expect(msg).toContain('*Método de Pago:* Plin (Interbancario)')
+      expect(msg).toContain('*N° Operación:* OP-998877')
+      expect(msg).toContain('*Comprobante:* (Te adjunto la captura por aquí)')
+    })
   })
 
   describe('buildWhatsAppUrl', () => {

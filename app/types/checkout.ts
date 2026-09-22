@@ -48,6 +48,11 @@ export interface CheckoutServerOrder {
   delivery_time?: string | null
   notes?: string | null
   total_amount: string | number
+  payment_method?: 'cash' | 'yape' | 'plin' | 'card' | null
+  payment_reference?: string | null
+  payment_receipt_url?: string | null
+  payment_status?: string | null
+  tracking_token?: string | null
   items: CheckoutServerOrderItem[]
 }
 
@@ -66,4 +71,7 @@ export interface WhatsAppMessageParams {
     price_at_time: string | number
   }>
   totalAmount: string | number
+  paymentMethod?: 'cash' | 'yape' | 'plin' | 'card' | string | null
+  paymentReference?: string | null
+  paymentReceiptUrl?: string | null
 }
