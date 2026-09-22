@@ -553,6 +553,7 @@ const progressPercentage = computed(() => {
                     Pago 100% verificado y conforme.
                   </p>
                 </div>
+              </div>
             </div>
           </div>
 
