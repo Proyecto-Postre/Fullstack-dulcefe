@@ -68,6 +68,7 @@ flowchart TD
 * [[plan-maestro]] — Especificación general, arquitectura Nuxt 4, Guest Checkout y Roadmap.
 * [[logica-negocio-pedidos]] — Ciclo de vida de órdenes, estados de cocina KDS y alertas n8n.
 * [[formulas-costeo]] — Algoritmos de costeo en gramos/ml, CIF, mano de obra y margen.
+* [[plan-tandas-porcionamiento-recetas]] — Plan Maestro de Tandas (Batch Recipes), Rendimientos (Yield), Descargo Rápido de Piezas y Vitrina A Pedido.
 
 ### 📁 02 - Backend & Datos
 * [[api-endpoints]] — **Catálogo Maestro de Endpoints API** (24 fichas técnicas individuales en `endpoints/`):

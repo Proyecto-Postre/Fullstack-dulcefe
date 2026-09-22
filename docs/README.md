@@ -39,6 +39,7 @@ graph TD
 * [`plan-maestro.md`](./01%20-%20Estrategia%20&%20Negocio/plan-maestro.md) — Visión de producto, arquitectura general Nuxt 4, Guest Checkout y hoja de ruta.
 * [`logica-negocio-pedidos.md`](./01%20-%20Estrategia%20&%20Negocio/logica-negocio-pedidos.md) — Ciclo de vida de órdenes, estados de cocina KDS, tiempos de entrega y alertas.
 * [`formulas-costeo.md`](./01%20-%20Estrategia%20&%20Negocio/formulas-costeo.md) — Algoritmos matemáticos de escandallos en gramos/ml, mano de obra, CIF y margen comercial.
+* [`plan-tandas-porcionamiento-recetas.md`](./01%20-%20Estrategia%20&%20Negocio/plan-tandas-porcionamiento-recetas.md) — Plan Maestro de Tandas (Batch Recipes), Rendimientos (Yield), Descargo Rápido de Piezas y Vitrina A Pedido.
 
 ### 2. ⚡ [02 - Backend & Datos](./02%20-%20Backend%20&%20Datos/)
 * [`api-endpoints.md`](./02%20-%20Backend%20&%20Datos/api-endpoints.md) — Catálogo exhaustivo de endpoints HTTP en Nitro organizados por dominio (productos, insumos, recetas, categorías, autenticación, checkout, tracking de invitados, comprobantes Yape/Plin, KDS y administración).
