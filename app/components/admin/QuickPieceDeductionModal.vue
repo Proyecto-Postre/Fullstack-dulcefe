@@ -195,22 +195,23 @@ async function handleConfirmDeduction() {
           aria-labelledby="modal-deduction-title"
           class="relative w-full max-w-2xl bg-white rounded-3xl sm:rounded-[2rem] shadow-2xl overflow-hidden animate-pop border border-[#4A5D23]/10 max-h-[92vh] flex flex-col z-10"
         >
-          <!-- Header -->
-          <div class="px-5 py-4 sm:px-6 sm:py-5 border-b border-brand-primary/10 flex items-start justify-between gap-3 bg-gradient-to-r from-surface via-surface to-brand-cream/30 shrink-0">
-            <div class="flex items-start gap-3.5 min-w-0">
-              <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-amber-50 border border-amber-200/80 text-amber-800 flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
-                <Icon name="lucide:package-minus" class="w-5 h-5 sm:w-6 sm:h-6 stroke-[2]" />
+          <!-- Header Compacto y Adaptativo (Mobile-First) -->
+          <div class="px-4 py-3 sm:px-6 sm:py-4 border-b border-brand-primary/10 flex items-center sm:items-start justify-between gap-3 bg-gradient-to-r from-surface via-surface to-brand-cream/30 shrink-0">
+            <div class="flex items-center sm:items-start gap-2.5 sm:gap-3.5 min-w-0">
+              <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-amber-50 border border-amber-200/80 text-amber-800 flex items-center justify-center shrink-0 shadow-2xs sm:mt-0.5">
+                <Icon name="lucide:package-minus" class="w-4 h-4 sm:w-6 sm:h-6 stroke-[2]" />
               </div>
               <div class="min-w-0">
-                <div class="flex items-center gap-2 flex-wrap mb-1">
-                  <h3 id="modal-deduction-title" class="text-base sm:text-lg lg:text-xl font-playfair font-bold text-brand-secondary leading-snug">
-                    Descargo de Piezas de Tanda
+                <div class="flex items-center gap-2 flex-wrap">
+                  <h3 id="modal-deduction-title" class="text-sm sm:text-base lg:text-xl font-playfair font-bold text-brand-secondary leading-snug">
+                    Descargo de Piezas
                   </h3>
-                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-200/70 shrink-0">
+                  <span class="px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-200/70 shrink-0">
                     Ajuste Directo
                   </span>
                 </div>
-                <p class="text-xs text-brand-primary/75 font-medium leading-relaxed max-w-sm sm:max-w-md">
+                <!-- Subtítulo visible solo en pantallas medianas y grandes para ahorrar espacio en móvil -->
+                <p class="hidden sm:block text-xs text-brand-primary/75 font-medium leading-relaxed mt-0.5 max-w-sm sm:max-w-md">
                   Descuenta materias primas automáticamente del almacén según el formato y piezas indicadas.
                 </p>
               </div>
@@ -219,7 +220,7 @@ async function handleConfirmDeduction() {
               type="button"
               aria-label="Cerrar modal"
               @click="closeModal"
-              class="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-brand-primary/20 text-brand-secondary hover:bg-brand-cream hover:text-brand-primary hover:border-brand-primary/40 active:scale-95 transition-all shadow-2xs shrink-0 cursor-pointer mt-0.5"
+              class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-white border border-brand-primary/20 text-brand-secondary hover:bg-brand-cream hover:text-brand-primary hover:border-brand-primary/40 active:scale-95 transition-all shadow-2xs shrink-0 cursor-pointer sm:mt-0.5"
             >
               <Icon name="lucide:x" class="w-4 h-4" />
             </button>
