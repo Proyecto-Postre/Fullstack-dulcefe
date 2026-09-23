@@ -299,24 +299,25 @@ watch(batchSearchQuery, () => {
     <!-- ========================================== -->
     <!-- BARRA SUPERIOR: SUB-NAVEGACIÓN DE PESTAÑAS -->
     <!-- ========================================== -->
-    <header class="bg-surface px-4 py-3 sm:px-5 sm:py-3.5 rounded-2xl sm:rounded-[1.5rem] border border-brand-primary/15 shadow-soft-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-      <!-- Selector de Modo de Recetas -->
-      <div class="flex items-center gap-1.5 p-1 bg-brand-cream/60 rounded-xl border border-brand-primary/10">
+    <header class="bg-surface p-1.5 sm:p-2 rounded-2xl border border-brand-primary/15 shadow-soft-sm flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+      <!-- Selector de Modo de Recetas (Segmented Control Puro) -->
+      <nav class="grid grid-cols-2 p-1 bg-brand-cream/60 rounded-xl sm:rounded-2xl border border-brand-primary/10 w-full sm:w-auto" aria-label="Secciones de Recetas">
         <button
           type="button"
           @click="activeSubTab = 'batches'"
           :class="[
-            'px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer',
+            'px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer',
             activeSubTab === 'batches'
               ? 'bg-brand-primary text-white shadow-soft-sm'
               : 'text-brand-secondary hover:text-brand-primary hover:bg-white/50'
           ]"
         >
-          <Icon name="lucide:chef-hat" class="w-4 h-4" />
-          <span>Tandas Maestras</span>
+          <Icon name="lucide:chef-hat" class="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+          <span class="sm:hidden">Tandas</span>
+          <span class="hidden sm:inline">Tandas Maestras</span>
           <span
             :class="[
-              'px-1.5 py-0.2 rounded-full text-[10px] font-black',
+              'px-1.5 py-0.5 rounded-full text-[10px] font-black shrink-0',
               activeSubTab === 'batches' ? 'bg-white/20 text-white' : 'bg-brand-primary/10 text-brand-primary'
             ]"
           >
@@ -328,48 +329,35 @@ watch(batchSearchQuery, () => {
           type="button"
           @click="activeSubTab = 'products'"
           :class="[
-            'px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer',
+            'px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer',
             activeSubTab === 'products'
               ? 'bg-brand-primary text-white shadow-soft-sm'
               : 'text-brand-secondary hover:text-brand-primary hover:bg-white/50'
           ]"
         >
-          <Icon name="lucide:calculator" class="w-4 h-4" />
-          <span>Costeo por Producto</span>
+          <Icon name="lucide:calculator" class="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+          <span class="sm:hidden">Por Producto</span>
+          <span class="hidden sm:inline">Costeo por Producto</span>
           <span
             :class="[
-              'px-1.5 py-0.2 rounded-full text-[10px] font-black',
+              'px-1.5 py-0.5 rounded-full text-[10px] font-black shrink-0',
               activeSubTab === 'products' ? 'bg-white/20 text-white' : 'bg-brand-primary/10 text-brand-primary'
             ]"
           >
             {{ catalog?.data?.length || 0 }}
           </span>
         </button>
-      </div>
+      </nav>
 
-      <!-- Acciones Rápidas Destacadas -->
-      <div class="flex items-center gap-2">
-        <!-- Botón Descargo Rápido de Piezas (Visible siempre) -->
-        <button
-          type="button"
-          @click="openQuickDeduction()"
-          class="px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300/60 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-soft-sm cursor-pointer active:scale-95"
-          title="Descargar piezas de consumo o merma sin cálculos"
-        >
-          <Icon name="lucide:minus-circle" class="w-4 h-4 text-amber-700" />
-          <span>Descargo Rápido</span>
-        </button>
-
-        <!-- Botón Nueva Tanda (en tab tandas) -->
-        <button
-          v-if="activeSubTab === 'batches'"
-          type="button"
-          @click="openNewBatchModal"
-          class="px-3.5 py-2 bg-brand-primary text-white rounded-xl text-xs font-bold flex items-center gap-1.5 hover:bg-[#3C4A1C] transition-all shadow-soft-sm cursor-pointer active:scale-95"
-        >
-          <Icon name="lucide:plus" class="w-4 h-4" />
-          <span>Nueva Tanda</span>
-        </button>
+      <!-- Contexto explicativo de la sección activa (Desktop/Tablet) -->
+      <div class="hidden sm:flex items-center gap-2 text-xs text-brand-primary/70 font-semibold pr-3">
+        <Icon 
+          :name="activeSubTab === 'batches' ? 'lucide:flame' : 'lucide:coins'" 
+          class="w-4 h-4 text-brand-primary/60" 
+        />
+        <span>
+          {{ activeSubTab === 'batches' ? 'Control de producción y recetas base' : 'Escandallo comercial y margen de ganancia' }}
+        </span>
       </div>
     </header>
 
@@ -377,19 +365,53 @@ watch(batchSearchQuery, () => {
     <!-- SUB-PESTAÑA 1: TANDAS MAESTRAS DE PRODUCCIÓN                   -->
     <!-- ============================================================== -->
     <div v-if="activeSubTab === 'batches'" class="space-y-4">
-      <!-- Barra de Filtros de Tandas -->
-      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-surface p-3 sm:px-4 sm:py-3 rounded-2xl border border-brand-primary/15 shadow-soft-sm">
-        <div class="relative flex-1 max-w-md">
-          <Icon name="lucide:search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-brand-primary/40" />
-          <input
-            v-model="batchSearchQuery"
-            type="text"
-            placeholder="Buscar tanda por nombre..."
-            class="w-full pl-9 pr-3 py-2 bg-brand-cream/30 rounded-xl border border-brand-primary/15 text-xs font-bold text-brand-secondary focus:outline-none focus:bg-white focus:border-brand-primary"
-          />
+      <!-- Barra de Herramientas de Tandas (Búsqueda + Acciones) -->
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-surface p-3 sm:p-4 rounded-2xl border border-brand-primary/15 shadow-soft-sm">
+        <!-- Búsqueda y Conteo -->
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 flex-1 min-w-0">
+          <div class="relative flex-1 max-w-md">
+            <Icon name="lucide:search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-primary/45" />
+            <input
+              v-model="batchSearchQuery"
+              type="text"
+              placeholder="Buscar tanda por nombre..."
+              class="w-full pl-10 pr-3.5 py-2.5 bg-brand-cream/30 hover:bg-brand-cream/50 focus:bg-white rounded-xl border border-brand-primary/15 text-xs font-semibold text-brand-secondary focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 transition-all placeholder:text-brand-primary/50 shadow-2xs"
+            />
+          </div>
+          <div v-if="batchRecipes.length > 0" class="text-[11px] text-brand-primary/80 font-bold bg-brand-cream/50 px-3 py-1.5 rounded-full border border-brand-primary/10 self-start sm:self-center shrink-0 flex items-center gap-1.5 shadow-2xs">
+            <span class="w-1.5 h-1.5 rounded-full bg-brand-primary"></span>
+            <span>{{ filteredBatches.length }} de {{ batchRecipes.length }} tandas</span>
+          </div>
         </div>
-        <div class="text-xs text-brand-primary/80 font-semibold self-center">
-          Mostrando {{ filteredBatches.length }} de {{ batchRecipes.length }} recetas maestras
+
+        <!-- Acciones Operativas de Tandas -->
+        <div 
+          :class="[
+            'w-full lg:w-auto gap-2',
+            batchRecipes.length > 0 ? 'grid grid-cols-2 sm:flex sm:items-center' : 'flex items-center justify-end'
+          ]"
+        >
+          <!-- Botón Descargo Rápido: Solo cuando existen recetas maestras registradas -->
+          <button
+            v-if="batchRecipes.length > 0"
+            type="button"
+            @click="openQuickDeduction()"
+            class="h-10 px-3.5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300/80 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer active:scale-95 flex-1 sm:flex-initial"
+            title="Descargar piezas de consumo o merma de una tanda"
+          >
+            <Icon name="lucide:package-minus" class="w-4 h-4 text-amber-700 shrink-0" />
+            <span>Descargo Rápido</span>
+          </button>
+
+          <!-- Botón Nueva Tanda: Acción principal siempre disponible -->
+          <button
+            type="button"
+            @click="openNewBatchModal"
+            class="h-10 px-4 py-2 bg-brand-primary text-white hover:bg-[#3C4A1C] rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-soft-sm cursor-pointer active:scale-95 flex-1 sm:flex-initial"
+          >
+            <Icon name="lucide:plus" class="w-4 h-4 shrink-0" />
+            <span>Nueva Tanda</span>
+          </button>
         </div>
       </div>
 
