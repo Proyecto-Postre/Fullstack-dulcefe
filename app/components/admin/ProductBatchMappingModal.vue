@@ -259,17 +259,17 @@ async function handleSave() {
           class="relative w-full max-w-3xl bg-white rounded-3xl sm:rounded-[2rem] shadow-2xl overflow-hidden animate-pop border border-[#4A5D23]/10 max-h-[92vh] flex flex-col z-10"
         >
           <!-- Header -->
-          <div class="px-5 py-4 sm:px-6 sm:py-5 border-b border-brand-primary/10 flex items-center justify-between bg-surface shrink-0">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
-                <Icon name="lucide:boxes" class="w-5 h-5" />
+          <div class="px-5 py-4 sm:px-6 sm:py-5 border-b border-brand-primary/10 flex items-start justify-between gap-3 bg-gradient-to-r from-surface via-surface to-brand-cream/30 shrink-0">
+            <div class="flex items-start gap-3.5 min-w-0">
+              <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
+                <Icon name="lucide:boxes" class="w-5 h-5 sm:w-6 sm:h-6 stroke-[2]" />
               </div>
-              <div>
-                <h3 id="modal-mapping-title" class="text-lg sm:text-xl font-playfair font-black text-brand-secondary">
+              <div class="min-w-0">
+                <h3 id="modal-mapping-title" class="text-base sm:text-lg lg:text-xl font-playfair font-bold text-brand-secondary leading-snug">
                   Composición de Tanda y Empaques
                 </h3>
-                <p class="text-xs text-brand-primary/80 font-medium">
-                  Producto Comercial: <strong>{{ product?.name }}</strong> (S/ {{ Number(product?.price || 0).toFixed(2) }})
+                <p class="text-xs text-brand-primary/80 font-medium leading-relaxed mt-0.5">
+                  Producto Comercial: <strong class="text-brand-secondary">{{ product?.name }}</strong> (S/ {{ Number(product?.price || 0).toFixed(2) }})
                 </p>
               </div>
             </div>
@@ -277,7 +277,7 @@ async function handleSave() {
               type="button"
               aria-label="Cerrar modal"
               @click="closeModal"
-              class="w-8 h-8 flex items-center justify-center rounded-full bg-surface border border-brand-primary/20 text-brand-secondary hover:bg-brand-cream hover:scale-105 active:scale-95 transition-all shadow-sm cursor-pointer"
+              class="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-brand-primary/20 text-brand-secondary hover:bg-brand-cream hover:text-brand-primary hover:border-brand-primary/40 active:scale-95 transition-all shadow-2xs shrink-0 cursor-pointer mt-0.5"
             >
               <Icon name="lucide:x" class="w-4 h-4" />
             </button>

@@ -111,7 +111,17 @@ const previewMaterials = computed(() => {
 })
 
 function addPieces(amount: number) {
-  piecesCount.value = Math.max(1, piecesCount.value + amount)
+  const current = Number(piecesCount.value) || 0
+  piecesCount.value = Math.max(1, current + amount)
+}
+
+function sanitizePiecesCount() {
+  const num = Math.floor(Number(piecesCount.value))
+  if (isNaN(num) || num < 1) {
+    piecesCount.value = 1
+  } else {
+    piecesCount.value = num
+  }
 }
 
 function closeModal() {
@@ -186,17 +196,22 @@ async function handleConfirmDeduction() {
           class="relative w-full max-w-2xl bg-white rounded-3xl sm:rounded-[2rem] shadow-2xl overflow-hidden animate-pop border border-[#4A5D23]/10 max-h-[92vh] flex flex-col z-10"
         >
           <!-- Header -->
-          <div class="px-5 py-4 sm:px-6 sm:py-5 border-b border-brand-primary/10 flex items-center justify-between bg-surface shrink-0">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-2xl bg-amber-500/10 text-amber-700 flex items-center justify-center shrink-0">
-                <Icon name="lucide:minus-circle" class="w-5 h-5" />
+          <div class="px-5 py-4 sm:px-6 sm:py-5 border-b border-brand-primary/10 flex items-start justify-between gap-3 bg-gradient-to-r from-surface via-surface to-brand-cream/30 shrink-0">
+            <div class="flex items-start gap-3.5 min-w-0">
+              <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-amber-50 border border-amber-200/80 text-amber-800 flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
+                <Icon name="lucide:package-minus" class="w-5 h-5 sm:w-6 sm:h-6 stroke-[2]" />
               </div>
-              <div>
-                <h3 id="modal-deduction-title" class="text-lg sm:text-xl font-playfair font-black text-brand-secondary">
-                  Descargo Rápido de Piezas Sueltas
-                </h3>
-                <p class="text-xs text-brand-primary/80 font-medium">
-                  Descuenta insumos automáticamente del almacén sin necesidad de cálculos manuales
+              <div class="min-w-0">
+                <div class="flex items-center gap-2 flex-wrap mb-1">
+                  <h3 id="modal-deduction-title" class="text-base sm:text-lg lg:text-xl font-playfair font-bold text-brand-secondary leading-snug">
+                    Descargo de Piezas de Tanda
+                  </h3>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-200/70 shrink-0">
+                    Ajuste Directo
+                  </span>
+                </div>
+                <p class="text-xs text-brand-primary/75 font-medium leading-relaxed max-w-sm sm:max-w-md">
+                  Descuenta materias primas automáticamente del almacén según el formato y piezas indicadas.
                 </p>
               </div>
             </div>
@@ -204,7 +219,7 @@ async function handleConfirmDeduction() {
               type="button"
               aria-label="Cerrar modal"
               @click="closeModal"
-              class="w-8 h-8 flex items-center justify-center rounded-full bg-surface border border-brand-primary/20 text-brand-secondary hover:bg-brand-cream hover:scale-105 active:scale-95 transition-all shadow-sm cursor-pointer"
+              class="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-brand-primary/20 text-brand-secondary hover:bg-brand-cream hover:text-brand-primary hover:border-brand-primary/40 active:scale-95 transition-all shadow-2xs shrink-0 cursor-pointer mt-0.5"
             >
               <Icon name="lucide:x" class="w-4 h-4" />
             </button>
@@ -224,8 +239,9 @@ async function handleConfirmDeduction() {
             <!-- Paso 1: Selección de Tanda y Formato -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div>
-                <label class="block text-[10px] font-bold text-brand-primary uppercase tracking-widest mb-1.5">
-                  1. Tanda Base / Receta Maestra
+                <label class="flex items-center gap-1.5 text-[10px] font-bold text-brand-primary uppercase tracking-widest mb-1.5">
+                  <span class="w-4 h-4 rounded-full bg-brand-primary/10 text-brand-primary text-[10px] font-black flex items-center justify-center shrink-0">1</span>
+                  Tanda Base / Receta Maestra
                 </label>
                 <CustomSelect
                   v-model="selectedBatchId"
@@ -237,8 +253,9 @@ async function handleConfirmDeduction() {
               </div>
 
               <div>
-                <label class="block text-[10px] font-bold text-brand-primary uppercase tracking-widest mb-1.5">
-                  2. Tamaño / Formato de Corte
+                <label class="flex items-center gap-1.5 text-[10px] font-bold text-brand-primary uppercase tracking-widest mb-1.5">
+                  <span class="w-4 h-4 rounded-full bg-brand-primary/10 text-brand-primary text-[10px] font-black flex items-center justify-center shrink-0">2</span>
+                  Tamaño / Formato de Corte
                 </label>
                 <CustomSelect
                   v-model="selectedYieldId"
@@ -251,51 +268,97 @@ async function handleConfirmDeduction() {
               </div>
             </div>
 
-            <!-- Paso 2: Cantidad de Piezas -->
-            <div class="p-4 bg-brand-cream/30 rounded-2xl border border-brand-primary/15 space-y-3">
-              <label class="block text-[10px] font-bold text-brand-primary uppercase tracking-widest">
-                3. Cantidad de Piezas a Descargar
-              </label>
-              <div class="flex items-center gap-3">
-                <div class="relative w-28">
-                  <input
-                    v-model="piecesCount"
-                    type="number"
-                    min="1"
-                    required
-                    class="w-full px-3 py-2.5 bg-white rounded-xl border border-brand-primary/20 text-base font-black text-center text-brand-secondary focus:outline-none focus:border-brand-primary shadow-sm"
-                  />
+            <!-- Paso 3: Cantidad de Piezas -->
+            <div class="p-4 sm:p-5 bg-gradient-to-br from-brand-cream/50 via-brand-cream/30 to-brand-cream/15 rounded-2xl border border-brand-primary/15 space-y-3.5 shadow-soft-sm">
+              <div class="flex items-center justify-between gap-2 flex-wrap">
+                <div class="flex items-center gap-2">
+                  <span class="w-5 h-5 rounded-full bg-brand-primary text-white text-[10px] font-black flex items-center justify-center shrink-0">
+                    3
+                  </span>
+                  <label class="text-[11px] font-bold text-brand-primary uppercase tracking-wider">
+                    Cantidad de Piezas a Descargar
+                  </label>
                 </div>
-                <div class="flex items-center gap-2 flex-wrap">
+                <span v-if="activeYield" class="text-[11px] font-semibold text-brand-primary/80 bg-white px-2.5 py-1 rounded-full border border-brand-primary/10 shadow-2xs">
+                  Corte: <strong class="text-brand-secondary">{{ activeYield.size_name }}</strong>
+                </span>
+              </div>
+
+              <!-- Fila Principal: Stepper Unificado + Botones de Incremento Rápido -->
+              <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <!-- Stepper Ergonómico con Minus, Input Centrado y Plus -->
+                <div class="flex items-center justify-between sm:justify-start bg-white rounded-2xl border border-brand-primary/20 shadow-soft-sm p-1.5 shrink-0">
+                  <button
+                    type="button"
+                    @click="addPieces(-1)"
+                    :disabled="piecesCount <= 1"
+                    class="w-11 h-11 rounded-xl bg-brand-cream/50 hover:bg-brand-primary hover:text-white text-brand-secondary flex items-center justify-center transition-all disabled:opacity-25 disabled:cursor-not-allowed cursor-pointer active:scale-95 shrink-0"
+                    title="Restar 1 pieza"
+                    aria-label="Restar una pieza"
+                  >
+                    <Icon name="lucide:minus" class="w-4 h-4 stroke-[2.5]" />
+                  </button>
+
+                  <div class="px-3 min-w-[84px] text-center flex flex-col justify-center">
+                    <input
+                      v-model.number="piecesCount"
+                      type="number"
+                      min="1"
+                      required
+                      @blur="sanitizePiecesCount"
+                      class="w-full text-center font-playfair font-black text-2xl text-brand-secondary focus:outline-none bg-transparent"
+                    />
+                    <span class="text-[9px] font-bold uppercase tracking-wider text-brand-primary/70 -mt-0.5">
+                      {{ piecesCount === 1 ? 'unidad' : 'unidades' }}
+                    </span>
+                  </div>
+
                   <button
                     type="button"
                     @click="addPieces(1)"
-                    class="px-3 py-2 bg-white hover:bg-brand-primary/10 border border-brand-primary/20 rounded-xl text-xs font-bold text-brand-primary transition-all cursor-pointer active:scale-95"
+                    class="w-11 h-11 rounded-xl bg-brand-cream/50 hover:bg-brand-primary hover:text-white text-brand-secondary flex items-center justify-center transition-all cursor-pointer active:scale-95 shrink-0"
+                    title="Sumar 1 pieza"
+                    aria-label="Sumar una pieza"
                   >
-                    +1 pieza
+                    <Icon name="lucide:plus" class="w-4 h-4 stroke-[2.5]" />
+                  </button>
+                </div>
+
+                <!-- Botones de Acceso Rápido en Grid Simétrico de 3 Columnas -->
+                <div class="grid grid-cols-3 gap-2 flex-1">
+                  <button
+                    type="button"
+                    @click="addPieces(1)"
+                    class="h-12 sm:h-[54px] bg-white hover:bg-brand-primary hover:text-white text-brand-primary border border-brand-primary/20 rounded-xl transition-all cursor-pointer active:scale-95 flex flex-col items-center justify-center shadow-2xs group"
+                  >
+                    <span class="text-xs sm:text-sm font-black group-hover:scale-110 transition-transform leading-none">+1</span>
+                    <span class="text-[9px] font-medium opacity-75 leading-none mt-1">pieza</span>
                   </button>
                   <button
                     type="button"
                     @click="addPieces(2)"
-                    class="px-3 py-2 bg-white hover:bg-brand-primary/10 border border-brand-primary/20 rounded-xl text-xs font-bold text-brand-primary transition-all cursor-pointer active:scale-95"
+                    class="h-12 sm:h-[54px] bg-white hover:bg-brand-primary hover:text-white text-brand-primary border border-brand-primary/20 rounded-xl transition-all cursor-pointer active:scale-95 flex flex-col items-center justify-center shadow-2xs group"
                   >
-                    +2 piezas
+                    <span class="text-xs sm:text-sm font-black group-hover:scale-110 transition-transform leading-none">+2</span>
+                    <span class="text-[9px] font-medium opacity-75 leading-none mt-1">piezas</span>
                   </button>
                   <button
                     type="button"
                     @click="addPieces(6)"
-                    class="px-3 py-2 bg-white hover:bg-brand-primary/10 border border-brand-primary/20 rounded-xl text-xs font-bold text-brand-primary transition-all cursor-pointer active:scale-95"
+                    class="h-12 sm:h-[54px] bg-white hover:bg-brand-primary hover:text-white text-brand-primary border border-brand-primary/20 rounded-xl transition-all cursor-pointer active:scale-95 flex flex-col items-center justify-center shadow-2xs group"
                   >
-                    +6 (media docena)
+                    <span class="text-xs sm:text-sm font-black group-hover:scale-110 transition-transform leading-none">+6</span>
+                    <span class="text-[9px] font-medium opacity-75 leading-none mt-1">½ docena</span>
                   </button>
                 </div>
               </div>
             </div>
 
-            <!-- Paso 3: Motivo del Descargo -->
+            <!-- Paso 4: Motivo del Descargo -->
             <div class="space-y-2">
-              <label class="block text-[10px] font-bold text-brand-primary uppercase tracking-widest">
-                4. Motivo del Descargo
+              <label class="flex items-center gap-1.5 text-[10px] font-bold text-brand-primary uppercase tracking-widest">
+                <span class="w-4 h-4 rounded-full bg-brand-primary/10 text-brand-primary text-[10px] font-black flex items-center justify-center shrink-0">4</span>
+                Motivo del Descargo
               </label>
               <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 <button
