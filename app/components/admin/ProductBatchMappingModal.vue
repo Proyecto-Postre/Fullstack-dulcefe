@@ -397,7 +397,7 @@ async function handleSave() {
                   Sin empaques asignados. Haz clic en "Agregar Empaque" para incluir caja, cinta o etiqueta.
                 </div>
 
-                <div v-else class="space-y-2.5">
+                <div v-else class="space-y-2.5 max-h-52 overflow-y-auto custom-scrollbar pr-1">
                   <div
                     v-for="(pkg, index) in packagingItems"
                     :key="index"

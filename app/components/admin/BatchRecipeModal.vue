@@ -358,7 +358,7 @@ async function handleSubmit() {
                   </button>
                 </div>
 
-                <div class="space-y-2.5">
+                <div class="space-y-2.5 max-h-60 overflow-y-auto custom-scrollbar pr-1">
                   <div
                     v-for="(item, index) in items"
                     :key="index"

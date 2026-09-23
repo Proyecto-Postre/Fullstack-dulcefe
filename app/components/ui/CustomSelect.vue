@@ -116,7 +116,7 @@ function isSelected(val: unknown) {
     >
       <div 
         v-if="isOpen && !disabled" 
-        class="absolute z-50 w-full mt-1.5 bg-surface/98 backdrop-blur-md border border-brand-primary/20 rounded-xl shadow-soft-xl max-h-56 overflow-y-auto custom-scrollbar overflow-x-hidden py-1.5 origin-top"
+        class="absolute z-50 w-full mt-1.5 bg-white border border-brand-primary/20 rounded-xl shadow-2xl max-h-56 overflow-y-auto custom-scrollbar overflow-x-hidden py-1 origin-top"
       >
         <div v-if="options.length === 0" class="px-3.5 py-2.5 text-xs text-brand-primary/60 italic font-medium">
           No hay opciones disponibles
@@ -129,11 +129,11 @@ function isSelected(val: unknown) {
           :disabled="opt.disabled"
           @click="!opt.disabled && selectOption(opt.value)"
           :class="[
-            'w-full text-left px-3.5 py-2 text-xs font-bold transition-colors flex items-center justify-between gap-2',
+            'w-full text-left px-3.5 py-2 text-xs font-bold transition-colors flex items-center justify-between gap-2 border-b border-brand-primary/5 last:border-b-0',
             opt.disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer',
             isSelected(opt.value) 
               ? 'bg-brand-primary text-white' 
-              : 'text-brand-secondary hover:bg-brand-primary/10 hover:text-brand-primary'
+              : 'text-brand-secondary bg-white hover:bg-brand-cream/60 hover:text-brand-primary'
           ]"
         >
           <div class="flex-1 min-w-0">

@@ -378,11 +378,11 @@ async function handleConfirmDeduction() {
           </div>
 
           <!-- Footer con Acciones -->
-          <div class="px-5 py-3.5 sm:px-6 sm:py-4 bg-brand-cream/30 border-t border-brand-primary/10 flex items-center justify-end gap-3 shrink-0">
+          <div class="px-4 py-3 sm:px-6 sm:py-4 bg-brand-cream/30 border-t border-brand-primary/10 flex items-center justify-end gap-2.5 sm:gap-3 shrink-0">
             <button
               type="button"
               @click="closeModal"
-              class="px-4 py-2 text-xs font-bold text-brand-secondary hover:bg-brand-cream/80 rounded-xl transition-colors cursor-pointer"
+              class="flex-1 sm:flex-initial px-4 py-2.5 text-xs font-bold text-brand-secondary hover:bg-brand-cream/80 rounded-xl transition-colors cursor-pointer text-center"
             >
               Cancelar
             </button>
@@ -390,7 +390,7 @@ async function handleConfirmDeduction() {
               type="button"
               @click="handleConfirmDeduction"
               :disabled="isSubmitting || !activeYield || piecesCount <= 0"
-              class="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl shadow-soft-sm active:scale-95 disabled:opacity-50 transition-all flex items-center gap-2 cursor-pointer"
+              class="flex-2 sm:flex-initial px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl shadow-soft-sm active:scale-95 disabled:opacity-50 transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               <Icon v-if="isSubmitting" name="lucide:loader-2" class="w-4 h-4 animate-spin" />
               <Icon v-else name="lucide:check-circle" class="w-4 h-4" />

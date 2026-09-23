@@ -78,6 +78,22 @@ Durante la inspección de usabilidad y revisión visual de la Fase 7 (Tandas Mae
 
 ---
 
+### E. Desplegables 100% Opacos y Paginación Dinámica Adaptativa
+- **Eliminación Total de Transparencias en Desplegables:**
+  - Se suprimió la directiva `backdrop-blur` y el color semi-translúcido `bg-surface/98` en `CustomSelect.vue`.
+  - El popover ahora utiliza estrictamente **`bg-white` 100% sólido y opaco**, borde definido `border-brand-primary/20` y sombra profunda `shadow-2xl`. Las tarjetas y elementos que quedan detrás ya no se traslucen en manchones borrosos.
+- **Paginación Dinámica de Insumos y Tandas:**
+  - En `AdminRecipesTab.vue`, la lista de insumos directos ahora pagina de **4 en 4** con pie de paginación (`Página X de Y`, botones táctiles `Anterior` / `Siguiente`).
+  - Esto equilibra la altura de la columna derecha con la columna izquierda en PC, asegurando que **toda la vista entre en una sola pantalla sin cortarse ni obligar a hacer scroll vertical**.
+  - La cuadrícula de tandas maestras también incluye paginación dinámica (6 por página).
+- **Control Segmentado Mobile (App Nativa Feel):**
+  - En móviles (`< lg`), se introdujo un selector segmentado tipo píldora para alternar instantáneamente entre:
+    - 📊 **Cálculo & Costos** (Tarjeta de margen KPI tradicional, CIF y formulario rápido de insumo).
+    - 📋 **Insumos Registrados** (Lista paginada de 4 en 4 con paginador).
+  - Esto erradica el scroll infinito en smartphones, permitiendo que la vista se sienta y opere con la fluidez de una aplicación móvil nativa.
+
+---
+
 ## 4. Verificación y Resultados de Calidad
 
 - **Grep de Verificación en Código:** Cero etiquetas `<select>` nativas en los componentes Vue (`0 matches`).
@@ -92,3 +108,4 @@ Durante la inspección de usabilidad y revisión visual de la Fase 7 (Tandas Mae
 - **Rama:** `feat/batch-recipes-yielding`
 - **Pull Request:** PR #20 (`feat/batch-recipes-yielding` -> `dev`)
 - **Estado:** Abierto y pendiente de revisión del usuario (tal como fue ordenado explícitamente: *"pero no lo aceptes dejalo ahi para mi revision"*).
+

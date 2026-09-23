@@ -221,6 +221,77 @@ async function handleCompositionSaved(composition: ProductBatchComposition) {
 async function handleDeductionCompleted() {
   emit('refresh-catalog')
 }
+
+// Vista segmentada en móvil para Escandallo Tradicional (Cálculo vs Insumos)
+const mobileRecipeView = ref<'kpi' | 'items'>('kpi')
+
+// Paginación dinámica de Insumos Directos de la Receta
+const recipeItemsPerPage = ref(4)
+const currentRecipePage = ref(1)
+
+const totalRecipePages = computed(() => {
+  const len = recipeItems.value?.length || 0
+  return Math.max(1, Math.ceil(len / recipeItemsPerPage.value))
+})
+
+const paginatedRecipeItems = computed(() => {
+  const list = recipeItems.value || []
+  const start = (currentRecipePage.value - 1) * recipeItemsPerPage.value
+  return list.slice(start, start + recipeItemsPerPage.value)
+})
+
+function nextRecipePage() {
+  if (currentRecipePage.value < totalRecipePages.value) {
+    currentRecipePage.value++
+  }
+}
+
+function prevRecipePage() {
+  if (currentRecipePage.value > 1) {
+    currentRecipePage.value--
+  }
+}
+
+watch(activeProduct, () => {
+  currentRecipePage.value = 1
+})
+
+watch(recipeItems, () => {
+  if (currentRecipePage.value > totalRecipePages.value) {
+    currentRecipePage.value = Math.max(1, totalRecipePages.value)
+  }
+})
+
+// Paginación dinámica de Tandas Maestras
+const batchesPerPage = ref(6)
+const currentBatchesPage = ref(1)
+
+const totalBatchesPages = computed(() => {
+  const len = filteredBatches.value.length
+  return Math.max(1, Math.ceil(len / batchesPerPage.value))
+})
+
+const paginatedBatches = computed(() => {
+  const list = filteredBatches.value
+  const start = (currentBatchesPage.value - 1) * batchesPerPage.value
+  return list.slice(start, start + batchesPerPage.value)
+})
+
+function nextBatchesPage() {
+  if (currentBatchesPage.value < totalBatchesPages.value) {
+    currentBatchesPage.value++
+  }
+}
+
+function prevBatchesPage() {
+  if (currentBatchesPage.value > 1) {
+    currentBatchesPage.value--
+  }
+}
+
+watch(batchSearchQuery, () => {
+  currentBatchesPage.value = 1
+})
 </script>
 
 <template>
@@ -349,7 +420,7 @@ async function handleDeductionCompleted() {
       <!-- Grid de Tarjetas de Tandas Maestras -->
       <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         <div
-          v-for="batch in filteredBatches"
+          v-for="batch in paginatedBatches"
           :key="batch.id"
           class="bg-surface rounded-2xl border border-brand-primary/15 shadow-soft-sm hover:shadow-soft-md transition-all p-5 flex flex-col justify-between space-y-4 relative group"
         >
@@ -446,6 +517,35 @@ async function handleDeductionCompleted() {
               </button>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Paginación de Tandas Maestras -->
+      <div v-if="totalBatchesPages > 1" class="flex items-center justify-between p-3.5 bg-surface rounded-2xl border border-brand-primary/15 shadow-soft-sm">
+        <span class="text-xs text-brand-primary/80 font-medium">
+          Página {{ currentBatchesPage }} de {{ totalBatchesPages }} ({{ filteredBatches.length }} tandas)
+        </span>
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            @click="prevBatchesPage"
+            :disabled="currentBatchesPage <= 1"
+            class="px-3 py-1.5 rounded-lg border border-brand-primary/20 text-xs font-bold text-brand-secondary hover:bg-brand-cream/60 transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1"
+            aria-label="Página anterior"
+          >
+            <Icon name="lucide:chevron-left" class="w-3.5 h-3.5" />
+            <span>Anterior</span>
+          </button>
+          <button
+            type="button"
+            @click="nextBatchesPage"
+            :disabled="currentBatchesPage >= totalBatchesPages"
+            class="px-3 py-1.5 rounded-lg border border-brand-primary/20 text-xs font-bold text-brand-secondary hover:bg-brand-cream/60 transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1"
+            aria-label="Página siguiente"
+          >
+            <span>Siguiente</span>
+            <Icon name="lucide:chevron-right" class="w-3.5 h-3.5" />
+          </button>
         </div>
       </div>
     </div>
@@ -668,10 +768,45 @@ async function handleDeductionCompleted() {
           </div>
         </div>
 
+        <!-- Control Segmentado Exclusivo Mobile (< lg) para alternar Resumen vs Insumos -->
+        <div class="flex lg:hidden p-1 bg-brand-cream/60 rounded-xl border border-brand-primary/10 gap-1 my-1 shadow-2xs">
+          <button
+            type="button"
+            @click="mobileRecipeView = 'kpi'"
+            :class="[
+              'flex-1 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer',
+              mobileRecipeView === 'kpi'
+                ? 'bg-brand-primary text-white shadow-soft-sm'
+                : 'text-brand-secondary hover:text-brand-primary'
+            ]"
+          >
+            <Icon name="lucide:calculator" class="w-3.5 h-3.5" />
+            <span>Cálculo & Costos</span>
+          </button>
+          <button
+            type="button"
+            @click="mobileRecipeView = 'items'"
+            :class="[
+              'flex-1 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer',
+              mobileRecipeView === 'items'
+                ? 'bg-brand-primary text-white shadow-soft-sm'
+                : 'text-brand-secondary hover:text-brand-primary'
+            ]"
+          >
+            <Icon name="lucide:list" class="w-3.5 h-3.5" />
+            <span>Insumos ({{ recipeItems.length }})</span>
+          </button>
+        </div>
+
         <!-- ESCANDALLO DIRECTO TRADICIONAL (RETROCOMPATIBILIDAD) -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
           <!-- Tarjeta KPI & Formulario de Escandallo Tradicional -->
-          <div class="lg:col-span-5 space-y-4">
+          <div 
+            :class="[
+              'lg:col-span-5 space-y-4',
+              mobileRecipeView === 'kpi' ? 'block' : 'hidden lg:block'
+            ]"
+          >
             <section class="bg-[#4A5D23] p-4 sm:p-5 rounded-2xl border border-[#4A5D23]/20 shadow-md text-[#F4F1E1] relative overflow-hidden">
               <div class="relative z-10">
                 <div class="grid grid-cols-2 gap-3 pb-3 border-b border-white/15">
@@ -782,7 +917,12 @@ async function handleDeductionCompleted() {
           </div>
 
           <!-- Columna Derecha: Tabla de Insumos Directos Registrados -->
-          <div class="lg:col-span-7 bg-surface p-4 sm:p-5 rounded-2xl border border-brand-primary/15 shadow-soft-sm space-y-3">
+          <div 
+            :class="[
+              'lg:col-span-7 bg-surface p-4 sm:p-5 rounded-2xl border border-brand-primary/15 shadow-soft-sm space-y-3',
+              mobileRecipeView === 'items' ? 'block' : 'hidden lg:block'
+            ]"
+          >
             <div class="flex items-center justify-between">
               <h4 class="text-xs font-bold uppercase tracking-wider text-brand-secondary flex items-center gap-1.5">
                 <Icon name="lucide:list" class="w-4 h-4 text-brand-primary" />
@@ -802,9 +942,9 @@ async function handleDeductionCompleted() {
               Este producto no tiene insumos directos agregados individualmente.
             </div>
 
-            <div v-else class="space-y-2 max-h-[460px] overflow-y-auto custom-scrollbar pr-1">
+            <div v-else class="space-y-2">
               <div
-                v-for="item in recipeItems"
+                v-for="item in paginatedRecipeItems"
                 :key="item.id"
                 class="p-2.5 bg-brand-cream/20 rounded-xl border border-brand-primary/10 flex items-center justify-between text-xs"
               >
@@ -824,6 +964,35 @@ async function handleDeductionCompleted() {
                     class="text-red-500 hover:text-red-700 p-1 cursor-pointer"
                   >
                     <Icon name="lucide:trash-2" class="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              <!-- Paginación de Insumos Directos -->
+              <div v-if="totalRecipePages > 1" class="flex items-center justify-between pt-2.5 mt-2 border-t border-brand-primary/10">
+                <span class="text-[11px] text-brand-primary/70 font-semibold">
+                  Página {{ currentRecipePage }} de {{ totalRecipePages }} ({{ recipeItems.length }} insumos)
+                </span>
+                <div class="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    @click="prevRecipePage"
+                    :disabled="currentRecipePage <= 1"
+                    class="px-2.5 py-1 rounded-lg border border-brand-primary/20 text-xs font-bold text-brand-secondary hover:bg-brand-cream/50 transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1"
+                    aria-label="Página anterior"
+                  >
+                    <Icon name="lucide:chevron-left" class="w-3.5 h-3.5" />
+                    <span>Anterior</span>
+                  </button>
+                  <button
+                    type="button"
+                    @click="nextRecipePage"
+                    :disabled="currentRecipePage >= totalRecipePages"
+                    class="px-2.5 py-1 rounded-lg border border-brand-primary/20 text-xs font-bold text-brand-secondary hover:bg-brand-cream/50 transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1"
+                    aria-label="Página siguiente"
+                  >
+                    <span>Siguiente</span>
+                    <Icon name="lucide:chevron-right" class="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
