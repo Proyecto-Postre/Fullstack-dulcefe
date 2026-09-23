@@ -80,6 +80,7 @@ Registro cronológico inmutable de auditorías y entregas por fase:
   * [`fase-7-subfase-7.1-migracion-tandas-informe.md`](./04%20-%20Informes%20de%20Ejecucion/fase-7-subfase-7.1-migracion-tandas-informe.md) — **Capa de Datos & Migración SQL de Tandas (Batch Recipes), Rendimientos y Descargo Rápido (Subfase 7.1)**.
   * [`fase-7-subfase-7.2-backend-nitro-tandas-informe.md`](./04%20-%20Informes%20de%20Ejecucion/fase-7-subfase-7.2-backend-nitro-tandas-informe.md) — **Backend Nitro & Servicios de Dominio de Tandas, Deducción en Pedidos y Descargo Rápido (Subfase 7.2)**.
   * [`fase-7-subfase-7.3-ui-admin-tandas-informe.md`](./04%20-%20Informes%20de%20Ejecucion/fase-7-subfase-7.3-ui-admin-tandas-informe.md) — **Interfaz de Usuario Administrativa (UI/UX) de Tandas Maestras, Rendimientos y Descargo Rápido (Subfase 7.3)**.
+  * [`fase-7-subfase-7.4-dashboard-vitrina-informe.md`](./04%20-%20Informes%20de%20Ejecucion/fase-7-subfase-7.4-dashboard-vitrina-informe.md) — **Dashboard Preventivo de Productos en Riesgo y Vitrina Comercial Artesanal (Subfase 7.4)**.
 
 ### 5. 🛡️ [05 - Operaciones](./05%20-%20Operaciones/)
 * [`playbook-operaciones.md`](./05%20-%20Operaciones/playbook-operaciones.md) — **Manual Operativo de Misión Crítica**:
