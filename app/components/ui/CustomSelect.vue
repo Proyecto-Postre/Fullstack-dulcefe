@@ -88,10 +88,10 @@ function isSelected(val: unknown) {
         buttonClass
       ]"
     >
-      <span v-if="selectedLabel" class="flex-1 min-w-0 font-bold text-brand-secondary truncate">
+      <span v-if="selectedLabel" class="flex-1 min-w-0 font-bold text-brand-secondary break-words leading-tight">
         {{ selectedLabel }}
       </span>
-      <span v-else class="flex-1 min-w-0 font-medium text-brand-primary/50 truncate">
+      <span v-else class="flex-1 min-w-0 font-medium text-brand-primary/50 break-words leading-tight">
         {{ placeholder }}
       </span>
       
@@ -137,10 +137,10 @@ function isSelected(val: unknown) {
           ]"
         >
           <div class="flex-1 min-w-0">
-            <div class="truncate">{{ opt.label }}</div>
+            <div class="break-words leading-snug">{{ opt.label }}</div>
             <div 
               v-if="opt.sublabel" 
-              class="text-[10px] font-medium truncate"
+              class="text-[10px] font-medium break-words leading-tight mt-0.5"
               :class="isSelected(opt.value) ? 'text-white/80' : 'text-brand-primary/70'"
             >
               {{ opt.sublabel }}

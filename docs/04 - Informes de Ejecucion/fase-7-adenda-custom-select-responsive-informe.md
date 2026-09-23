@@ -92,11 +92,20 @@ Durante la inspección de usabilidad y revisión visual de la Fase 7 (Tandas Mae
     - 📋 **Insumos Registrados** (Lista paginada de 4 en 4 con paginador).
   - Esto erradica el scroll infinito en smartphones, permitiendo que la vista se sienta y opere con la fluidez de una aplicación móvil nativa.
 
+### F. Erradicación Universal de Truncamiento de Texto (`truncate` / `line-clamp`)
+- **Problema Solucionado:** El uso de elipsis (`...`) cortaba nombres extensos de materias primas, tandas maestras, formatos de rendimiento y motivos de descargo, ocultando información crucial para el pastelero y administrador.
+- **Implementación Técnica:**
+  - En `CustomSelect.vue`: Se sustituyó `truncate` en el botón principal y en las opciones (`opt.label` y `opt.sublabel`) por `break-words leading-tight` / `leading-snug`. Los nombres largos fluyen naturalmente a dos líneas sin cortar información.
+  - En `QuickPieceDeductionModal.vue`: Se removió `truncate` y `line-clamp-1` en los motivos de descargo y en la lista de insumos calculados.
+  - En `AdminRecipesTab.vue`: Se eliminó `line-clamp-1` de la descripción de tanda maestra y `truncate` del nombre de los formatos de corte de rendimiento.
+
 ---
 
 ## 4. Verificación y Resultados de Calidad
 
-- **Grep de Verificación en Código:** Cero etiquetas `<select>` nativas en los componentes Vue (`0 matches`).
+- **Grep de Verificación en Código:**
+  - Cero etiquetas `<select>` nativas en los componentes Vue (`0 matches`).
+  - Cero directivas `truncate` o `line-clamp` en los componentes de recetas y selectores del módulo (`0 matches`).
 - **Pruebas Unitarias y de Integración (`npm test`):** 244 tests ejecutados, 244 aprobados (100% verde).
 - **Chequeo de Tipos TypeScript (`npx nuxi typecheck`):** 0 errores.
 - **Compilación de Producción (`npm run build`):** Código de salida 0 (éxito).

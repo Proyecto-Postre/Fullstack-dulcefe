@@ -431,7 +431,7 @@ watch(batchSearchQuery, () => {
                 <h4 class="font-playfair font-bold text-base sm:text-lg text-brand-secondary group-hover:text-brand-primary transition-colors">
                   {{ batch.name }}
                 </h4>
-                <p v-if="batch.description" class="text-xs text-brand-primary/70 line-clamp-1 mt-0.5">
+                <p v-if="batch.description" class="text-xs text-brand-primary/70 break-words leading-tight mt-0.5">
                   {{ batch.description }}
                 </p>
               </div>
@@ -474,8 +474,8 @@ watch(batchSearchQuery, () => {
                   :key="y.id"
                   class="p-2 bg-white rounded-lg border border-brand-primary/10 flex items-center justify-between text-xs"
                 >
-                  <div class="truncate mr-1">
-                    <span class="font-bold text-brand-secondary block truncate">{{ y.size_name }}</span>
+                  <div class="min-w-0 mr-1 flex-1">
+                    <span class="font-bold text-brand-secondary block break-words leading-tight">{{ y.size_name }}</span>
                     <span class="text-[10px] text-brand-primary/70 font-semibold">Rinde {{ y.yield_units }} u</span>
                   </div>
                   <span class="font-black text-brand-primary shrink-0 bg-brand-cream/50 px-1.5 py-0.5 rounded">

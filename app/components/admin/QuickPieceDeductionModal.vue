@@ -312,11 +312,11 @@ async function handleConfirmDeduction() {
                 >
                   <div class="flex items-center gap-1.5">
                     <Icon :name="opt.icon" class="w-3.5 h-3.5" />
-                    <span class="text-xs font-bold truncate">{{ opt.label }}</span>
+                    <span class="text-xs font-bold leading-tight">{{ opt.label }}</span>
                   </div>
                   <span
                     :class="[
-                      'text-[9px] line-clamp-1',
+                      'text-[9px] leading-tight',
                       reason === opt.id ? 'text-white/80' : 'text-brand-primary/70'
                     ]"
                   >
@@ -362,7 +362,7 @@ async function handleConfirmDeduction() {
                   :key="mat.raw_material_id"
                   class="bg-white/90 p-2 rounded-xl border border-amber-200/60 flex items-center justify-between gap-1 shadow-2xs"
                 >
-                  <span class="text-xs font-semibold text-brand-secondary truncate">
+                  <span class="text-xs font-semibold text-brand-secondary break-words leading-tight">
                     {{ mat.material_name }}
                   </span>
                   <span class="text-xs font-black text-amber-900 whitespace-nowrap">

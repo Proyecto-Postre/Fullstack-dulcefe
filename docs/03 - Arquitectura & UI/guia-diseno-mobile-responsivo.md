@@ -315,7 +315,7 @@ Esto garantiza que las cookies de sesión **NO** sean rechazadas por el navegado
 ```
 - **Icono Vectorial Centrado:** Utiliza `Icon name="lucide:chevron-down"`, anclado con `absolute top-1/2 -translate-y-1/2 right-3 sm:right-4 pointer-events-none`.
 - **Micro-Animación de Apertura:** Al desplegarse, la flecha gira 180° fluidamente con `transition-transform duration-300 rotate-180`.
-- **Menú Popover Botánico:** Menú flotante con `backdrop-blur-md`, borde `border-brand-primary/20`, esquinas redondeadas `rounded-xl`, sombra suave `shadow-soft-xl`, capa `z-50`, scrollbar personalizada botánica (`custom-scrollbar`) e indicador de confirmación `lucide:check` en la opción activa.
+- **Menú Popover 100% Opaco (Cero Transparencias):** Menú flotante con fondo estrictamente blanco sólido (`bg-white`), borde definido `border-brand-primary/20`, esquinas redondeadas `rounded-xl`, sombra profunda `shadow-2xl`, capa `z-50`, scrollbar personalizada botánica (`custom-scrollbar`) e indicador de confirmación `lucide:check` en la opción activa. Prohibido el uso de `backdrop-blur` o fondos translúcidos que generen manchones oscuros sobre tarjetas de color.
 
 ---
 
@@ -354,11 +354,26 @@ En el taller de repostería y en la administración de productos, los modales y 
 
 ---
 
+### 11.3 Política de Cero Truncamiento de Texto ("No-Truncation Policy")
+
+> [!IMPORTANT]
+> **REGLA DE LEGIBILIDAD INTEGRAL:**  
+> Queda prohibido aplicar las clases `truncate`, `line-clamp-1` o `text-ellipsis` en nombres de productos, materias primas, tandas maestras, formatos de corte, opciones de selectores y motivos de descargo en modales y paneles operativos.
+> 
+> **Estándar de Envoltorio Tipográfico:**
+> - En botones de selectores y opciones: Utilizar `break-words leading-tight` (o `leading-snug`) junto a `flex-1 min-w-0`.
+> - En descripciones y notas: Usar `break-words leading-relaxed` sin recortar el texto con elipsis (`...`).
+> - Los textos extensos deben distribuirse ordenadamente en dos o tres líneas con interlineado estético, garantizando que el usuario lea la denominación completa del insumo o postre sin ambigüedad.
+
+---
+
 ## 12. Checklist de Aprobación para Nuevas Vistas y Modales
 
 Antes de dar por completada cualquier nueva pantalla o componente responsivo en Dulce Fe, verificar obligatoriamente:
 
 - [ ] ¿Está **100% libre** de elementos `<select>` nativos de HTML y utiliza `CustomSelect.vue`?
+- [ ] ¿El popover de `CustomSelect` es **100% blanco sólido (`bg-white`)** sin transparencias ni `backdrop-blur`?
+- [ ] ¿Está **100% libre** de truncamiento de texto (`truncate` / `line-clamp`) en selectores, insumos y modales, permitiendo lectura íntegra con `break-words`?
 - [ ] ¿Las flechas de los selectores rotan suavemente a 180° y están centradas sin superponerse al texto?
 - [ ] ¿Los modales aplican la arquitectura **Single-Screen Fit** (`max-h-[90vh] flex flex-col`, header y footer `shrink-0`, body con `overflow-y-auto custom-scrollbar`)?
 - [ ] ¿Las filas compuestas (select + cantidad + subtotal + eliminar) se adaptan con sub-filas táctiles en móvil sin desbordar la pantalla?
