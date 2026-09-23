@@ -1,10 +1,15 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { toast } from 'vue-sonner'
 import type { ProductRow } from '~/types/catalog'
 import type { RawMaterialRow } from '~/types/inventory'
+import type { BaseRecipeDetail, ProductBatchComposition } from '~/types/batch-recipe'
 import { useAdminRecipes } from '~/composables/admin/useAdminRecipes'
+import { useAdminBatchRecipes } from '~/composables/admin/useAdminBatchRecipes'
 import ProductModal from './ProductModal.vue'
+import BatchRecipeModal from './BatchRecipeModal.vue'
+import QuickPieceDeductionModal from './QuickPieceDeductionModal.vue'
+import ProductBatchMappingModal from './ProductBatchMappingModal.vue'
 
 const props = defineProps<{
   catalog: { success: boolean; data: ProductRow[] } | null | undefined
@@ -17,17 +22,43 @@ const emit = defineEmits<{
   (e: 'refresh-catalog'): void
 }>()
 
+// Sub-pestaña activa: 'batches' (Tandas Maestras) o 'products' (Costeo de Productos)
+const activeSubTab = ref<'batches' | 'products'>('batches')
+
+// Buscador de tandas
+const batchSearchQuery = ref('')
+
+// Estado de modales
+const showProductModal = ref(false)
+const showBatchModal = ref(false)
+const batchToEdit = ref<BaseRecipeDetail | null>(null)
+
+const showQuickDeductionModal = ref(false)
+const quickDeductionBatchId = ref<number | null>(null)
+
+const showProductMappingModal = ref(false)
+const activeProductComposition = ref<ProductBatchComposition | null>(null)
+const isLoadingComposition = ref(false)
+
+const isMobileAddSheetOpen = ref(false)
+const isMobilePublishSheetOpen = ref(false)
+const isCifExpandedMobile = ref(false)
+
+// Composable de Tandas Maestras
+const {
+  batchRecipes,
+  isLoading: isLoadingBatches,
+  fetchBatchRecipes,
+  deleteBatchRecipe,
+  fetchProductComposition
+} = useAdminBatchRecipes()
+
+// Composable de gestión de escandallo directo tradicional
 const activeProduct = computed<ProductRow | null | undefined>({
   get: () => props.modelValue,
   set: (val) => emit('update:modelValue', val ?? null)
 })
 
-const showModal = ref(false)
-const isMobileAddSheetOpen = ref(false)
-const isMobilePublishSheetOpen = ref(false)
-const isCifExpandedMobile = ref(false)
-
-// Composable de gestión de escandallos
 const {
   recipeItems,
   additionalCosts,
@@ -49,13 +80,81 @@ const {
   resetRecipeState
 } = useAdminRecipes(activeProduct)
 
+// Cargar tandas al montar
+onMounted(async () => {
+  await fetchBatchRecipes()
+})
+
+// Cargar composición de producto cuando cambia activeProduct
+watch(
+  () => props.modelValue,
+  async (newVal) => {
+    if (newVal?.id) {
+      fetchRecipe()
+      publishData.value.price = Number(newVal.price) || 0
+      publishData.value.stock = Number(newVal.stock) || 0
+
+      isLoadingComposition.value = true
+      activeProductComposition.value = await fetchProductComposition(newVal.id)
+      isLoadingComposition.value = false
+    } else {
+      resetRecipeState()
+      activeProductComposition.value = null
+    }
+  },
+  { immediate: true }
+)
+
+// Filtrado de tandas maestras
+const filteredBatches = computed(() => {
+  const list = batchRecipes.value || []
+  if (!batchSearchQuery.value.trim()) return list
+  const q = batchSearchQuery.value.toLowerCase().trim()
+  return list.filter((b) => (b.name || '').toLowerCase().includes(q))
+})
+
+// Lista segura de insumos
+const safeMaterials = computed<RawMaterialRow[]>(() => {
+  return props.materials?.data || []
+})
+
 const selectedMaterialUnit = computed<string>(() => {
   if (!newRecipeItem.value.raw_material_id || !props.materials?.data) return ''
   const idNum = Number(newRecipeItem.value.raw_material_id)
   const mat = props.materials.data.find((m: RawMaterialRow) => m.id === idNum)
-  return (mat && mat.unit) ? mat.unit : ''
+  return mat && mat.unit ? mat.unit : ''
 })
 
+// Acciones de Tandas
+function openNewBatchModal() {
+  batchToEdit.value = null
+  showBatchModal.value = true
+}
+
+function handleEditBatch(batch: BaseRecipeDetail) {
+  batchToEdit.value = batch
+  showBatchModal.value = true
+}
+
+function openQuickDeduction(batchId?: number) {
+  quickDeductionBatchId.value = batchId || null
+  showQuickDeductionModal.value = true
+}
+
+async function handleDeleteBatch(batch: BaseRecipeDetail) {
+  const confirmed = window.confirm(
+    `¿Estás seguro de eliminar la tanda maestra "${batch.name}"?\n\n` +
+      `🛡️ GARANTÍA DE ALMACÉN: Los insumos del almacén NO se eliminarán ni modificarán.`
+  )
+  if (!confirmed) return
+
+  const ok = await deleteBatchRecipe(batch.id)
+  if (ok) {
+    toast.success(`Tanda maestra "${batch.name}" eliminada sin afectar el almacén.`)
+  }
+}
+
+// Acciones de Escandallo Directo y Vitrina
 async function handleAddRecipeItem(isMobile = false): Promise<void> {
   if (!newRecipeItem.value.raw_material_id || !newRecipeItem.value.quantity_used) {
     toast.error('Datos incompletos', { description: 'Selecciona un insumo e ingresa la cantidad.' })
@@ -107,595 +206,614 @@ function handleProductSaved(savedProduct: ProductRow, isNew: boolean): void {
   }
 }
 
-watch(() => props.modelValue, (newVal) => {
-  if (newVal?.id) {
-    fetchRecipe()
-    publishData.value.price = Number(newVal.price) || 0
-    publishData.value.stock = Number(newVal.stock) || 0
-  } else {
-    resetRecipeState()
-  }
-}, { immediate: true })
+async function handleCompositionSaved(composition: ProductBatchComposition) {
+  activeProductComposition.value = composition
+  emit('refresh-catalog')
+}
+
+async function handleDeductionCompleted() {
+  emit('refresh-catalog')
+}
 </script>
 
 <template>
   <div class="space-y-4 pb-24 lg:pb-2">
     <!-- ========================================== -->
-    <!-- BARRA SUPERIOR INTEGRADA (DESKTOP Y MÓVIL) -->
+    <!-- BARRA SUPERIOR: SUB-NAVEGACIÓN DE PESTAÑAS -->
     <!-- ========================================== -->
-    <header class="bg-surface px-4 py-3 sm:px-5 sm:py-3.5 rounded-2xl sm:rounded-[1.5rem] border border-brand-primary/15 shadow-soft-sm flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-      <!-- Selector de Producto -->
-      <div class="flex items-center gap-2.5 flex-1 min-w-0">
-        <div class="w-9 h-9 rounded-xl bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
-          <Icon name="lucide:cake-slice" class="w-4.5 h-4.5" />
-        </div>
-        <div class="flex-1 min-w-0">
-          <CustomSelect 
-            v-model="activeProduct"
-            :options="(catalog?.data || []).map((p: ProductRow) => ({ label: p.name, value: p }))"
-            placeholder="Selecciona un pastel o producto..."
-            bgClass="bg-brand-cream/50"
-            class="w-full text-xs sm:text-sm"
-          />
-        </div>
-        <button 
-          @click="showModal = true" 
-          class="h-10 px-3 bg-brand-primary text-white rounded-xl flex items-center justify-center gap-1.5 hover:bg-[#3C4A1C] transition-colors shadow-soft-sm cursor-pointer shrink-0 text-xs font-bold active:scale-95"
-          aria-label="Nuevo Producto"
+    <header class="bg-surface px-4 py-3 sm:px-5 sm:py-3.5 rounded-2xl sm:rounded-[1.5rem] border border-brand-primary/15 shadow-soft-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <!-- Selector de Modo de Recetas -->
+      <div class="flex items-center gap-1.5 p-1 bg-brand-cream/60 rounded-xl border border-brand-primary/10">
+        <button
+          type="button"
+          @click="activeSubTab = 'batches'"
+          :class="[
+            'px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer',
+            activeSubTab === 'batches'
+              ? 'bg-brand-primary text-white shadow-soft-sm'
+              : 'text-brand-secondary hover:text-brand-primary hover:bg-white/50'
+          ]"
         >
-          <Icon name="lucide:plus" class="w-4 h-4" />
-          <span class="hidden sm:inline">Nuevo</span>
+          <Icon name="lucide:chef-hat" class="w-4 h-4" />
+          <span>Tandas Maestras</span>
+          <span
+            :class="[
+              'px-1.5 py-0.2 rounded-full text-[10px] font-black',
+              activeSubTab === 'batches' ? 'bg-white/20 text-white' : 'bg-brand-primary/10 text-brand-primary'
+            ]"
+          >
+            {{ batchRecipes.length }}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          @click="activeSubTab = 'products'"
+          :class="[
+            'px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer',
+            activeSubTab === 'products'
+              ? 'bg-brand-primary text-white shadow-soft-sm'
+              : 'text-brand-secondary hover:text-brand-primary hover:bg-white/50'
+          ]"
+        >
+          <Icon name="lucide:calculator" class="w-4 h-4" />
+          <span>Costeo por Producto</span>
+          <span
+            :class="[
+              'px-1.5 py-0.2 rounded-full text-[10px] font-black',
+              activeSubTab === 'products' ? 'bg-white/20 text-white' : 'bg-brand-primary/10 text-brand-primary'
+            ]"
+          >
+            {{ catalog?.data?.length || 0 }}
+          </span>
         </button>
       </div>
 
-      <!-- Controles de Vitrina Comercial en Desktop (>= lg) -->
-      <div v-if="activeProduct" class="hidden lg:flex items-center gap-3 shrink-0 pl-3 border-l border-brand-primary/15">
-        <!-- Badge de estado -->
-        <span 
-          v-if="Number(activeProduct?.price || 0) > 0" 
-          class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-brand-primary/10 text-brand-primary border border-brand-primary/20 flex items-center gap-1"
+      <!-- Acciones Rápidas Destacadas -->
+      <div class="flex items-center gap-2">
+        <!-- Botón Descargo Rápido de Piezas (Visible siempre) -->
+        <button
+          type="button"
+          @click="openQuickDeduction()"
+          class="px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300/60 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-soft-sm cursor-pointer active:scale-95"
+          title="Descargar piezas de consumo o merma sin cálculos"
         >
-          <span class="w-1.5 h-1.5 rounded-full bg-brand-primary"></span>
-          Vitrina Activa
-        </span>
-        <span 
-          v-else 
-          class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1"
+          <Icon name="lucide:minus-circle" class="w-4 h-4 text-amber-700" />
+          <span>Descargo Rápido</span>
+        </button>
+
+        <!-- Botón Nueva Tanda (en tab tandas) -->
+        <button
+          v-if="activeSubTab === 'batches'"
+          type="button"
+          @click="openNewBatchModal"
+          class="px-3.5 py-2 bg-brand-primary text-white rounded-xl text-xs font-bold flex items-center gap-1.5 hover:bg-[#3C4A1C] transition-all shadow-soft-sm cursor-pointer active:scale-95"
         >
-          <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-          Borrador
-        </span>
-
-        <!-- Input Precio Venta -->
-        <div class="flex items-center gap-1.5">
-          <label class="text-[10px] font-bold uppercase tracking-wider text-brand-primary/80">Precio S/</label>
-          <div class="relative w-24">
-            <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-brand-primary/50 font-bold text-xs">S/</span>
-            <input 
-              v-model="publishData.price"
-              type="number" 
-              step="0.01"
-              required
-              class="w-full pl-6 pr-2 py-1.5 bg-brand-cream/60 rounded-lg border border-brand-primary/20 text-xs font-bold text-brand-secondary focus:outline-none focus:border-brand-primary"
-            />
-          </div>
-        </div>
-
-        <!-- Input Stock -->
-        <div class="flex items-center gap-1.5">
-          <label class="text-[10px] font-bold uppercase tracking-wider text-brand-primary/80">Stock</label>
-          <input 
-            v-model="publishData.stock"
-            type="number" 
-            min="0"
-            required
-            class="w-16 px-2 py-1.5 bg-brand-cream/60 rounded-lg border border-brand-primary/20 text-xs font-bold text-brand-secondary text-center focus:outline-none focus:border-brand-primary"
-          />
-        </div>
-
-        <!-- Botón Publicar -->
-        <button 
-          @click="handlePublishProduct(false)" 
-          :disabled="isPublishing" 
-          class="bg-brand-primary text-white font-bold px-3.5 py-1.5 rounded-lg hover:bg-[#3C4A1C] transition-colors shadow-soft-sm disabled:opacity-50 flex items-center gap-1.5 text-xs cursor-pointer active:scale-95"
-        >
-          <Icon v-if="isPublishing" name="lucide:loader-2" class="w-3.5 h-3.5 animate-spin" />
-          <Icon v-else name="lucide:store" class="w-3.5 h-3.5" />
-          <span>{{ isPublishing ? 'Guardando...' : 'Publicar' }}</span>
+          <Icon name="lucide:plus" class="w-4 h-4" />
+          <span>Nueva Tanda</span>
         </button>
       </div>
     </header>
 
-    <!-- Estado cuando NO hay producto seleccionado -->
-    <div 
-      v-if="!activeProduct" 
-      class="flex flex-col items-center justify-center py-16 sm:py-24 bg-surface rounded-2xl sm:rounded-[1.75rem] border border-brand-primary/15 shadow-soft-sm text-center px-4"
-    >
-      <div class="w-16 h-16 rounded-2xl bg-brand-cream border border-brand-primary/20 flex items-center justify-center text-brand-primary mb-3 shadow-inner">
-        <Icon name="lucide:calculator" class="w-8 h-8 opacity-80" />
+    <!-- ============================================================== -->
+    <!-- SUB-PESTAÑA 1: TANDAS MAESTRAS DE PRODUCCIÓN                   -->
+    <!-- ============================================================== -->
+    <div v-if="activeSubTab === 'batches'" class="space-y-4">
+      <!-- Barra de Filtros de Tandas -->
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-surface p-3 sm:px-4 sm:py-3 rounded-2xl border border-brand-primary/15 shadow-soft-sm">
+        <div class="relative flex-1 max-w-md">
+          <Icon name="lucide:search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-brand-primary/40" />
+          <input
+            v-model="batchSearchQuery"
+            type="text"
+            placeholder="Buscar tanda por nombre..."
+            class="w-full pl-9 pr-3 py-2 bg-brand-cream/30 rounded-xl border border-brand-primary/15 text-xs font-bold text-brand-secondary focus:outline-none focus:bg-white focus:border-brand-primary"
+          />
+        </div>
+        <div class="text-xs text-brand-primary/80 font-semibold self-center">
+          Mostrando {{ filteredBatches.length }} de {{ batchRecipes.length }} recetas maestras
+        </div>
       </div>
-      <h3 class="text-base sm:text-lg font-playfair font-bold text-[#2A321B] mb-1">Ningún producto seleccionado</h3>
-      <p class="text-[#4A5D23]/80 font-medium text-xs sm:text-sm max-w-sm mx-auto text-balance leading-relaxed">
-        Elige un pastel o postre en el selector superior para ver y calcular sus costos de producción en tiempo real.
-      </p>
-    </div>
 
-    <!-- CUERPO PRINCIPAL CUANDO HAY PRODUCTO -->
-    <div v-else class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-      
-      <!-- ========================================== -->
-      <!-- COLUMNA IZQUIERDA: TARJETA KPI & FORMULARIO -->
-      <!-- ========================================== -->
-      <div class="lg:col-span-5 space-y-4">
-        
-        <!-- Tarjeta KPI de Costos y Rentabilidad (Verde de marca) -->
-        <section class="bg-[#4A5D23] p-4 sm:p-5 rounded-2xl border border-[#4A5D23]/20 shadow-md text-[#F4F1E1] relative overflow-hidden">
-          <div class="absolute inset-0 pointer-events-none overflow-hidden opacity-10">
-            <Icon name="lucide:calculator" class="absolute -right-6 -bottom-6 w-36 h-36 rotate-12 text-white" />
-          </div>
+      <!-- Estado Vacío cuando no hay tandas -->
+      <div
+        v-if="batchRecipes.length === 0 && !isLoadingBatches"
+        class="flex flex-col items-center justify-center py-16 bg-surface rounded-2xl border border-brand-primary/15 shadow-soft-sm text-center px-4"
+      >
+        <div class="w-16 h-16 rounded-2xl bg-brand-cream border border-brand-primary/20 flex items-center justify-center text-brand-primary mb-3 shadow-inner">
+          <Icon name="lucide:chef-hat" class="w-8 h-8 opacity-80" />
+        </div>
+        <h3 class="text-base sm:text-lg font-playfair font-bold text-brand-secondary mb-1">
+          Aún no tienes tandas maestras registradas
+        </h3>
+        <p class="text-brand-primary/80 font-medium text-xs sm:text-sm max-w-md mx-auto mb-4 leading-relaxed">
+          Crea tu primera receta base (ej. "Masa Brioche para Roles") con sus ingredientes y rendimientos para calcular costos y porciones en vivo.
+        </p>
+        <button
+          type="button"
+          @click="openNewBatchModal"
+          class="px-4 py-2.5 bg-brand-primary text-white rounded-xl text-xs font-bold flex items-center gap-2 hover:bg-[#3C4A1C] shadow-soft-sm active:scale-95 transition-all cursor-pointer"
+        >
+          <Icon name="lucide:plus" class="w-4 h-4" />
+          <span>Crear Primera Tanda Maestra</span>
+        </button>
+      </div>
 
-          <div class="relative z-10">
-            <!-- Fila Superior: Costo Total & Margen -->
-            <div class="grid grid-cols-2 gap-3 pb-3 border-b border-white/15">
-              <!-- Costo Producción -->
+      <!-- Grid de Tarjetas de Tandas Maestras -->
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div
+          v-for="batch in filteredBatches"
+          :key="batch.id"
+          class="bg-surface rounded-2xl border border-brand-primary/15 shadow-soft-sm hover:shadow-soft-md transition-all p-5 flex flex-col justify-between space-y-4 relative group"
+        >
+          <!-- Cabecera de la Tarjeta -->
+          <div>
+            <div class="flex items-start justify-between gap-3 mb-2">
               <div>
-                <span class="text-[10px] font-bold uppercase tracking-widest text-[#F4F1E1]/70 block mb-0.5">
-                  Costo Total
-                </span>
-                <div class="flex items-baseline gap-1">
-                  <span class="text-lg font-bold text-[#F4F1E1]/80">S/</span>
-                  <span class="text-3xl sm:text-4xl font-black font-inter tracking-tight">
-                    {{ computedTotalCost.toFixed(2) }}
-                  </span>
-                </div>
-                <span class="text-[9px] text-[#F4F1E1]/60 block mt-0.5 font-medium">Insumos + Empaque + CIF</span>
+                <h4 class="font-playfair font-bold text-base sm:text-lg text-brand-secondary group-hover:text-brand-primary transition-colors">
+                  {{ batch.name }}
+                </h4>
+                <p v-if="batch.description" class="text-xs text-brand-primary/70 line-clamp-1 mt-0.5">
+                  {{ batch.description }}
+                </p>
               </div>
-
-              <!-- Margen Bruto y Precio Venta -->
-              <div class="text-right flex flex-col justify-between">
-                <div>
-                  <span class="text-[10px] font-bold uppercase tracking-widest text-[#F4F1E1]/70 block mb-0.5">
-                    Precio Venta
-                  </span>
-                  <span class="font-bold text-base sm:text-lg">
-                    S/ {{ Number(activeProduct?.price || 0).toFixed(2) }}
-                  </span>
-                </div>
-                <div class="mt-1">
-                  <span class="text-[9px] uppercase tracking-wider text-[#F4F1E1]/70 font-semibold block">Margen Neto</span>
-                  <span :class="profitMargin > 0 ? 'text-[#a3e635] font-black text-lg sm:text-xl' : 'text-red-300 font-black text-lg sm:text-xl'">
-                    S/ {{ profitMargin.toFixed(2) }}
-                  </span>
-                  <span v-if="profitMarginPercent > 0" class="block text-[10px] text-[#a3e635] font-black">
-                    {{ profitMarginPercent.toFixed(1) }}%
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Desglose de Costos Indirectos de Fabricación (CIF) -->
-            <!-- En Desktop: Siempre visible compacto en fila -->
-            <!-- En Mobile: Acordeón colapsable con botón táctil -->
-            <div class="mt-3">
-              <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] font-bold uppercase tracking-widest text-white/80 flex items-center gap-1">
-                  <Icon name="lucide:sliders" class="w-3 h-3 text-[#a3e635]" />
-                  Costos Indirectos (CIF)
-                </span>
-                <!-- Botón toggle en móvil -->
-                <button 
-                  @click="isCifExpandedMobile = !isCifExpandedMobile" 
-                  class="lg:hidden text-[10px] font-bold text-[#a3e635] hover:underline flex items-center gap-0.5 cursor-pointer"
-                >
-                  {{ isCifExpandedMobile ? 'Ocultar' : 'Ajustar' }}
-                  <Icon :name="isCifExpandedMobile ? 'lucide:chevron-up' : 'lucide:chevron-down'" class="w-3 h-3" />
-                </button>
-              </div>
-
-              <div :class="['grid grid-cols-3 gap-2', isCifExpandedMobile ? 'grid' : 'hidden lg:grid']">
-                <div>
-                  <label class="block text-[9px] font-bold text-white/70 uppercase tracking-wider mb-1 truncate" title="Empaques & Bases">Empaques</label>
-                  <div class="relative">
-                    <span class="absolute left-2 top-1/2 -translate-y-1/2 text-white/40 font-bold text-[10px]">S/</span>
-                    <input 
-                      type="number" 
-                      v-model="additionalCosts.packaging" 
-                      step="0.10" 
-                      class="w-full pl-5 pr-1.5 py-1.5 bg-[#2A321B]/40 rounded-lg border border-white/15 focus:outline-none focus:border-[#a3e635] text-xs font-bold text-white shadow-inner text-right" 
-                      placeholder="0.00" 
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label class="block text-[9px] font-bold text-white/70 uppercase tracking-wider mb-1 truncate" title="Servicios de Gas y Luz">Gas / Luz</label>
-                  <div class="relative">
-                    <span class="absolute left-2 top-1/2 -translate-y-1/2 text-white/40 font-bold text-[10px]">S/</span>
-                    <input 
-                      type="number" 
-                      v-model="additionalCosts.utilities" 
-                      step="0.10" 
-                      class="w-full pl-5 pr-1.5 py-1.5 bg-[#2A321B]/40 rounded-lg border border-white/15 focus:outline-none focus:border-[#a3e635] text-xs font-bold text-white shadow-inner text-right" 
-                      placeholder="0.00" 
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label class="block text-[9px] font-bold text-white/70 uppercase tracking-wider mb-1 truncate" title="Mano de Obra">Mano Obra</label>
-                  <div class="relative">
-                    <span class="absolute left-2 top-1/2 -translate-y-1/2 text-white/40 font-bold text-[10px]">S/</span>
-                    <input 
-                      type="number" 
-                      v-model="additionalCosts.labor" 
-                      step="0.10" 
-                      class="w-full pl-5 pr-1.5 py-1.5 bg-[#2A321B]/40 rounded-lg border border-white/15 focus:outline-none focus:border-[#a3e635] text-xs font-bold text-white shadow-inner text-right" 
-                      placeholder="0.00" 
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Formulario Agregar Insumo (Visible en Desktop; en Mobile disponible en Bottom Sheet) -->
-        <section class="hidden lg:block bg-white p-4 sm:p-5 rounded-2xl border border-[#4A5D23]/20 shadow-sm">
-          <div v-if="recipeErrorMessage" class="mb-3 bg-red-50 border border-red-200 text-red-800 p-2.5 rounded-xl text-xs flex items-start gap-2">
-            <Icon name="lucide:triangle-alert" class="w-4 h-4 shrink-0 mt-0.5 text-red-600" />
-            <span class="font-medium leading-tight">{{ recipeErrorMessage }}</span>
-          </div>
-
-          <form @submit.prevent="handleAddRecipeItem(false)" class="space-y-3">
-            <div class="flex items-center justify-between border-b border-dashed border-[#4A5D23]/20 pb-2">
-              <h4 class="font-playfair font-bold text-sm text-[#2A321B] flex items-center gap-1.5">
-                <Icon name="lucide:plus-circle" class="w-4 h-4 text-[#4A5D23]" />
-                Agregar Insumo al Escandallo
-              </h4>
-            </div>
-
-            <div>
-              <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-wider mb-1">Materia Prima del Almacén</label>
-              <CustomSelect 
-                v-model="newRecipeItem.raw_material_id"
-                :options="(materials?.data || []).map((m: RawMaterialRow) => ({ label: `${m.name} (${m.unit})`, value: m.id }))"
-                placeholder="Seleccionar insumo..."
-                bgClass="bg-[#F4F1E1]/50"
-                class="text-xs"
-              />
-            </div>
-
-            <div>
-              <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-wider mb-1">Cantidad Utilizada</label>
-              <div class="relative">
-                <input 
-                  v-model="newRecipeItem.quantity_used"
-                  type="number" 
-                  step="any"
-                  required
-                  placeholder="Ej: 250"
-                  class="w-full px-3 py-2 bg-[#F4F1E1]/50 rounded-xl border border-[#4A5D23]/20 focus:outline-none focus:border-[#4A5D23] text-xs font-bold text-[#2A321B] placeholder:text-[#4A5D23]/30"
-                />
-                <span class="absolute right-3 top-1/2 -translate-y-1/2 font-black text-[#4A5D23]/60 text-xs pointer-events-none">
-                  {{ selectedMaterialUnit }}
-                </span>
-              </div>
-            </div>
-
-            <button 
-              type="submit"
-              :disabled="isSubmittingRecipe"
-              class="w-full inline-flex items-center justify-center px-4 py-2.5 text-xs font-bold text-white bg-[#4A5D23] hover:bg-[#3C4A1C] rounded-xl transition-all shadow-sm active:translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer gap-2"
-            >
-              <Icon v-if="isSubmittingRecipe" name="lucide:loader-2" class="w-3.5 h-3.5 animate-spin" />
-              <Icon v-else name="lucide:plus" class="w-3.5 h-3.5" />
-              <span>{{ isSubmittingRecipe ? 'Agregando...' : 'Agregar a la Ficha Técnica' }}</span>
-            </button>
-          </form>
-        </section>
-      </div>
-
-      <!-- ========================================== -->
-      <!-- COLUMNA DERECHA: FICHA TÉCNICA (TABLA / CARDS) -->
-      <!-- ========================================== -->
-      <div class="lg:col-span-7">
-        <section class="bg-white p-4 sm:p-5 rounded-2xl border border-[#4A5D23]/20 shadow-sm flex flex-col">
-          <!-- Cabecera de Ficha Técnica -->
-          <div class="flex items-center justify-between mb-3 pb-3 border-b border-dashed border-[#4A5D23]/20 shrink-0">
-            <div class="flex items-center gap-2">
-              <Icon name="lucide:clipboard-check" class="w-4.5 h-4.5 text-[#4A5D23]" />
-              <h3 class="text-base font-playfair font-bold text-[#2A321B] tracking-tight">Ficha Técnica</h3>
-              <span class="text-[10px] font-black text-[#4A5D23] bg-[#F4F1E1] px-2.5 py-0.5 rounded-full border border-[#4A5D23]/20">
-                {{ recipeItems.length }} insumo{{ recipeItems.length === 1 ? '' : 's' }}
+              <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-brand-primary/10 text-brand-primary border border-brand-primary/20 shrink-0">
+                {{ batch.items.length }} insumos
               </span>
             </div>
 
-            <button 
-              @click="handleExportToExcel"
-              :disabled="isExporting || recipeItems.length === 0"
-              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors text-white bg-brand-primary hover:bg-[#3C4A1C] disabled:opacity-40 disabled:cursor-not-allowed shadow-soft-sm cursor-pointer"
-              aria-label="Descargar Ficha en formato Excel con fórmulas vivas"
-            >
-              <Icon v-if="isExporting" name="lucide:loader-2" class="w-3 h-3 animate-spin" />
-              <Icon v-else name="lucide:file-spreadsheet" class="w-3.5 h-3.5" />
-              <span class="hidden sm:inline">Exportar Excel</span>
-            </button>
-          </div>
-
-          <!-- Estado de Carga -->
-          <div v-if="pendingRecipe" class="flex flex-col items-center justify-center py-16 text-brand-primary">
-            <Icon name="lucide:loader-2" class="w-8 h-8 animate-spin mb-2" />
-            <p class="text-xs font-bold tracking-widest uppercase">Calculando escandallo...</p>
-          </div>
-
-          <!-- Estado Vacío -->
-          <div v-else-if="recipeItems.length === 0" class="flex flex-col items-center justify-center py-12 text-center bg-brand-cream/40 rounded-xl border border-dashed border-brand-primary/25 p-4">
-            <div class="w-12 h-12 rounded-full bg-white flex items-center justify-center mb-2 border border-brand-primary/20 shadow-soft-sm text-brand-primary">
-              <Icon name="lucide:utensils-crossed" class="w-6 h-6 opacity-60" />
-            </div>
-            <p class="text-sm font-playfair font-bold text-brand-secondary mb-1">Sin insumos asignados</p>
-            <p class="text-xs text-brand-primary/70 max-w-[240px]">
-              Agrega materias primas para comenzar el costeo por gramo de este producto.
-            </p>
-          </div>
-
-          <!-- VISTA DESKTOP: Tabla Compacta con scroll interno suave (cabe en una sola pantalla) -->
-          <div v-else class="hidden lg:block overflow-y-auto max-h-[calc(100vh-270px)] pr-1 custom-scrollbar">
-            <table class="w-full text-left border-collapse whitespace-nowrap">
-              <thead class="sticky top-0 bg-white z-10 shadow-[0_2px_4px_-2px_rgba(74,93,35,0.1)]">
-                <tr class="border-b border-brand-primary/15 text-[10px] uppercase tracking-wider text-brand-primary/80 font-bold">
-                  <th class="py-2.5 px-3">Insumo</th>
-                  <th class="py-2.5 px-3 text-center">Cantidad</th>
-                  <th class="py-2.5 px-3 text-right">Costo Parcial</th>
-                  <th class="py-2.5 px-2 text-right w-8"></th>
-                </tr>
-              </thead>
-              <tbody v-auto-animate class="divide-y divide-brand-primary/10 text-xs">
-                <tr v-for="item in recipeItems" :key="item.id" class="hover:bg-brand-cream/40 transition-colors">
-                  <td class="py-2 px-3">
-                    <div class="flex items-center gap-1.5">
-                      <span class="font-bold text-brand-secondary">{{ item.material_name || item.name }}</span>
-                      <span class="text-[9px] text-brand-primary/70 font-semibold bg-brand-primary/5 px-1.5 py-0.5 rounded">
-                        S/ {{ Number(item.unit_cost ?? item.cost_per_unit ?? 0).toFixed(2) }} x {{ item.unit }}
-                      </span>
-                    </div>
-                  </td>
-                  <td class="py-2 px-3 text-center">
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-brand-cream text-brand-primary border border-brand-primary/20">
-                      {{ item.quantity_used }} {{ item.unit }}
-                    </span>
-                  </td>
-                  <td class="py-2 px-3 text-right font-black text-brand-secondary font-inter text-sm">
-                    <span class="text-brand-primary/50 text-[10px] mr-0.5">S/</span>{{ Number(item.item_cost ?? item.item_total_cost ?? 0).toFixed(2) }}
-                  </td>
-                  <td class="py-2 px-2 text-right">
-                    <button 
-                      @click="handleDeleteRecipeItem(item.id, item.material_name || item.name)"
-                      class="inline-flex items-center justify-center w-6 h-6 rounded-md text-status-danger hover:text-white hover:bg-status-danger transition-colors cursor-pointer"
-                      aria-label="Quitar insumo"
-                    >
-                      <Icon name="lucide:trash-2" class="w-3.5 h-3.5" />
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- VISTA MOBILE: Mobile Cards Táctiles (legibles, sin cortes ni scroll lateral) -->
-          <div v-if="recipeItems.length > 0" class="lg:hidden space-y-2.5">
-            <div 
-              v-for="item in recipeItems" 
-              :key="item.id"
-              class="bg-brand-cream/40 border border-brand-primary/15 p-3 rounded-xl flex items-center justify-between gap-3 shadow-2xs"
-            >
-              <div class="min-w-0 flex-1">
-                <p class="font-bold text-xs text-brand-secondary truncate">{{ item.material_name || item.name }}</p>
-                <div class="flex items-center gap-2 mt-1">
-                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-white text-brand-primary border border-brand-primary/20">
-                    {{ item.quantity_used }} {{ item.unit }}
-                  </span>
-                  <span class="text-[10px] text-brand-primary/70 font-medium">
-                    S/ {{ Number(item.unit_cost ?? item.cost_per_unit ?? 0).toFixed(2) }} / {{ item.unit }}
-                  </span>
-                </div>
+            <!-- Métricas Financieras de la Tanda -->
+            <div class="grid grid-cols-3 gap-2 p-3 bg-brand-cream/30 rounded-xl border border-brand-primary/10 my-3 text-center">
+              <div>
+                <span class="text-[9px] font-bold uppercase tracking-wider text-brand-primary/70 block">Insumos</span>
+                <span class="text-xs sm:text-sm font-bold text-brand-secondary">
+                  S/ {{ batch.materials_total_cost.toFixed(2) }}
+                </span>
               </div>
-
-              <div class="flex items-center gap-2.5 shrink-0">
-                <div class="text-right">
-                  <span class="text-[9px] uppercase tracking-wider text-brand-primary/70 block font-semibold">Subtotal</span>
-                  <span class="text-sm font-black text-brand-secondary font-inter">
-                    S/ {{ Number(item.item_cost ?? item.item_total_cost ?? 0).toFixed(2) }}
-                  </span>
-                </div>
-                <button 
-                  @click="handleDeleteRecipeItem(item.id, item.material_name || item.name)"
-                  class="w-8 h-8 rounded-lg bg-white border border-red-200 text-status-danger flex items-center justify-center active:bg-red-50 cursor-pointer"
-                  aria-label="Eliminar insumo"
-                >
-                  <Icon name="lucide:trash-2" class="w-4 h-4" />
-                </button>
+              <div>
+                <span class="text-[9px] font-bold uppercase tracking-wider text-brand-primary/70 block">CIF</span>
+                <span class="text-xs sm:text-sm font-bold text-brand-secondary">
+                  S/ {{ batch.cif_total.toFixed(2) }}
+                </span>
               </div>
-            </div>
-          </div>
-        </section>
-      </div>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- STICKY BOTTOM BAR EN MOBILE (< lg) -->
-    <!-- ========================================== -->
-    <div 
-      v-if="activeProduct" 
-      class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface/95 backdrop-blur-md border-t border-brand-primary/20 px-4 py-2.5 flex items-center gap-2.5 shadow-soft-lg"
-    >
-      <button 
-        @click="isMobileAddSheetOpen = true"
-        class="flex-1 min-h-[44px] bg-brand-primary text-white font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 text-xs shadow-soft-sm active:scale-95 transition-transform cursor-pointer"
-        aria-label="Abrir formulario para agregar insumo"
-      >
-        <Icon name="lucide:plus" class="w-4.5 h-4.5" />
-        <span>Agregar Insumo</span>
-      </button>
-
-      <button 
-        @click="isMobilePublishSheetOpen = true"
-        class="min-h-[44px] bg-brand-cream text-brand-secondary border border-brand-primary/30 font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-1.5 text-xs active:scale-95 transition-transform cursor-pointer"
-        aria-label="Abrir panel comercial de vitrina"
-      >
-        <Icon name="lucide:store" class="w-4 h-4 text-brand-primary" />
-        <span>Vitrina</span>
-      </button>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- BOTTOM SHEET: AGREGAR INSUMO EN MOBILE -->
-    <!-- ========================================== -->
-    <Teleport to="body">
-      <div v-if="isMobileAddSheetOpen" class="fixed inset-0 z-[9999] flex items-end justify-center lg:hidden">
-        <!-- Backdrop -->
-        <div 
-          @click="isMobileAddSheetOpen = false" 
-          class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
-        ></div>
-
-        <!-- Sheet Modal Content -->
-        <div class="relative w-full max-w-lg max-h-[85vh] overflow-y-auto custom-scrollbar bg-surface rounded-t-3xl p-5 shadow-soft-lg z-10 border-t border-brand-primary/20 animate-in slide-in-from-bottom duration-200">
-          <div class="w-12 h-1 bg-brand-primary/20 rounded-full mx-auto mb-4"></div>
-          
-          <div class="flex items-center justify-between pb-3 mb-4 border-b border-dashed border-brand-primary/20">
-            <h3 class="font-playfair font-bold text-base text-brand-secondary flex items-center gap-2">
-              <Icon name="lucide:plus-circle" class="w-5 h-5 text-brand-primary" />
-              Agregar Insumo a la Ficha
-            </h3>
-            <button 
-              @click="isMobileAddSheetOpen = false" 
-              class="w-8 h-8 rounded-lg flex items-center justify-center text-brand-secondary/60 hover:text-brand-secondary hover:bg-brand-cream/60 transition-colors cursor-pointer"
-              aria-label="Cerrar modal"
-            >
-              <Icon name="lucide:x" class="w-5 h-5" />
-            </button>
-          </div>
-
-          <form @submit.prevent="handleAddRecipeItem(true)" class="space-y-4">
-            <div>
-              <label class="block text-xs font-bold text-brand-primary uppercase tracking-wider mb-1.5">Insumo del Almacén</label>
-              <CustomSelect 
-                v-model="newRecipeItem.raw_material_id"
-                :options="(materials?.data || []).map((m: RawMaterialRow) => ({ label: `${m.name} (${m.unit})`, value: m.id }))"
-                placeholder="Selecciona un insumo..."
-                bgClass="bg-brand-cream"
-              />
-            </div>
-
-            <div>
-              <label class="block text-xs font-bold text-brand-primary uppercase tracking-wider mb-1.5">Cantidad Utilizada</label>
-              <div class="relative">
-                <input 
-                  v-model="newRecipeItem.quantity_used"
-                  type="number" 
-                  step="any"
-                  required
-                  placeholder="Ej: 200"
-                  class="w-full min-h-[44px] px-4 py-2.5 bg-brand-cream/60 rounded-xl border border-brand-primary/20 text-sm font-bold text-brand-secondary focus:outline-none focus:border-brand-primary"
-                />
-                <span class="absolute right-4 top-1/2 -translate-y-1/2 font-bold text-brand-primary text-sm pointer-events-none">
-                  {{ selectedMaterialUnit }}
+              <div class="border-l border-brand-primary/15 pl-1">
+                <span class="text-[9px] font-bold uppercase tracking-wider text-brand-primary block">Total Tanda</span>
+                <span class="text-xs sm:text-sm font-black text-brand-primary">
+                  S/ {{ batch.total_batch_cost.toFixed(2) }}
                 </span>
               </div>
             </div>
 
-            <button 
-              type="submit"
-              :disabled="isSubmittingRecipe"
-              class="w-full min-h-[44px] py-3 bg-brand-primary text-white font-bold rounded-xl flex items-center justify-center gap-2 text-sm shadow-soft-sm mt-2 disabled:opacity-50 cursor-pointer active:scale-[0.98] transition-transform"
+            <!-- Rendimientos / Formatos de Corte -->
+            <div class="space-y-1.5">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-brand-primary/80 flex items-center gap-1">
+                <Icon name="lucide:scissors" class="w-3 h-3 text-brand-primary" />
+                Formatos de Corte y Costo por Pieza
+              </span>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                <div
+                  v-for="y in batch.yields"
+                  :key="y.id"
+                  class="p-2 bg-white rounded-lg border border-brand-primary/10 flex items-center justify-between text-xs"
+                >
+                  <div class="truncate mr-1">
+                    <span class="font-bold text-brand-secondary block truncate">{{ y.size_name }}</span>
+                    <span class="text-[10px] text-brand-primary/70 font-semibold">Rinde {{ y.yield_units }} u</span>
+                  </div>
+                  <span class="font-black text-brand-primary shrink-0 bg-brand-cream/50 px-1.5 py-0.5 rounded">
+                    S/ {{ y.unit_cost.toFixed(2) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Acciones de Tarjeta -->
+          <div class="pt-3 border-t border-brand-primary/10 flex items-center justify-between gap-2">
+            <button
+              type="button"
+              @click="openQuickDeduction(batch.id)"
+              class="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer"
+              title="Descargar piezas de esta tanda"
             >
-              <Icon v-if="isSubmittingRecipe" name="lucide:loader-2" class="w-4 h-4 animate-spin" />
-              <Icon v-else name="lucide:plus" class="w-4 h-4" />
-              <span>{{ isSubmittingRecipe ? 'Guardando...' : 'Agregar Insumo' }}</span>
+              <Icon name="lucide:minus" class="w-3.5 h-3.5" />
+              <span>Descargar</span>
             </button>
-          </form>
+
+            <div class="flex items-center gap-1.5">
+              <button
+                type="button"
+                @click="handleEditBatch(batch)"
+                class="px-2.5 py-1.5 bg-brand-cream/60 hover:bg-brand-primary hover:text-white text-brand-secondary rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer"
+              >
+                <Icon name="lucide:edit-3" class="w-3.5 h-3.5" />
+                <span>Editar</span>
+              </button>
+              <button
+                type="button"
+                @click="handleDeleteBatch(batch)"
+                class="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                title="Eliminar tanda (no toca almacén)"
+              >
+                <Icon name="lucide:trash-2" class="w-4 h-4" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
-    </Teleport>
+    </div>
 
-    <!-- ========================================== -->
-    <!-- BOTTOM SHEET: VITRINA COMERCIAL EN MOBILE -->
-    <!-- ========================================== -->
-    <Teleport to="body">
-      <div v-if="isMobilePublishSheetOpen" class="fixed inset-0 z-[9999] flex items-end justify-center lg:hidden">
-        <!-- Backdrop -->
-        <div 
-          @click="isMobilePublishSheetOpen = false" 
-          class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
-        ></div>
+    <!-- ============================================================== -->
+    <!-- SUB-PESTAÑA 2: ESCANDALLO COMERCIAL DE PRODUCTOS               -->
+    <!-- ============================================================== -->
+    <div v-else class="space-y-4">
+      <!-- Selector de Producto y Controles de Vitrina -->
+      <header class="bg-surface px-4 py-3 sm:px-5 sm:py-3.5 rounded-2xl border border-brand-primary/15 shadow-soft-sm flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+        <!-- Selector -->
+        <div class="flex items-center gap-2.5 flex-1 min-w-0">
+          <div class="w-9 h-9 rounded-xl bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
+            <Icon name="lucide:cake-slice" class="w-4.5 h-4.5" />
+          </div>
+          <div class="flex-1 min-w-0">
+            <CustomSelect 
+              v-model="activeProduct"
+              :options="(catalog?.data || []).map((p: ProductRow) => ({ label: p.name, value: p }))"
+              placeholder="Selecciona un pastel o producto..."
+              bgClass="bg-brand-cream/50"
+              class="w-full text-xs sm:text-sm"
+            />
+          </div>
+          <button 
+            @click="showProductModal = true" 
+            class="h-10 px-3 bg-brand-primary text-white rounded-xl flex items-center justify-center gap-1.5 hover:bg-[#3C4A1C] transition-colors shadow-soft-sm cursor-pointer shrink-0 text-xs font-bold active:scale-95"
+            aria-label="Nuevo Producto"
+          >
+            <Icon name="lucide:plus" class="w-4 h-4" />
+            <span class="hidden sm:inline">Nuevo</span>
+          </button>
+        </div>
 
-        <!-- Sheet Modal Content -->
-        <div class="relative w-full max-w-lg max-h-[85vh] overflow-y-auto custom-scrollbar bg-surface rounded-t-3xl p-5 shadow-soft-lg z-10 border-t border-brand-primary/20 animate-in slide-in-from-bottom duration-200">
-          <div class="w-12 h-1 bg-brand-primary/20 rounded-full mx-auto mb-4"></div>
-          
-          <div class="flex items-center justify-between pb-3 mb-4 border-b border-dashed border-brand-primary/20">
-            <h3 class="font-playfair font-bold text-base text-brand-secondary flex items-center gap-2">
-              <Icon name="lucide:store" class="w-5 h-5 text-brand-primary" />
-              Vitrina Comercial
-            </h3>
-            <button 
-              @click="isMobilePublishSheetOpen = false" 
-              class="w-8 h-8 rounded-lg flex items-center justify-center text-brand-secondary/60 hover:text-brand-secondary hover:bg-brand-cream/60 transition-colors cursor-pointer"
-              aria-label="Cerrar modal"
+        <!-- Controles de Vitrina Comercial en Desktop -->
+        <div v-if="activeProduct" class="hidden lg:flex items-center gap-3 shrink-0 pl-3 border-l border-brand-primary/15">
+          <span 
+            v-if="Number(activeProduct?.price || 0) > 0" 
+            class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-brand-primary/10 text-brand-primary border border-brand-primary/20 flex items-center gap-1"
+          >
+            <span class="w-1.5 h-1.5 rounded-full bg-brand-primary"></span>
+            Vitrina Activa
+          </span>
+          <span 
+            v-else 
+            class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1"
+          >
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+            Borrador
+          </span>
+
+          <div class="flex items-center gap-1.5">
+            <label class="text-[10px] font-bold uppercase tracking-wider text-brand-primary/80">Precio S/</label>
+            <div class="relative w-24">
+              <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-brand-primary/50 font-bold text-xs">S/</span>
+              <input 
+                v-model="publishData.price"
+                type="number" 
+                step="0.01"
+                required
+                class="w-full pl-6 pr-2 py-1.5 bg-brand-cream/60 rounded-lg border border-brand-primary/20 text-xs font-bold text-brand-secondary focus:outline-none focus:border-brand-primary"
+              />
+            </div>
+          </div>
+
+          <div class="flex items-center gap-1.5">
+            <label class="text-[10px] font-bold uppercase tracking-wider text-brand-primary/80">Stock</label>
+            <input 
+              v-model="publishData.stock"
+              type="number" 
+              min="0"
+              required
+              class="w-16 px-2 py-1.5 bg-brand-cream/60 rounded-lg border border-brand-primary/20 text-xs font-bold text-brand-secondary text-center focus:outline-none focus:border-brand-primary"
+            />
+          </div>
+
+          <button 
+            @click="handlePublishProduct(false)" 
+            :disabled="isPublishing" 
+            class="bg-brand-primary text-white font-bold px-3.5 py-1.5 rounded-lg hover:bg-[#3C4A1C] transition-colors shadow-soft-sm disabled:opacity-50 flex items-center gap-1.5 text-xs cursor-pointer active:scale-95"
+          >
+            <Icon v-if="isPublishing" name="lucide:loader-2" class="w-3.5 h-3.5 animate-spin" />
+            <Icon v-else name="lucide:store" class="w-3.5 h-3.5" />
+            <span>{{ isPublishing ? 'Guardando...' : 'Publicar' }}</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Estado cuando NO hay producto seleccionado -->
+      <div 
+        v-if="!activeProduct" 
+        class="flex flex-col items-center justify-center py-16 sm:py-24 bg-surface rounded-2xl border border-brand-primary/15 shadow-soft-sm text-center px-4"
+      >
+        <div class="w-16 h-16 rounded-2xl bg-brand-cream border border-brand-primary/20 flex items-center justify-center text-brand-primary mb-3 shadow-inner">
+          <Icon name="lucide:calculator" class="w-8 h-8 opacity-80" />
+        </div>
+        <h3 class="text-base sm:text-lg font-playfair font-bold text-brand-secondary mb-1">
+          Ningún producto comercial seleccionado
+        </h3>
+        <p class="text-brand-primary/80 font-medium text-xs sm:text-sm max-w-sm mx-auto text-balance leading-relaxed">
+          Elige un pastel o postre en el selector superior para ver su costeo por tandas o gestionar su escandallo tradicional.
+        </p>
+      </div>
+
+      <!-- CUERPO CUANDO HAY PRODUCTO -->
+      <div v-else class="space-y-4">
+        <!-- BANNER DE COMPOSICIÓN POR TANDAS -->
+        <div class="bg-surface p-4 sm:p-5 rounded-2xl border border-brand-primary/15 shadow-soft-sm">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
+                <Icon name="lucide:layers" class="w-5 h-5" />
+              </div>
+              <div>
+                <h4 class="font-playfair font-bold text-sm sm:text-base text-brand-secondary">
+                  Composición de Tanda y Empaques Directos
+                </h4>
+                <p v-if="activeProductComposition?.mapping" class="text-xs text-brand-primary font-medium">
+                  Usa {{ activeProductComposition.mapping.units_contained }} piezas de 
+                  <strong>{{ activeProductComposition.mapping.base_recipe_name }} ({{ activeProductComposition.mapping.size_name }})</strong>
+                  + {{ activeProductComposition.packaging_items.length }} empaques
+                </p>
+                <p v-else class="text-xs text-brand-primary/70">
+                  ¿Este postre se prepara a partir de una masa base o tanda? Configura su porción y empaques en 1 clic.
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              @click="showProductMappingModal = true"
+              class="px-3.5 py-2 bg-brand-primary/10 hover:bg-brand-primary hover:text-white text-brand-primary rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all self-start sm:self-auto cursor-pointer"
             >
-              <Icon name="lucide:x" class="w-5 h-5" />
+              <Icon name="lucide:settings-2" class="w-4 h-4" />
+              <span>{{ activeProductComposition?.mapping ? 'Modificar Tanda y Empaques' : 'Asignar Tanda y Empaques' }}</span>
             </button>
           </div>
 
-          <form @submit.prevent="handlePublishProduct(true)" class="space-y-4">
-            <div>
-              <label class="block text-xs font-bold text-brand-primary uppercase tracking-wider mb-1.5">Precio de Venta al Público</label>
-              <div class="relative">
-                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-primary/60 font-bold text-sm">S/</span>
-                <input 
-                  v-model="publishData.price"
-                  type="number" 
-                  step="0.01"
-                  required
-                  class="w-full min-h-[44px] pl-9 pr-3 py-2.5 bg-brand-cream/60 rounded-xl border border-brand-primary/20 text-sm font-bold text-brand-secondary focus:outline-none focus:border-brand-primary"
-                />
+          <!-- Si ya tiene composición asignada, mostrar resumen visual -->
+          <div v-if="activeProductComposition?.mapping" class="mt-4 pt-3 border-t border-brand-primary/10 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+            <div class="p-2.5 bg-brand-cream/30 rounded-xl">
+              <span class="text-[9px] font-bold text-brand-primary uppercase block">Costo Masa</span>
+              <span class="text-sm font-bold text-brand-secondary">
+                S/ {{ activeProductComposition.mapping.dough_cost.toFixed(2) }}
+              </span>
+            </div>
+            <div class="p-2.5 bg-brand-cream/30 rounded-xl">
+              <span class="text-[9px] font-bold text-brand-primary uppercase block">Costo Empaques</span>
+              <span class="text-sm font-bold text-brand-secondary">
+                S/ {{ activeProductComposition.packaging_items.reduce((s, p) => s + p.total_cost, 0).toFixed(2) }}
+              </span>
+            </div>
+            <div class="p-2.5 bg-brand-cream/30 rounded-xl">
+              <span class="text-[9px] font-bold text-brand-primary uppercase block">Costo Total Producción</span>
+              <span class="text-sm font-black text-brand-primary">
+                S/ {{ activeProductComposition.total_product_cost.toFixed(2) }}
+              </span>
+            </div>
+            <div class="p-2.5 bg-brand-cream/30 rounded-xl">
+              <span class="text-[9px] font-bold text-brand-primary uppercase block">Margen Comercial</span>
+              <span class="text-sm font-black text-brand-secondary">
+                S/ {{ (Number(activeProduct?.price || 0) - activeProductComposition.total_product_cost).toFixed(2) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ESCANDALLO DIRECTO TRADICIONAL (RETROCOMPATIBILIDAD) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+          <!-- Tarjeta KPI & Formulario de Escandallo Tradicional -->
+          <div class="lg:col-span-5 space-y-4">
+            <section class="bg-[#4A5D23] p-4 sm:p-5 rounded-2xl border border-[#4A5D23]/20 shadow-md text-[#F4F1E1] relative overflow-hidden">
+              <div class="relative z-10">
+                <div class="grid grid-cols-2 gap-3 pb-3 border-b border-white/15">
+                  <div>
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-[#F4F1E1]/70 block mb-0.5">
+                      Costo Tradicional
+                    </span>
+                    <div class="flex items-baseline gap-1">
+                      <span class="text-lg font-bold text-[#F4F1E1]/80">S/</span>
+                      <span class="text-3xl sm:text-4xl font-black font-inter tracking-tight">
+                        {{ computedTotalCost.toFixed(2) }}
+                      </span>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-[#F4F1E1]/70 block mb-0.5">
+                      Margen Neto
+                    </span>
+                    <span :class="profitMargin > 0 ? 'text-[#a3e635] font-black text-xl' : 'text-red-300 font-black text-xl'">
+                      S/ {{ profitMargin.toFixed(2) }}
+                    </span>
+                    <span v-if="profitMarginPercent > 0" class="block text-[10px] text-[#a3e635] font-black">
+                      {{ profitMarginPercent.toFixed(1) }}%
+                    </span>
+                  </div>
+                </div>
+
+                <!-- CIF tradicional -->
+                <div class="mt-3">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-white/80">
+                      Costos Indirectos (CIF)
+                    </span>
+                  </div>
+                  <div class="grid grid-cols-3 gap-2">
+                    <div>
+                      <label class="block text-[9px] font-bold text-white/70 uppercase tracking-wider mb-1">Empaques</label>
+                      <input 
+                        v-model="additionalCosts.packaging" 
+                        type="number" 
+                        step="0.1" 
+                        min="0"
+                        class="w-full pl-2 pr-1 py-1 bg-white/10 rounded-lg text-xs font-bold text-white focus:outline-none focus:bg-white/20"
+                      />
+                    </div>
+                    <div>
+                      <label class="block text-[9px] font-bold text-white/70 uppercase tracking-wider mb-1">Servicios</label>
+                      <input 
+                        v-model="additionalCosts.utilities" 
+                        type="number" 
+                        step="0.1" 
+                        min="0"
+                        class="w-full pl-2 pr-1 py-1 bg-white/10 rounded-lg text-xs font-bold text-white focus:outline-none focus:bg-white/20"
+                      />
+                    </div>
+                    <div>
+                      <label class="block text-[9px] font-bold text-white/70 uppercase tracking-wider mb-1">Mano Obra</label>
+                      <input 
+                        v-model="additionalCosts.labor" 
+                        type="number" 
+                        step="0.1" 
+                        min="0"
+                        class="w-full pl-2 pr-1 py-1 bg-white/10 rounded-lg text-xs font-bold text-white focus:outline-none focus:bg-white/20"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
-              <p class="text-[10px] text-brand-primary/70 mt-1 font-medium">
-                Sugerido (30% neto): S/ {{ (computedTotalCost * 1.428).toFixed(2) }}
-              </p>
+            </section>
+
+            <!-- Formulario agregar insumo directo -->
+            <section class="bg-surface p-4 sm:p-5 rounded-2xl border border-brand-primary/15 shadow-soft-sm">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-brand-secondary mb-3 flex items-center gap-1.5">
+                <Icon name="lucide:plus-circle" class="w-4 h-4 text-brand-primary" />
+                Agregar Insumo Directo
+              </h4>
+              <form @submit.prevent="handleAddRecipeItem(false)" class="space-y-3">
+                <div>
+                  <select
+                    v-model="newRecipeItem.raw_material_id"
+                    class="w-full px-3 py-2 bg-brand-cream/40 rounded-xl border border-brand-primary/20 text-xs font-bold text-brand-secondary focus:outline-none focus:border-brand-primary"
+                  >
+                    <option value="" disabled>Selecciona insumo directo...</option>
+                    <option
+                      v-for="mat in safeMaterials"
+                      :key="mat.id"
+                      :value="mat.id"
+                    >
+                      {{ mat.name }} ({{ mat.unit }})
+                    </option>
+                  </select>
+                </div>
+                <div class="flex items-center gap-2">
+                  <input
+                    v-model="newRecipeItem.quantity_used"
+                    type="number"
+                    step="0.01"
+                    min="0.001"
+                    placeholder="Cantidad usada"
+                    class="w-full px-3 py-2 bg-brand-cream/40 rounded-xl border border-brand-primary/20 text-xs font-bold text-brand-secondary focus:outline-none focus:border-brand-primary"
+                  />
+                  <span class="text-xs font-bold text-brand-primary/70 shrink-0 w-8">{{ selectedMaterialUnit }}</span>
+                  <button
+                    type="submit"
+                    :disabled="isSubmittingRecipe"
+                    class="px-4 py-2 bg-brand-primary text-white rounded-xl text-xs font-bold hover:bg-[#3C4A1C] transition-colors shrink-0 disabled:opacity-50 cursor-pointer"
+                  >
+                    Agregar
+                  </button>
+                </div>
+              </form>
+            </section>
+          </div>
+
+          <!-- Columna Derecha: Tabla de Insumos Directos Registrados -->
+          <div class="lg:col-span-7 bg-surface p-4 sm:p-5 rounded-2xl border border-brand-primary/15 shadow-soft-sm space-y-3">
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-brand-secondary flex items-center gap-1.5">
+                <Icon name="lucide:list" class="w-4 h-4 text-brand-primary" />
+                Insumos Directos Registrados ({{ recipeItems.length }})
+              </h4>
+              <button
+                type="button"
+                @click="handleExportToExcel"
+                class="text-xs font-bold text-brand-primary hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                <Icon name="lucide:download" class="w-3.5 h-3.5" />
+                <span>Exportar Excel</span>
+              </button>
             </div>
 
-            <div>
-              <label class="block text-xs font-bold text-brand-primary uppercase tracking-wider mb-1.5">Stock en Tienda</label>
-              <input 
-                v-model="publishData.stock"
-                type="number" 
-                min="0"
-                required
-                class="w-full min-h-[44px] px-4 py-2.5 bg-brand-cream/60 rounded-xl border border-brand-primary/20 text-sm font-bold text-brand-secondary focus:outline-none focus:border-brand-primary"
-              />
+            <div v-if="recipeItems.length === 0" class="py-8 text-center text-xs text-brand-primary/70">
+              Este producto no tiene insumos directos agregados individualmente.
             </div>
 
-            <button 
-              type="submit" 
-              :disabled="isPublishing" 
-              class="w-full min-h-[44px] py-3 bg-brand-primary text-white font-bold rounded-xl flex items-center justify-center gap-2 text-sm shadow-soft-sm mt-2 disabled:opacity-50 cursor-pointer active:scale-[0.98] transition-transform"
-            >
-              <Icon v-if="isPublishing" name="lucide:loader-2" class="w-4 h-4 animate-spin" />
-              <Icon v-else name="lucide:check" class="w-4 h-4" />
-              <span>{{ isPublishing ? 'Actualizando...' : 'Guardar y Publicar en Tienda' }}</span>
-            </button>
-          </form>
+            <div v-else class="space-y-2">
+              <div
+                v-for="item in recipeItems"
+                :key="item.id"
+                class="p-2.5 bg-brand-cream/20 rounded-xl border border-brand-primary/10 flex items-center justify-between text-xs"
+              >
+                <div>
+                  <span class="font-bold text-brand-secondary">{{ item.material_name || item.name || 'Insumo' }}</span>
+                  <span class="text-brand-primary/70 block text-[11px]">
+                    {{ item.quantity_used }} {{ item.unit }} &times; S/ {{ Number(item.unit_cost ?? item.cost_per_unit ?? 0).toFixed(4) }}
+                  </span>
+                </div>
+                <div class="flex items-center gap-3">
+                  <span class="font-black text-brand-secondary">
+                    S/ {{ Number(item.item_cost ?? item.item_total_cost ?? 0).toFixed(2) }}
+                  </span>
+                  <button
+                    type="button"
+                    @click="handleDeleteRecipeItem(item.id, item.material_name || item.name)"
+                    class="text-red-500 hover:text-red-700 p-1 cursor-pointer"
+                  >
+                    <Icon name="lucide:trash-2" class="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </Teleport>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODALES TELEPORTADOS                       -->
+    <!-- ========================================== -->
+    <!-- Modal de Tanda Maestra -->
+    <BatchRecipeModal
+      :show="showBatchModal"
+      :batchToEdit="batchToEdit"
+      :materials="safeMaterials"
+      @close="showBatchModal = false"
+      @saved="async () => { await fetchBatchRecipes(); }"
+    />
+
+    <!-- Modal de Descargo Rápido de Piezas -->
+    <QuickPieceDeductionModal
+      :show="showQuickDeductionModal"
+      :batchRecipes="batchRecipes"
+      :materials="safeMaterials"
+      :initialBatchId="quickDeductionBatchId"
+      @close="showQuickDeductionModal = false"
+      @deducted="handleDeductionCompleted"
+    />
+
+    <!-- Modal de Composición por Tandas y Empaques -->
+    <ProductBatchMappingModal
+      :show="showProductMappingModal"
+      :product="activeProduct || null"
+      :batchRecipes="batchRecipes"
+      :materials="safeMaterials"
+      @close="showProductMappingModal = false"
+      @saved="handleCompositionSaved"
+    />
 
     <!-- Modal de Producto -->
     <ProductModal 
-      :show="showModal"
+      :show="showProductModal"
       :productToEdit="null"
-      @close="showModal = false"
+      @close="showProductModal = false"
       @saved="handleProductSaved"
     />
   </div>
 </template>
-

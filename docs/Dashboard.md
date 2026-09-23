@@ -130,6 +130,7 @@ flowchart TD
 * [[refinamiento-ui-auth-checkout-kds-informe]] — **Informe de Refinamiento UI, Autenticación Dedicada, Checkout Perú (Yape/Plin), Navegación Móvil (Drawer/Carrusel/Tabs) y KDS**.
 * [[fase-7-subfase-7.1-migracion-tandas-informe]] — **Capa de Datos & Migración SQL de Tandas (Batch Recipes), Rendimientos y Descargo Rápido (Subfase 7.1)**.
 * [[fase-7-subfase-7.2-backend-nitro-tandas-informe]] — **Backend Nitro & Servicios de Dominio de Tandas, Deducción en Pedidos y Descargo Rápido (Subfase 7.2)**.
+* [[fase-7-subfase-7.3-ui-admin-tandas-informe]] — **Interfaz de Usuario Administrativa (UI/UX) de Tandas Maestras, Rendimientos y Descargo Rápido (Subfase 7.3)**.
 
 ### 📁 05 - Operaciones & Resiliencia
 * [[playbook-operaciones]] — Variables por entorno, rotación de claves, runbook de restore V44, Vercel Git-Ops y telemetría de alertas.
