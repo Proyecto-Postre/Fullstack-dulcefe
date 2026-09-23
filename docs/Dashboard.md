@@ -2,12 +2,12 @@
 tipo: dashboard
 proyecto: Dulce Fe Fullstack
 stack: Nuxt 4, Vue 3.5, TypeScript, Tailwind CSS, Supabase, ExcelJS, n8n, Vitest, Playwright
-ultima_actualizacion: 2026-09-10
+ultima_actualizacion: 2026-09-23
 ---
 
 # 🍰 Dulce Fe — Centro de Comando
 
-> **Estado:** 🟢 Fases 0–6 Completadas | 🟢 Hardening & Estabilidad Sellados | 🌟 **Certificación Integral 10/10 Enterprise**
+> **Estado:** 🟢 Fases 0–7 Completadas | 🟢 Tandas Maestras & Porcionamiento Sellados | 🌟 **Certificación Integral 10/10 Enterprise**
 > **Vista Gráfica:** Presiona `Ctrl + G` en Obsidian para el mapa global.
 
 ---
@@ -132,6 +132,7 @@ flowchart TD
 * [[fase-7-subfase-7.2-backend-nitro-tandas-informe]] — **Backend Nitro & Servicios de Dominio de Tandas, Deducción en Pedidos y Descargo Rápido (Subfase 7.2)**.
 * [[fase-7-subfase-7.3-ui-admin-tandas-informe]] — **Interfaz de Usuario Administrativa (UI/UX) de Tandas Maestras, Rendimientos y Descargo Rápido (Subfase 7.3)**.
 * [[fase-7-subfase-7.4-dashboard-vitrina-informe]] — **Dashboard Preventivo de Productos en Riesgo y Vitrina Comercial Artesanal (Subfase 7.4)**.
+* [[fase-7-subfase-7.5-pruebas-e2e-cierre-informe]] — **Pruebas de Integración de Ciclo Completo, E2E y Cierre de Producción (Subfase 7.5)**.
 
 ### 📁 05 - Operaciones & Resiliencia
 * [[playbook-operaciones]] — Variables por entorno, rotación de claves, runbook de restore V44, Vercel Git-Ops y telemetría de alertas.
