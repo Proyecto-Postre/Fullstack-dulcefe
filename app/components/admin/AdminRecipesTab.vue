@@ -384,16 +384,10 @@ watch(batchSearchQuery, () => {
           </div>
         </div>
 
-        <!-- Acciones Operativas de Tandas -->
-        <div 
-          :class="[
-            'w-full lg:w-auto gap-2',
-            batchRecipes.length > 0 ? 'grid grid-cols-2 sm:flex sm:items-center' : 'flex items-center justify-end'
-          ]"
-        >
-          <!-- Botón Descargo Rápido: Solo cuando existen recetas maestras registradas -->
+        <!-- Acciones Operativas de Tandas (Visibles siempre y bien alineadas) -->
+        <div class="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full lg:w-auto">
+          <!-- Botón Descargo Rápido: Operación de piezas sin cálculo manual -->
           <button
-            v-if="batchRecipes.length > 0"
             type="button"
             @click="openQuickDeduction()"
             class="h-10 px-3.5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300/80 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer active:scale-95 flex-1 sm:flex-initial"
@@ -403,7 +397,7 @@ watch(batchSearchQuery, () => {
             <span>Descargo Rápido</span>
           </button>
 
-          <!-- Botón Nueva Tanda: Acción principal siempre disponible -->
+          <!-- Botón Nueva Tanda: Acción principal para crear receta base -->
           <button
             type="button"
             @click="openNewBatchModal"
