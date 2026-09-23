@@ -8,6 +8,7 @@ import type {
 } from '~/types/batch-recipe'
 import type { RawMaterialRow } from '~/types/inventory'
 import { calculateProportionalPreview } from '~/composables/admin/useAdminBatchRecipes'
+import CustomSelect from '~/components/CustomSelect.vue'
 
 const props = defineProps<{
   show: boolean
@@ -80,6 +81,23 @@ const activeBatch = computed<BaseRecipeDetail | null>(() => {
 const activeYield = computed(() => {
   if (!activeBatch.value || !selectedYieldId.value) return null
   return activeBatch.value.yields.find((y) => y.id === Number(selectedYieldId.value)) || null
+})
+
+const batchOptions = computed(() => {
+  return props.batchRecipes.map((b) => ({
+    label: b.name,
+    sublabel: `${b.items.length} insumos — Costo: S/ ${b.total_batch_cost.toFixed(2)}`,
+    value: b.id
+  }))
+})
+
+const yieldOptions = computed(() => {
+  if (!activeBatch.value) return []
+  return activeBatch.value.yields.map((y) => ({
+    label: y.size_name,
+    sublabel: `Rinde ${y.yield_units} piezas — S/ ${y.unit_cost.toFixed(2)}/u`,
+    value: y.id
+  }))
 })
 
 // Cálculo de previsualización en vivo de los insumos que se descontarán
@@ -209,39 +227,27 @@ async function handleConfirmDeduction() {
                 <label class="block text-[10px] font-bold text-brand-primary uppercase tracking-widest mb-1.5">
                   1. Tanda Base / Receta Maestra
                 </label>
-                <select
+                <CustomSelect
                   v-model="selectedBatchId"
-                  class="w-full px-3 py-2.5 bg-brand-cream/40 rounded-xl border border-brand-primary/20 text-xs sm:text-sm font-bold text-brand-secondary focus:outline-none focus:border-brand-primary"
-                >
-                  <option value="" disabled>Selecciona una tanda...</option>
-                  <option
-                    v-for="b in batchRecipes"
-                    :key="b.id"
-                    :value="b.id"
-                  >
-                    {{ b.name }} ({{ b.items.length }} insumos)
-                  </option>
-                </select>
+                  :options="batchOptions"
+                  placeholder="Selecciona una tanda..."
+                  size="sm"
+                  bgClass="bg-white"
+                />
               </div>
 
               <div>
                 <label class="block text-[10px] font-bold text-brand-primary uppercase tracking-widest mb-1.5">
                   2. Tamaño / Formato de Corte
                 </label>
-                <select
+                <CustomSelect
                   v-model="selectedYieldId"
-                  :disabled="!activeBatch"
-                  class="w-full px-3 py-2.5 bg-brand-cream/40 rounded-xl border border-brand-primary/20 text-xs sm:text-sm font-bold text-brand-secondary focus:outline-none focus:border-brand-primary disabled:opacity-50"
-                >
-                  <option value="" disabled>Selecciona el corte...</option>
-                  <option
-                    v-for="y in (activeBatch?.yields || [])"
-                    :key="y.id"
-                    :value="y.id"
-                  >
-                    {{ y.size_name }} (Rinde {{ y.yield_units }} piezas) — S/ {{ y.unit_cost.toFixed(2) }}/u
-                  </option>
-                </select>
+                  :options="yieldOptions"
+                  :disabled="!activeBatch || yieldOptions.length === 0"
+                  placeholder="Selecciona el corte..."
+                  size="sm"
+                  bgClass="bg-white"
+                />
               </div>
             </div>
 

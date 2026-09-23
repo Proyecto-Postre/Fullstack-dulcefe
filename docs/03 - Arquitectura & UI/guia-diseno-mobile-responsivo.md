@@ -289,15 +289,85 @@ Esto garantiza que las cookies de sesión **NO** sean rechazadas por el navegado
 
 ---
 
-## 10. Checklist de Aprobación para Nuevas Vistas Móviles
+## 11. Patrón 8: Selectores Personalizados (`CustomSelect`) vs Selectores Nativos y Ajuste de Pantalla Única (Single-Screen Fit)
 
-Antes de dar por completada cualquier nueva pantalla o componente responsivo en Dulce Fe, verificar:
+### 11.1 Prohibición Estricta de `<select>` Nativo
+> [!CAUTION]
+> **REGLA INMUTABLE DE UI/UX:**  
+> Queda terminantemente prohibido utilizar el elemento HTML `<select>` nativo en cualquier vista, componente o modal de Dulce Fe.  
+> Todo desplegable debe implementarse obligatoriamente mediante el componente oficial `CustomSelect.vue` (o `UiCustomSelect.vue`).
 
-- [ ] ¿Los botones principales y enlaces tienen al menos 44px de área de pulsación?
+#### ¿Por qué está prohibido el `<select>` nativo?
+1. **Flechas Nativas Desalineadas y Solapadas:** En navegadores de escritorio (Chrome, Edge) y móviles (Safari, Chrome Mobile), el elemento `<select>` nativo dibuja su propio glifo de flecha gris del sistema operativo, colisionando con iconos vectoriales personalizados o quedando desfasado del centro vertical.
+2. **Menú Emergente Foráneo y Anti-Estético:** Al desplegar un `<select>` nativo, el sistema operativo abre un menú blanco plano o gris con selección azul eléctrico (`#0066cc`) típica de Windows/Android que rompe la paleta botánica cálida (`#2E4A28`, crema arena `#F4F1E1`, marfil) de Dulce Fe.
+3. **Imposibilidad de Truncar y Anidar Información:** El `<select>` nativo no permite mostrar subtítulos secundarios (como costos unitarios o rendimientos calculados en vivo) ni enriquecer visualmente el elemento seleccionado.
+
+#### Especificación Oficial de `CustomSelect.vue`:
+```vue
+<CustomSelect
+  v-model="selectedValue"
+  :options="formattedOptions"
+  placeholder="Selecciona una opción..."
+  size="sm"               <!-- 'sm' (h-9 compact) o 'md' (h-11 estándar) -->
+  bgClass="bg-white"       <!-- Fondo adaptado a la tarjeta o modal -->
+  :disabled="isLoading"   <!-- Estado deshabilitado consistente -->
+/>
+```
+- **Icono Vectorial Centrado:** Utiliza `Icon name="lucide:chevron-down"`, anclado con `absolute top-1/2 -translate-y-1/2 right-3 sm:right-4 pointer-events-none`.
+- **Micro-Animación de Apertura:** Al desplegarse, la flecha gira 180° fluidamente con `transition-transform duration-300 rotate-180`.
+- **Menú Popover Botánico:** Menú flotante con `backdrop-blur-md`, borde `border-brand-primary/20`, esquinas redondeadas `rounded-xl`, sombra suave `shadow-soft-xl`, capa `z-50`, scrollbar personalizada botánica (`custom-scrollbar`) e indicador de confirmación `lucide:check` en la opción activa.
+
+---
+
+### 11.2 Regla de Ajuste a Una Sola Pantalla ("Single-Screen Fit")
+
+En el taller de repostería y en la administración de productos, los modales y formularios no deben cortarse ni forzar desplazamientos incómodos en ninguna resolución de pantalla (smartphones, tablets, laptops o monitores ultrapanorámicos).
+
+#### Arquitectura del Contenedor Modal:
+```html
+<div class="relative w-full max-w-3xl bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] sm:max-h-[92vh] flex flex-col z-10">
+  <!-- 1. Cabecera Fija (Header) -->
+  <div class="px-5 py-4 border-b border-brand-primary/10 flex items-center justify-between bg-surface shrink-0">
+    ...
+  </div>
+
+  <!-- 2. Cuerpo Scrollable Interno (Body) -->
+  <div class="p-5 overflow-y-auto custom-scrollbar flex-1 space-y-4">
+    ...
+  </div>
+
+  <!-- 3. Barra de Acciones Fija (Footer) -->
+  <div class="px-5 py-3.5 bg-brand-cream/30 border-t border-brand-primary/10 flex items-center justify-end gap-3 shrink-0">
+    ...
+  </div>
+</div>
+```
+
+#### Adaptación Ergonómica en Pantallas Móviles (`< sm`):
+1. **Sub-Filas Táctiles en Formularios Densos:**
+   - En pantallas grandes (`sm:`), un insumo se agrega en una sola fila horizontal: `[CustomSelect Insumo] [Input Cantidad] [Subtotal S/] [Botón Eliminar]`.
+   - En móviles (`< sm`), la fila se desagrega automáticamente: el `CustomSelect` ocupa el 100% de la línea superior para permitir leer nombres largos sin truncamiento extremo, y debajo se ubica la sub-fila con la cantidad táctil, la unidad, el subtotal y el botón de papelera con área táctil cómoda.
+2. **Controles de Vitrina Accesibles en Mobile:**
+   - En `AdminRecipesTab.vue`, los controles comerciales (estado de vitrina, precio en Soles, stock y botón "Publicar") cuentan con una barra interactiva adaptada para tablets y móviles (`lg:hidden`), garantizando que la edición de precios y stock esté disponible inmediatamente sin requerir una laptop.
+3. **Límite de Altura en Listas Largas:**
+   - Toda lista o tabla interna dentro de una pestaña debe delimitarse con `max-h-[460px] sm:max-h-[520px] overflow-y-auto custom-scrollbar pr-1` para que una receta con más de 10 insumos no empuje el resto de la página fuera del alcance visual del usuario.
+
+---
+
+## 12. Checklist de Aprobación para Nuevas Vistas y Modales
+
+Antes de dar por completada cualquier nueva pantalla o componente responsivo en Dulce Fe, verificar obligatoriamente:
+
+- [ ] ¿Está **100% libre** de elementos `<select>` nativos de HTML y utiliza `CustomSelect.vue`?
+- [ ] ¿Las flechas de los selectores rotan suavemente a 180° y están centradas sin superponerse al texto?
+- [ ] ¿Los modales aplican la arquitectura **Single-Screen Fit** (`max-h-[90vh] flex flex-col`, header y footer `shrink-0`, body con `overflow-y-auto custom-scrollbar`)?
+- [ ] ¿Las filas compuestas (select + cantidad + subtotal + eliminar) se adaptan con sub-filas táctiles en móvil sin desbordar la pantalla?
+- [ ] ¿Los botones principales y áreas interactivas tienen al menos **44 × 44 px** de área de pulsación?
 - [ ] ¿El carrusel horizontal utiliza `container.scrollTo()` y **NO** `scrollIntoView()`?
-- [ ] ¿Tiene aplicada la clase `.hide-scrollbar` y no muestra barras grises nativas?
+- [ ] ¿Tiene aplicada la clase `.hide-scrollbar` o `.custom-scrollbar` sin mostrar barras grises nativas?
 - [ ] ¿Las listas largas paralelas tienen una alternativa de switch segmentado en `< lg`?
-- [ ] ¿El modal tiene `z-[9999]` y `max-h-[85vh]` con scroll interno?
-- [ ] ¿Los campos de teléfono usan `type="tel"` / `inputmode="numeric"` y validación de 9 dígitos?
-- [ ] ¿Se probó en un smartphone real vía `npm run dev:host`?
-- [ ] ¿La suite de pruebas automatizadas pasa al 100% (`npm test`)?
+- [ ] ¿El modal tiene `z-[9999]` y no es tapado por ningún elemento de navegación?
+- [ ] ¿Los campos de teléfono usan `type="tel"` / `inputmode="numeric"` y validación de 9 dígitos para Perú?
+- [ ] ¿Se probó visualmente tanto en resolución de escritorio (1280px+) como en resolución móvil (375px - 414px)?
+- [ ] ¿La suite de pruebas automatizadas pasa al 100% limpia (`npm test`)?
+

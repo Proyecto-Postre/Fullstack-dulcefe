@@ -6,22 +6,23 @@ import { test, expect } from '@playwright/test'
  */
 test.describe('Smoke: Tandas Maestras, Dashboard Preventivo y Vitrina Fresca', () => {
   test('la vitrina comercial muestra badges de frescura artesanal y elimina avisos ficticios de escasez', async ({ page }) => {
-    // 1. Navegar al catálogo comercial
+    // 1. Navegar al catálogo comercial y verificar erradicación de falsas alarmas
     await page.goto('/menu')
-
-    // 2. Esperar a que cargue la lista de productos
     await page.waitForLoadState('networkidle').catch(() => {})
-
-    // 3. Verificar que no existan avisos comerciales de supermercado tipo "Últimos X"
-    const supermarketBadge = page.locator('text=/Últimos \\d+/i')
+    const supermarketBadge = page.locator('text=/Últimos? \\d+ unidades/i')
     await expect(supermarketBadge).toHaveCount(0)
 
-    // 4. Verificar que si hay productos, se exhiban con estilo artesanal
+    // 2. Navegar a la página de inicio (landing) y verificar también erradicación del badge retail
+    await page.goto('/')
+    await page.waitForLoadState('networkidle').catch(() => {})
+    const homeSupermarketBadge = page.locator('text=/Últimos? \\d+ unidades/i')
+    await expect(homeSupermarketBadge).toHaveCount(0)
+
+    // 3. Verificar que las creaciones favoritas se exhiban con estilo artesanal
     const productCards = page.locator('article, [data-testid="product-card"]')
     const cardCount = await productCards.count()
 
     if (cardCount > 0) {
-      // Al menos una tarjeta debe tener badge de "Horneado Fresco" o "Agotado por hoy"
       const freshOrSoldOutBadge = page.locator('text=/Horneado Fresco|Agotado por hoy/i')
       await expect(freshOrSoldOutBadge.first()).toBeVisible()
     }

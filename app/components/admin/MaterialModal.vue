@@ -26,6 +26,14 @@ const newMaterial = ref<{
   stock: "",
 });
 
+const unitOptions = [
+  { label: "Gramos (g)", value: "g" },
+  { label: "Mililitros (ml)", value: "ml" },
+  { label: "Unidades (und)", value: "und" },
+  { label: "Kilogramos (kg)", value: "kg" },
+  { label: "Litros (L)", value: "L" },
+];
+
 const isSubmitting = ref(false);
 const errorMessage = ref("");
 
@@ -195,16 +203,14 @@ async function saveMaterial(): Promise<void> {
                   <label
                     class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest mb-1.5"
                   >Unidad Base</label>
-                  <select
+                  <CustomSelect
                     v-model="newMaterial.unit"
-                    class="w-full px-3 py-2.5 bg-[#F4F1E1]/30 rounded-xl border border-[#4A5D23]/20 focus:outline-none focus:bg-white focus:border-[#4A5D23] focus:ring-2 focus:ring-[#4A5D23]/10 text-sm font-bold text-[#2A321B] shadow-sm transition-all"
-                  >
-                    <option value="g">Gramos (g)</option>
-                    <option value="ml">Mililitros (ml)</option>
-                    <option value="und">Unidades (und)</option>
-                    <option value="kg">Kilogramos (kg)</option>
-                    <option value="L">Litros (L)</option>
-                  </select>
+                    :options="unitOptions"
+                    placeholder="Unidad..."
+                    bgClass="bg-[#F4F1E1]/30"
+                    size="sm"
+                    class="w-full text-xs font-bold"
+                  />
                 </div>
 
                 <div>

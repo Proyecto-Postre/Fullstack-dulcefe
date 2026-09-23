@@ -4,6 +4,7 @@ import { toast } from 'vue-sonner'
 import type { BaseRecipeDetail, BaseRecipeInput } from '~/types/batch-recipe'
 import type { RawMaterialRow } from '~/types/inventory'
 import { calculateLiveBatchCost } from '~/composables/admin/useAdminBatchRecipes'
+import CustomSelect from '~/components/CustomSelect.vue'
 
 interface FormItem {
   raw_material_id: number | ''
@@ -74,6 +75,14 @@ watch(
 // Insumos disponibles ordenados alfabéticamente
 const sortedMaterials = computed(() => {
   return [...props.materials].sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+})
+
+const materialOptions = computed(() => {
+  return sortedMaterials.value.map((mat) => ({
+    label: mat.name || 'Insumo',
+    sublabel: `${mat.unit} — S/ ${Number(mat.purchase_price).toFixed(2)} por ${mat.purchase_quantity}${mat.unit}`,
+    value: mat.id
+  }))
 })
 
 function getMaterial(id: number | '') {
@@ -349,60 +358,55 @@ async function handleSubmit() {
                   </button>
                 </div>
 
-                <div class="space-y-2">
+                <div class="space-y-2.5">
                   <div
                     v-for="(item, index) in items"
                     :key="index"
-                    class="p-3 bg-brand-cream/20 rounded-xl border border-brand-primary/10 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5"
+                    class="p-2.5 sm:p-3 bg-brand-cream/30 rounded-xl border border-brand-primary/15 flex flex-col sm:flex-row sm:items-center gap-2.5 shadow-soft-sm"
                   >
-                    <!-- Selector de Insumo -->
+                    <!-- Selector de Insumo con CustomSelect -->
                     <div class="flex-1 min-w-0">
-                      <select
+                      <CustomSelect
                         v-model="item.raw_material_id"
-                        class="w-full px-3 py-2 bg-white rounded-lg border border-brand-primary/20 text-xs font-bold text-brand-secondary focus:outline-none focus:border-brand-primary"
-                      >
-                        <option value="" disabled>Selecciona un insumo...</option>
-                        <option
-                          v-for="mat in sortedMaterials"
-                          :key="mat.id"
-                          :value="mat.id"
-                        >
-                          {{ mat.name }} ({{ mat.unit }}) — S/ {{ Number(mat.purchase_price).toFixed(2) }} x {{ mat.purchase_quantity }}{{ mat.unit }}
-                        </option>
-                      </select>
-                    </div>
-
-                    <!-- Cantidad Usada -->
-                    <div class="w-full sm:w-36 flex items-center gap-1.5 shrink-0">
-                      <input
-                        v-model="item.quantity_used"
-                        type="number"
-                        step="0.01"
-                        min="0.001"
-                        placeholder="Cantidad"
-                        class="w-full px-3 py-2 bg-white rounded-lg border border-brand-primary/20 text-xs font-bold text-brand-secondary text-right focus:outline-none focus:border-brand-primary"
+                        :options="materialOptions"
+                        placeholder="Selecciona un insumo..."
+                        size="sm"
+                        bgClass="bg-white"
                       />
-                      <span class="text-[11px] font-bold text-brand-primary/70 shrink-0 w-8">
-                        {{ getMaterial(item.raw_material_id)?.unit || 'u' }}
-                      </span>
                     </div>
 
-                    <!-- Costo Calculado de la Fila -->
-                    <div class="w-24 text-right shrink-0">
-                      <span class="text-xs font-bold text-brand-secondary">
-                        S/ {{ getItemCost(item).toFixed(2) }}
-                      </span>
-                    </div>
+                    <!-- Cantidad Usada, Costo y Eliminar en fila responsive -->
+                    <div class="flex items-center justify-between sm:justify-end gap-2.5 shrink-0 pt-1.5 sm:pt-0 border-t sm:border-t-0 border-brand-primary/10">
+                      <div class="w-28 sm:w-32 flex items-center gap-1.5">
+                        <input
+                          v-model="item.quantity_used"
+                          type="number"
+                          step="0.01"
+                          min="0.001"
+                          placeholder="Cantidad"
+                          class="w-full px-2.5 py-1.5 bg-white rounded-lg border border-brand-primary/20 text-xs font-bold text-brand-secondary text-right focus:outline-none focus:border-brand-primary shadow-soft-sm"
+                        />
+                        <span class="text-[11px] font-bold text-brand-primary/70 shrink-0 w-8">
+                          {{ getMaterial(item.raw_material_id)?.unit || 'u' }}
+                        </span>
+                      </div>
 
-                    <!-- Botón Eliminar Fila -->
-                    <button
-                      type="button"
-                      @click="removeItem(index)"
-                      class="w-8 h-8 flex items-center justify-center rounded-lg text-red-500 hover:bg-red-50 transition-colors shrink-0 cursor-pointer"
-                      title="Eliminar insumo"
-                    >
-                      <Icon name="lucide:trash-2" class="w-4 h-4" />
-                    </button>
+                      <div class="w-20 text-right">
+                        <span class="text-xs font-black text-brand-secondary">
+                          S/ {{ getItemCost(item).toFixed(2) }}
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        @click="removeItem(index)"
+                        class="w-8 h-8 flex items-center justify-center rounded-lg text-red-500 hover:bg-red-50 hover:text-red-700 transition-colors shrink-0 cursor-pointer"
+                        title="Eliminar insumo"
+                        aria-label="Eliminar insumo"
+                      >
+                        <Icon name="lucide:trash-2" class="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

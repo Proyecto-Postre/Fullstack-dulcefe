@@ -100,9 +100,36 @@ watch(selectedBatchId, (newBatchId) => {
   }
 })
 
+import CustomSelect from '~/components/CustomSelect.vue'
+
 // Insumos ordenados alfabéticamente
 const sortedMaterials = computed(() => {
   return [...props.materials].sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+})
+
+const batchOptions = computed(() => {
+  return props.batchRecipes.map((b) => ({
+    label: b.name,
+    sublabel: `Costo tanda S/ ${b.total_batch_cost.toFixed(2)} (${b.items.length} insumos)`,
+    value: b.id
+  }))
+})
+
+const yieldOptions = computed(() => {
+  if (!activeBatch.value) return []
+  return activeBatch.value.yields.map((y) => ({
+    label: y.size_name,
+    sublabel: `Rinde ${y.yield_units} u — S/ ${y.unit_cost.toFixed(2)}/u`,
+    value: y.id
+  }))
+})
+
+const packagingOptions = computed(() => {
+  return sortedMaterials.value.map((mat) => ({
+    label: mat.name || 'Empaque',
+    sublabel: `${mat.unit} — S/ ${Number(mat.purchase_price).toFixed(2)}`,
+    value: mat.id
+  }))
 })
 
 function getMaterial(id: number | '') {
@@ -283,51 +310,39 @@ async function handleSave() {
                   </span>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 sm:gap-3.5">
                   <!-- Tanda Base -->
                   <div class="sm:col-span-5">
-                    <label class="block text-[10px] font-bold text-brand-primary uppercase tracking-widest mb-1">
+                    <label class="block text-[10px] font-bold text-brand-primary uppercase tracking-widest mb-1.5">
                       Tanda Base Maestra
                     </label>
-                    <select
+                    <CustomSelect
                       v-model="selectedBatchId"
-                      class="w-full px-3 py-2 bg-white rounded-xl border border-brand-primary/20 text-xs font-bold text-brand-secondary focus:outline-none focus:border-brand-primary"
-                    >
-                      <option value="" disabled>Selecciona una tanda...</option>
-                      <option
-                        v-for="b in batchRecipes"
-                        :key="b.id"
-                        :value="b.id"
-                      >
-                        {{ b.name }} (Costo Tanda S/ {{ b.total_batch_cost.toFixed(2) }})
-                      </option>
-                    </select>
+                      :options="batchOptions"
+                      placeholder="Selecciona una tanda..."
+                      size="sm"
+                      bgClass="bg-white"
+                    />
                   </div>
 
                   <!-- Corte de Rendimiento -->
                   <div class="sm:col-span-4">
-                    <label class="block text-[10px] font-bold text-brand-primary uppercase tracking-widest mb-1">
+                    <label class="block text-[10px] font-bold text-brand-primary uppercase tracking-widest mb-1.5">
                       Corte / Tamaño
                     </label>
-                    <select
+                    <CustomSelect
                       v-model="selectedYieldId"
-                      :disabled="!activeBatch"
-                      class="w-full px-3 py-2 bg-white rounded-xl border border-brand-primary/20 text-xs font-bold text-brand-secondary focus:outline-none focus:border-brand-primary disabled:opacity-50"
-                    >
-                      <option value="" disabled>Selecciona el corte...</option>
-                      <option
-                        v-for="y in (activeBatch?.yields || [])"
-                        :key="y.id"
-                        :value="y.id"
-                      >
-                        {{ y.size_name }} (S/ {{ y.unit_cost.toFixed(2) }}/u)
-                      </option>
-                    </select>
+                      :options="yieldOptions"
+                      :disabled="!activeBatch || yieldOptions.length === 0"
+                      placeholder="Selecciona el corte..."
+                      size="sm"
+                      bgClass="bg-white"
+                    />
                   </div>
 
                   <!-- Piezas Contenidas -->
                   <div class="sm:col-span-3">
-                    <label class="block text-[10px] font-bold text-brand-primary uppercase tracking-widest mb-1">
+                    <label class="block text-[10px] font-bold text-brand-primary uppercase tracking-widest mb-1.5">
                       Piezas en el Producto
                     </label>
                     <div class="flex items-center gap-1.5">
@@ -336,7 +351,7 @@ async function handleSave() {
                         type="number"
                         min="1"
                         placeholder="1"
-                        class="w-full px-3 py-2 bg-white rounded-xl border border-brand-primary/20 text-xs font-black text-center text-brand-secondary focus:outline-none focus:border-brand-primary"
+                        class="w-full px-3 py-2 bg-white rounded-xl border border-brand-primary/20 text-xs font-black text-center text-brand-secondary focus:outline-none focus:border-brand-primary shadow-soft-sm"
                       />
                       <span class="text-xs font-bold text-brand-primary/70 shrink-0">u</span>
                     </div>
@@ -382,59 +397,58 @@ async function handleSave() {
                   Sin empaques asignados. Haz clic en "Agregar Empaque" para incluir caja, cinta o etiqueta.
                 </div>
 
-                <div v-else class="space-y-2">
+                <div v-else class="space-y-2.5">
                   <div
                     v-for="(pkg, index) in packagingItems"
                     :key="index"
-                    class="p-2.5 bg-brand-cream/20 rounded-xl border border-brand-primary/10 flex flex-col sm:flex-row items-stretch sm:items-center gap-2"
+                    class="p-2.5 sm:p-3 bg-brand-cream/30 rounded-xl border border-brand-primary/15 flex flex-col sm:flex-row sm:items-center gap-2.5 shadow-soft-sm"
                   >
-                    <!-- Selector de Insumo Empaque -->
+                    <!-- Selector de Insumo Empaque con CustomSelect -->
                     <div class="flex-1 min-w-0">
-                      <select
+                      <CustomSelect
                         v-model="pkg.raw_material_id"
-                        class="w-full px-2.5 py-1.5 bg-white rounded-lg border border-brand-primary/20 text-xs font-bold text-brand-secondary focus:outline-none focus:border-brand-primary"
-                      >
-                        <option value="" disabled>Selecciona un empaque...</option>
-                        <option
-                          v-for="mat in sortedMaterials"
-                          :key="mat.id"
-                          :value="mat.id"
-                        >
-                          {{ mat.name }} ({{ mat.unit }}) — S/ {{ Number(mat.purchase_price).toFixed(2) }}
-                        </option>
-                      </select>
-                    </div>
-
-                    <!-- Cantidad de Empaque -->
-                    <div class="w-28 flex items-center gap-1 shrink-0">
-                      <input
-                        v-model="pkg.quantity_used"
-                        type="number"
-                        step="0.1"
-                        min="0.01"
-                        placeholder="1"
-                        class="w-full px-2 py-1.5 bg-white rounded-lg border border-brand-primary/20 text-xs font-bold text-center text-brand-secondary focus:outline-none focus:border-brand-primary"
+                        :options="packagingOptions"
+                        placeholder="Selecciona un empaque..."
+                        size="sm"
+                        bgClass="bg-white"
                       />
-                      <span class="text-[10px] font-bold text-brand-primary/70 shrink-0">
-                        {{ getMaterial(pkg.raw_material_id)?.unit || 'u' }}
-                      </span>
                     </div>
 
-                    <!-- Subtotal Costo Empaque -->
-                    <div class="w-20 text-right shrink-0">
-                      <span class="text-xs font-bold text-brand-secondary">
-                        S/ {{ getPkgCost(pkg).toFixed(2) }}
-                      </span>
-                    </div>
+                    <!-- Cantidad, Subtotal y Eliminar en fila responsive -->
+                    <div class="flex items-center justify-between sm:justify-end gap-2.5 shrink-0 pt-1.5 sm:pt-0 border-t sm:border-t-0 border-brand-primary/10">
+                      <!-- Cantidad de Empaque -->
+                      <div class="w-28 flex items-center gap-1.5">
+                        <input
+                          v-model="pkg.quantity_used"
+                          type="number"
+                          step="0.1"
+                          min="0.01"
+                          placeholder="1"
+                          class="w-full px-2.5 py-1.5 bg-white rounded-lg border border-brand-primary/20 text-xs font-bold text-center text-brand-secondary focus:outline-none focus:border-brand-primary shadow-soft-sm"
+                        />
+                        <span class="text-[10px] font-bold text-brand-primary/70 shrink-0">
+                          {{ getMaterial(pkg.raw_material_id)?.unit || 'u' }}
+                        </span>
+                      </div>
 
-                    <!-- Eliminar -->
-                    <button
-                      type="button"
-                      @click="removePackaging(index)"
-                      class="text-red-500 hover:text-red-700 p-1 cursor-pointer shrink-0"
-                    >
-                      <Icon name="lucide:trash-2" class="w-4 h-4" />
-                    </button>
+                      <!-- Subtotal Costo Empaque -->
+                      <div class="w-20 text-right">
+                        <span class="text-xs font-black text-brand-secondary">
+                          S/ {{ getPkgCost(pkg).toFixed(2) }}
+                        </span>
+                      </div>
+
+                      <!-- Eliminar -->
+                      <button
+                        type="button"
+                        @click="removePackaging(index)"
+                        class="w-8 h-8 flex items-center justify-center rounded-lg text-red-500 hover:bg-red-50 hover:text-red-700 transition-colors shrink-0 cursor-pointer"
+                        title="Eliminar empaque"
+                        aria-label="Eliminar empaque"
+                      >
+                        <Icon name="lucide:trash-2" class="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

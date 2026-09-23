@@ -118,6 +118,13 @@ const safeMaterials = computed<RawMaterialRow[]>(() => {
   return props.materials?.data || []
 })
 
+const directMaterialOptions = computed(() => {
+  return safeMaterials.value.map((m: RawMaterialRow) => ({
+    label: `${m.name} (${m.unit})`,
+    value: m.id
+  }))
+})
+
 const selectedMaterialUnit = computed<string>(() => {
   if (!newRecipeItem.value.raw_material_id || !props.materials?.data) return ''
   const idNum = Number(newRecipeItem.value.raw_material_id)
@@ -525,6 +532,61 @@ async function handleDeductionCompleted() {
             <span>{{ isPublishing ? 'Guardando...' : 'Publicar' }}</span>
           </button>
         </div>
+
+        <!-- Controles de Vitrina Comercial en Mobile/Tablet (< lg) -->
+        <div v-if="activeProduct" class="flex lg:hidden flex-wrap items-center justify-between gap-2.5 pt-2.5 border-t border-brand-primary/10">
+          <div class="flex items-center gap-2">
+            <span 
+              v-if="Number(activeProduct?.price || 0) > 0" 
+              class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-primary/10 text-brand-primary border border-brand-primary/20 flex items-center gap-1"
+            >
+              <span class="w-1.5 h-1.5 rounded-full bg-brand-primary"></span>
+              Vitrina Activa
+            </span>
+            <span 
+              v-else 
+              class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1"
+            >
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+              Borrador
+            </span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <div class="flex items-center gap-1">
+              <label class="text-[10px] font-bold uppercase text-brand-primary/80">S/</label>
+              <input 
+                v-model="publishData.price"
+                type="number" 
+                step="0.01"
+                required
+                class="w-20 px-2 py-1.5 bg-brand-cream/60 rounded-lg border border-brand-primary/20 text-xs font-bold text-brand-secondary focus:outline-none focus:border-brand-primary"
+                placeholder="Precio"
+              />
+            </div>
+
+            <div class="flex items-center gap-1">
+              <label class="text-[10px] font-bold uppercase text-brand-primary/80">Stock</label>
+              <input 
+                v-model="publishData.stock"
+                type="number" 
+                min="0"
+                required
+                class="w-14 px-1.5 py-1.5 bg-brand-cream/60 rounded-lg border border-brand-primary/20 text-xs font-bold text-brand-secondary text-center focus:outline-none focus:border-brand-primary"
+              />
+            </div>
+
+            <button 
+              @click="handlePublishProduct(false)" 
+              :disabled="isPublishing" 
+              class="bg-brand-primary text-white font-bold px-3 py-1.5 rounded-lg hover:bg-[#3C4A1C] transition-colors shadow-soft-sm disabled:opacity-50 flex items-center gap-1 text-xs cursor-pointer active:scale-95"
+            >
+              <Icon v-if="isPublishing" name="lucide:loader-2" class="w-3.5 h-3.5 animate-spin" />
+              <Icon v-else name="lucide:store" class="w-3.5 h-3.5" />
+              <span>Publicar</span>
+            </button>
+          </div>
+        </div>
       </header>
 
       <!-- Estado cuando NO hay producto seleccionado -->
@@ -688,19 +750,14 @@ async function handleDeductionCompleted() {
               </h4>
               <form @submit.prevent="handleAddRecipeItem(false)" class="space-y-3">
                 <div>
-                  <select
+                  <CustomSelect
                     v-model="newRecipeItem.raw_material_id"
-                    class="w-full px-3 py-2 bg-brand-cream/40 rounded-xl border border-brand-primary/20 text-xs font-bold text-brand-secondary focus:outline-none focus:border-brand-primary"
-                  >
-                    <option value="" disabled>Selecciona insumo directo...</option>
-                    <option
-                      v-for="mat in safeMaterials"
-                      :key="mat.id"
-                      :value="mat.id"
-                    >
-                      {{ mat.name }} ({{ mat.unit }})
-                    </option>
-                  </select>
+                    :options="directMaterialOptions"
+                    placeholder="Selecciona insumo directo..."
+                    bgClass="bg-brand-cream/40"
+                    size="sm"
+                    class="w-full text-xs font-bold"
+                  />
                 </div>
                 <div class="flex items-center gap-2">
                   <input
@@ -709,12 +766,12 @@ async function handleDeductionCompleted() {
                     step="0.01"
                     min="0.001"
                     placeholder="Cantidad usada"
-                    class="w-full px-3 py-2 bg-brand-cream/40 rounded-xl border border-brand-primary/20 text-xs font-bold text-brand-secondary focus:outline-none focus:border-brand-primary"
+                    class="flex-1 min-w-0 px-3 py-2 bg-brand-cream/40 rounded-xl border border-brand-primary/20 text-xs font-bold text-brand-secondary focus:outline-none focus:border-brand-primary"
                   />
                   <span class="text-xs font-bold text-brand-primary/70 shrink-0 w-8">{{ selectedMaterialUnit }}</span>
                   <button
                     type="submit"
-                    :disabled="isSubmittingRecipe"
+                    :disabled="isSubmittingRecipe || !newRecipeItem.raw_material_id || !newRecipeItem.quantity_used"
                     class="px-4 py-2 bg-brand-primary text-white rounded-xl text-xs font-bold hover:bg-[#3C4A1C] transition-colors shrink-0 disabled:opacity-50 cursor-pointer"
                   >
                     Agregar
@@ -745,7 +802,7 @@ async function handleDeductionCompleted() {
               Este producto no tiene insumos directos agregados individualmente.
             </div>
 
-            <div v-else class="space-y-2">
+            <div v-else class="space-y-2 max-h-[460px] overflow-y-auto custom-scrollbar pr-1">
               <div
                 v-for="item in recipeItems"
                 :key="item.id"
