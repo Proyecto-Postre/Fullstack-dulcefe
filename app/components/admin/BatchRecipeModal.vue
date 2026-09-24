@@ -37,6 +37,7 @@ const yields = ref<FormYield[]>([])
 
 const isSubmitting = ref(false)
 const errorMessage = ref('')
+const hasSubmitted = ref(false)
 
 // Reinicializar formulario al abrir modal o cambiar batchToEdit
 watch(
@@ -44,6 +45,7 @@ watch(
   (newVal) => {
     if (newVal) {
       errorMessage.value = ''
+      hasSubmitted.value = false
       if (props.batchToEdit) {
         name.value = props.batchToEdit.name || ''
         description.value = props.batchToEdit.description || ''
@@ -136,28 +138,39 @@ function closeModal() {
 }
 
 async function handleSubmit() {
+  hasSubmitted.value = true
   errorMessage.value = ''
 
   if (!name.value.trim()) {
-    errorMessage.value = 'Ingresa el nombre de la tanda maestra.'
+    errorMessage.value = 'Por favor completa los campos obligatorios marcados en rojo (Nombre de la tanda).'
+    toast.error('Faltan campos obligatorios', { description: 'Ingresa el nombre de la tanda maestra.' })
+    return
+  }
+
+  const hasIncompleteItems = items.value.some(
+    (it) => it.raw_material_id === '' || !it.quantity_used || Number(it.quantity_used) <= 0
+  )
+  if (hasIncompleteItems || items.value.length === 0) {
+    errorMessage.value = 'Completa los insumos marcados en rojo: selecciona el ingrediente e ingresa una cantidad mayor a 0.'
+    toast.error('Insumos incompletos', { description: 'Verifica los insumos resaltados en rojo.' })
+    return
+  }
+
+  const hasIncompleteYields = yields.value.some(
+    (y) => !y.size_name.trim() || !y.yield_units || Number(y.yield_units) <= 0
+  )
+  if (hasIncompleteYields || yields.value.length === 0) {
+    errorMessage.value = 'Completa los formatos de corte marcados en rojo: ingresa el nombre del tamaño y rendimiento mayor a 0.'
+    toast.error('Cortes incompletos', { description: 'Verifica los formatos de corte resaltados en rojo.' })
     return
   }
 
   const validItems = items.value.filter(
     (it) => it.raw_material_id !== '' && Number(it.quantity_used) > 0
   )
-  if (validItems.length === 0) {
-    errorMessage.value = 'Agrega al menos un ingrediente con cantidad válida mayor a 0.'
-    return
-  }
-
   const validYields = yields.value.filter(
     (y) => y.size_name.trim() !== '' && Number(y.yield_units) > 0
   )
-  if (validYields.length === 0) {
-    errorMessage.value = 'Define al menos un corte o tamaño con rendimiento mayor a 0.'
-    return
-  }
 
   isSubmitting.value = true
   try {
@@ -202,6 +215,7 @@ async function handleSubmit() {
       fetchErr.data?.statusMessage ||
       fetchErr.message ||
       'Error al guardar la tanda maestra.'
+    toast.error('Error al guardar', { description: errorMessage.value })
   } finally {
     isSubmitting.value = false
   }
@@ -264,7 +278,7 @@ async function handleSubmit() {
               <span>{{ errorMessage }}</span>
             </div>
 
-            <form @submit.prevent="handleSubmit" id="batch-form" class="space-y-6">
+            <form @submit.prevent="handleSubmit" id="batch-form" novalidate class="space-y-6">
               <!-- Datos Principales -->
               <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
                 <div class="sm:col-span-8">
@@ -274,10 +288,17 @@ async function handleSubmit() {
                   <input
                     v-model="name"
                     type="text"
-                    required
                     placeholder="Ej: Masa Brioche Clásica para Roles"
-                    class="w-full px-3.5 py-2.5 bg-brand-cream/40 rounded-xl border border-brand-primary/20 focus:outline-none focus:bg-white focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 text-xs sm:text-sm font-bold text-brand-secondary shadow-sm transition-all"
+                    :class="[
+                      'w-full px-3.5 py-2.5 bg-brand-cream/40 rounded-xl border focus:outline-none focus:bg-white text-xs sm:text-sm font-bold text-brand-secondary shadow-sm transition-all',
+                      hasSubmitted && !name.trim()
+                        ? 'border-red-400 focus:border-red-500 ring-2 ring-red-400/20 bg-red-50/15'
+                        : 'border-brand-primary/20 focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10'
+                    ]"
                   />
+                  <p v-if="hasSubmitted && !name.trim()" class="text-[10px] text-red-500 font-bold mt-1">
+                    * Ingresa el nombre de la tanda maestra
+                  </p>
                 </div>
                 <div class="sm:col-span-4">
                   <label class="block text-[10px] font-bold text-brand-primary uppercase tracking-widest mb-1.5">
@@ -310,7 +331,7 @@ async function handleSubmit() {
                       <input
                         v-model="laborCost"
                         type="number"
-                        step="0.01"
+                        step="any"
                         min="0"
                         placeholder="0.00"
                         class="w-full pl-8 pr-3 py-2 bg-white rounded-xl border border-brand-primary/20 text-xs sm:text-sm font-bold text-brand-secondary focus:outline-none focus:border-brand-primary"
@@ -326,7 +347,7 @@ async function handleSubmit() {
                       <input
                         v-model="utilitiesCost"
                         type="number"
-                        step="0.01"
+                        step="any"
                         min="0"
                         placeholder="0.00"
                         class="w-full pl-8 pr-3 py-2 bg-white rounded-xl border border-brand-primary/20 text-xs sm:text-sm font-bold text-brand-secondary focus:outline-none focus:border-brand-primary"
@@ -337,32 +358,39 @@ async function handleSubmit() {
               </div>
 
               <!-- Sección Insumos de la Tanda -->
-              <div class="space-y-3">
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-2">
-                    <Icon name="lucide:scale" class="w-4 h-4 text-brand-primary" />
-                    <span class="text-xs font-bold text-brand-secondary uppercase tracking-wider">
-                      Insumos de la Receta
-                    </span>
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-primary/10 text-brand-primary">
-                      {{ items.length }} {{ items.length === 1 ? 'insumo' : 'insumos' }}
-                    </span>
+              <div class="space-y-3 relative z-20">
+                <div class="flex items-center justify-between gap-2 pb-1.5 border-b border-brand-primary/10">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <div class="w-7 h-7 rounded-lg bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
+                      <Icon name="lucide:scale" class="w-4 h-4" />
+                    </div>
+                    <div class="flex items-center gap-1.5 min-w-0">
+                      <span class="text-xs sm:text-sm font-bold text-brand-secondary whitespace-nowrap">
+                        Insumos de la Receta
+                      </span>
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-primary/10 text-brand-primary whitespace-nowrap shrink-0">
+                        {{ items.length }} {{ items.length === 1 ? 'insumo' : 'insumos' }}
+                      </span>
+                    </div>
                   </div>
+
                   <button
                     type="button"
                     @click="addItem"
-                    class="px-2.5 py-1 bg-brand-primary/10 text-brand-primary hover:bg-brand-primary hover:text-white rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer"
+                    class="h-8 px-2.5 sm:px-3 bg-brand-primary text-white hover:bg-[#3C4A1C] rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer active:scale-95 shrink-0 whitespace-nowrap"
                   >
                     <Icon name="lucide:plus" class="w-3.5 h-3.5" />
-                    <span>Agregar Insumo</span>
+                    <span class="sm:hidden">Insumo</span>
+                    <span class="hidden sm:inline">Agregar Insumo</span>
                   </button>
                 </div>
 
-                <div class="space-y-2.5 max-h-60 overflow-y-auto custom-scrollbar pr-1">
+                <div class="space-y-2.5">
                   <div
                     v-for="(item, index) in items"
                     :key="index"
-                    class="p-2.5 sm:p-3 bg-brand-cream/30 rounded-xl border border-brand-primary/15 flex flex-col sm:flex-row sm:items-center gap-2.5 shadow-soft-sm"
+                    :style="{ zIndex: items.length - index + 10 }"
+                    class="relative p-2.5 sm:p-3 bg-brand-cream/30 rounded-xl border border-brand-primary/15 flex flex-col sm:flex-row sm:items-center gap-2.5 shadow-soft-sm"
                   >
                     <!-- Selector de Insumo con CustomSelect -->
                     <div class="flex-1 min-w-0">
@@ -372,6 +400,7 @@ async function handleSubmit() {
                         placeholder="Selecciona un insumo..."
                         size="sm"
                         bgClass="bg-white"
+                        :buttonClass="hasSubmitted && !item.raw_material_id ? 'border-red-400 ring-2 ring-red-400/20 bg-red-50/15' : ''"
                       />
                     </div>
 
@@ -381,10 +410,15 @@ async function handleSubmit() {
                         <input
                           v-model="item.quantity_used"
                           type="number"
-                          step="0.01"
-                          min="0.001"
+                          step="any"
+                          min="0"
                           placeholder="Cantidad"
-                          class="w-full px-2.5 py-1.5 bg-white rounded-lg border border-brand-primary/20 text-xs font-bold text-brand-secondary text-right focus:outline-none focus:border-brand-primary shadow-soft-sm"
+                          :class="[
+                            'w-full px-2.5 py-1.5 bg-white rounded-lg border text-xs font-bold text-brand-secondary text-right focus:outline-none shadow-soft-sm transition-all',
+                            hasSubmitted && (!item.quantity_used || Number(item.quantity_used) <= 0)
+                              ? 'border-red-400 focus:border-red-500 ring-2 ring-red-400/20 bg-red-50/15'
+                              : 'border-brand-primary/20 focus:border-brand-primary'
+                          ]"
                         />
                         <span class="text-[11px] font-bold text-brand-primary/70 shrink-0 w-8">
                           {{ getMaterial(item.raw_material_id)?.unit || 'u' }}
@@ -412,26 +446,35 @@ async function handleSubmit() {
               </div>
 
               <!-- Sección Rendimientos y Cortes -->
-              <div class="space-y-3">
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-2">
-                    <Icon name="lucide:scissors" class="w-4 h-4 text-brand-primary" />
-                    <div>
-                      <span class="text-xs font-bold text-brand-secondary uppercase tracking-wider">
-                        Rendimientos / Formatos de Corte
-                      </span>
-                      <p class="text-[10px] text-brand-primary/70">
-                        ¿Cuántas piezas rinde la tanda completa según el tamaño de porcionamiento?
+              <div class="space-y-3 relative z-10">
+                <div class="flex items-center justify-between gap-2 pb-1.5 border-b border-brand-primary/10">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <div class="w-7 h-7 rounded-lg bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
+                      <Icon name="lucide:scissors" class="w-4 h-4" />
+                    </div>
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-1.5 min-w-0">
+                        <span class="text-xs sm:text-sm font-bold text-brand-secondary whitespace-nowrap">
+                          Formatos de Corte
+                        </span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-primary/10 text-brand-primary whitespace-nowrap shrink-0">
+                          {{ yields.length }} {{ yields.length === 1 ? 'corte' : 'cortes' }}
+                        </span>
+                      </div>
+                      <p class="hidden sm:block text-[10px] text-brand-primary/70 truncate">
+                        Piezas que rinde la tanda completa según porcionamiento
                       </p>
                     </div>
                   </div>
+
                   <button
                     type="button"
                     @click="addYield"
-                    class="px-2.5 py-1 bg-brand-primary/10 text-brand-primary hover:bg-brand-primary hover:text-white rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer"
+                    class="h-8 px-2.5 sm:px-3 bg-brand-primary text-white hover:bg-[#3C4A1C] rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer active:scale-95 shrink-0 whitespace-nowrap"
                   >
                     <Icon name="lucide:plus" class="w-3.5 h-3.5" />
-                    <span>Agregar Corte</span>
+                    <span class="sm:hidden">Corte</span>
+                    <span class="hidden sm:inline">Agregar Corte</span>
                   </button>
                 </div>
 
@@ -446,7 +489,12 @@ async function handleSubmit() {
                         v-model="y.size_name"
                         type="text"
                         placeholder="Ej: Grande, Mediano, Mini"
-                        class="w-full px-2.5 py-1.5 bg-white rounded-lg border border-brand-primary/20 text-xs font-bold text-brand-secondary focus:outline-none focus:border-brand-primary"
+                        :class="[
+                          'w-full px-2.5 py-1.5 bg-white rounded-lg border text-xs font-bold text-brand-secondary focus:outline-none transition-all',
+                          hasSubmitted && !y.size_name.trim()
+                            ? 'border-red-400 focus:border-red-500 ring-2 ring-red-400/20 bg-red-50/15'
+                            : 'border-brand-primary/20 focus:border-brand-primary'
+                        ]"
                       />
                       <button
                         v-if="yields.length > 1"
@@ -465,9 +513,15 @@ async function handleSubmit() {
                         <input
                           v-model="y.yield_units"
                           type="number"
+                          step="1"
                           min="1"
                           placeholder="12"
-                          class="w-20 px-2 py-1 bg-white rounded-lg border border-brand-primary/20 text-xs font-bold text-center text-brand-secondary focus:outline-none focus:border-brand-primary"
+                          :class="[
+                            'w-20 px-2 py-1 bg-white rounded-lg border text-xs font-bold text-center text-brand-secondary focus:outline-none transition-all',
+                            hasSubmitted && (!y.yield_units || Number(y.yield_units) <= 0)
+                              ? 'border-red-400 focus:border-red-500 ring-2 ring-red-400/20 bg-red-50/15'
+                              : 'border-brand-primary/20 focus:border-brand-primary'
+                          ]"
                         />
                         <span class="text-[10px] text-brand-primary/70 font-semibold">piezas</span>
                       </div>
@@ -484,33 +538,33 @@ async function handleSubmit() {
                 </div>
               </div>
 
-              <!-- Tarjeta KPI de Costeo en Tiempo Real -->
-              <div class="bg-[#4A5D23] p-4 sm:p-5 rounded-2xl text-[#F4F1E1] shadow-lg relative overflow-hidden">
-                <div class="absolute -right-4 -bottom-4 w-32 h-32 opacity-10 pointer-events-none">
+              <!-- Tarjeta KPI de Costeo en Tiempo Real (Compacto y Responsive) -->
+              <div class="bg-[#4A5D23] p-3 sm:p-4 rounded-2xl text-[#F4F1E1] shadow-lg relative overflow-hidden">
+                <div class="absolute -right-4 -bottom-4 w-28 h-28 opacity-10 pointer-events-none">
                   <Icon name="lucide:calculator" class="w-full h-full text-white" />
                 </div>
-                <div class="relative z-10 grid grid-cols-1 sm:grid-cols-3 gap-4 text-center sm:text-left items-center">
-                  <div>
-                    <span class="text-[10px] font-bold uppercase tracking-widest text-[#F4F1E1]/70 block">
-                      Insumos Directos
+                <div class="relative z-10 grid grid-cols-3 gap-2 sm:gap-4 text-center items-center divide-x divide-white/15">
+                  <div class="px-1">
+                    <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-[#F4F1E1]/80 block">
+                      Insumos
                     </span>
-                    <span class="text-xl font-bold font-inter">
+                    <span class="text-xs sm:text-base font-bold font-inter block mt-0.5">
                       S/ {{ liveSummary.materialsCost.toFixed(2) }}
                     </span>
                   </div>
-                  <div>
-                    <span class="text-[10px] font-bold uppercase tracking-widest text-[#F4F1E1]/70 block">
-                      Costos Indirectos (CIF)
+                  <div class="px-1">
+                    <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-[#F4F1E1]/80 block">
+                      Costos CIF
                     </span>
-                    <span class="text-xl font-bold font-inter">
+                    <span class="text-xs sm:text-base font-bold font-inter block mt-0.5">
                       S/ {{ liveSummary.cifCost.toFixed(2) }}
                     </span>
                   </div>
-                  <div class="sm:border-l sm:border-white/20 sm:pl-4">
-                    <span class="text-[10px] font-bold uppercase tracking-widest text-[#F4F1E1]/70 block">
-                      Costo Total de Tanda
+                  <div class="px-1">
+                    <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-white block">
+                      Total Tanda
                     </span>
-                    <span class="text-2xl sm:text-3xl font-black font-inter tracking-tight text-white">
+                    <span class="text-sm sm:text-xl font-black font-inter tracking-tight text-white block mt-0.5">
                       S/ {{ liveSummary.totalCost.toFixed(2) }}
                     </span>
                   </div>

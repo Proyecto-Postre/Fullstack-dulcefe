@@ -914,8 +914,8 @@ watch(batchSearchQuery, () => {
                   <input
                     v-model="newRecipeItem.quantity_used"
                     type="number"
-                    step="0.01"
-                    min="0.001"
+                    step="any"
+                    min="0"
                     placeholder="Cantidad usada"
                     class="flex-1 min-w-0 px-3 py-2 bg-brand-cream/40 rounded-xl border border-brand-primary/20 text-xs font-bold text-brand-secondary focus:outline-none focus:border-brand-primary"
                   />

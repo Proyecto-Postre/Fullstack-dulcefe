@@ -69,7 +69,7 @@ function isSelected(val: unknown) {
 </script>
 
 <template>
-  <div class="relative w-full">
+  <div class="relative w-full" :class="{ 'z-50': isOpen }">
     <!-- Overlay para detectar clic afuera -->
     <div v-if="isOpen" @click="isOpen = false" class="fixed inset-0 z-40"></div>
 
