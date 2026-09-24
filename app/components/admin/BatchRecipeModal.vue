@@ -269,15 +269,6 @@ async function handleSubmit() {
 
           <!-- Body Scrollable -->
           <div class="p-5 sm:p-6 overflow-y-auto flex-1 space-y-6">
-            <!-- Error Banner -->
-            <div
-              v-if="errorMessage"
-              class="p-3.5 bg-red-50 border border-red-200 text-red-800 rounded-xl text-xs sm:text-sm flex items-start gap-2.5"
-            >
-              <Icon name="lucide:alert-circle" class="w-4 h-4 shrink-0 mt-0.5 text-red-600" />
-              <span>{{ errorMessage }}</span>
-            </div>
-
             <form @submit.prevent="handleSubmit" id="batch-form" novalidate class="space-y-6">
               <!-- Datos Principales -->
               <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
