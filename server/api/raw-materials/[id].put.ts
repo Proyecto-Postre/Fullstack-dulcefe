@@ -13,12 +13,12 @@ export default defineEventHandler(async (event) => {
   }
 
   const body = await readBody(event)
-  const { name, unit, purchase_price, purchase_quantity, stock, reason } = body || {}
+  const { name, unit, purchase_price, purchase_quantity, stock, reason, type } = body || {}
 
   const data = await InventoryService.updateMaterial(
     event,
     Number(id),
-    { name, unit, purchase_price, purchase_quantity, stock, reason },
+    { name, unit, purchase_price, purchase_quantity, stock, reason, type },
     requestId
   )
 

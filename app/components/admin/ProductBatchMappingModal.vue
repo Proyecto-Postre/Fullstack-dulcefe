@@ -126,9 +126,11 @@ const yieldOptions = computed(() => {
 })
 
 const packagingOptions = computed(() => {
-  return sortedMaterials.value.map((mat) => ({
+  const onlyPackaging = sortedMaterials.value.filter((mat) => mat.type === 'packaging')
+  const targetList = onlyPackaging.length > 0 ? onlyPackaging : sortedMaterials.value
+  return targetList.map((mat) => ({
     label: mat.name || 'Empaque',
-    sublabel: `${mat.unit} — S/ ${Number(mat.purchase_price).toFixed(2)}`,
+    sublabel: `${mat.unit} — S/ ${Number(mat.purchase_price).toFixed(2)} por ${mat.purchase_quantity}${mat.unit}`,
     value: mat.id
   }))
 })
@@ -296,7 +298,7 @@ async function handleSave() {
           </div>
 
           <!-- Body Scrollable -->
-          <div class="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4 sm:space-y-5">
+          <div class="p-4 sm:p-6 pb-28 sm:pb-32 overflow-y-auto flex-1 space-y-4 sm:space-y-5">
             <!-- Spinner mientras carga composición -->
             <div v-if="isLoading" class="py-12 flex flex-col items-center justify-center text-brand-primary gap-2">
               <Icon name="lucide:loader-2" class="w-7 h-7 animate-spin" />

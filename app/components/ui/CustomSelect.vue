@@ -17,11 +17,13 @@ const props = withDefaults(
     buttonClass?: string
     disabled?: boolean
     size?: 'sm' | 'md'
+    placement?: 'auto' | 'top' | 'bottom'
   }>(),
   {
     placeholder: 'Seleccionar...',
     disabled: false,
-    size: 'md'
+    size: 'md',
+    placement: 'auto'
   }
 )
 
@@ -31,6 +33,27 @@ const emit = defineEmits<{
 }>()
 
 const isOpen = ref(false)
+const containerRef = ref<HTMLElement | null>(null)
+const openUpward = ref(false)
+
+function toggleOpen() {
+  if (props.disabled) return
+  if (!isOpen.value) {
+    if (props.placement === 'top') {
+      openUpward.value = true
+    } else if (props.placement === 'bottom') {
+      openUpward.value = false
+    } else if (containerRef.value && typeof window !== 'undefined') {
+      const rect = containerRef.value.getBoundingClientRect()
+      const spaceBelow = window.innerHeight - rect.bottom
+      // Si hay menos de 240px de espacio libre abajo y al menos 200px arriba, abrir hacia arriba
+      openUpward.value = spaceBelow < 240 && rect.top > 200
+    }
+    isOpen.value = true
+  } else {
+    isOpen.value = false
+  }
+}
 
 const selectedOption = computed(() => {
   if (props.modelValue === null || props.modelValue === undefined || props.modelValue === '') return null
@@ -69,7 +92,7 @@ function isSelected(val: unknown) {
 </script>
 
 <template>
-  <div class="relative w-full" :class="{ 'z-50': isOpen }">
+  <div ref="containerRef" class="relative w-full" :class="{ 'z-50': isOpen }">
     <!-- Overlay para detectar clic afuera -->
     <div v-if="isOpen" @click="isOpen = false" class="fixed inset-0 z-40"></div>
 
@@ -77,7 +100,7 @@ function isSelected(val: unknown) {
     <button 
       type="button"
       :disabled="disabled"
-      @click="!disabled && (isOpen = !isOpen)" 
+      @click="toggleOpen" 
       :class="[
         'w-full border transition-all flex items-center justify-between text-left focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 shadow-soft-sm relative',
         size === 'sm' ? 'pl-3 pr-8 py-2 rounded-xl text-xs' : 'pl-3.5 sm:pl-4 pr-9 sm:pr-10 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm',
@@ -116,7 +139,10 @@ function isSelected(val: unknown) {
     >
       <div 
         v-if="isOpen && !disabled" 
-        class="absolute z-50 w-full mt-1.5 bg-white border border-brand-primary/20 rounded-xl shadow-2xl max-h-56 overflow-y-auto custom-scrollbar overflow-x-hidden py-1 origin-top"
+        :class="[
+          'absolute z-50 w-full bg-white border border-brand-primary/20 rounded-xl shadow-2xl max-h-56 overflow-y-auto custom-scrollbar overflow-x-hidden py-1',
+          openUpward ? 'bottom-full mb-1.5 origin-bottom' : 'top-full mt-1.5 origin-top'
+        ]"
       >
         <div v-if="options.length === 0" class="px-3.5 py-2.5 text-xs text-brand-primary/60 italic font-medium">
           No hay opciones disponibles

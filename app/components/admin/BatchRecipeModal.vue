@@ -80,11 +80,13 @@ const sortedMaterials = computed(() => {
 })
 
 const materialOptions = computed(() => {
-  return sortedMaterials.value.map((mat) => ({
-    label: mat.name || 'Insumo',
-    sublabel: `${mat.unit} — S/ ${Number(mat.purchase_price).toFixed(2)} por ${mat.purchase_quantity}${mat.unit}`,
-    value: mat.id
-  }))
+  return sortedMaterials.value
+    .filter((mat) => mat.type !== 'packaging')
+    .map((mat) => ({
+      label: mat.name || 'Insumo',
+      sublabel: `${mat.unit} — S/ ${Number(mat.purchase_price).toFixed(2)} por ${mat.purchase_quantity}${mat.unit}`,
+      value: mat.id
+    }))
 })
 
 function getMaterial(id: number | '') {
