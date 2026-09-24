@@ -500,56 +500,57 @@ async function handleSave() {
                 </div>
               </div>
 
-              <!-- Tarjeta de Rentabilidad y Margen Comercial — Estilo Cálido Dulce Fe -->
-              <div class="bg-gradient-to-br from-brand-cream/70 via-brand-cream/40 to-surface rounded-2xl p-3 sm:p-4 border border-brand-primary/20 shadow-2xs space-y-3 relative overflow-hidden">
-                <!-- Fila 1: Grid de 3 Columnas Horizontales con Divisores Cálidos -->
-                <div class="grid grid-cols-3 divide-x divide-brand-primary/15 text-center">
+              <!-- Tarjeta de Rentabilidad y Margen Comercial — Verde Insignia Dulce Fe -->
+              <div class="bg-gradient-to-br from-[#556C2B] via-[#4A5D23] to-[#3E4F1C] rounded-2xl p-3.5 sm:p-4 text-white shadow-md border border-[#627D30]/40 relative overflow-hidden">
+                <!-- Marca de agua decorativa sutil -->
+                <div class="absolute -right-3 -bottom-3 w-24 h-24 opacity-10 pointer-events-none text-white">
+                  <Icon name="lucide:calculator" class="w-full h-full" />
+                </div>
+
+                <!-- Fila 1: Grid de 3 Columnas Horizontales con Divisores Luminosos -->
+                <div class="relative z-10 grid grid-cols-3 divide-x divide-white/20 text-center">
                   <div class="px-1 sm:px-2">
-                    <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-brand-primary/80 block truncate">
+                    <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-[#F4F1E1]/80 block truncate">
                       Costo Masa
                     </span>
-                    <span class="text-xs sm:text-base font-extrabold text-brand-secondary mt-0.5 block truncate">
+                    <span class="text-xs sm:text-base font-extrabold text-white mt-0.5 block truncate">
                       S/ {{ doughCost.toFixed(2) }}
                     </span>
                   </div>
                   <div class="px-1 sm:px-2">
-                    <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-brand-primary/80 block truncate">
+                    <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-[#F4F1E1]/80 block truncate">
                       Empaques
                     </span>
-                    <span class="text-xs sm:text-base font-extrabold text-brand-secondary mt-0.5 block truncate">
+                    <span class="text-xs sm:text-base font-extrabold text-white mt-0.5 block truncate">
                       S/ {{ packagingTotalCost.toFixed(2) }}
                     </span>
                   </div>
                   <div class="px-1 sm:px-2">
-                    <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-brand-primary block truncate">
+                    <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-amber-200 block truncate">
                       Costo Total
                     </span>
-                    <span class="text-xs sm:text-base font-black text-brand-primary mt-0.5 block truncate">
+                    <span class="text-xs sm:text-base font-black text-amber-200 mt-0.5 block truncate">
                       S/ {{ totalProductionCost.toFixed(2) }}
                     </span>
                   </div>
                 </div>
 
-                <!-- Fila 2: Cinta Integrada de Margen Comercial en Fondo Blanco Pulido -->
-                <div class="pt-2.5 border-t border-brand-primary/10 flex items-center justify-between px-1">
+                <!-- Fila 2: Cinta Integrada de Margen Comercial -->
+                <div class="relative z-10 mt-2.5 pt-2.5 border-t border-white/20 flex items-center justify-between px-1">
                   <div class="flex items-center gap-1.5 min-w-0">
-                    <div class="w-6 h-6 rounded-lg bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
-                      <Icon name="lucide:trending-up" class="w-3.5 h-3.5" />
-                    </div>
-                    <span class="text-[10px] sm:text-xs font-black uppercase tracking-wider text-brand-secondary truncate">
+                    <Icon name="lucide:trending-up" class="w-3.5 h-3.5 text-lime-200 shrink-0" />
+                    <span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-white/90 truncate">
                       Margen Comercial
                     </span>
                   </div>
-                  <div class="flex items-center gap-1.5 shrink-0">
+                  <div class="bg-black/20 backdrop-blur-xs border border-white/20 px-2.5 py-1 rounded-xl flex items-center gap-1.5 shrink-0">
                     <span
-                      class="px-2.5 py-1 rounded-xl text-xs sm:text-sm font-black border"
-                      :class="margins.marginPercent >= 40 
-                        ? 'bg-emerald-50 text-emerald-800 border-emerald-300' 
-                        : (margins.marginPercent >= 20 ? 'bg-amber-50 text-amber-800 border-amber-300' : 'bg-red-50 text-red-800 border-red-300')"
+                      class="text-xs sm:text-sm font-black"
+                      :class="margins.marginPercent >= 40 ? 'text-lime-300' : (margins.marginPercent >= 20 ? 'text-amber-200' : 'text-rose-200')"
                     >
                       {{ margins.marginPercent }}%
                     </span>
-                    <span class="text-[11px] sm:text-xs text-brand-primary font-bold">
+                    <span class="text-[10px] sm:text-[11px] text-[#F4F1E1]/90 font-bold">
                       (S/ {{ margins.marginSoles.toFixed(2) }})
                     </span>
                   </div>
