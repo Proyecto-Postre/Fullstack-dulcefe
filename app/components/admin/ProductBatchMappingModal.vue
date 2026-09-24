@@ -5,6 +5,7 @@ import type { ProductRow } from '~/types/catalog'
 import type { RawMaterialRow } from '~/types/inventory'
 import type { BaseRecipeDetail, ProductBatchComposition } from '~/types/batch-recipe'
 import { calculateProductMargins } from '~/composables/admin/useAdminBatchRecipes'
+import CustomSelect from '~/components/ui/CustomSelect.vue'
 
 interface FormPackaging {
   raw_material_id: number | ''
@@ -30,6 +31,7 @@ const packagingItems = ref<FormPackaging[]>([])
 
 const isLoading = ref(false)
 const isSubmitting = ref(false)
+const hasSubmitted = ref(false)
 const errorMessage = ref('')
 
 watch(
@@ -37,6 +39,7 @@ watch(
   async (newVal) => {
     if (newVal && props.product?.id) {
       errorMessage.value = ''
+      hasSubmitted.value = false
       await loadProductComposition(props.product.id)
     }
   }
@@ -99,8 +102,6 @@ watch(selectedBatchId, (newBatchId) => {
     }
   }
 })
-
-import CustomSelect from '~/components/CustomSelect.vue'
 
 // Insumos ordenados alfabéticamente
 const sortedMaterials = computed(() => {
@@ -181,15 +182,20 @@ const margins = computed(() => {
 })
 
 function closeModal() {
+  hasSubmitted.value = false
   emit('close')
 }
 
 async function handleSave() {
   if (!props.product?.id) return
+  hasSubmitted.value = true
   errorMessage.value = ''
 
   if (!selectedYieldId.value || !unitsContained.value || Number(unitsContained.value) <= 0) {
-    errorMessage.value = 'Selecciona una tanda, un corte y la cantidad de piezas contenidas.'
+    errorMessage.value = 'Selecciona una tanda base, un corte y la cantidad de piezas contenidas.'
+    toast.error('Datos incompletos', {
+      description: 'Selecciona una tanda, corte y cantidad válida de piezas.'
+    })
     return
   }
 
@@ -232,6 +238,7 @@ async function handleSave() {
       fetchErr.data?.statusMessage ||
       fetchErr.message ||
       'Error al guardar la composición de tanda del producto.'
+    toast.error('Error al guardar', { description: errorMessage.value })
   } finally {
     isSubmitting.value = false
   }
@@ -247,7 +254,7 @@ async function handleSave() {
       >
         <!-- Overlay -->
         <div
-          class="fixed inset-0 bg-[#2A321B]/50 backdrop-blur-sm transition-opacity"
+          class="fixed inset-0 bg-[#2A321B]/55 backdrop-blur-sm transition-opacity"
           @click="closeModal"
         ></div>
 
@@ -259,32 +266,37 @@ async function handleSave() {
           class="relative w-full max-w-3xl bg-white rounded-3xl sm:rounded-[2rem] shadow-2xl overflow-hidden animate-pop border border-[#4A5D23]/10 max-h-[92vh] flex flex-col z-10"
         >
           <!-- Header -->
-          <div class="px-4 py-3 sm:px-6 sm:py-4 border-b border-brand-primary/10 flex items-center sm:items-start justify-between gap-3 bg-gradient-to-r from-surface via-surface to-brand-cream/30 shrink-0">
-            <div class="flex items-center sm:items-start gap-2.5 sm:gap-3.5 min-w-0">
-              <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0 shadow-2xs sm:mt-0.5">
+          <div class="px-4 py-3 sm:px-6 sm:py-4 border-b border-brand-primary/10 flex items-center justify-between gap-3 bg-gradient-to-r from-surface via-surface to-brand-cream/30 shrink-0">
+            <div class="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+              <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0 shadow-2xs">
                 <Icon name="lucide:boxes" class="w-4 h-4 sm:w-6 sm:h-6 stroke-[2]" />
               </div>
               <div class="min-w-0">
-                <h3 id="modal-mapping-title" class="text-sm sm:text-base lg:text-xl font-playfair font-bold text-brand-secondary leading-snug">
+                <h3 id="modal-mapping-title" class="text-sm sm:text-base lg:text-xl font-playfair font-bold text-brand-secondary leading-snug truncate">
                   Composición de Tanda y Empaques
                 </h3>
-                <p class="text-xs text-brand-primary/80 font-medium leading-relaxed mt-0.5">
-                  <span class="hidden sm:inline">Producto Comercial: </span><strong class="text-brand-secondary">{{ product?.name }}</strong> (S/ {{ Number(product?.price || 0).toFixed(2) }})
-                </p>
+                <div class="flex items-center gap-1.5 flex-wrap mt-0.5">
+                  <span class="text-[11px] sm:text-xs text-brand-primary/80 font-medium truncate max-w-[160px] sm:max-w-none">
+                    {{ product?.name }}
+                  </span>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-brand-primary/10 text-brand-primary text-[10px] font-bold tracking-tight">
+                    S/ {{ Number(product?.price || 0).toFixed(2) }}
+                  </span>
+                </div>
               </div>
             </div>
             <button
               type="button"
               aria-label="Cerrar modal"
               @click="closeModal"
-              class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-white border border-brand-primary/20 text-brand-secondary hover:bg-brand-cream hover:text-brand-primary hover:border-brand-primary/40 active:scale-95 transition-all shadow-2xs shrink-0 cursor-pointer sm:mt-0.5"
+              class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-white border border-brand-primary/20 text-brand-secondary hover:bg-brand-cream hover:text-brand-primary hover:border-brand-primary/40 active:scale-95 transition-all shadow-2xs shrink-0 cursor-pointer"
             >
               <Icon name="lucide:x" class="w-4 h-4" />
             </button>
           </div>
 
           <!-- Body Scrollable -->
-          <div class="p-5 sm:p-6 overflow-y-auto flex-1 space-y-5">
+          <div class="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4 sm:space-y-5">
             <!-- Spinner mientras carga composición -->
             <div v-if="isLoading" class="py-12 flex flex-col items-center justify-center text-brand-primary gap-2">
               <Icon name="lucide:loader-2" class="w-7 h-7 animate-spin" />
@@ -292,29 +304,29 @@ async function handleSave() {
             </div>
 
             <template v-else>
-              <!-- Error Banner -->
-              <div
-                v-if="errorMessage"
-                class="p-3 bg-red-50 border border-red-200 text-red-800 rounded-xl text-xs sm:text-sm flex items-start gap-2.5"
-              >
-                <Icon name="lucide:alert-circle" class="w-4 h-4 shrink-0 mt-0.5 text-red-600" />
-                <span>{{ errorMessage }}</span>
-              </div>
-
               <!-- Sección 1: Selección de Tanda Base y Formato -->
-              <div class="p-4 bg-brand-cream/30 rounded-2xl border border-brand-primary/15 space-y-3">
-                <div class="flex items-center gap-2">
-                  <Icon name="lucide:layers" class="w-4 h-4 text-brand-primary" />
-                  <span class="text-xs font-bold text-brand-secondary uppercase tracking-wider">
-                    1. Porción de Tanda Base (Masa / Relleno)
-                  </span>
+              <div class="p-3.5 sm:p-4 bg-gradient-to-br from-brand-cream/40 via-brand-cream/20 to-surface rounded-2xl border border-brand-primary/15 shadow-2xs space-y-3">
+                <div class="flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <div class="w-6 h-6 rounded-lg bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
+                      <Icon name="lucide:layers" class="w-3.5 h-3.5" />
+                    </div>
+                    <span class="text-xs font-black text-brand-secondary uppercase tracking-wider truncate">
+                      1. Porción de Tanda Base
+                    </span>
+                  </div>
+                  <div v-if="activeYield" class="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand-primary/10 text-brand-primary text-[10px] font-bold">
+                    <span>{{ activeYield.size_name }}</span>
+                    <span>•</span>
+                    <span>S/ {{ activeYield.unit_cost.toFixed(2) }}/u</span>
+                  </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 sm:gap-3.5">
-                  <!-- Tanda Base -->
-                  <div class="sm:col-span-5">
-                    <label class="block text-[10px] font-bold text-brand-primary uppercase tracking-widest mb-1.5">
-                      Tanda Base Maestra
+                <div class="grid grid-cols-12 gap-2.5 sm:gap-3">
+                  <!-- Tanda Base Maestra (Fila completa en móvil, 6 cols en desktop) -->
+                  <div class="col-span-12 sm:col-span-6" :style="{ zIndex: 30 }">
+                    <label class="block text-[10px] font-bold text-brand-primary uppercase tracking-widest mb-1">
+                      Tanda Base Maestra *
                     </label>
                     <CustomSelect
                       v-model="selectedBatchId"
@@ -322,86 +334,121 @@ async function handleSave() {
                       placeholder="Selecciona una tanda..."
                       size="sm"
                       bgClass="bg-white"
+                      :class="hasSubmitted && !selectedBatchId ? 'ring-2 ring-red-400/30 rounded-xl' : ''"
                     />
                   </div>
 
-                  <!-- Corte de Rendimiento -->
-                  <div class="sm:col-span-4">
-                    <label class="block text-[10px] font-bold text-brand-primary uppercase tracking-widest mb-1.5">
-                      Corte / Tamaño
+                  <!-- Corte de Rendimiento (7 cols en móvil, 4 cols en desktop) -->
+                  <div class="col-span-7 sm:col-span-4" :style="{ zIndex: 29 }">
+                    <label class="block text-[10px] font-bold text-brand-primary uppercase tracking-widest mb-1 truncate">
+                      Corte / Tamaño *
                     </label>
                     <CustomSelect
                       v-model="selectedYieldId"
                       :options="yieldOptions"
                       :disabled="!activeBatch || yieldOptions.length === 0"
-                      placeholder="Selecciona el corte..."
+                      placeholder="Selecciona corte..."
                       size="sm"
                       bgClass="bg-white"
+                      :class="hasSubmitted && !selectedYieldId ? 'ring-2 ring-red-400/30 rounded-xl' : ''"
                     />
                   </div>
 
-                  <!-- Piezas Contenidas -->
-                  <div class="sm:col-span-3">
-                    <label class="block text-[10px] font-bold text-brand-primary uppercase tracking-widest mb-1.5">
-                      Piezas en el Producto
+                  <!-- Piezas Contenidas (5 cols en móvil, 2 cols en desktop) -->
+                  <div class="col-span-5 sm:col-span-2">
+                    <label class="block text-[10px] font-bold text-brand-primary uppercase tracking-widest mb-1 truncate">
+                      Piezas *
                     </label>
-                    <div class="flex items-center gap-1.5">
+                    <div class="relative flex items-center">
                       <input
                         v-model="unitsContained"
                         type="number"
                         min="1"
                         placeholder="1"
-                        class="w-full px-3 py-2 bg-white rounded-xl border border-brand-primary/20 text-xs font-black text-center text-brand-secondary focus:outline-none focus:border-brand-primary shadow-soft-sm"
+                        :class="[
+                          'w-full pl-2.5 pr-6 py-2 bg-white rounded-xl border text-xs font-black text-center text-brand-secondary focus:outline-none transition-all shadow-2xs',
+                          hasSubmitted && (!unitsContained || Number(unitsContained) <= 0)
+                            ? 'border-red-400 ring-2 ring-red-400/20 bg-red-50/15'
+                            : 'border-brand-primary/20 focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10'
+                        ]"
                       />
-                      <span class="text-xs font-bold text-brand-primary/70 shrink-0">u</span>
+                      <span class="absolute right-2 text-[11px] font-black text-brand-primary/60 pointer-events-none select-none">
+                        u
+                      </span>
                     </div>
                   </div>
                 </div>
 
                 <!-- Resumen de Costo de Masa -->
                 <div v-if="activeYield" class="pt-2 border-t border-brand-primary/10 flex items-center justify-between text-xs">
-                  <span class="text-brand-primary font-medium">
-                    {{ unitsContained }} {{ activeYield.size_name }} &times; S/ {{ activeYield.unit_cost.toFixed(2) }}
-                  </span>
-                  <span class="font-bold text-brand-secondary">
-                    Subtotal Masa: S/ {{ doughCost.toFixed(2) }}
-                  </span>
+                  <div class="flex items-center gap-1.5 text-brand-primary/90 font-medium">
+                    <Icon name="lucide:check-circle-2" class="w-3.5 h-3.5 text-brand-primary shrink-0" />
+                    <span>{{ unitsContained || 0 }} {{ activeYield.size_name }} &times; S/ {{ activeYield.unit_cost.toFixed(2) }}</span>
+                  </div>
+                  <div class="font-bold text-brand-secondary">
+                    <span class="text-brand-primary/70 text-[11px] font-medium mr-1 hidden sm:inline">Subtotal Masa:</span>
+                    <span class="bg-brand-primary/10 px-2 py-0.5 rounded-lg text-brand-secondary font-black">
+                      S/ {{ doughCost.toFixed(2) }}
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              <!-- Sección 2: Empaques Directos -->
-              <div class="space-y-3">
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-2">
-                    <Icon name="lucide:package" class="w-4 h-4 text-brand-primary" />
-                    <div>
-                      <span class="text-xs font-bold text-brand-secondary uppercase tracking-wider">
-                        2. Empaques Directos de Presentación
-                      </span>
-                      <p class="text-[10px] text-brand-primary/70">
-                        Cajas, etiquetas, cintas, papel encerado o bolsas que acompañan la venta
+              <!-- Sección 2: Empaques Directos de Presentación -->
+              <div class="space-y-2.5">
+                <div class="flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <div class="w-6 h-6 rounded-lg bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
+                      <Icon name="lucide:package" class="w-3.5 h-3.5" />
+                    </div>
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-1.5">
+                        <span class="text-xs font-black text-brand-secondary uppercase tracking-wider truncate">
+                          2. Empaques de Presentación
+                        </span>
+                        <span
+                          v-if="packagingItems.length > 0"
+                          class="px-1.5 py-0.2 rounded-full bg-brand-primary/15 text-brand-primary text-[10px] font-black"
+                        >
+                          {{ packagingItems.length }}
+                        </span>
+                      </div>
+                      <p class="text-[10px] text-brand-primary/70 truncate hidden sm:block">
+                        Cajas, etiquetas, cintas, papel encerado o bolsas
                       </p>
                     </div>
                   </div>
+
+                  <!-- Botón Agregar Empaque Compacto Estilo Dulce Fe -->
                   <button
                     type="button"
                     @click="addPackaging"
-                    class="px-2.5 py-1 bg-brand-primary/10 text-brand-primary hover:bg-brand-primary hover:text-white rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer"
+                    class="h-8 px-3 rounded-xl bg-brand-primary text-white hover:bg-[#3C4A1C] text-xs font-bold flex items-center gap-1.5 shadow-2xs active:scale-95 transition-all cursor-pointer shrink-0"
                   >
-                    <Icon name="lucide:plus" class="w-3.5 h-3.5" />
-                    <span>Agregar Empaque</span>
+                    <Icon name="lucide:plus" class="w-3.5 h-3.5 stroke-[2.5]" />
+                    <span>Agregar</span>
                   </button>
                 </div>
 
-                <div v-if="packagingItems.length === 0" class="p-3 bg-brand-cream/20 rounded-xl text-center text-xs text-brand-primary/70">
-                  Sin empaques asignados. Haz clic en "Agregar Empaque" para incluir caja, cinta o etiqueta.
+                <!-- Estado Vacío Estilizado -->
+                <div
+                  v-if="packagingItems.length === 0"
+                  class="p-4 sm:p-5 rounded-2xl border-2 border-dashed border-brand-primary/20 bg-brand-cream/20 text-center flex flex-col items-center justify-center gap-1 text-brand-primary/70"
+                >
+                  <Icon name="lucide:package-open" class="w-6 h-6 text-brand-primary/40 mb-0.5" />
+                  <span class="text-xs font-bold text-brand-secondary">Sin empaques asignados</span>
+                  <span class="text-[11px] text-brand-primary/70 max-w-xs">
+                    Haz clic en "+ Agregar" para registrar caja, sticker o cinta de presentación.
+                  </span>
                 </div>
 
-                <div v-else class="space-y-2.5 max-h-52 overflow-y-auto custom-scrollbar pr-1">
+                <!-- Lista de Empaques con z-index escalonado para CustomSelect -->
+                <div v-else class="space-y-2">
                   <div
                     v-for="(pkg, index) in packagingItems"
                     :key="index"
-                    class="p-2.5 sm:p-3 bg-brand-cream/30 rounded-xl border border-brand-primary/15 flex flex-col sm:flex-row sm:items-center gap-2.5 shadow-soft-sm"
+                    :style="{ zIndex: 20 - index }"
+                    class="p-2.5 sm:p-3 bg-white rounded-2xl border border-brand-primary/15 flex flex-col sm:flex-row sm:items-center gap-2 shadow-2xs relative"
                   >
                     <!-- Selector de Insumo Empaque con CustomSelect -->
                     <div class="flex-1 min-w-0">
@@ -410,74 +457,97 @@ async function handleSave() {
                         :options="packagingOptions"
                         placeholder="Selecciona un empaque..."
                         size="sm"
-                        bgClass="bg-white"
+                        bgClass="bg-brand-cream/20"
                       />
                     </div>
 
-                    <!-- Cantidad, Subtotal y Eliminar en fila responsive -->
+                    <!-- Fila de Controles: Cantidad, Subtotal y Eliminar -->
                     <div class="flex items-center justify-between sm:justify-end gap-2.5 shrink-0 pt-1.5 sm:pt-0 border-t sm:border-t-0 border-brand-primary/10">
-                      <!-- Cantidad de Empaque -->
-                      <div class="w-28 flex items-center gap-1.5">
+                      <!-- Cantidad de Empaque con unidad dinámica -->
+                      <div class="w-24 sm:w-28 relative flex items-center">
                         <input
                           v-model="pkg.quantity_used"
                           type="number"
-                          step="0.1"
-                          min="0.01"
+                          step="any"
+                          min="0"
                           placeholder="1"
-                          class="w-full px-2.5 py-1.5 bg-white rounded-lg border border-brand-primary/20 text-xs font-bold text-center text-brand-secondary focus:outline-none focus:border-brand-primary shadow-soft-sm"
+                          class="w-full pl-2.5 pr-7 py-1.5 bg-brand-cream/20 rounded-xl border border-brand-primary/20 text-xs font-bold text-center text-brand-secondary focus:outline-none focus:bg-white focus:border-brand-primary shadow-2xs"
                         />
-                        <span class="text-[10px] font-bold text-brand-primary/70 shrink-0">
+                        <span class="absolute right-2 text-[10px] font-bold text-brand-primary/60 pointer-events-none select-none uppercase">
                           {{ getMaterial(pkg.raw_material_id)?.unit || 'u' }}
                         </span>
                       </div>
 
                       <!-- Subtotal Costo Empaque -->
-                      <div class="w-20 text-right">
+                      <div class="w-16 sm:w-20 text-right">
                         <span class="text-xs font-black text-brand-secondary">
                           S/ {{ getPkgCost(pkg).toFixed(2) }}
                         </span>
                       </div>
 
-                      <!-- Eliminar -->
+                      <!-- Botón Eliminar Empaque -->
                       <button
                         type="button"
                         @click="removePackaging(index)"
-                        class="w-8 h-8 flex items-center justify-center rounded-lg text-red-500 hover:bg-red-50 hover:text-red-700 transition-colors shrink-0 cursor-pointer"
+                        class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg text-red-500 hover:bg-red-50 hover:text-red-700 active:scale-90 transition-all shrink-0 cursor-pointer"
                         title="Eliminar empaque"
                         aria-label="Eliminar empaque"
                       >
-                        <Icon name="lucide:trash-2" class="w-4 h-4" />
+                        <Icon name="lucide:trash-2" class="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       </button>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <!-- Tarjeta de Rentabilidad y Margen Comercial -->
-              <div class="bg-[#4A5D23] p-4 sm:p-5 rounded-2xl text-[#F4F1E1] shadow-lg relative overflow-hidden">
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center sm:text-left">
-                  <div>
-                    <span class="text-[9px] font-bold uppercase tracking-wider text-[#F4F1E1]/70 block">Costo Masa</span>
-                    <span class="text-lg font-bold">S/ {{ doughCost.toFixed(2) }}</span>
+              <!-- Tarjeta de Rentabilidad y Margen Comercial Compacta (Estilo Dulce Fe) -->
+              <div class="bg-gradient-to-br from-[#38481A] via-[#2D3915] to-[#1E270E] rounded-2xl p-3 sm:p-4 text-white shadow-md border border-white/10 relative overflow-hidden">
+                <!-- Fila 1: Grid de 3 Columnas Horizontales con Divisores -->
+                <div class="grid grid-cols-3 divide-x divide-white/15 text-center">
+                  <div class="px-1 sm:px-2">
+                    <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-white/70 block truncate">
+                      Costo Masa
+                    </span>
+                    <span class="text-xs sm:text-base font-extrabold text-white mt-0.5 block truncate">
+                      S/ {{ doughCost.toFixed(2) }}
+                    </span>
                   </div>
-                  <div>
-                    <span class="text-[9px] font-bold uppercase tracking-wider text-[#F4F1E1]/70 block">Costo Empaques</span>
-                    <span class="text-lg font-bold">S/ {{ packagingTotalCost.toFixed(2) }}</span>
+                  <div class="px-1 sm:px-2">
+                    <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-white/70 block truncate">
+                      Empaques
+                    </span>
+                    <span class="text-xs sm:text-base font-extrabold text-white mt-0.5 block truncate">
+                      S/ {{ packagingTotalCost.toFixed(2) }}
+                    </span>
                   </div>
-                  <div>
-                    <span class="text-[9px] font-bold uppercase tracking-wider text-[#F4F1E1]/70 block">Costo Producción</span>
-                    <span class="text-xl font-black text-white">S/ {{ totalProductionCost.toFixed(2) }}</span>
+                  <div class="px-1 sm:px-2">
+                    <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-amber-200 block truncate">
+                      Costo Total
+                    </span>
+                    <span class="text-xs sm:text-base font-black text-amber-200 mt-0.5 block truncate">
+                      S/ {{ totalProductionCost.toFixed(2) }}
+                    </span>
                   </div>
-                  <div class="border-t sm:border-t-0 sm:border-l sm:border-white/20 sm:pl-3 pt-2 sm:pt-0 col-span-2 sm:col-span-1">
-                    <span class="text-[9px] font-bold uppercase tracking-wider text-[#F4F1E1]/70 block">Margen Comercial</span>
-                    <div class="flex items-baseline gap-1">
-                      <span class="text-xl font-black" :class="margins.marginPercent >= 40 ? 'text-lime-300' : (margins.marginPercent >= 20 ? 'text-amber-300' : 'text-red-300')">
-                        {{ margins.marginPercent }}%
-                      </span>
-                      <span class="text-[10px] text-white/80 font-bold">
-                        (S/ {{ margins.marginSoles.toFixed(2) }})
-                      </span>
-                    </div>
+                </div>
+
+                <!-- Fila 2: Cinta Integrada de Margen Comercial -->
+                <div class="mt-2.5 pt-2.5 border-t border-white/15 flex items-center justify-between px-1">
+                  <div class="flex items-center gap-1.5 min-w-0">
+                    <Icon name="lucide:trending-up" class="w-3.5 h-3.5 text-lime-300 shrink-0" />
+                    <span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-white/80 truncate">
+                      Margen Comercial
+                    </span>
+                  </div>
+                  <div class="bg-black/30 border border-white/10 px-2.5 py-1 rounded-xl flex items-center gap-1.5 shrink-0">
+                    <span
+                      class="text-xs sm:text-sm font-black"
+                      :class="margins.marginPercent >= 40 ? 'text-lime-300' : (margins.marginPercent >= 20 ? 'text-amber-300' : 'text-red-300')"
+                    >
+                      {{ margins.marginPercent }}%
+                    </span>
+                    <span class="text-[10px] sm:text-[11px] text-white/80 font-bold">
+                      (S/ {{ margins.marginSoles.toFixed(2) }})
+                    </span>
                   </div>
                 </div>
               </div>
@@ -485,11 +555,11 @@ async function handleSave() {
           </div>
 
           <!-- Footer con Acciones -->
-          <div class="px-5 py-3.5 sm:px-6 sm:py-4 bg-brand-cream/30 border-t border-brand-primary/10 flex items-center justify-end gap-3 shrink-0">
+          <div class="px-4 py-3 sm:px-6 sm:py-3.5 bg-brand-cream/30 border-t border-brand-primary/10 flex items-center justify-end gap-2.5 shrink-0">
             <button
               type="button"
               @click="closeModal"
-              class="px-4 py-2 text-xs font-bold text-brand-secondary hover:bg-brand-cream/80 rounded-xl transition-colors cursor-pointer"
+              class="px-3.5 py-2 text-xs font-bold text-brand-secondary hover:bg-brand-cream/80 rounded-xl transition-colors cursor-pointer"
             >
               Cancelar
             </button>
@@ -497,11 +567,11 @@ async function handleSave() {
               type="button"
               @click="handleSave"
               :disabled="isSubmitting || isLoading || !selectedYieldId"
-              class="px-5 py-2.5 bg-brand-primary text-white text-xs font-bold rounded-xl hover:bg-[#3C4A1C] shadow-soft-sm active:scale-95 disabled:opacity-50 transition-all flex items-center gap-2 cursor-pointer"
+              class="h-9 px-4 sm:px-5 bg-brand-primary text-white text-xs font-bold rounded-xl hover:bg-[#3C4A1C] shadow-soft-sm active:scale-95 disabled:opacity-50 transition-all flex items-center gap-2 cursor-pointer"
             >
-              <Icon v-if="isSubmitting" name="lucide:loader-2" class="w-4 h-4 animate-spin" />
-              <Icon v-else name="lucide:check" class="w-4 h-4" />
-              <span>{{ isSubmitting ? 'Guardando Composición...' : 'Guardar Composición' }}</span>
+              <Icon v-if="isSubmitting" name="lucide:loader-2" class="w-3.5 h-3.5 animate-spin" />
+              <Icon v-else name="lucide:check" class="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>{{ isSubmitting ? 'Guardando...' : 'Guardar Composición' }}</span>
             </button>
           </div>
         </div>
