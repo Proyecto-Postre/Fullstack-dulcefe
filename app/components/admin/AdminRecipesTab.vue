@@ -458,35 +458,44 @@ function getBatchCostPcts(batch: any) {
         </button>
       </div>
 
-      <!-- CASO 1: Exactamente 1 tanda (Ocupa el 100% del ancho con flujo horizontal esbelto y profesional) -->
+      <!-- CASO 1: Exactamente 1 tanda (Ficha Panorámica Segmentada con Divisores Ejecutivos) -->
       <div v-else-if="paginatedBatches.length === 1" class="w-full">
         <div
           v-for="batch in paginatedBatches"
           :key="batch.id"
           class="bg-surface rounded-2xl border border-brand-primary/15 shadow-soft-sm hover:shadow-soft-md transition-all p-4 sm:p-5 relative group"
         >
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4 items-center">
-            <!-- Bloque 1: Identidad de la Tanda (3 cols en lg) -->
-            <div class="lg:col-span-3 space-y-1">
-              <div class="flex items-center gap-1.5 flex-wrap">
-                <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-brand-primary/10 text-brand-primary border border-brand-primary/20">
-                  Tanda Maestra
-                </span>
-                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-brand-cream text-brand-secondary border border-brand-primary/15">
-                  {{ batch.items.length }} {{ batch.items.length === 1 ? 'insumo' : 'insumos' }}
-                </span>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-5 items-center lg:divide-x lg:divide-brand-primary/10">
+            <!-- Bloque 1: Identidad de la Tanda (4 cols en lg) -->
+            <div class="lg:col-span-4 pr-0 lg:pr-5 flex items-start gap-3.5">
+              <div class="w-11 h-11 rounded-2xl bg-brand-cream/80 border border-brand-primary/15 text-brand-primary flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
+                <Icon name="lucide:chef-hat" class="w-5 h-5" />
               </div>
-              <h4 class="font-playfair font-bold text-lg sm:text-xl text-brand-secondary group-hover:text-brand-primary transition-colors">
-                {{ batch.name }}
-              </h4>
-              <p v-if="batch.description" class="text-xs text-brand-primary/70 break-words line-clamp-1">
-                {{ batch.description }}
-              </p>
+              <div class="min-w-0 flex-1 space-y-1">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-brand-primary/10 text-brand-primary border border-brand-primary/20">
+                    Tanda Maestra
+                  </span>
+                  <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-brand-cream text-brand-secondary border border-brand-primary/15">
+                    {{ batch.items.length }} {{ batch.items.length === 1 ? 'insumo' : 'insumos' }}
+                  </span>
+                </div>
+                <h4 class="font-playfair font-bold text-lg sm:text-xl text-brand-secondary group-hover:text-brand-primary transition-colors truncate" :title="batch.name">
+                  {{ batch.name }}
+                </h4>
+                <p v-if="batch.description" class="text-xs text-brand-primary/70 break-words line-clamp-1" :title="batch.description">
+                  {{ batch.description }}
+                </p>
+              </div>
             </div>
 
             <!-- Bloque 2: Métricas Financieras (3 cols en lg) -->
-            <div class="lg:col-span-3">
-              <div class="grid grid-cols-3 gap-1.5 p-2.5 bg-brand-cream/35 rounded-xl border border-brand-primary/10 text-center text-xs">
+            <div class="lg:col-span-3 px-0 lg:px-5 flex flex-col justify-center space-y-1.5">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-brand-primary/70 flex items-center gap-1">
+                <Icon name="lucide:calculator" class="w-3 h-3 text-brand-primary" />
+                Costo de Producción
+              </span>
+              <div class="grid grid-cols-3 gap-2 text-center bg-brand-cream/30 p-2.5 rounded-xl border border-brand-primary/10">
                 <div>
                   <span class="text-[9px] font-bold uppercase tracking-wider text-brand-primary/70 block">Insumos</span>
                   <span class="text-xs sm:text-sm font-bold text-brand-secondary">
@@ -508,31 +517,40 @@ function getBatchCostPcts(batch: any) {
               </div>
             </div>
 
-            <!-- Bloque 3: Formatos de Corte (4 cols en lg) -->
-            <div class="lg:col-span-4 space-y-1">
-              <span class="text-[10px] font-bold uppercase tracking-wider text-brand-primary/80 flex items-center gap-1">
-                <Icon name="lucide:scissors" class="w-3 h-3 text-brand-primary" />
-                Formatos de Corte ({{ batch.yields.length }})
-              </span>
-              <div class="flex flex-wrap gap-1.5 max-h-20 overflow-y-auto">
+            <!-- Bloque 3: Formatos de Corte (3 cols en lg) -->
+            <div class="lg:col-span-3 px-0 lg:px-5 flex flex-col justify-center space-y-1.5">
+              <div class="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-brand-primary/70">
+                <span class="flex items-center gap-1">
+                  <Icon name="lucide:scissors" class="w-3 h-3 text-brand-primary" />
+                  Formatos de Corte
+                </span>
+                <span class="text-brand-primary/60 lowercase font-medium">
+                  {{ batch.yields.length }} {{ batch.yields.length === 1 ? 'formato' : 'formatos' }}
+                </span>
+              </div>
+
+              <div class="space-y-1.5 max-h-20 overflow-y-auto pr-0.5">
                 <div
                   v-for="y in batch.yields"
                   :key="y.id"
-                  class="p-2 bg-white rounded-lg border border-brand-primary/10 flex items-center justify-between text-xs gap-3 flex-1 min-w-[140px] shadow-2xs"
+                  class="p-2 bg-brand-cream/20 rounded-xl border border-brand-primary/10 flex items-center justify-between text-xs hover:bg-brand-cream/40 transition-colors shadow-2xs"
                 >
-                  <div class="min-w-0">
-                    <span class="font-bold text-brand-secondary block text-xs truncate">{{ y.size_name }}</span>
-                    <span class="text-[9px] text-brand-primary/70 font-semibold">Rinde {{ y.yield_units }} u</span>
+                  <div class="min-w-0 mr-2 flex-1">
+                    <span class="font-bold text-brand-secondary block text-xs truncate leading-tight">{{ y.size_name }}</span>
+                    <span class="text-[10px] text-brand-primary/70 font-semibold">Rinde {{ y.yield_units }} u</span>
                   </div>
-                  <span class="font-black text-brand-primary bg-brand-cream/50 px-2 py-0.5 rounded text-xs shrink-0">
-                    S/ {{ y.unit_cost.toFixed(2) }}
-                  </span>
+                  <div class="text-right shrink-0 bg-white px-2 py-0.5 rounded-lg border border-brand-primary/10">
+                    <span class="font-black text-brand-primary text-xs">
+                      S/ {{ y.unit_cost.toFixed(2) }}
+                    </span>
+                    <span class="text-[9px] text-brand-primary/60 block leading-none">/ pieza</span>
+                  </div>
                 </div>
               </div>
             </div>
 
             <!-- Bloque 4: Acciones Operativas (2 cols en lg) -->
-            <div class="lg:col-span-2 flex flex-col sm:flex-row lg:flex-col items-stretch lg:items-end justify-center gap-2">
+            <div class="lg:col-span-2 pl-0 lg:pl-5 flex flex-col justify-center gap-2">
               <button
                 type="button"
                 @click="openQuickDeduction(batch.id)"
@@ -543,11 +561,11 @@ function getBatchCostPcts(batch: any) {
                 <span>Descargar</span>
               </button>
 
-              <div class="flex items-center justify-end gap-1.5 w-full">
+              <div class="flex items-center gap-1.5 w-full">
                 <button
                   type="button"
                   @click="handleEditBatch(batch)"
-                  class="flex-1 py-1.5 px-2 bg-brand-cream/60 hover:bg-brand-primary hover:text-white text-brand-secondary rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition-all cursor-pointer"
+                  class="flex-1 py-1.5 px-2 bg-brand-cream/60 hover:bg-brand-primary hover:text-white text-brand-secondary rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition-all cursor-pointer shadow-2xs"
                 >
                   <Icon name="lucide:edit-3" class="w-3 h-3" />
                   <span>Editar</span>
@@ -555,7 +573,7 @@ function getBatchCostPcts(batch: any) {
                 <button
                   type="button"
                   @click="handleDeleteBatch(batch)"
-                  class="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                  class="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-red-200"
                   title="Eliminar tanda"
                   aria-label="Eliminar tanda"
                 >
