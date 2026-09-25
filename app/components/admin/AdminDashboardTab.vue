@@ -7,6 +7,19 @@ import ProductModal from "./ProductModal.vue";
 import MaterialModal from "./MaterialModal.vue";
 import { getMaterialIcon } from "~/composables/admin/useAdminMaterials";
 
+export interface AtRiskProductItem {
+  product_id: number;
+  product_name: string;
+  price: number;
+  image_url: string | null;
+  critical_materials: Array<{
+    material_name: string;
+    unit: string;
+    required: number;
+    available: number;
+  }>;
+}
+
 const authStore = useAuthStore();
 
 const props = defineProps<{
@@ -16,7 +29,20 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: "refresh"): void;
+  (e: "view-recipe", product: ProductRow): void;
 }>();
+
+// Consulta reactiva a productos en riesgo de producción
+const { data: atRiskData, refresh: refreshAtRisk, pending: pendingAtRisk } = await useFetch<{
+  success: boolean;
+  data: AtRiskProductItem[];
+}>('/api/admin/dashboard/at-risk-products', {
+  default: () => ({ success: true, data: [] })
+});
+
+const atRiskProducts = computed<AtRiskProductItem[]>(() => {
+  return atRiskData.value?.data || [];
+});
 
 const currentDateFormatted = computed<string>(() => {
   const now = new Date();
@@ -32,6 +58,7 @@ const currentDateFormatted = computed<string>(() => {
 const totalProducts = computed<number>(() => props.catalog?.data?.length || 0);
 const totalMaterials = computed<number>(() => props.materials?.data?.length || 0);
 
+// Helper para compatibilidad de stock tradicional
 const lowStockProducts = computed<ProductRow[]>(() => {
   if (!props.catalog?.data) return [];
   return props.catalog.data.filter((p: ProductRow) => Number(p.stock) <= 5);
@@ -58,7 +85,6 @@ const totalInventoryValue = computed<number>(() => {
 });
 
 // Paginación adaptativa según la altura de la pantalla (Viewport Height)
-// Calcula cuántas filas caben exactamente en el espacio libre para no dejar vacío ni causar scroll
 const itemsPerPage = ref<number>(5);
 
 function updateItemsPerPage(): void {
@@ -67,42 +93,40 @@ function updateItemsPerPage(): void {
     itemsPerPage.value = 5;
     return;
   }
-  // Altura disponible descontando header ERP, saludo, 4 KPIs, cabecera y paginador
   const availableHeight = window.innerHeight - 420;
   const rowHeight = 54;
-  // Restamos 1 elemento para que la barra de paginación inferior tenga holgura y nunca quede pegada al borde
   const calculated = Math.floor(availableHeight / rowHeight) - 1;
   itemsPerPage.value = Math.max(5, Math.min(calculated, 10));
 }
 
-// Paginación de Productos por Agotarse
-const currentProductsPage = ref<number>(1);
-const totalProductsPages = computed<number>(() => {
-  if (!lowStockProducts.value.length) return 1;
-  return Math.ceil(lowStockProducts.value.length / itemsPerPage.value);
+// Paginación de Productos en Riesgo
+const currentAtRiskPage = ref<number>(1);
+const totalAtRiskPages = computed<number>(() => {
+  if (!atRiskProducts.value.length) return 1;
+  return Math.ceil(atRiskProducts.value.length / itemsPerPage.value);
 });
-const paginatedLowStockProducts = computed<ProductRow[]>(() => {
-  const start = (currentProductsPage.value - 1) * itemsPerPage.value;
-  return lowStockProducts.value.slice(start, start + itemsPerPage.value);
+const paginatedAtRiskProducts = computed<AtRiskProductItem[]>(() => {
+  const start = (currentAtRiskPage.value - 1) * itemsPerPage.value;
+  return atRiskProducts.value.slice(start, start + itemsPerPage.value);
 });
 
-function nextProductsPage(): void {
-  if (currentProductsPage.value < totalProductsPages.value) {
-    currentProductsPage.value++;
+function nextAtRiskPage(): void {
+  if (currentAtRiskPage.value < totalAtRiskPages.value) {
+    currentAtRiskPage.value++;
   }
 }
 
-function prevProductsPage(): void {
-  if (currentProductsPage.value > 1) {
-    currentProductsPage.value--;
+function prevAtRiskPage(): void {
+  if (currentAtRiskPage.value > 1) {
+    currentAtRiskPage.value--;
   }
 }
 
 watch(
-  () => lowStockProducts.value.length,
+  () => atRiskProducts.value.length,
   () => {
-    if (currentProductsPage.value > totalProductsPages.value) {
-      currentProductsPage.value = Math.max(1, totalProductsPages.value);
+    if (currentAtRiskPage.value > totalAtRiskPages.value) {
+      currentAtRiskPage.value = Math.max(1, totalAtRiskPages.value);
     }
   }
 );
@@ -140,8 +164,8 @@ watch(
 );
 
 watch(itemsPerPage, () => {
-  if (currentProductsPage.value > totalProductsPages.value) {
-    currentProductsPage.value = Math.max(1, totalProductsPages.value);
+  if (currentAtRiskPage.value > totalAtRiskPages.value) {
+    currentAtRiskPage.value = Math.max(1, totalAtRiskPages.value);
   }
   if (currentMaterialsPage.value > totalMaterialsPages.value) {
     currentMaterialsPage.value = Math.max(1, totalMaterialsPages.value);
@@ -154,9 +178,12 @@ const productToEdit = ref<ProductRow | null>(null);
 const showMaterialModal = ref(false);
 const materialToEdit = ref<RawMaterialRow | null>(null);
 
-function openProductModal(product: ProductRow): void {
-  productToEdit.value = product;
-  showProductModal.value = true;
+function openProductModalFromRisk(riskItem: AtRiskProductItem): void {
+  const matched = props.catalog?.data?.find((p) => p.id === riskItem.product_id);
+  if (matched) {
+    productToEdit.value = matched;
+    showProductModal.value = true;
+  }
 }
 
 function openMaterialModal(material: RawMaterialRow): void {
@@ -166,6 +193,7 @@ function openMaterialModal(material: RawMaterialRow): void {
 
 function onModalSaved(): void {
   emit("refresh");
+  refreshAtRisk();
 }
 
 // Control de Carrusel de Métricas en Mobile (< sm)
@@ -191,7 +219,6 @@ function scrollToMetric(index: number): void {
       const targetCard = cards[index] as HTMLElement;
       const baseOffset = firstCard ? firstCard.offsetLeft : 0;
       const targetLeft = targetCard.offsetLeft - baseOffset;
-      // Scroll horizontal exclusivo dentro del contenedor, sin mover el scroll vertical de la ventana
       container.scrollTo({
         left: targetLeft,
         behavior: "smooth",
@@ -238,7 +265,6 @@ function startCarousel(): void {
   stopCarousel();
   carouselInterval = setInterval(() => {
     if (!isCarouselPaused.value && metricsCarouselRef.value) {
-      // Solo rotar automáticamente si el carrusel está visible en la pantalla
       if (isElementInViewport(metricsCarouselRef.value)) {
         const nextIndex = (activeMetricIndex.value + 1) % 4;
         scrollToMetric(nextIndex);
@@ -273,7 +299,7 @@ onUnmounted(() => {
 
 <template>
   <div class="space-y-3 sm:space-y-3.5 animate-fade-in-up">
-    <!-- Welcome Section (Cálido, limpio y orgánico) -->
+    <!-- Welcome Section -->
     <div
       class="bg-white rounded-2xl sm:rounded-[1.75rem] border border-[#4A5D23]/10 shadow-soft-sm p-3.5 sm:p-4 lg:p-4.5 flex flex-col md:flex-row md:items-center justify-between gap-3.5"
     >
@@ -282,7 +308,7 @@ onUnmounted(() => {
           ¡Hola, {{ authStore.profile?.full_name?.split(" ")[0] || "Administrador" }}!
         </h2>
         <p class="text-xs sm:text-sm text-[#4A5D23]/70 font-medium mt-0.5">
-          {{ currentDateFormatted }} • Estado operativo y de abastecimiento.
+          {{ currentDateFormatted }} • Estado operativo, abastecimiento y alertas preventivas.
         </p>
       </div>
 
@@ -302,101 +328,99 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <!-- Metrics Section: Carrusel Rotativo en Mobile (< sm) / Grid en Desktop (>= sm) -->
+    <!-- Carrusel / Grid de Métricas Principales (KPIs) -->
     <div>
       <div
         ref="metricsCarouselRef"
-        @scroll="onCarouselScroll"
-        @touchstart="pauseCarousel"
-        @touchend="resumeCarousel"
-        @mouseenter="pauseCarousel"
-        @mouseleave="resumeCarousel"
-        class="relative flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 overflow-x-auto sm:overflow-x-visible snap-x snap-mandatory sm:snap-none hide-scrollbar scroll-smooth"
+        @scroll.passive="onCarouselScroll"
+        @touchstart.passive="pauseCarousel"
+        @touchend.passive="resumeCarousel"
+        class="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-3.5 overflow-x-auto sm:overflow-visible snap-x snap-mandatory sm:snap-none hide-scrollbar -mx-4 sm:mx-0 px-4 sm:px-0 py-0.5"
       >
-        <!-- 1. Productos Vitrina -->
+        <!-- KPI 1: Total Productos -->
         <div
-          class="w-full shrink-0 snap-center sm:w-auto sm:shrink bg-white rounded-2xl p-2.5 sm:p-3 border border-[#4A5D23]/10 shadow-soft-sm hover:shadow-soft-md transition-all flex items-center gap-3"
+          class="snap-start shrink-0 w-full sm:w-auto sm:shrink sm:grow min-w-[200px] bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-[#4A5D23]/10 shadow-soft-sm flex items-center gap-3.5 transition-all hover:border-[#4A5D23]/25"
         >
-          <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#F4F1E1] text-[#4A5D23] flex items-center justify-center shrink-0">
-            <Icon name="lucide:cake-slice" class="w-4 h-4 sm:w-5 sm:h-5" />
+          <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#F4F1E1] text-[#4A5D23] flex items-center justify-center shrink-0 shadow-soft-sm">
+            <Icon name="lucide:cake" class="w-5 h-5 sm:w-5.5 sm:h-5.5" />
           </div>
-          <div class="min-w-0">
-            <p class="text-[11px] sm:text-xs font-medium text-[#4A5D23]/70 truncate">
-              Productos en vitrina
+          <div>
+            <p class="text-[10px] sm:text-xs font-bold text-[#4A5D23]/70 uppercase tracking-wider">
+              Productos en Vitrina
             </p>
-            <p class="text-lg sm:text-xl font-bold text-[#2A321B] font-inter leading-tight">
+            <p class="text-lg sm:text-xl font-bold text-[#2A321B] font-inter leading-tight mt-0.5">
               {{ totalProducts }}
             </p>
           </div>
         </div>
 
-        <!-- 2. Insumos Almacén -->
+        <!-- KPI 2: Productos en Riesgo por Falta de Insumos (PREVENTIVO) -->
         <div
-          class="w-full shrink-0 snap-center sm:w-auto sm:shrink bg-white rounded-2xl p-2.5 sm:p-3 border border-[#4A5D23]/10 shadow-soft-sm hover:shadow-soft-md transition-all flex items-center gap-3"
+          class="snap-start shrink-0 w-full sm:w-auto sm:shrink sm:grow min-w-[200px] bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-[#4A5D23]/10 shadow-soft-sm flex items-center gap-3.5 transition-all hover:border-[#4A5D23]/25"
         >
-          <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#F4F1E1] text-[#4A5D23] flex items-center justify-center shrink-0">
-            <Icon name="lucide:scale" class="w-4 h-4 sm:w-5 sm:h-5" />
+          <div
+            :class="[
+              'w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shrink-0 shadow-soft-sm',
+              atRiskProducts.length > 0
+                ? 'bg-red-500/10 text-red-700'
+                : 'bg-lime-500/10 text-lime-700',
+            ]"
+          >
+            <Icon :name="atRiskProducts.length > 0 ? 'lucide:alert-circle' : 'lucide:shield-check'" class="w-5 h-5 sm:w-5.5 sm:h-5.5" />
           </div>
-          <div class="min-w-0">
-            <p class="text-[11px] sm:text-xs font-medium text-[#4A5D23]/70 truncate">
-              Insumos registrados
+          <div>
+            <p class="text-[10px] sm:text-xs font-bold text-[#4A5D23]/70 uppercase tracking-wider">
+              Productos en Riesgo
             </p>
-            <p class="text-lg sm:text-xl font-bold text-[#2A321B] font-inter leading-tight">
+            <p
+              :class="[
+                'text-lg sm:text-xl font-black font-inter leading-tight mt-0.5',
+                atRiskProducts.length > 0 ? 'text-red-700' : 'text-lime-700',
+              ]"
+            >
+              {{ atRiskProducts.length }}
+            </p>
+          </div>
+        </div>
+
+        <!-- KPI 3: Total Insumos en Almacén -->
+        <div
+          class="snap-start shrink-0 w-full sm:w-auto sm:shrink sm:grow min-w-[200px] bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-[#4A5D23]/10 shadow-soft-sm flex items-center gap-3.5 transition-all hover:border-[#4A5D23]/25"
+        >
+          <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#F4F1E1] text-[#4A5D23] flex items-center justify-center shrink-0 shadow-soft-sm">
+            <Icon name="lucide:boxes" class="w-5 h-5 sm:w-5.5 sm:h-5.5" />
+          </div>
+          <div>
+            <p class="text-[10px] sm:text-xs font-bold text-[#4A5D23]/70 uppercase tracking-wider">
+              Insumos Registrados
+            </p>
+            <p class="text-lg sm:text-xl font-bold text-[#2A321B] font-inter leading-tight mt-0.5">
               {{ totalMaterials }}
             </p>
           </div>
         </div>
 
-        <!-- 3. Prod. Stock Bajo -->
+        <!-- KPI 4: Insumos con Stock Bajo -->
         <div
-          class="w-full shrink-0 snap-center sm:w-auto sm:shrink bg-white rounded-2xl p-2.5 sm:p-3 border border-[#4A5D23]/10 shadow-soft-sm hover:shadow-soft-md transition-all flex items-center gap-3"
+          class="snap-start shrink-0 w-full sm:w-auto sm:shrink sm:grow min-w-[200px] bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-[#4A5D23]/10 shadow-soft-sm flex items-center gap-3.5 transition-all hover:border-[#4A5D23]/25"
         >
           <div
             :class="[
-              'w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0',
-              lowStockProducts.length > 0
-                ? 'bg-amber-50 text-amber-600'
-                : 'bg-[#F4F1E1] text-[#4A5D23]',
-            ]"
-          >
-            <Icon name="lucide:alert-triangle" class="w-4 h-4 sm:w-5 sm:h-5" />
-          </div>
-          <div class="min-w-0">
-            <p class="text-[11px] sm:text-xs font-medium text-[#4A5D23]/70 truncate">
-              Productos por agotarse
-            </p>
-            <p
-              :class="[
-                'text-lg sm:text-xl font-bold font-inter leading-tight',
-                lowStockProducts.length > 0 ? 'text-amber-700' : 'text-[#2A321B]',
-              ]"
-            >
-              {{ lowStockProducts.length }}
-            </p>
-          </div>
-        </div>
-
-        <!-- 4. Insumos Críticos -->
-        <div
-          class="w-full shrink-0 snap-center sm:w-auto sm:shrink bg-white rounded-2xl p-2.5 sm:p-3 border border-[#4A5D23]/10 shadow-soft-sm hover:shadow-soft-md transition-all flex items-center gap-3"
-        >
-          <div
-            :class="[
-              'w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0',
+              'w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shrink-0 shadow-soft-sm',
               lowStockMaterials.length > 0
-                ? 'bg-red-50 text-red-600'
+                ? 'bg-red-500/10 text-red-700'
                 : 'bg-[#F4F1E1] text-[#4A5D23]',
             ]"
           >
-            <Icon name="lucide:package-x" class="w-4 h-4 sm:w-5 sm:h-5" />
+            <Icon name="lucide:scale" class="w-5 h-5 sm:w-5.5 sm:h-5.5" />
           </div>
-          <div class="min-w-0">
-            <p class="text-[11px] sm:text-xs font-medium text-[#4A5D23]/70 truncate">
-              Insumos con stock bajo
+          <div>
+            <p class="text-[10px] sm:text-xs font-bold text-[#4A5D23]/70 uppercase tracking-wider">
+              Insumos Stock Bajo
             </p>
             <p
               :class="[
-                'text-lg sm:text-xl font-bold font-inter leading-tight',
+                'text-lg sm:text-xl font-bold font-inter leading-tight mt-0.5',
                 lowStockMaterials.length > 0 ? 'text-red-700' : 'text-[#2A321B]',
               ]"
             >
@@ -437,13 +461,13 @@ onUnmounted(() => {
               : 'text-[#4A5D23]/70 hover:text-brand-secondary',
           ]"
         >
-          <Icon name="lucide:cake" class="w-4 h-4 text-[#4A5D23]" />
-          <span>Por agotarse</span>
+          <Icon name="lucide:alert-circle" class="w-4 h-4 text-red-600" />
+          <span>En Riesgo</span>
           <span
-            v-if="lowStockProducts.length"
-            class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200"
+            v-if="atRiskProducts.length"
+            class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-red-50 text-red-800 border border-red-200"
           >
-            {{ lowStockProducts.length }}
+            {{ atRiskProducts.length }}
           </span>
         </button>
 
@@ -469,9 +493,9 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <!-- Alert Sections (Listas Operativas) -->
+    <!-- Secciones Operativas de Alerta -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-3.5 sm:gap-4">
-      <!-- Low Stock Products List -->
+      <!-- Columna 1: Productos en Riesgo por Falta de Insumos -->
       <div
         :class="[
           'bg-white rounded-2xl sm:rounded-[1.75rem] border border-[#4A5D23]/10 shadow-soft-sm p-3.5 sm:p-4 lg:p-4.5 flex-col justify-between',
@@ -481,98 +505,100 @@ onUnmounted(() => {
         <div>
           <div class="flex items-center justify-between mb-2.5 sm:mb-3">
             <h3 class="font-playfair font-bold text-sm sm:text-base text-[#2A321B] flex items-center gap-2">
-              <Icon name="lucide:cake" class="w-4 h-4 sm:w-5 sm:h-5 text-[#4A5D23]" />
-              <span>Productos por agotarse</span>
+              <Icon name="lucide:alert-circle" class="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
+              <span>Productos en Riesgo de Producción</span>
             </h3>
             <span
-              v-if="lowStockProducts.length"
-              class="px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 shrink-0"
+              v-if="atRiskProducts.length"
+              class="px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-bold bg-red-50 text-red-800 border border-red-200 shrink-0"
             >
-              {{ lowStockProducts.length }} {{ lowStockProducts.length === 1 ? 'producto' : 'productos' }}
+              {{ atRiskProducts.length }} {{ atRiskProducts.length === 1 ? 'en riesgo' : 'en riesgo' }}
             </span>
           </div>
 
           <div
-            v-if="lowStockProducts.length === 0"
+            v-if="atRiskProducts.length === 0"
             class="flex flex-col items-center justify-center py-8 text-center"
           >
             <Icon
-              name="lucide:check-circle"
-              class="w-10 h-10 text-[#4A5D23]/30 mb-1.5"
+              name="lucide:shield-check"
+              class="w-10 h-10 text-lime-600/60 mb-1.5"
             />
-            <p class="text-xs sm:text-sm font-medium text-[#4A5D23]/60">
-              ¡Excelente! Tu vitrina está bien abastecida.
+            <h4 class="text-xs sm:text-sm font-bold text-brand-secondary">
+              ¡Taller 100% abastecido!
+            </h4>
+            <p class="text-[11px] sm:text-xs font-medium text-[#4A5D23]/70 max-w-sm mt-0.5">
+              Todos los postres cuentan con materias primas y empaques suficientes para producirse hoy.
             </p>
           </div>
 
           <div v-else class="space-y-2">
             <div
-              v-for="p in paginatedLowStockProducts"
-              :key="p.id"
-              class="flex items-center justify-between p-2 sm:p-2.5 rounded-xl bg-[#F4F1E1]/40 border border-[#4A5D23]/10 hover:bg-[#F4F1E1]/70 transition-colors"
+              v-for="p in paginatedAtRiskProducts"
+              :key="p.product_id"
+              class="p-2.5 sm:p-3 rounded-xl bg-red-50/40 border border-red-200/60 hover:bg-red-50/70 transition-colors flex flex-col gap-2"
             >
-              <div class="flex items-center gap-2.5 min-w-0">
-                <img
-                  :src="p.image_url || '/placeholder-cake.png'"
-                  :alt="p.name"
-                  class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-cover bg-white border border-[#4A5D23]/10 shrink-0"
-                />
-                <div class="min-w-0">
-                  <h4 class="font-bold text-xs sm:text-sm text-[#2A321B] truncate">{{ p.name }}</h4>
-                  <p class="text-[11px] text-[#4A5D23]/70 font-medium">
-                    S/ {{ Number(p.price).toFixed(2) }}
-                  </p>
+              <div class="flex items-center justify-between gap-2.5">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <img
+                    :src="p.image_url || '/placeholder-cake.png'"
+                    :alt="p.product_name"
+                    class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl object-cover bg-white border border-[#4A5D23]/10 shrink-0"
+                  />
+                  <div class="min-w-0">
+                    <h4 class="font-bold text-xs sm:text-sm text-[#2A321B] truncate">{{ p.product_name }}</h4>
+                    <p class="text-[11px] text-[#4A5D23]/70 font-medium">
+                      Precio: S/ {{ Number(p.price).toFixed(2) }}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div class="flex items-center gap-2 shrink-0">
-                <span
-                  :class="[
-                    'px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold border',
-                    p.stock === 0
-                      ? 'bg-red-50 text-red-700 border-red-200'
-                      : 'bg-amber-50 text-amber-800 border-amber-200',
-                  ]"
-                >
-                  {{ p.stock === 0 ? "Agotado" : p.stock === 1 ? "1 disp." : `${p.stock} disp.` }}
-                </span>
                 <button
-                  @click="openProductModal(p)"
+                  @click="openProductModalFromRisk(p)"
                   type="button"
-                  class="px-2.5 py-1 rounded-lg text-[11px] sm:text-xs font-bold text-brand-primary bg-white hover:bg-brand-primary hover:text-white border border-brand-primary/20 shadow-2xs hover:shadow-soft-sm transition-all cursor-pointer"
-                  aria-label="Editar producto"
+                  class="px-2.5 py-1 rounded-lg text-[11px] sm:text-xs font-bold text-brand-primary bg-white hover:bg-brand-primary hover:text-white border border-brand-primary/20 shadow-2xs hover:shadow-soft-sm transition-all cursor-pointer shrink-0"
                 >
-                  Editar
+                  Revisar
                 </button>
+              </div>
+
+              <!-- Desglose de Insumos Críticos Faltantes -->
+              <div class="flex items-center gap-1.5 flex-wrap pt-1 border-t border-red-100">
+                <span
+                  v-for="(crit, idx) in p.critical_materials"
+                  :key="idx"
+                  class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-white text-red-800 border border-red-200 shadow-2xs"
+                >
+                  <Icon name="lucide:alert-triangle" class="w-3 h-3 text-red-600 shrink-0" />
+                  <span>Falta: <strong>{{ crit.material_name }}</strong> (quedan {{ crit.available }} {{ crit.unit }}, requiere {{ crit.required }})</span>
+                </span>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Paginación de Productos -->
+        <!-- Paginación de Productos en Riesgo -->
         <div
-          v-if="totalProductsPages > 1"
+          v-if="totalAtRiskPages > 1"
           class="mt-2.5 pt-2.5 border-t border-[#4A5D23]/10 flex items-center justify-between"
         >
           <span class="text-[11px] sm:text-xs text-[#4A5D23]/70 font-medium">
-            Página {{ currentProductsPage }} de {{ totalProductsPages }}
+            Página {{ currentAtRiskPage }} de {{ totalAtRiskPages }}
           </span>
           <div class="flex items-center gap-1.5">
             <button
-              @click="prevProductsPage"
-              :disabled="currentProductsPage <= 1"
+              @click="prevAtRiskPage"
+              :disabled="currentAtRiskPage <= 1"
               type="button"
               class="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg border border-[#4A5D23]/20 bg-white text-[11px] sm:text-xs font-bold text-[#2A321B] hover:bg-[#F4F1E1] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1 shadow-2xs"
-              aria-label="Página anterior de productos"
             >
               <Icon name="lucide:chevron-left" class="w-3.5 h-3.5" />
               <span>Anterior</span>
             </button>
             <button
-              @click="nextProductsPage"
-              :disabled="currentProductsPage >= totalProductsPages"
+              @click="nextAtRiskPage"
+              :disabled="currentAtRiskPage >= totalAtRiskPages"
               type="button"
               class="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg border border-[#4A5D23]/20 bg-white text-[11px] sm:text-xs font-bold text-[#2A321B] hover:bg-[#F4F1E1] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1 shadow-2xs"
-              aria-label="Página siguiente de productos"
             >
               <span>Siguiente</span>
               <Icon name="lucide:chevron-right" class="w-3.5 h-3.5" />
@@ -581,7 +607,7 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <!-- Critical Materials List -->
+      <!-- Columna 2: Insumos con Stock Bajo en Almacén -->
       <div
         :class="[
           'bg-white rounded-2xl sm:rounded-[1.75rem] border border-[#4A5D23]/10 shadow-soft-sm p-3.5 sm:p-4 lg:p-4.5 flex-col justify-between',
@@ -663,7 +689,6 @@ onUnmounted(() => {
               :disabled="currentMaterialsPage <= 1"
               type="button"
               class="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg border border-[#4A5D23]/20 bg-white text-[11px] sm:text-xs font-bold text-[#2A321B] hover:bg-[#F4F1E1] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1 shadow-2xs"
-              aria-label="Página anterior de insumos"
             >
               <Icon name="lucide:chevron-left" class="w-3.5 h-3.5" />
               <span>Anterior</span>
@@ -673,7 +698,6 @@ onUnmounted(() => {
               :disabled="currentMaterialsPage >= totalMaterialsPages"
               type="button"
               class="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg border border-[#4A5D23]/20 bg-white text-[11px] sm:text-xs font-bold text-[#2A321B] hover:bg-[#F4F1E1] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1 shadow-2xs"
-              aria-label="Página siguiente de insumos"
             >
               <span>Siguiente</span>
               <Icon name="lucide:chevron-right" class="w-3.5 h-3.5" />
@@ -683,7 +707,7 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <!-- Modals -->
+    <!-- Modales de Producto e Insumo -->
     <ProductModal
       :show="showProductModal"
       :productToEdit="productToEdit"
@@ -699,17 +723,3 @@ onUnmounted(() => {
     />
   </div>
 </template>
-
-<style scoped>
-/* Ocultar completamente la barra de scroll nativa horizontal (gris con flechas) en móviles y navegadores */
-.hide-scrollbar::-webkit-scrollbar {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
-}
-
-.hide-scrollbar {
-  -ms-overflow-style: none !important; /* IE y Edge */
-  scrollbar-width: none !important; /* Firefox */
-}
-</style>

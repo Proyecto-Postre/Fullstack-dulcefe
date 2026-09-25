@@ -134,12 +134,20 @@ function handleAddToCart(product: FeaturedProduct) {
           >
             <!-- Image Container -->
             <div class="h-72 w-full relative overflow-hidden bg-surface">
+              <!-- Badge de Estado Artesanal (ADR-004: Erradicación de Falsa Urgencia Retail) -->
               <div 
-                v-if="product.stock <= 5 && product.stock > 0" 
-                class="absolute top-4 right-4 z-20 bg-status-danger/95 backdrop-blur-sm text-white text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wider flex items-center gap-1.5 shadow-sm"
+                v-if="product.stock > 0" 
+                class="absolute top-4 right-4 z-20 bg-[#F4F1E1]/95 backdrop-blur-md text-[#4A5D23] border border-[#4A5D23]/20 text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wider flex items-center gap-1.5 shadow-sm"
               >
-                <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
-                Últimas {{ product.stock }} unidades
+                <span class="w-1.5 h-1.5 rounded-full bg-[#708238]"></span>
+                Horneado Fresco
+              </div>
+              <div 
+                v-else 
+                class="absolute top-4 right-4 z-20 bg-[#2A321B]/90 backdrop-blur-md text-[#F4F1E1] border border-[#F4F1E1]/20 text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wider flex items-center gap-1.5 shadow-sm"
+              >
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                Agotado por hoy
               </div>
               <img 
                 :src="product.image_url" 
@@ -164,11 +172,17 @@ function handleAddToCart(product: FeaturedProduct) {
                 <button
                   @click="handleAddToCart(product)"
                   type="button"
-                  class="h-11 px-5 rounded-full bg-surface border border-brand-primary/25 flex items-center gap-2 text-brand-primary hover:bg-brand-primary hover:text-white transition-all duration-300 shadow-soft-sm hover:shadow-soft-md active:scale-95 cursor-pointer"
-                  aria-label="Añadir a mi pedido"
+                  :disabled="product.stock === 0"
+                  :class="[
+                    'h-11 px-5 rounded-full border flex items-center gap-2 transition-all duration-300 shadow-soft-sm active:scale-95',
+                    product.stock > 0
+                      ? 'bg-surface border-brand-primary/25 text-brand-primary hover:bg-brand-primary hover:text-white hover:shadow-soft-md cursor-pointer'
+                      : 'bg-black/10 border-brand-primary/10 text-brand-primary/40 cursor-not-allowed'
+                  ]"
+                  :aria-label="product.stock > 0 ? 'Añadir a mi pedido' : 'Producto no disponible'"
                 >
-                  <span class="text-xs font-bold font-inter">Pedir</span>
-                  <Icon name="lucide:shopping-bag" class="w-4 h-4" />
+                  <span class="text-xs font-bold font-inter">{{ product.stock > 0 ? 'Pedir' : 'Agotado' }}</span>
+                  <Icon v-if="product.stock > 0" name="lucide:shopping-bag" class="w-4 h-4" />
                 </button>
               </div>
             </div>

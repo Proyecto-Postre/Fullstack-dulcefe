@@ -1,0 +1,588 @@
+<script setup lang="ts">
+import { ref, computed, watch } from 'vue'
+import { toast } from 'vue-sonner'
+import type { ProductRow } from '~/types/catalog'
+import type { RawMaterialRow } from '~/types/inventory'
+import type { BaseRecipeDetail, ProductBatchComposition } from '~/types/batch-recipe'
+import { calculateProductMargins } from '~/composables/admin/useAdminBatchRecipes'
+import CustomSelect from '~/components/ui/CustomSelect.vue'
+
+interface FormPackaging {
+  raw_material_id: number | ''
+  quantity_used: number | ''
+}
+
+const props = defineProps<{
+  show: boolean
+  product: ProductRow | null
+  batchRecipes: BaseRecipeDetail[]
+  materials: RawMaterialRow[]
+}>()
+
+const emit = defineEmits<{
+  (e: 'close'): void
+  (e: 'saved', composition: ProductBatchComposition): void
+}>()
+
+const selectedBatchId = ref<number | ''>('')
+const selectedYieldId = ref<number | ''>('')
+const unitsContained = ref<number | ''>(1)
+const packagingItems = ref<FormPackaging[]>([])
+
+const isLoading = ref(false)
+const isSubmitting = ref(false)
+const hasSubmitted = ref(false)
+const errorMessage = ref('')
+
+watch(
+  () => props.show,
+  async (newVal) => {
+    if (newVal && props.product?.id) {
+      errorMessage.value = ''
+      hasSubmitted.value = false
+      await loadProductComposition(props.product.id)
+    }
+  }
+)
+
+async function loadProductComposition(productId: number) {
+  isLoading.value = true
+  try {
+    const res = await $fetch<{ success: boolean; data: ProductBatchComposition }>(
+      `/api/admin/product-recipes/${productId}/composition`
+    )
+    if (res?.success && res.data) {
+      const comp = res.data
+      if (comp.mapping) {
+        selectedBatchId.value = comp.mapping.base_recipe_id
+        selectedYieldId.value = comp.mapping.recipe_yield_id
+        unitsContained.value = comp.mapping.units_contained
+      } else {
+        selectedBatchId.value = props.batchRecipes[0]?.id || ''
+        selectedYieldId.value = props.batchRecipes[0]?.yields[0]?.id || ''
+        unitsContained.value = 1
+      }
+
+      if (comp.packaging_items && comp.packaging_items.length > 0) {
+        packagingItems.value = comp.packaging_items.map((pkg) => ({
+          raw_material_id: pkg.raw_material_id,
+          quantity_used: pkg.quantity_used
+        }))
+      } else {
+        packagingItems.value = []
+      }
+    }
+  } catch (err) {
+    console.error('Error al cargar composición de producto:', err)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const activeBatch = computed<BaseRecipeDetail | null>(() => {
+  if (!selectedBatchId.value) return null
+  return props.batchRecipes.find((b) => b.id === Number(selectedBatchId.value)) || null
+})
+
+const activeYield = computed(() => {
+  if (!activeBatch.value || !selectedYieldId.value) return null
+  return activeBatch.value.yields.find((y) => y.id === Number(selectedYieldId.value)) || null
+})
+
+watch(selectedBatchId, (newBatchId) => {
+  if (newBatchId) {
+    const b = props.batchRecipes.find((x) => x.id === Number(newBatchId))
+    if (b && b.yields.length > 0) {
+      const alreadyHasYield = b.yields.some((y) => y.id === Number(selectedYieldId.value))
+      if (!alreadyHasYield && b.yields[0]) {
+        selectedYieldId.value = b.yields[0].id ?? ''
+      }
+    } else {
+      selectedYieldId.value = ''
+    }
+  }
+})
+
+// Insumos ordenados alfabéticamente
+const sortedMaterials = computed(() => {
+  return [...props.materials].sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+})
+
+const batchOptions = computed(() => {
+  return props.batchRecipes.map((b) => ({
+    label: b.name,
+    sublabel: `Costo tanda S/ ${b.total_batch_cost.toFixed(2)} (${b.items.length} insumos)`,
+    value: b.id
+  }))
+})
+
+const yieldOptions = computed(() => {
+  if (!activeBatch.value) return []
+  return activeBatch.value.yields.map((y) => ({
+    label: y.size_name,
+    sublabel: `Rinde ${y.yield_units} u — S/ ${y.unit_cost.toFixed(2)}/u`,
+    value: y.id
+  }))
+})
+
+const packagingOptions = computed(() => {
+  const onlyPackaging = sortedMaterials.value.filter((mat) => mat.type === 'packaging')
+  const targetList = onlyPackaging.length > 0 ? onlyPackaging : sortedMaterials.value
+  return targetList.map((mat) => ({
+    label: mat.name || 'Empaque',
+    sublabel: `${mat.unit} — S/ ${Number(mat.purchase_price).toFixed(2)} por ${mat.purchase_quantity}${mat.unit}`,
+    value: mat.id
+  }))
+})
+
+function getMaterial(id: number | '') {
+  if (!id) return null
+  return props.materials.find((m) => m.id === Number(id)) || null
+}
+
+function getPkgCost(pkg: FormPackaging): number {
+  const mat = getMaterial(pkg.raw_material_id)
+  if (!mat || !pkg.quantity_used) return 0
+  const price = Number(mat.purchase_price) || 0
+  const purchaseQty = Number(mat.purchase_quantity) || 1
+  return Number(((price / purchaseQty) * Number(pkg.quantity_used)).toFixed(2))
+}
+
+function addPackaging() {
+  packagingItems.value.push({ raw_material_id: '', quantity_used: 1 })
+}
+
+function removePackaging(index: number) {
+  packagingItems.value.splice(index, 1)
+}
+
+// Costos en tiempo real
+const doughCost = computed<number>(() => {
+  if (!activeYield.value || !unitsContained.value) return 0
+  const pieceCost = activeYield.value.unit_cost || 0
+  return Number((pieceCost * Number(unitsContained.value)).toFixed(2))
+})
+
+const packagingTotalCost = computed<number>(() => {
+  let sum = 0
+  for (const pkg of packagingItems.value) {
+    sum += getPkgCost(pkg)
+  }
+  return Number(sum.toFixed(2))
+})
+
+const totalProductionCost = computed<number>(() => {
+  return Number((doughCost.value + packagingTotalCost.value).toFixed(2))
+})
+
+const productSalePrice = computed<number>(() => {
+  return Number(props.product?.price || 0)
+})
+
+const margins = computed(() => {
+  return calculateProductMargins(productSalePrice.value, totalProductionCost.value)
+})
+
+function closeModal() {
+  hasSubmitted.value = false
+  emit('close')
+}
+
+async function handleSave() {
+  if (!props.product?.id) return
+  hasSubmitted.value = true
+  errorMessage.value = ''
+
+  if (!selectedYieldId.value || !unitsContained.value || Number(unitsContained.value) <= 0) {
+    errorMessage.value = 'Selecciona una tanda base, un corte y la cantidad de piezas contenidas.'
+    toast.error('Datos incompletos', {
+      description: 'Selecciona una tanda, corte y cantidad válida de piezas.'
+    })
+    return
+  }
+
+  isSubmitting.value = true
+  try {
+    const validPackagings = packagingItems.value
+      .filter((pkg) => pkg.raw_material_id !== '' && Number(pkg.quantity_used) > 0)
+      .map((pkg) => ({
+        product_id: props.product!.id,
+        raw_material_id: Number(pkg.raw_material_id),
+        quantity_used: Number(pkg.quantity_used)
+      }))
+
+    const payload = {
+      product_id: props.product.id,
+      mapping: {
+        recipe_yield_id: Number(selectedYieldId.value),
+        units_contained: Number(unitsContained.value)
+      },
+      packaging_items: validPackagings
+    }
+
+    const res = await $fetch<{ success: boolean; data: ProductBatchComposition }>(
+      '/api/admin/product-recipes/mapping',
+      {
+        method: 'POST',
+        body: payload
+      }
+    )
+
+    if (res?.success && res.data) {
+      toast.success(`Composición comercial asignada a "${props.product.name}"`)
+      emit('saved', res.data)
+      closeModal()
+    }
+  } catch (err: unknown) {
+    const fetchErr = err as { data?: { statusMessage?: string; error?: { message?: string } }; message?: string }
+    errorMessage.value =
+      fetchErr.data?.error?.message ||
+      fetchErr.data?.statusMessage ||
+      fetchErr.message ||
+      'Error al guardar la composición de tanda del producto.'
+    toast.error('Error al guardar', { description: errorMessage.value })
+  } finally {
+    isSubmitting.value = false
+  }
+}
+</script>
+
+<template>
+  <ClientOnly>
+    <Teleport to="#admin-modal-portal">
+      <div
+        v-if="show"
+        class="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 overflow-y-auto pointer-events-auto"
+      >
+        <!-- Overlay -->
+        <div
+          class="fixed inset-0 bg-[#2A321B]/55 backdrop-blur-sm transition-opacity"
+          @click="closeModal"
+        ></div>
+
+        <!-- Modal Container -->
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-mapping-title"
+          class="relative w-full max-w-3xl bg-white rounded-3xl sm:rounded-[2rem] shadow-2xl overflow-hidden animate-pop border border-[#4A5D23]/10 max-h-[92vh] flex flex-col z-10"
+        >
+          <!-- Header -->
+          <div class="px-4 py-3 sm:px-6 sm:py-4 border-b border-brand-primary/10 flex items-center justify-between gap-3 bg-gradient-to-r from-surface via-surface to-brand-cream/30 shrink-0">
+            <div class="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+              <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0 shadow-2xs">
+                <Icon name="lucide:boxes" class="w-4 h-4 sm:w-6 sm:h-6 stroke-[2]" />
+              </div>
+              <div class="min-w-0">
+                <h3 id="modal-mapping-title" class="text-sm sm:text-base lg:text-xl font-playfair font-bold text-brand-secondary leading-snug truncate">
+                  Composición de Tanda y Empaques
+                </h3>
+                <div class="flex items-center gap-1.5 flex-wrap mt-0.5">
+                  <span class="text-[11px] sm:text-xs text-brand-primary/80 font-medium truncate max-w-[160px] sm:max-w-none">
+                    {{ product?.name }}
+                  </span>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-brand-primary/10 text-brand-primary text-[10px] font-bold tracking-tight">
+                    S/ {{ Number(product?.price || 0).toFixed(2) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <button
+              type="button"
+              aria-label="Cerrar modal"
+              @click="closeModal"
+              class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-white border border-brand-primary/20 text-brand-secondary hover:bg-brand-cream hover:text-brand-primary hover:border-brand-primary/40 active:scale-95 transition-all shadow-2xs shrink-0 cursor-pointer"
+            >
+              <Icon name="lucide:x" class="w-4 h-4" />
+            </button>
+          </div>
+
+          <!-- Body Scrollable -->
+          <div class="p-4 sm:p-6 pb-28 sm:pb-32 overflow-y-auto flex-1 space-y-4 sm:space-y-5">
+            <!-- Spinner mientras carga composición -->
+            <div v-if="isLoading" class="py-12 flex flex-col items-center justify-center text-brand-primary gap-2">
+              <Icon name="lucide:loader-2" class="w-7 h-7 animate-spin" />
+              <span class="text-xs font-bold">Cargando escandallo de tanda...</span>
+            </div>
+
+            <template v-else>
+              <!-- Sección 1: Selección de Tanda Base y Formato -->
+              <div class="p-3.5 sm:p-4 bg-gradient-to-br from-brand-cream/40 via-brand-cream/20 to-surface rounded-2xl border border-brand-primary/15 shadow-2xs space-y-3">
+                <div class="flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <div class="w-6 h-6 rounded-lg bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
+                      <Icon name="lucide:layers" class="w-3.5 h-3.5" />
+                    </div>
+                    <span class="text-xs font-black text-brand-secondary uppercase tracking-wider truncate">
+                      1. Porción de Tanda Base
+                    </span>
+                  </div>
+                  <div v-if="activeYield" class="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand-primary/10 text-brand-primary text-[10px] font-bold">
+                    <span>{{ activeYield.size_name }}</span>
+                    <span>•</span>
+                    <span>S/ {{ activeYield.unit_cost.toFixed(2) }}/u</span>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-12 gap-2.5 sm:gap-3">
+                  <!-- Tanda Base Maestra (Fila completa en móvil, 6 cols en desktop) -->
+                  <div class="col-span-12 sm:col-span-6" :style="{ zIndex: 30 }">
+                    <label class="block text-[10px] font-bold text-brand-primary uppercase tracking-widest mb-1">
+                      Tanda Base Maestra *
+                    </label>
+                    <CustomSelect
+                      v-model="selectedBatchId"
+                      :options="batchOptions"
+                      placeholder="Selecciona una tanda..."
+                      size="sm"
+                      bgClass="bg-white"
+                      :class="hasSubmitted && !selectedBatchId ? 'ring-2 ring-red-400/30 rounded-xl' : ''"
+                    />
+                  </div>
+
+                  <!-- Corte de Rendimiento (7 cols en móvil, 4 cols en desktop) -->
+                  <div class="col-span-7 sm:col-span-4" :style="{ zIndex: 29 }">
+                    <label class="block text-[10px] font-bold text-brand-primary uppercase tracking-widest mb-1 truncate">
+                      Corte / Tamaño *
+                    </label>
+                    <CustomSelect
+                      v-model="selectedYieldId"
+                      :options="yieldOptions"
+                      :disabled="!activeBatch || yieldOptions.length === 0"
+                      placeholder="Selecciona corte..."
+                      size="sm"
+                      bgClass="bg-white"
+                      :class="hasSubmitted && !selectedYieldId ? 'ring-2 ring-red-400/30 rounded-xl' : ''"
+                    />
+                  </div>
+
+                  <!-- Piezas Contenidas (5 cols en móvil, 2 cols en desktop) -->
+                  <div class="col-span-5 sm:col-span-2">
+                    <label class="block text-[10px] font-bold text-brand-primary uppercase tracking-widest mb-1 truncate">
+                      Piezas *
+                    </label>
+                    <div class="relative flex items-center">
+                      <input
+                        v-model="unitsContained"
+                        type="number"
+                        min="1"
+                        placeholder="1"
+                        :class="[
+                          'w-full pl-2.5 pr-6 py-2 bg-white rounded-xl border text-xs font-black text-center text-brand-secondary focus:outline-none transition-all shadow-2xs',
+                          hasSubmitted && (!unitsContained || Number(unitsContained) <= 0)
+                            ? 'border-red-400 ring-2 ring-red-400/20 bg-red-50/15'
+                            : 'border-brand-primary/20 focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10'
+                        ]"
+                      />
+                      <span class="absolute right-2 text-[11px] font-black text-brand-primary/60 pointer-events-none select-none">
+                        u
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Resumen de Costo de Masa -->
+                <div v-if="activeYield" class="pt-2 border-t border-brand-primary/10 flex items-center justify-between text-xs">
+                  <div class="flex items-center gap-1.5 text-brand-primary/90 font-medium">
+                    <Icon name="lucide:check-circle-2" class="w-3.5 h-3.5 text-brand-primary shrink-0" />
+                    <span>{{ unitsContained || 0 }} {{ activeYield.size_name }} &times; S/ {{ activeYield.unit_cost.toFixed(2) }}</span>
+                  </div>
+                  <div class="font-bold text-brand-secondary">
+                    <span class="text-brand-primary/70 text-[11px] font-medium mr-1 hidden sm:inline">Subtotal Masa:</span>
+                    <span class="bg-brand-primary/10 px-2 py-0.5 rounded-lg text-brand-secondary font-black">
+                      S/ {{ doughCost.toFixed(2) }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Sección 2: Empaques Directos de Presentación -->
+              <div class="space-y-2.5">
+                <div class="flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <div class="w-6 h-6 rounded-lg bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
+                      <Icon name="lucide:package" class="w-3.5 h-3.5" />
+                    </div>
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-1.5">
+                        <span class="text-xs font-black text-brand-secondary uppercase tracking-wider truncate">
+                          2. Empaques de Presentación
+                        </span>
+                        <span
+                          v-if="packagingItems.length > 0"
+                          class="px-1.5 py-0.2 rounded-full bg-brand-primary/15 text-brand-primary text-[10px] font-black"
+                        >
+                          {{ packagingItems.length }}
+                        </span>
+                      </div>
+                      <p class="text-[10px] text-brand-primary/70 truncate hidden sm:block">
+                        Cajas, etiquetas, cintas, papel encerado o bolsas
+                      </p>
+                    </div>
+                  </div>
+
+                  <!-- Botón Agregar Empaque Compacto Estilo Dulce Fe -->
+                  <button
+                    type="button"
+                    @click="addPackaging"
+                    class="h-8 px-3 rounded-xl bg-brand-primary text-white hover:bg-[#3C4A1C] text-xs font-bold flex items-center gap-1.5 shadow-2xs active:scale-95 transition-all cursor-pointer shrink-0"
+                  >
+                    <Icon name="lucide:plus" class="w-3.5 h-3.5 stroke-[2.5]" />
+                    <span>Agregar</span>
+                  </button>
+                </div>
+
+                <!-- Estado Vacío Estilizado -->
+                <div
+                  v-if="packagingItems.length === 0"
+                  class="p-4 sm:p-5 rounded-2xl border-2 border-dashed border-brand-primary/20 bg-brand-cream/20 text-center flex flex-col items-center justify-center gap-1 text-brand-primary/70"
+                >
+                  <Icon name="lucide:package-open" class="w-6 h-6 text-brand-primary/40 mb-0.5" />
+                  <span class="text-xs font-bold text-brand-secondary">Sin empaques asignados</span>
+                  <span class="text-[11px] text-brand-primary/70 max-w-xs">
+                    Haz clic en "+ Agregar" para registrar caja, sticker o cinta de presentación.
+                  </span>
+                </div>
+
+                <!-- Lista de Empaques con z-index escalonado para CustomSelect -->
+                <div v-else class="space-y-2">
+                  <div
+                    v-for="(pkg, index) in packagingItems"
+                    :key="index"
+                    :style="{ zIndex: 20 - index }"
+                    class="p-2.5 sm:p-3 bg-white rounded-2xl border border-brand-primary/15 flex flex-col sm:flex-row sm:items-center gap-2 shadow-2xs relative"
+                  >
+                    <!-- Selector de Insumo Empaque con CustomSelect -->
+                    <div class="flex-1 min-w-0">
+                      <CustomSelect
+                        v-model="pkg.raw_material_id"
+                        :options="packagingOptions"
+                        placeholder="Selecciona un empaque..."
+                        size="sm"
+                        bgClass="bg-brand-cream/20"
+                      />
+                    </div>
+
+                    <!-- Fila de Controles: Cantidad, Subtotal y Eliminar -->
+                    <div class="flex items-center justify-between sm:justify-end gap-2.5 shrink-0 pt-1.5 sm:pt-0 border-t sm:border-t-0 border-brand-primary/10">
+                      <!-- Cantidad de Empaque con unidad dinámica -->
+                      <div class="w-24 sm:w-28 relative flex items-center">
+                        <input
+                          v-model="pkg.quantity_used"
+                          type="number"
+                          step="any"
+                          min="0"
+                          placeholder="1"
+                          class="w-full pl-2.5 pr-7 py-1.5 bg-brand-cream/20 rounded-xl border border-brand-primary/20 text-xs font-bold text-center text-brand-secondary focus:outline-none focus:bg-white focus:border-brand-primary shadow-2xs"
+                        />
+                        <span class="absolute right-2 text-[10px] font-bold text-brand-primary/60 pointer-events-none select-none uppercase">
+                          {{ getMaterial(pkg.raw_material_id)?.unit || 'u' }}
+                        </span>
+                      </div>
+
+                      <!-- Subtotal Costo Empaque -->
+                      <div class="w-16 sm:w-20 text-right">
+                        <span class="text-xs font-black text-brand-secondary">
+                          S/ {{ getPkgCost(pkg).toFixed(2) }}
+                        </span>
+                      </div>
+
+                      <!-- Botón Eliminar Empaque -->
+                      <button
+                        type="button"
+                        @click="removePackaging(index)"
+                        class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg text-red-500 hover:bg-red-50 hover:text-red-700 active:scale-90 transition-all shrink-0 cursor-pointer"
+                        title="Eliminar empaque"
+                        aria-label="Eliminar empaque"
+                      >
+                        <Icon name="lucide:trash-2" class="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tarjeta de Rentabilidad y Margen Comercial — Verde Insignia Dulce Fe -->
+              <div class="bg-gradient-to-br from-[#556C2B] via-[#4A5D23] to-[#3E4F1C] rounded-2xl p-3.5 sm:p-4 text-white shadow-md border border-[#627D30]/40 relative overflow-hidden">
+                <!-- Marca de agua decorativa sutil -->
+                <div class="absolute -right-3 -bottom-3 w-24 h-24 opacity-10 pointer-events-none text-white">
+                  <Icon name="lucide:calculator" class="w-full h-full" />
+                </div>
+
+                <!-- Fila 1: Grid de 3 Columnas Horizontales con Divisores Luminosos -->
+                <div class="relative z-10 grid grid-cols-3 divide-x divide-white/20 text-center">
+                  <div class="px-1 sm:px-2">
+                    <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-[#F4F1E1]/80 block truncate">
+                      Costo Masa
+                    </span>
+                    <span class="text-xs sm:text-base font-extrabold text-white mt-0.5 block truncate">
+                      S/ {{ doughCost.toFixed(2) }}
+                    </span>
+                  </div>
+                  <div class="px-1 sm:px-2">
+                    <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-[#F4F1E1]/80 block truncate">
+                      Empaques
+                    </span>
+                    <span class="text-xs sm:text-base font-extrabold text-white mt-0.5 block truncate">
+                      S/ {{ packagingTotalCost.toFixed(2) }}
+                    </span>
+                  </div>
+                  <div class="px-1 sm:px-2">
+                    <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-amber-200 block truncate">
+                      Costo Total
+                    </span>
+                    <span class="text-xs sm:text-base font-black text-amber-200 mt-0.5 block truncate">
+                      S/ {{ totalProductionCost.toFixed(2) }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Fila 2: Cinta Integrada de Margen Comercial -->
+                <div class="relative z-10 mt-2.5 pt-2.5 border-t border-white/20 flex items-center justify-between px-1">
+                  <div class="flex items-center gap-1.5 min-w-0">
+                    <Icon name="lucide:trending-up" class="w-3.5 h-3.5 text-lime-200 shrink-0" />
+                    <span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-white/90 truncate">
+                      Margen Comercial
+                    </span>
+                  </div>
+                  <div class="bg-black/20 backdrop-blur-xs border border-white/20 px-2.5 py-1 rounded-xl flex items-center gap-1.5 shrink-0">
+                    <span
+                      class="text-xs sm:text-sm font-black"
+                      :class="margins.marginPercent >= 40 ? 'text-lime-300' : (margins.marginPercent >= 20 ? 'text-amber-200' : 'text-rose-200')"
+                    >
+                      {{ margins.marginPercent }}%
+                    </span>
+                    <span class="text-[10px] sm:text-[11px] text-[#F4F1E1]/90 font-bold">
+                      (S/ {{ margins.marginSoles.toFixed(2) }})
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </div>
+
+          <!-- Footer con Acciones -->
+          <div class="px-4 py-3 sm:px-6 sm:py-3.5 bg-brand-cream/30 border-t border-brand-primary/10 flex items-center justify-end gap-2.5 shrink-0">
+            <button
+              type="button"
+              @click="closeModal"
+              class="px-3.5 py-2 text-xs font-bold text-brand-secondary hover:bg-brand-cream/80 rounded-xl transition-colors cursor-pointer"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              @click="handleSave"
+              :disabled="isSubmitting || isLoading || !selectedYieldId"
+              class="h-9 px-4 sm:px-5 bg-brand-primary text-white text-xs font-bold rounded-xl hover:bg-[#3C4A1C] shadow-soft-sm active:scale-95 disabled:opacity-50 transition-all flex items-center gap-2 cursor-pointer"
+            >
+              <Icon v-if="isSubmitting" name="lucide:loader-2" class="w-3.5 h-3.5 animate-spin" />
+              <Icon v-else name="lucide:check" class="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>{{ isSubmitting ? 'Guardando...' : 'Guardar Composición' }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+  </ClientOnly>
+</template>

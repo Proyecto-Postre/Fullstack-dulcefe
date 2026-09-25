@@ -172,5 +172,44 @@ describe('Fase 4 (PR-4c): Dominio Inventario y Materias Primas - Cálculo de Cos
       expect(content).toContain('filteredMaterials.length')
     })
   })
+
+  describe('Separación de Empaques vs Ingredientes & Smart Placement', () => {
+    it('reconoce iconos para empaques y presentación comercial', () => {
+      expect(getMaterialIcon('Caja Torta 25x25cm')).toBe('lucide:package')
+      expect(getMaterialIcon('Bolsa Kraft Mediana')).toBe('lucide:shopping-bag')
+      expect(getMaterialIcon('Etiqueta adhesiva logo')).toBe('lucide:tag')
+      expect(getMaterialIcon('Cinta satinada dorada')).toBe('lucide:gift')
+    })
+
+    it('filtra correctamente según la subpestaña seleccionada (ingredient vs packaging)', () => {
+      const mixedList: RawMaterialRow[] = [
+        { id: 1, name: 'Harina', unit: 'kg', purchase_price: 4, purchase_quantity: 1, stock: 10, type: 'ingredient', created_at: '' },
+        { id: 2, name: 'Azúcar', unit: 'kg', purchase_price: 3, purchase_quantity: 1, stock: 5, type: 'ingredient', created_at: '' },
+        { id: 3, name: 'Caja 20x20', unit: 'und', purchase_price: 20, purchase_quantity: 10, stock: 50, type: 'packaging', created_at: '' },
+        { id: 4, name: 'Bolsa Kraft', unit: 'und', purchase_price: 15, purchase_quantity: 25, stock: 100, type: 'packaging', created_at: '' }
+      ]
+
+      const materialsRef = ref<RawMaterialRow[]>(mixedList)
+      const selectedType = ref<'all' | 'ingredient' | 'packaging'>('ingredient')
+      const { filteredMaterials } = useAdminMaterials(materialsRef, 10, selectedType)
+
+      expect(filteredMaterials.value.length).toBe(2)
+      expect(filteredMaterials.value.every(m => m.type === 'ingredient')).toBe(true)
+
+      selectedType.value = 'packaging'
+      expect(filteredMaterials.value.length).toBe(2)
+      expect(filteredMaterials.value.every(m => m.type === 'packaging')).toBe(true)
+    })
+
+    it('CustomSelect.vue contiene soporte para Smart Placement y placement auto/top/bottom', () => {
+      const selectPath = path.resolve(__dirname, '../../app/components/ui/CustomSelect.vue')
+      expect(fs.existsSync(selectPath)).toBe(true)
+      const content = fs.readFileSync(selectPath, 'utf-8')
+      expect(content).toContain('containerRef')
+      expect(content).toContain('openUpward')
+      expect(content).toContain('placement')
+      expect(content).toContain('bottom-full mb-1.5 origin-bottom')
+    })
+  })
 })
 
