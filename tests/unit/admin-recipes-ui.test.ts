@@ -146,15 +146,15 @@ describe('Fase 4 (PR-4d): Dominio Recetas y Escandallos - Costeo, Rentabilidad y
 
       const content = fs.readFileSync(componentPath, 'utf-8')
 
-      // 1. Caso 1 sola tanda: Ficha Panorámica Hero
+      // 1. Caso 1 sola tanda: Ficha Panorámica Hero al 100% de ancho
       expect(content).toContain("paginatedBatches.length === 1")
-      expect(content).toContain("w-full max-w-4xl")
+      expect(content).toContain("w-full")
       expect(content).toContain("lg:grid-cols-12")
 
       // 2. Caso 2 y 3+ tandas: Grid Adaptativo
       expect(content).toContain("paginatedBatches.length === 2")
       expect(content).toContain("grid-cols-1 lg:grid-cols-2")
-      expect(content).toContain("grid-cols-1 md:grid-cols-2 xl:grid-cols-3")
+      expect(content).toContain("2xl:grid-cols-3")
 
       // 3. Estado vacío de búsqueda sin resultados
       expect(content).toContain("filteredBatches.length === 0")

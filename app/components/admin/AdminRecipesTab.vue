@@ -289,9 +289,15 @@ function prevBatchesPage() {
   }
 }
 
-watch(batchSearchQuery, () => {
-  currentBatchesPage.value = 1
-})
+// Helper para distribución porcentual de costos (Insumos vs CIF)
+function getBatchCostPcts(batch: any) {
+  const total = Number(batch?.total_batch_cost) || 0
+  if (total <= 0) return { materialsPct: 50, cifPct: 50 }
+  const materials = Number(batch?.materials_total_cost) || 0
+  const materialsPct = Math.min(100, Math.max(0, Math.round((materials / total) * 100)))
+  const cifPct = 100 - materialsPct
+  return { materialsPct, cifPct }
+}
 </script>
 
 <template>
@@ -452,189 +458,330 @@ watch(batchSearchQuery, () => {
         </button>
       </div>
 
-      <!-- CASO 1: Exactamente 1 tanda (Diseño Panorámico Ficha Maestra Adaptativa) -->
-      <div v-else-if="paginatedBatches.length === 1" class="w-full max-w-4xl">
+      <!-- CASO 1: Exactamente 1 tanda (Diseño Panorámico Ficha Maestra 100% Ancho) -->
+      <div v-else-if="paginatedBatches.length === 1" class="w-full">
         <div
           v-for="batch in paginatedBatches"
           :key="batch.id"
-          class="bg-surface rounded-2xl sm:rounded-3xl border border-brand-primary/15 shadow-soft-sm hover:shadow-soft-md transition-all p-5 sm:p-6 relative group"
+          class="bg-surface rounded-2xl sm:rounded-3xl border border-brand-primary/15 shadow-soft-sm hover:shadow-soft-md transition-all p-5 sm:p-7 relative group space-y-6"
         >
-          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-start">
-            <!-- Columna Izquierda: Identidad y Costos Financieros -->
-            <div class="lg:col-span-6 space-y-4">
-              <div>
-                <div class="flex items-center gap-2 mb-2 flex-wrap">
-                  <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-brand-primary/10 text-brand-primary border border-brand-primary/20">
-                    <Icon name="lucide:chef-hat" class="w-3 h-3" />
-                    Tanda Maestra
-                  </span>
-                  <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-brand-cream text-brand-secondary border border-brand-primary/15">
-                    {{ batch.items.length }} {{ batch.items.length === 1 ? 'insumo' : 'insumos' }}
-                  </span>
-                </div>
-                <h4 class="font-playfair font-bold text-xl sm:text-2xl text-brand-secondary group-hover:text-brand-primary transition-colors">
-                  {{ batch.name }}
-                </h4>
-                <p v-if="batch.description" class="text-xs sm:text-sm text-brand-primary/70 break-words leading-relaxed mt-1">
-                  {{ batch.description }}
-                </p>
+          <!-- Fila Superior: Cabecera con Identidad a la izquierda y Acciones Operativas a la derecha -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-brand-primary/10">
+            <div class="space-y-1.5 min-w-0 flex-1">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-brand-primary/10 text-brand-primary border border-brand-primary/20">
+                  <Icon name="lucide:chef-hat" class="w-3.5 h-3.5" />
+                  Tanda Maestra
+                </span>
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-brand-cream text-brand-secondary border border-brand-primary/15">
+                  {{ batch.items.length }} {{ batch.items.length === 1 ? 'insumo directo' : 'insumos directos' }}
+                </span>
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-brand-cream text-brand-secondary border border-brand-primary/15">
+                  {{ batch.yields.length }} {{ batch.yields.length === 1 ? 'formato de corte' : 'formatos de corte' }}
+                </span>
               </div>
-
-              <!-- Métricas Financieras Expandidas -->
-              <div class="grid grid-cols-3 gap-2.5 p-3.5 bg-brand-cream/40 rounded-2xl border border-brand-primary/10 text-center shadow-2xs">
-                <div>
-                  <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-brand-primary/70 block mb-0.5">Insumos</span>
-                  <span class="text-xs sm:text-base font-bold text-brand-secondary">
-                    S/ {{ batch.materials_total_cost.toFixed(2) }}
-                  </span>
-                </div>
-                <div>
-                  <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-brand-primary/70 block mb-0.5">CIF (Mano/Serv)</span>
-                  <span class="text-xs sm:text-base font-bold text-brand-secondary">
-                    S/ {{ batch.cif_total.toFixed(2) }}
-                  </span>
-                </div>
-                <div class="border-l border-brand-primary/15 pl-1.5">
-                  <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-brand-primary block mb-0.5">Total Tanda</span>
-                  <span class="text-xs sm:text-base font-black text-brand-primary">
-                    S/ {{ batch.total_batch_cost.toFixed(2) }}
-                  </span>
-                </div>
-              </div>
+              <h4 class="font-playfair font-bold text-2xl sm:text-3xl text-brand-secondary group-hover:text-brand-primary transition-colors tracking-tight">
+                {{ batch.name }}
+              </h4>
+              <p v-if="batch.description" class="text-xs sm:text-sm text-brand-primary/70 break-words leading-relaxed max-w-3xl">
+                {{ batch.description }}
+              </p>
             </div>
 
-            <!-- Columna Derecha: Rendimientos y Acciones -->
-            <div class="lg:col-span-6 flex flex-col justify-between h-full space-y-4">
-              <!-- Rendimientos / Formatos de Corte -->
-              <div class="space-y-2">
-                <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-brand-primary/80 flex items-center gap-1.5">
-                  <Icon name="lucide:scissors" class="w-3.5 h-3.5 text-brand-primary" />
-                  Formatos de Corte y Costo por Pieza
-                </span>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <div
-                    v-for="y in batch.yields"
-                    :key="y.id"
-                    class="p-2.5 bg-white rounded-xl border border-brand-primary/15 flex items-center justify-between text-xs shadow-2xs hover:border-brand-primary/30 transition-all"
-                  >
-                    <div class="min-w-0 mr-1 flex-1">
-                      <span class="font-bold text-brand-secondary block break-words leading-tight">{{ y.size_name }}</span>
-                      <span class="text-[10px] text-brand-primary/70 font-semibold">Rinde {{ y.yield_units }} u</span>
-                    </div>
-                    <span class="font-black text-brand-primary shrink-0 bg-brand-cream/60 px-2 py-1 rounded-lg text-xs">
-                      S/ {{ y.unit_cost.toFixed(2) }}
+            <!-- Botones de Acción en Cabecera: Aprovechando el extremo derecho superior -->
+            <div class="flex items-center gap-2 sm:self-start shrink-0">
+              <button
+                type="button"
+                @click="openQuickDeduction(batch.id)"
+                class="px-4 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300/80 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shadow-2xs cursor-pointer active:scale-95"
+                title="Descargar piezas de esta tanda"
+              >
+                <Icon name="lucide:package-minus" class="w-4 h-4 text-amber-700" />
+                <span>Descargar Piezas</span>
+              </button>
+
+              <button
+                type="button"
+                @click="handleEditBatch(batch)"
+                class="px-3.5 py-2.5 bg-brand-cream/70 hover:bg-brand-primary hover:text-white text-brand-secondary rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer active:scale-95"
+              >
+                <Icon name="lucide:edit-3" class="w-3.5 h-3.5" />
+                <span>Editar</span>
+              </button>
+
+              <button
+                type="button"
+                @click="handleDeleteBatch(batch)"
+                class="p-2.5 text-red-500 hover:bg-red-50 hover:text-red-700 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-red-200"
+                title="Eliminar tanda (no toca almacén)"
+                aria-label="Eliminar tanda"
+              >
+                <Icon name="lucide:trash-2" class="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          <!-- Cuerpo Central: 2 Paneles de Alto Valor (Estructura de Costo + Formatos de Rendimiento) -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-stretch">
+            <!-- Panel Izquierdo (5 cols): Estructura de Costos & Análisis Gerencial -->
+            <div class="lg:col-span-5 bg-brand-cream/35 rounded-2xl border border-brand-primary/15 p-4 sm:p-5 flex flex-col justify-between space-y-4 shadow-2xs">
+              <div>
+                <div class="flex items-center justify-between mb-3">
+                  <span class="text-[11px] font-black uppercase tracking-wider text-brand-secondary flex items-center gap-1.5">
+                    <Icon name="lucide:calculator" class="w-3.5 h-3.5 text-brand-primary" />
+                    Estructura Financiera de la Tanda
+                  </span>
+                  <span class="text-[10px] font-bold text-brand-primary/70">Costo Base</span>
+                </div>
+
+                <!-- Las 3 Cajas KPI -->
+                <div class="grid grid-cols-3 gap-2 p-3 bg-white/80 rounded-xl border border-brand-primary/10 text-center shadow-2xs">
+                  <div>
+                    <span class="text-[9px] font-bold uppercase tracking-wider text-brand-primary/70 block mb-0.5">Insumos</span>
+                    <span class="text-xs sm:text-base font-bold text-brand-secondary">
+                      S/ {{ batch.materials_total_cost.toFixed(2) }}
+                    </span>
+                  </div>
+                  <div>
+                    <span class="text-[9px] font-bold uppercase tracking-wider text-brand-primary/70 block mb-0.5">CIF (Mano/Serv)</span>
+                    <span class="text-xs sm:text-base font-bold text-brand-secondary">
+                      S/ {{ batch.cif_total.toFixed(2) }}
+                    </span>
+                  </div>
+                  <div class="border-l border-brand-primary/15 pl-1.5">
+                    <span class="text-[9px] font-bold uppercase tracking-wider text-brand-primary block mb-0.5">Total Tanda</span>
+                    <span class="text-xs sm:text-base font-black text-brand-primary">
+                      S/ {{ batch.total_batch_cost.toFixed(2) }}
                     </span>
                   </div>
                 </div>
               </div>
 
-              <!-- Acciones de Tarjeta -->
-              <div class="pt-3 border-t border-brand-primary/10 flex items-center justify-between gap-2">
-                <button
-                  type="button"
-                  @click="openQuickDeduction(batch.id)"
-                  class="px-3.5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200/80 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer active:scale-95"
-                  title="Descargar piezas de esta tanda"
-                >
-                  <Icon name="lucide:package-minus" class="w-4 h-4 text-amber-700" />
-                  <span>Descargar Piezas</span>
-                </button>
-
-                <div class="flex items-center gap-2">
-                  <button
-                    type="button"
-                    @click="handleEditBatch(batch)"
-                    class="px-3.5 py-2 bg-brand-cream/60 hover:bg-brand-primary hover:text-white text-brand-secondary rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer active:scale-95"
-                  >
-                    <Icon name="lucide:edit-3" class="w-3.5 h-3.5" />
-                    <span>Editar</span>
-                  </button>
-                  <button
-                    type="button"
-                    @click="handleDeleteBatch(batch)"
-                    class="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
-                    title="Eliminar tanda (no toca almacén)"
-                    aria-label="Eliminar tanda"
-                  >
-                    <Icon name="lucide:trash-2" class="w-4 h-4" />
-                  </button>
+              <!-- Distribución Visual de Costos (Insumos vs CIF) -->
+              <div class="pt-3 border-t border-brand-primary/10 space-y-2">
+                <div class="flex items-center justify-between text-[11px]">
+                  <span class="font-bold text-brand-secondary flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-brand-primary inline-block"></span>
+                    Materia Prima ({{ getBatchCostPcts(batch).materialsPct }}%)
+                  </span>
+                  <span class="font-bold text-amber-800 flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-amber-500 inline-block"></span>
+                    Mano de Obra / CIF ({{ getBatchCostPcts(batch).cifPct }}%)
+                  </span>
                 </div>
+                <div class="h-2 w-full rounded-full bg-brand-primary/10 overflow-hidden flex">
+                  <div class="bg-brand-primary h-full transition-all duration-500" :style="{ width: getBatchCostPcts(batch).materialsPct + '%' }" />
+                  <div class="bg-amber-500 h-full transition-all duration-500" :style="{ width: getBatchCostPcts(batch).cifPct + '%' }" />
+                </div>
+                <p class="text-[10px] text-brand-primary/60 text-center">
+                  Costo total calculado sobre insumos directos agregados + tasa CIF asignada.
+                </p>
+              </div>
+            </div>
+
+            <!-- Panel Derecho (7 cols): Rendimientos y Formatos de Corte -->
+            <div class="lg:col-span-7 bg-white rounded-2xl border border-brand-primary/15 p-4 sm:p-5 flex flex-col justify-between space-y-4 shadow-2xs">
+              <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-[11px] font-black uppercase tracking-wider text-brand-secondary flex items-center gap-1.5">
+                    <Icon name="lucide:scissors" class="w-3.5 h-3.5 text-brand-primary" />
+                    Formatos de Corte y Costo por Pieza
+                  </span>
+                  <span class="text-[10px] font-bold text-brand-primary/80 bg-brand-cream/60 px-2 py-0.5 rounded-full border border-brand-primary/15">
+                    {{ batch.yields.length }} {{ batch.yields.length === 1 ? 'corte disponible' : 'cortes disponibles' }}
+                  </span>
+                </div>
+
+                <!-- CASO A: Solo 1 formato de corte (Tarjeta Hero que aprovecha todo el ancho del panel) -->
+                <div v-if="batch.yields.length === 1" class="p-4 sm:p-5 bg-brand-cream/20 rounded-xl border border-brand-primary/15 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div class="flex items-start gap-3.5">
+                    <div class="w-11 h-11 rounded-xl bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0 border border-brand-primary/20">
+                      <Icon name="lucide:cake" class="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div class="flex items-center gap-2">
+                        <h5 class="text-base font-bold text-brand-secondary">{{ batch.yields[0].size_name }}</h5>
+                        <span class="px-2 py-0.5 text-[10px] font-black uppercase tracking-wider bg-brand-primary/15 text-brand-primary rounded-full">
+                          Principal
+                        </span>
+                      </div>
+                      <p class="text-xs text-brand-primary/80 font-medium mt-0.5">
+                        Rinde <strong class="text-brand-secondary">{{ batch.yields[0].yield_units }} unidades</strong> por tanda horneada
+                      </p>
+                      <span class="text-[10px] text-brand-primary/60 block mt-1">
+                        S/ {{ batch.total_batch_cost.toFixed(2) }} total ÷ {{ batch.yields[0].yield_units }} u
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="sm:text-right shrink-0 bg-white p-3 rounded-xl border border-brand-primary/10 shadow-2xs">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-brand-primary/70 block">Costo Unitario</span>
+                    <span class="text-xl sm:text-2xl font-black text-brand-primary">
+                      S/ {{ batch.yields[0].unit_cost.toFixed(2) }}
+                    </span>
+                    <span class="text-[10px] text-brand-secondary/60 block font-semibold">por pieza</span>
+                  </div>
+                </div>
+
+                <!-- CASO B: Múltiples formatos de corte (Grid 2 columnas simétricas con tarjetas ricas) -->
+                <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div
+                    v-for="y in batch.yields"
+                    :key="y.id"
+                    class="p-3.5 bg-brand-cream/20 rounded-xl border border-brand-primary/15 flex items-center justify-between text-xs hover:border-brand-primary/30 transition-all shadow-2xs"
+                  >
+                    <div class="min-w-0 mr-2 flex-1">
+                      <span class="font-bold text-brand-secondary block text-sm break-words leading-tight">{{ y.size_name }}</span>
+                      <span class="text-[11px] text-brand-primary/70 font-semibold block mt-0.5">Rinde {{ y.yield_units }} u</span>
+                    </div>
+                    <div class="text-right shrink-0 bg-white px-2.5 py-1.5 rounded-lg border border-brand-primary/10">
+                      <span class="text-[9px] font-bold text-brand-primary/70 uppercase block">Costo pieza</span>
+                      <span class="font-black text-brand-primary text-sm sm:text-base">
+                        S/ {{ y.unit_cost.toFixed(2) }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Pie de sugerencia informativa -->
+              <div class="pt-2 text-[11px] text-brand-primary/70 flex items-center gap-1.5">
+                <Icon name="lucide:info" class="w-3.5 h-3.5 text-brand-primary shrink-0" />
+                <span>Para registrar horneadas y descontar insumos del inventario, usa el botón superior "Descargar Piezas".</span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- CASO 2 y 3: Múltiples Tandas (Grid Adaptativo 2 cols si son 2, 3 cols si son 3+) -->
+      <!-- CASO 2 y 3: Múltiples Tandas (2 cols en mitad y mitad si son 2; en 3+ usa 2 cols en laptops y 3 cols en pantallas grandes) -->
       <div
         v-else
         :class="[
-          'grid gap-4 transition-all duration-300',
+          'grid gap-5 transition-all duration-300',
           paginatedBatches.length === 2
             ? 'grid-cols-1 lg:grid-cols-2'
-            : 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3'
+            : 'grid-cols-1 md:grid-cols-2 2xl:grid-cols-3'
         ]"
       >
         <div
           v-for="batch in paginatedBatches"
           :key="batch.id"
-          class="bg-surface rounded-2xl border border-brand-primary/15 shadow-soft-sm hover:shadow-soft-md transition-all p-5 flex flex-col justify-between space-y-4 relative group"
+          class="bg-surface rounded-2xl sm:rounded-3xl border border-brand-primary/15 shadow-soft-sm hover:shadow-soft-md transition-all p-5 flex flex-col justify-between space-y-4 relative group"
         >
           <!-- Cabecera de la Tarjeta -->
           <div>
-            <div class="flex items-start justify-between gap-3 mb-2">
-              <div>
-                <h4 class="font-playfair font-bold text-base sm:text-lg text-brand-secondary group-hover:text-brand-primary transition-colors">
+            <div class="flex items-start justify-between gap-3 mb-2.5">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-1.5 mb-1 flex-wrap">
+                  <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-brand-primary/10 text-brand-primary border border-brand-primary/20">
+                    Tanda Maestra
+                  </span>
+                  <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-brand-cream text-brand-secondary border border-brand-primary/15">
+                    {{ batch.items.length }} insumos
+                  </span>
+                </div>
+                <h4 class="font-playfair font-bold text-lg sm:text-xl text-brand-secondary group-hover:text-brand-primary transition-colors">
                   {{ batch.name }}
                 </h4>
-                <p v-if="batch.description" class="text-xs text-brand-primary/70 break-words leading-tight mt-0.5">
+                <p v-if="batch.description" class="text-xs text-brand-primary/70 break-words leading-tight mt-0.5 line-clamp-2">
                   {{ batch.description }}
                 </p>
               </div>
-              <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-brand-primary/10 text-brand-primary border border-brand-primary/20 shrink-0">
-                {{ batch.items.length }} insumos
-              </span>
+
+              <!-- Acciones Rápidas en Cabecera -->
+              <div class="flex items-center gap-1 shrink-0">
+                <button
+                  type="button"
+                  @click="handleEditBatch(batch)"
+                  class="p-2 text-brand-secondary hover:text-brand-primary hover:bg-brand-cream/80 rounded-xl transition-all cursor-pointer"
+                  title="Editar tanda"
+                >
+                  <Icon name="lucide:edit-3" class="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  @click="handleDeleteBatch(batch)"
+                  class="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-xl transition-all cursor-pointer"
+                  title="Eliminar tanda (no toca almacén)"
+                  aria-label="Eliminar tanda"
+                >
+                  <Icon name="lucide:trash-2" class="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
             <!-- Métricas Financieras de la Tanda -->
-            <div class="grid grid-cols-3 gap-2 p-3 bg-brand-cream/30 rounded-xl border border-brand-primary/10 my-3 text-center">
-              <div>
-                <span class="text-[9px] font-bold uppercase tracking-wider text-brand-primary/70 block">Insumos</span>
-                <span class="text-xs sm:text-sm font-bold text-brand-secondary">
-                  S/ {{ batch.materials_total_cost.toFixed(2) }}
-                </span>
+            <div class="p-3 bg-brand-cream/35 rounded-xl border border-brand-primary/10 my-3 space-y-2">
+              <div class="grid grid-cols-3 gap-2 text-center">
+                <div>
+                  <span class="text-[9px] font-bold uppercase tracking-wider text-brand-primary/70 block">Insumos</span>
+                  <span class="text-xs sm:text-sm font-bold text-brand-secondary">
+                    S/ {{ batch.materials_total_cost.toFixed(2) }}
+                  </span>
+                </div>
+                <div>
+                  <span class="text-[9px] font-bold uppercase tracking-wider text-brand-primary/70 block">CIF</span>
+                  <span class="text-xs sm:text-sm font-bold text-brand-secondary">
+                    S/ {{ batch.cif_total.toFixed(2) }}
+                  </span>
+                </div>
+                <div class="border-l border-brand-primary/15 pl-1">
+                  <span class="text-[9px] font-bold uppercase tracking-wider text-brand-primary block">Total Tanda</span>
+                  <span class="text-xs sm:text-sm font-black text-brand-primary">
+                    S/ {{ batch.total_batch_cost.toFixed(2) }}
+                  </span>
+                </div>
               </div>
-              <div>
-                <span class="text-[9px] font-bold uppercase tracking-wider text-brand-primary/70 block">CIF</span>
-                <span class="text-xs sm:text-sm font-bold text-brand-secondary">
-                  S/ {{ batch.cif_total.toFixed(2) }}
-                </span>
-              </div>
-              <div class="border-l border-brand-primary/15 pl-1">
-                <span class="text-[9px] font-bold uppercase tracking-wider text-brand-primary block">Total Tanda</span>
-                <span class="text-xs sm:text-sm font-black text-brand-primary">
-                  S/ {{ batch.total_batch_cost.toFixed(2) }}
-                </span>
+
+              <!-- Mini barra de balance de costos -->
+              <div class="h-1.5 w-full rounded-full bg-brand-primary/10 overflow-hidden flex">
+                <div class="bg-brand-primary h-full" :style="{ width: getBatchCostPcts(batch).materialsPct + '%' }" />
+                <div class="bg-amber-500 h-full" :style="{ width: getBatchCostPcts(batch).cifPct + '%' }" />
               </div>
             </div>
 
             <!-- Rendimientos / Formatos de Corte -->
             <div class="space-y-1.5">
-              <span class="text-[10px] font-bold uppercase tracking-wider text-brand-primary/80 flex items-center gap-1">
-                <Icon name="lucide:scissors" class="w-3 h-3 text-brand-primary" />
-                Formatos de Corte y Costo por Pieza
-              </span>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+              <div class="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-brand-primary/80">
+                <span class="flex items-center gap-1">
+                  <Icon name="lucide:scissors" class="w-3 h-3 text-brand-primary" />
+                  Formatos de Corte
+                </span>
+                <span class="text-brand-primary/60 lowercase">
+                  {{ batch.yields.length }} {{ batch.yields.length === 1 ? 'opción' : 'opciones' }}
+                </span>
+              </div>
+
+              <!-- Si tiene 1 solo formato, se expande a todo el ancho -->
+              <div
+                v-if="batch.yields.length === 1"
+                class="p-2.5 bg-white rounded-xl border border-brand-primary/10 flex items-center justify-between text-xs shadow-2xs"
+              >
+                <div class="min-w-0 mr-1 flex-1">
+                  <span class="font-bold text-brand-secondary block break-words leading-tight">{{ batch.yields[0].size_name }}</span>
+                  <span class="text-[10px] text-brand-primary/70 font-semibold">Rinde {{ batch.yields[0].yield_units }} unidades</span>
+                </div>
+                <div class="text-right shrink-0 bg-brand-cream/50 px-2 py-1 rounded-lg">
+                  <span class="text-[9px] font-bold text-brand-primary/70 uppercase block">Costo / u</span>
+                  <span class="font-black text-brand-primary text-xs sm:text-sm">
+                    S/ {{ batch.yields[0].unit_cost.toFixed(2) }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Si tiene 2 o más formatos, grid de 2 columnas -->
+              <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                 <div
                   v-for="y in batch.yields"
                   :key="y.id"
-                  class="p-2 bg-white rounded-lg border border-brand-primary/10 flex items-center justify-between text-xs"
+                  class="p-2 bg-white rounded-lg border border-brand-primary/10 flex items-center justify-between text-xs shadow-2xs"
                 >
                   <div class="min-w-0 mr-1 flex-1">
-                    <span class="font-bold text-brand-secondary block break-words leading-tight">{{ y.size_name }}</span>
-                    <span class="text-[10px] text-brand-primary/70 font-semibold">Rinde {{ y.yield_units }} u</span>
+                    <span class="font-bold text-brand-secondary block break-words leading-tight text-[11px]">{{ y.size_name }}</span>
+                    <span class="text-[9px] text-brand-primary/70 font-semibold">Rinde {{ y.yield_units }} u</span>
                   </div>
-                  <span class="font-black text-brand-primary shrink-0 bg-brand-cream/50 px-1.5 py-0.5 rounded">
+                  <span class="font-black text-brand-primary shrink-0 bg-brand-cream/50 px-1.5 py-0.5 rounded text-[11px]">
                     S/ {{ y.unit_cost.toFixed(2) }}
                   </span>
                 </div>
@@ -642,36 +789,17 @@ watch(batchSearchQuery, () => {
             </div>
           </div>
 
-          <!-- Acciones de Tarjeta -->
-          <div class="pt-3 border-t border-brand-primary/10 flex items-center justify-between gap-2">
+          <!-- Acciones de Tarjeta: Botón Principal Ancho y Limpio -->
+          <div class="pt-3 border-t border-brand-primary/10">
             <button
               type="button"
               @click="openQuickDeduction(batch.id)"
-              class="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer"
+              class="w-full py-2 px-3 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300/80 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer active:scale-98"
               title="Descargar piezas de esta tanda"
             >
-              <Icon name="lucide:minus" class="w-3.5 h-3.5" />
-              <span>Descargar</span>
+              <Icon name="lucide:package-minus" class="w-4 h-4 text-amber-700" />
+              <span>Descargar Piezas</span>
             </button>
-
-            <div class="flex items-center gap-1.5">
-              <button
-                type="button"
-                @click="handleEditBatch(batch)"
-                class="px-2.5 py-1.5 bg-brand-cream/60 hover:bg-brand-primary hover:text-white text-brand-secondary rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer"
-              >
-                <Icon name="lucide:edit-3" class="w-3.5 h-3.5" />
-                <span>Editar</span>
-              </button>
-              <button
-                type="button"
-                @click="handleDeleteBatch(batch)"
-                class="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                title="Eliminar tanda (no toca almacén)"
-              >
-                <Icon name="lucide:trash-2" class="w-4 h-4" />
-              </button>
-            </div>
           </div>
         </div>
       </div>
