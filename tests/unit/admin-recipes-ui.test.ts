@@ -136,4 +136,29 @@ describe('Fase 4 (PR-4d): Dominio Recetas y Escandallos - Costeo, Rentabilidad y
       expect(additionalCosts.value.packaging).toBe(0)
     })
   })
+
+  describe('Adaptive Batch Recipes Layout (Single vs Multiple Batches)', () => {
+    it('AdminRecipesTab.vue implementa la ficha panorámica cuando hay 1 tanda y grid adaptativo para múltiples', () => {
+      const fs = require('node:fs')
+      const path = require('node:path')
+      const componentPath = path.resolve(__dirname, '../../app/components/admin/AdminRecipesTab.vue')
+      expect(fs.existsSync(componentPath)).toBe(true)
+
+      const content = fs.readFileSync(componentPath, 'utf-8')
+
+      // 1. Caso 1 sola tanda: Ficha Panorámica Hero
+      expect(content).toContain("paginatedBatches.length === 1")
+      expect(content).toContain("w-full max-w-4xl")
+      expect(content).toContain("lg:grid-cols-12")
+
+      // 2. Caso 2 y 3+ tandas: Grid Adaptativo
+      expect(content).toContain("paginatedBatches.length === 2")
+      expect(content).toContain("grid-cols-1 lg:grid-cols-2")
+      expect(content).toContain("grid-cols-1 md:grid-cols-2 xl:grid-cols-3")
+
+      // 3. Estado vacío de búsqueda sin resultados
+      expect(content).toContain("filteredBatches.length === 0")
+      expect(content).toContain("No se encontraron tandas")
+    })
+  })
 })

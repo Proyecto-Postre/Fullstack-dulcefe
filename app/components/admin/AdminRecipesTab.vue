@@ -409,7 +409,7 @@ watch(batchSearchQuery, () => {
         </div>
       </div>
 
-      <!-- Estado Vacío cuando no hay tandas -->
+      <!-- Estado Vacío cuando no hay tandas en absoluto -->
       <div
         v-if="batchRecipes.length === 0 && !isLoadingBatches"
         class="flex flex-col items-center justify-center py-16 bg-surface rounded-2xl border border-brand-primary/15 shadow-soft-sm text-center px-4"
@@ -433,8 +433,148 @@ watch(batchSearchQuery, () => {
         </button>
       </div>
 
-      <!-- Grid de Tarjetas de Tandas Maestras -->
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      <!-- Estado Vacío cuando la búsqueda no arrojó resultados -->
+      <div
+        v-else-if="filteredBatches.length === 0"
+        class="flex flex-col items-center justify-center py-12 bg-surface rounded-2xl border border-brand-primary/15 shadow-soft-sm text-center px-4"
+      >
+        <div class="w-12 h-12 rounded-full bg-brand-cream flex items-center justify-center text-brand-primary mb-2">
+          <Icon name="lucide:search-x" class="w-6 h-6" />
+        </div>
+        <p class="text-xs sm:text-sm font-bold text-brand-secondary">No se encontraron tandas</p>
+        <p class="text-[11px] sm:text-xs text-brand-primary/60 mt-0.5">No hay recetas base que coincidan con "{{ batchSearchQuery }}"</p>
+        <button
+          @click="batchSearchQuery = ''"
+          type="button"
+          class="mt-3 px-3.5 py-1.5 text-xs font-bold text-brand-primary bg-brand-cream/80 hover:bg-brand-primary hover:text-white rounded-xl transition-all cursor-pointer shadow-2xs"
+        >
+          Limpiar búsqueda
+        </button>
+      </div>
+
+      <!-- CASO 1: Exactamente 1 tanda (Diseño Panorámico Ficha Maestra Adaptativa) -->
+      <div v-else-if="paginatedBatches.length === 1" class="w-full max-w-4xl">
+        <div
+          v-for="batch in paginatedBatches"
+          :key="batch.id"
+          class="bg-surface rounded-2xl sm:rounded-3xl border border-brand-primary/15 shadow-soft-sm hover:shadow-soft-md transition-all p-5 sm:p-6 relative group"
+        >
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-start">
+            <!-- Columna Izquierda: Identidad y Costos Financieros -->
+            <div class="lg:col-span-6 space-y-4">
+              <div>
+                <div class="flex items-center gap-2 mb-2 flex-wrap">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-brand-primary/10 text-brand-primary border border-brand-primary/20">
+                    <Icon name="lucide:chef-hat" class="w-3 h-3" />
+                    Tanda Maestra
+                  </span>
+                  <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-brand-cream text-brand-secondary border border-brand-primary/15">
+                    {{ batch.items.length }} {{ batch.items.length === 1 ? 'insumo' : 'insumos' }}
+                  </span>
+                </div>
+                <h4 class="font-playfair font-bold text-xl sm:text-2xl text-brand-secondary group-hover:text-brand-primary transition-colors">
+                  {{ batch.name }}
+                </h4>
+                <p v-if="batch.description" class="text-xs sm:text-sm text-brand-primary/70 break-words leading-relaxed mt-1">
+                  {{ batch.description }}
+                </p>
+              </div>
+
+              <!-- Métricas Financieras Expandidas -->
+              <div class="grid grid-cols-3 gap-2.5 p-3.5 bg-brand-cream/40 rounded-2xl border border-brand-primary/10 text-center shadow-2xs">
+                <div>
+                  <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-brand-primary/70 block mb-0.5">Insumos</span>
+                  <span class="text-xs sm:text-base font-bold text-brand-secondary">
+                    S/ {{ batch.materials_total_cost.toFixed(2) }}
+                  </span>
+                </div>
+                <div>
+                  <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-brand-primary/70 block mb-0.5">CIF (Mano/Serv)</span>
+                  <span class="text-xs sm:text-base font-bold text-brand-secondary">
+                    S/ {{ batch.cif_total.toFixed(2) }}
+                  </span>
+                </div>
+                <div class="border-l border-brand-primary/15 pl-1.5">
+                  <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-brand-primary block mb-0.5">Total Tanda</span>
+                  <span class="text-xs sm:text-base font-black text-brand-primary">
+                    S/ {{ batch.total_batch_cost.toFixed(2) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Columna Derecha: Rendimientos y Acciones -->
+            <div class="lg:col-span-6 flex flex-col justify-between h-full space-y-4">
+              <!-- Rendimientos / Formatos de Corte -->
+              <div class="space-y-2">
+                <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-brand-primary/80 flex items-center gap-1.5">
+                  <Icon name="lucide:scissors" class="w-3.5 h-3.5 text-brand-primary" />
+                  Formatos de Corte y Costo por Pieza
+                </span>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div
+                    v-for="y in batch.yields"
+                    :key="y.id"
+                    class="p-2.5 bg-white rounded-xl border border-brand-primary/15 flex items-center justify-between text-xs shadow-2xs hover:border-brand-primary/30 transition-all"
+                  >
+                    <div class="min-w-0 mr-1 flex-1">
+                      <span class="font-bold text-brand-secondary block break-words leading-tight">{{ y.size_name }}</span>
+                      <span class="text-[10px] text-brand-primary/70 font-semibold">Rinde {{ y.yield_units }} u</span>
+                    </div>
+                    <span class="font-black text-brand-primary shrink-0 bg-brand-cream/60 px-2 py-1 rounded-lg text-xs">
+                      S/ {{ y.unit_cost.toFixed(2) }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Acciones de Tarjeta -->
+              <div class="pt-3 border-t border-brand-primary/10 flex items-center justify-between gap-2">
+                <button
+                  type="button"
+                  @click="openQuickDeduction(batch.id)"
+                  class="px-3.5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200/80 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer active:scale-95"
+                  title="Descargar piezas de esta tanda"
+                >
+                  <Icon name="lucide:package-minus" class="w-4 h-4 text-amber-700" />
+                  <span>Descargar Piezas</span>
+                </button>
+
+                <div class="flex items-center gap-2">
+                  <button
+                    type="button"
+                    @click="handleEditBatch(batch)"
+                    class="px-3.5 py-2 bg-brand-cream/60 hover:bg-brand-primary hover:text-white text-brand-secondary rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer active:scale-95"
+                  >
+                    <Icon name="lucide:edit-3" class="w-3.5 h-3.5" />
+                    <span>Editar</span>
+                  </button>
+                  <button
+                    type="button"
+                    @click="handleDeleteBatch(batch)"
+                    class="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
+                    title="Eliminar tanda (no toca almacén)"
+                    aria-label="Eliminar tanda"
+                  >
+                    <Icon name="lucide:trash-2" class="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CASO 2 y 3: Múltiples Tandas (Grid Adaptativo 2 cols si son 2, 3 cols si son 3+) -->
+      <div
+        v-else
+        :class="[
+          'grid gap-4 transition-all duration-300',
+          paginatedBatches.length === 2
+            ? 'grid-cols-1 lg:grid-cols-2'
+            : 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3'
+        ]"
+      >
         <div
           v-for="batch in paginatedBatches"
           :key="batch.id"
