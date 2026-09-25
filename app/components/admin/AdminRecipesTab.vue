@@ -458,16 +458,123 @@ function getBatchCostPcts(batch: any) {
         </button>
       </div>
 
-      <!-- Grid de Tandas Maestras (Diseño Compacto, Escalable y Proporcionado) -->
+      <!-- CASO 1: Exactamente 1 tanda (Ocupa el 100% del ancho con flujo horizontal esbelto y profesional) -->
+      <div v-else-if="paginatedBatches.length === 1" class="w-full">
+        <div
+          v-for="batch in paginatedBatches"
+          :key="batch.id"
+          class="bg-surface rounded-2xl border border-brand-primary/15 shadow-soft-sm hover:shadow-soft-md transition-all p-4 sm:p-5 relative group"
+        >
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4 items-center">
+            <!-- Bloque 1: Identidad de la Tanda (3 cols en lg) -->
+            <div class="lg:col-span-3 space-y-1">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-brand-primary/10 text-brand-primary border border-brand-primary/20">
+                  Tanda Maestra
+                </span>
+                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-brand-cream text-brand-secondary border border-brand-primary/15">
+                  {{ batch.items.length }} {{ batch.items.length === 1 ? 'insumo' : 'insumos' }}
+                </span>
+              </div>
+              <h4 class="font-playfair font-bold text-lg sm:text-xl text-brand-secondary group-hover:text-brand-primary transition-colors">
+                {{ batch.name }}
+              </h4>
+              <p v-if="batch.description" class="text-xs text-brand-primary/70 break-words line-clamp-1">
+                {{ batch.description }}
+              </p>
+            </div>
+
+            <!-- Bloque 2: Métricas Financieras (3 cols en lg) -->
+            <div class="lg:col-span-3">
+              <div class="grid grid-cols-3 gap-1.5 p-2.5 bg-brand-cream/35 rounded-xl border border-brand-primary/10 text-center text-xs">
+                <div>
+                  <span class="text-[9px] font-bold uppercase tracking-wider text-brand-primary/70 block">Insumos</span>
+                  <span class="text-xs sm:text-sm font-bold text-brand-secondary">
+                    S/ {{ batch.materials_total_cost.toFixed(2) }}
+                  </span>
+                </div>
+                <div>
+                  <span class="text-[9px] font-bold uppercase tracking-wider text-brand-primary/70 block">CIF</span>
+                  <span class="text-xs sm:text-sm font-bold text-brand-secondary">
+                    S/ {{ batch.cif_total.toFixed(2) }}
+                  </span>
+                </div>
+                <div class="border-l border-brand-primary/15 pl-1">
+                  <span class="text-[9px] font-bold uppercase tracking-wider text-brand-primary block">Total</span>
+                  <span class="text-xs sm:text-sm font-black text-brand-primary">
+                    S/ {{ batch.total_batch_cost.toFixed(2) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bloque 3: Formatos de Corte (4 cols en lg) -->
+            <div class="lg:col-span-4 space-y-1">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-brand-primary/80 flex items-center gap-1">
+                <Icon name="lucide:scissors" class="w-3 h-3 text-brand-primary" />
+                Formatos de Corte ({{ batch.yields.length }})
+              </span>
+              <div class="flex flex-wrap gap-1.5 max-h-20 overflow-y-auto">
+                <div
+                  v-for="y in batch.yields"
+                  :key="y.id"
+                  class="p-2 bg-white rounded-lg border border-brand-primary/10 flex items-center justify-between text-xs gap-3 flex-1 min-w-[140px] shadow-2xs"
+                >
+                  <div class="min-w-0">
+                    <span class="font-bold text-brand-secondary block text-xs truncate">{{ y.size_name }}</span>
+                    <span class="text-[9px] text-brand-primary/70 font-semibold">Rinde {{ y.yield_units }} u</span>
+                  </div>
+                  <span class="font-black text-brand-primary bg-brand-cream/50 px-2 py-0.5 rounded text-xs shrink-0">
+                    S/ {{ y.unit_cost.toFixed(2) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bloque 4: Acciones Operativas (2 cols en lg) -->
+            <div class="lg:col-span-2 flex flex-col sm:flex-row lg:flex-col items-stretch lg:items-end justify-center gap-2">
+              <button
+                type="button"
+                @click="openQuickDeduction(batch.id)"
+                class="w-full py-2 px-3 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300/80 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer active:scale-95"
+                title="Descargar piezas de esta tanda"
+              >
+                <Icon name="lucide:package-minus" class="w-3.5 h-3.5 text-amber-700" />
+                <span>Descargar</span>
+              </button>
+
+              <div class="flex items-center justify-end gap-1.5 w-full">
+                <button
+                  type="button"
+                  @click="handleEditBatch(batch)"
+                  class="flex-1 py-1.5 px-2 bg-brand-cream/60 hover:bg-brand-primary hover:text-white text-brand-secondary rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition-all cursor-pointer"
+                >
+                  <Icon name="lucide:edit-3" class="w-3 h-3" />
+                  <span>Editar</span>
+                </button>
+                <button
+                  type="button"
+                  @click="handleDeleteBatch(batch)"
+                  class="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                  title="Eliminar tanda"
+                  aria-label="Eliminar tanda"
+                >
+                  <Icon name="lucide:trash-2" class="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CASO 2 y 3: Múltiples Tandas (2 cols mitad y mitad si son 2; 3 cols 1/3 si son 3+) -->
       <div
         v-else
         :class="[
           'grid gap-4 transition-all duration-200',
-          paginatedBatches.length === 1
-            ? 'grid-cols-1 max-w-xl'
-            : paginatedBatches.length === 2
-              ? 'grid-cols-1 md:grid-cols-2'
-              : 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3'
+          paginatedBatches.length === 2
+            ? 'grid-cols-1 lg:grid-cols-2'
+            : 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3'
         ]"
       >
         <div

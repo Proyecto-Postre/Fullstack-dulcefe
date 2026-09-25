@@ -146,20 +146,23 @@ describe('Fase 4 (PR-4d): Dominio Recetas y Escandallos - Costeo, Rentabilidad y
 
       const content = fs.readFileSync(componentPath, 'utf-8')
 
-      // 1. Grid adaptativo y compacto
+      // 1. Caso 1 sola tanda: Ocupa todo el espacio (w-full) en formato horizontal profesional
       expect(content).toContain("paginatedBatches.length === 1")
-      expect(content).toContain("max-w-xl")
+      expect(content).toContain("w-full")
+      expect(content).toContain("lg:grid-cols-12")
+
+      // 2. Caso 2 y 3+ tandas: Mitad y mitad (lg:grid-cols-2) si son 2; 1/3 (xl:grid-cols-3) si son 3+
       expect(content).toContain("paginatedBatches.length === 2")
-      expect(content).toContain("grid-cols-1 md:grid-cols-2")
+      expect(content).toContain("grid-cols-1 lg:grid-cols-2")
       expect(content).toContain("grid-cols-1 md:grid-cols-2 xl:grid-cols-3")
 
-      // 2. Tarjeta con estructura balanceada
+      // 3. Tarjeta con estructura balanceada
       expect(content).toContain("batch.materials_total_cost")
       expect(content).toContain("batch.cif_total")
       expect(content).toContain("batch.total_batch_cost")
-      expect(content).toContain("Descargar Piezas")
+      expect(content).toContain("Descargar")
 
-      // 3. Estado vacío de búsqueda sin resultados
+      // 4. Estado vacío de búsqueda sin resultados
       expect(content).toContain("filteredBatches.length === 0")
       expect(content).toContain("No se encontraron tandas")
     })
