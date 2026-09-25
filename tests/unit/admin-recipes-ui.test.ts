@@ -137,8 +137,8 @@ describe('Fase 4 (PR-4d): Dominio Recetas y Escandallos - Costeo, Rentabilidad y
     })
   })
 
-  describe('Adaptive Batch Recipes Layout (Single vs Multiple Batches)', () => {
-    it('AdminRecipesTab.vue implementa la ficha panorámica cuando hay 1 tanda y grid adaptativo para múltiples', () => {
+  describe('Compact and Scalable Batch Recipes Layout', () => {
+    it('AdminRecipesTab.vue implementa un grid compacto y adaptativo para 1, 2 o múltiples tandas', () => {
       const fs = require('node:fs')
       const path = require('node:path')
       const componentPath = path.resolve(__dirname, '../../app/components/admin/AdminRecipesTab.vue')
@@ -146,15 +146,18 @@ describe('Fase 4 (PR-4d): Dominio Recetas y Escandallos - Costeo, Rentabilidad y
 
       const content = fs.readFileSync(componentPath, 'utf-8')
 
-      // 1. Caso 1 sola tanda: Ficha Panorámica Hero al 100% de ancho
+      // 1. Grid adaptativo y compacto
       expect(content).toContain("paginatedBatches.length === 1")
-      expect(content).toContain("w-full")
-      expect(content).toContain("lg:grid-cols-12")
-
-      // 2. Caso 2 y 3+ tandas: Grid Adaptativo
+      expect(content).toContain("max-w-xl")
       expect(content).toContain("paginatedBatches.length === 2")
-      expect(content).toContain("grid-cols-1 lg:grid-cols-2")
-      expect(content).toContain("2xl:grid-cols-3")
+      expect(content).toContain("grid-cols-1 md:grid-cols-2")
+      expect(content).toContain("grid-cols-1 md:grid-cols-2 xl:grid-cols-3")
+
+      // 2. Tarjeta con estructura balanceada
+      expect(content).toContain("batch.materials_total_cost")
+      expect(content).toContain("batch.cif_total")
+      expect(content).toContain("batch.total_batch_cost")
+      expect(content).toContain("Descargar Piezas")
 
       // 3. Estado vacío de búsqueda sin resultados
       expect(content).toContain("filteredBatches.length === 0")
