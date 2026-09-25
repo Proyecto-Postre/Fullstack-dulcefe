@@ -15,6 +15,33 @@ import type {
   QuickPieceDeductionResult
 } from '../../app/types/batch-recipe'
 
+interface BaseRecipeQueryRecord {
+  id: number
+  name: string
+  description: string | null
+  labor_cost: number | null
+  utilities_cost: number | null
+  created_at: string
+  updated_at: string
+  base_recipe_items?: Array<{
+    id: number
+    raw_material_id: number
+    quantity_used: number | null
+    raw_materials?: {
+      id: number
+      name: string | null
+      unit: string | null
+      purchase_price: number | null
+      purchase_quantity: number | null
+    } | null
+  }> | null
+  recipe_yields?: Array<{
+    id: number
+    size_name: string
+    yield_units: number
+  }> | null
+}
+
 export class BatchRecipeService {
   /**
    * Obtiene todas las tandas registradas con sus insumos, rendimientos y costos calculados en céntimos y soles.
@@ -573,7 +600,7 @@ export class BatchRecipeService {
    * Evalúa qué productos comerciales están en riesgo por falta de insumos o empaques en almacén.
    * Sirve para el nuevo panel del Dashboard Administrativo.
    */
-  static async getAtRiskProducts(event: H3Event, requestId: string) {
+  static async getAtRiskProducts(event: H3Event, _requestId?: string) {
     await requireAdmin(event)
     const supabase = await getAdminSupabaseClient(event)
 
@@ -706,17 +733,16 @@ export class BatchRecipeService {
       data: atRiskList
     }
   }
-
   /**
    * Helper aritmético interno para calcular costos de tanda y rendimientos sin desbordamiento de punto flotante.
    */
-  private static calculateBatchCostDetail(rec: any): BaseRecipeDetail {
+  private static calculateBatchCostDetail(rec: BaseRecipeQueryRecord): BaseRecipeDetail {
     const laborCostCents = solesToCents(rec.labor_cost || 0)
     const utilitiesCostCents = solesToCents(rec.utilities_cost || 0)
     const cifCents = laborCostCents + utilitiesCostCents
 
     let materialsTotalCents = 0
-    const calculatedItems: BaseRecipeItemDetail[] = (rec.base_recipe_items || []).map((it: any) => {
+    const calculatedItems: BaseRecipeItemDetail[] = (rec.base_recipe_items || []).map((it) => {
       const mat = it.raw_materials
       const purchasePriceCents = solesToCents(mat?.purchase_price ?? 0)
       const purchaseQty = Number(mat?.purchase_quantity ?? 1)
@@ -741,7 +767,7 @@ export class BatchRecipeService {
 
     const totalBatchCostCents = materialsTotalCents + cifCents
 
-    const calculatedYields: RecipeYieldDetail[] = (rec.recipe_yields || []).map((y: any) => {
+    const calculatedYields: RecipeYieldDetail[] = (rec.recipe_yields || []).map((y) => {
       const units = Math.max(1, Number(y.yield_units || 1))
       const unitCostCents = Math.round(totalBatchCostCents / units)
       return {

@@ -1,3 +1,5 @@
+import fs from 'node:fs'
+import path from 'node:path'
 import { describe, it, expect } from 'vitest'
 import { ref } from 'vue'
 import {
@@ -139,8 +141,6 @@ describe('Fase 4 (PR-4d): Dominio Recetas y Escandallos - Costeo, Rentabilidad y
 
   describe('Compact and Scalable Batch Recipes Layout', () => {
     it('AdminRecipesTab.vue implementa un grid compacto y adaptativo para 1, 2 o múltiples tandas', () => {
-      const fs = require('node:fs')
-      const path = require('node:path')
       const componentPath = path.resolve(__dirname, '../../app/components/admin/AdminRecipesTab.vue')
       expect(fs.existsSync(componentPath)).toBe(true)
 
@@ -149,7 +149,8 @@ describe('Fase 4 (PR-4d): Dominio Recetas y Escandallos - Costeo, Rentabilidad y
       // 1. Caso 1 sola tanda: Ocupa todo el espacio (w-full) en formato horizontal profesional
       expect(content).toContain("paginatedBatches.length === 1")
       expect(content).toContain("w-full")
-      expect(content).toContain("lg:grid-cols-4")
+      expect(content).toContain("md:grid-cols-2")
+      expect(content).toContain("2xl:grid-cols-4")
 
       // 2. Caso 2 y 3+ tandas: Mitad y mitad (lg:grid-cols-2) si son 2; 1/3 (xl:grid-cols-3) si son 3+
       expect(content).toContain("paginatedBatches.length === 2")

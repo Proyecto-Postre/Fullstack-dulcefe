@@ -1253,8 +1253,42 @@ export class OrderService {
       } | null
     }> = []
 
-    let batchMappings: any[] = []
-    let packagingItems: any[] = []
+    interface BatchMappingItem {
+      product_id: number
+      units_contained: number | null
+      recipe_yields: {
+        yield_units: number | null
+        base_recipes: {
+          base_recipe_items: Array<{
+            raw_material_id: number
+            quantity_used: number | null
+            raw_materials: {
+              id: number
+              name: string | null
+              unit: string | null
+              purchase_price: number | null
+              purchase_quantity: number | null
+            } | null
+          }>
+        } | null
+      } | null
+    }
+
+    interface PackagingItemRecord {
+      product_id: number
+      raw_material_id: number
+      quantity_used: number | null
+      raw_materials: {
+        id: number
+        name: string | null
+        unit: string | null
+        purchase_price: number | null
+        purchase_quantity: number | null
+      } | null
+    }
+
+    let batchMappings: BatchMappingItem[] = []
+    let packagingItems: PackagingItemRecord[] = []
 
     if (productIds.length > 0) {
       const { data: recipes } = await supabase
@@ -1287,7 +1321,7 @@ export class OrderService {
         `)
         .in('product_id', productIds)
 
-      batchMappings = bMappings || []
+      batchMappings = (bMappings || []) as unknown as BatchMappingItem[]
 
       const { data: pkgs } = await supabase
         .from('product_packaging_items')
@@ -1299,7 +1333,7 @@ export class OrderService {
         `)
         .in('product_id', productIds)
 
-      packagingItems = pkgs || []
+      packagingItems = (pkgs || []) as unknown as PackagingItemRecord[]
     }
 
     let totalOrderCostCents = 0

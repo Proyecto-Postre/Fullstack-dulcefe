@@ -288,16 +288,6 @@ function prevBatchesPage() {
     currentBatchesPage.value--
   }
 }
-
-// Helper para distribución porcentual de costos (Insumos vs CIF)
-function getBatchCostPcts(batch: any) {
-  const total = Number(batch?.total_batch_cost) || 0
-  if (total <= 0) return { materialsPct: 50, cifPct: 50 }
-  const materials = Number(batch?.materials_total_cost) || 0
-  const materialsPct = Math.min(100, Math.max(0, Math.round((materials / total) * 100)))
-  const cifPct = 100 - materialsPct
-  return { materialsPct, cifPct }
-}
 </script>
 
 <template>
@@ -465,11 +455,11 @@ function getBatchCostPcts(batch: any) {
           :key="batch.id"
           class="bg-surface rounded-2xl border border-brand-primary/15 shadow-soft-sm hover:shadow-soft-md transition-all p-4 sm:p-5 relative group"
         >
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-0 items-center lg:divide-x lg:divide-brand-primary/10">
-            <!-- Bloque 1: Identidad de la Tanda (25% exacto) -->
-            <div class="pr-0 lg:pr-5 flex items-center gap-3.5">
-              <div class="w-11 h-11 rounded-2xl bg-brand-cream/80 border border-brand-primary/15 text-brand-primary flex items-center justify-center shrink-0 shadow-2xs">
-                <Icon name="lucide:chef-hat" class="w-5 h-5" />
+          <div class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-4 2xl:gap-0 items-start 2xl:items-center">
+            <!-- Bloque 1: Identidad de la Tanda -->
+            <div class="order-1 md:order-1 2xl:order-1 pr-0 2xl:pr-5 flex items-center gap-3.5 min-w-0">
+              <div class="w-12 h-12 rounded-2xl bg-brand-cream/80 border border-brand-primary/15 text-brand-primary flex items-center justify-center shrink-0 shadow-2xs">
+                <Icon name="lucide:chef-hat" class="w-6 h-6" />
               </div>
               <div class="min-w-0 flex-1 space-y-1">
                 <div class="flex items-center gap-1.5 flex-wrap">
@@ -489,13 +479,49 @@ function getBatchCostPcts(batch: any) {
               </div>
             </div>
 
-            <!-- Bloque 2: Métricas Financieras (25% exacto) -->
-            <div class="px-0 lg:px-5 flex flex-col justify-center space-y-1.5">
+            <!-- Bloque 4 (reubicado arriba a la derecha en pantallas medianas para dar espacio y balance): Acciones Operativas -->
+            <div class="order-4 md:order-2 2xl:order-4 flex flex-col sm:flex-row md:flex-row 2xl:flex-col justify-center md:justify-end items-stretch md:items-center gap-2 2xl:pl-5 2xl:border-l 2xl:border-brand-primary/10">
+              <button
+                type="button"
+                @click="openQuickDeduction(batch.id)"
+                class="py-2 px-3.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300/80 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer active:scale-95 shrink-0"
+                title="Descargar piezas de esta tanda"
+              >
+                <Icon name="lucide:package-minus" class="w-3.5 h-3.5 text-amber-700" />
+                <span>Descargar Piezas</span>
+              </button>
+
+              <div class="flex items-center gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  @click="handleEditBatch(batch)"
+                  class="flex-1 sm:flex-initial py-2 px-3 bg-brand-cream/60 hover:bg-brand-primary hover:text-white text-brand-secondary rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+                >
+                  <Icon name="lucide:edit-3" class="w-3.5 h-3.5" />
+                  <span>Editar</span>
+                </button>
+                <button
+                  type="button"
+                  @click="handleDeleteBatch(batch)"
+                  class="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-red-200"
+                  title="Eliminar tanda"
+                  aria-label="Eliminar tanda"
+                >
+                  <Icon name="lucide:trash-2" class="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            <!-- Separador sutil visible en pantallas medianas (md a < 2xl) entre la fila de cabecera y las métricas -->
+            <div class="hidden md:block 2xl:hidden col-span-2 order-3 border-t border-brand-primary/10 my-1"></div>
+
+            <!-- Bloque 2: Métricas Financieras (Costo de Producción) -->
+            <div class="order-2 md:order-4 2xl:order-2 px-0 2xl:px-5 2xl:border-l 2xl:border-brand-primary/10 flex flex-col justify-center space-y-1.5">
               <span class="text-[10px] font-bold uppercase tracking-wider text-brand-primary/70 flex items-center gap-1">
                 <Icon name="lucide:calculator" class="w-3 h-3 text-brand-primary" />
                 Costo de Producción
               </span>
-              <div class="grid grid-cols-3 gap-1.5 text-center bg-brand-cream/30 p-2.5 rounded-xl border border-brand-primary/10">
+              <div class="grid grid-cols-3 gap-2 text-center bg-brand-cream/30 p-2.5 sm:p-3 rounded-xl border border-brand-primary/10">
                 <div>
                   <span class="text-[9px] font-bold uppercase tracking-wider text-brand-primary/70 block">Insumos</span>
                   <span class="text-xs sm:text-sm font-bold text-brand-secondary">
@@ -508,7 +534,7 @@ function getBatchCostPcts(batch: any) {
                     S/ {{ batch.cif_total.toFixed(2) }}
                   </span>
                 </div>
-                <div class="border-l border-brand-primary/15 pl-1">
+                <div class="border-l border-brand-primary/15 pl-1.5">
                   <span class="text-[9px] font-bold uppercase tracking-wider text-brand-primary block">Total</span>
                   <span class="text-xs sm:text-sm font-black text-brand-primary">
                     S/ {{ batch.total_batch_cost.toFixed(2) }}
@@ -517,8 +543,8 @@ function getBatchCostPcts(batch: any) {
               </div>
             </div>
 
-            <!-- Bloque 3: Formatos de Corte (25% exacto) -->
-            <div class="px-0 lg:px-5 flex flex-col justify-center space-y-1.5">
+            <!-- Bloque 3: Formatos de Corte -->
+            <div class="order-3 md:order-5 2xl:order-3 px-0 2xl:px-5 2xl:border-l 2xl:border-brand-primary/10 flex flex-col justify-center space-y-1.5">
               <div class="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-brand-primary/70">
                 <span class="flex items-center gap-1">
                   <Icon name="lucide:scissors" class="w-3 h-3 text-brand-primary" />
@@ -529,56 +555,25 @@ function getBatchCostPcts(batch: any) {
                 </span>
               </div>
 
-              <div class="space-y-1.5 max-h-20 overflow-y-auto pr-0.5">
+              <div class="space-y-1.5 max-h-24 overflow-y-auto pr-0.5">
                 <div
                   v-for="y in batch.yields"
                   :key="y.id"
                   class="p-2 bg-brand-cream/20 rounded-xl border border-brand-primary/10 flex items-center justify-between text-xs hover:bg-brand-cream/40 transition-colors shadow-2xs"
                 >
-                  <div class="min-w-0 mr-2 flex-1">
-                    <span class="font-bold text-brand-secondary block text-xs truncate leading-tight">{{ y.size_name }}</span>
-                    <span class="text-[10px] text-brand-primary/70 font-semibold">Rinde {{ y.yield_units }} u</span>
+                  <div class="min-w-0 mr-2 flex-1 flex items-center gap-2">
+                    <span class="font-bold text-brand-secondary text-xs sm:text-sm truncate">{{ y.size_name }}</span>
+                    <span class="text-[10px] text-brand-primary/70 font-semibold px-1.5 py-0.5 bg-brand-cream/50 rounded-md border border-brand-primary/10 shrink-0">
+                      Rinde {{ y.yield_units }} u
+                    </span>
                   </div>
-                  <div class="text-right shrink-0 bg-white px-2 py-0.5 rounded-lg border border-brand-primary/10">
-                    <span class="font-black text-brand-primary text-xs">
+                  <div class="text-right shrink-0 bg-white px-2.5 py-1 rounded-lg border border-brand-primary/10 shadow-2xs">
+                    <span class="font-black text-brand-primary text-xs sm:text-sm">
                       S/ {{ y.unit_cost.toFixed(2) }}
                     </span>
                     <span class="text-[9px] text-brand-primary/60 block leading-none">/ pieza</span>
                   </div>
                 </div>
-              </div>
-            </div>
-
-            <!-- Bloque 4: Acciones Operativas (25% exacto) -->
-            <div class="pl-0 lg:pl-5 flex flex-col justify-center gap-2">
-              <button
-                type="button"
-                @click="openQuickDeduction(batch.id)"
-                class="w-full py-2 px-3 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300/80 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer active:scale-95"
-                title="Descargar piezas de esta tanda"
-              >
-                <Icon name="lucide:package-minus" class="w-3.5 h-3.5 text-amber-700" />
-                <span>Descargar Piezas</span>
-              </button>
-
-              <div class="flex items-center gap-1.5 w-full">
-                <button
-                  type="button"
-                  @click="handleEditBatch(batch)"
-                  class="flex-1 py-1.5 px-2 bg-brand-cream/60 hover:bg-brand-primary hover:text-white text-brand-secondary rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition-all cursor-pointer shadow-2xs"
-                >
-                  <Icon name="lucide:edit-3" class="w-3 h-3" />
-                  <span>Editar</span>
-                </button>
-                <button
-                  type="button"
-                  @click="handleDeleteBatch(batch)"
-                  class="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-red-200"
-                  title="Eliminar tanda"
-                  aria-label="Eliminar tanda"
-                >
-                  <Icon name="lucide:trash-2" class="w-4 h-4" />
-                </button>
               </div>
             </div>
           </div>
