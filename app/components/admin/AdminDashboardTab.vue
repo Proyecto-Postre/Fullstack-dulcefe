@@ -33,7 +33,7 @@ const emit = defineEmits<{
 }>();
 
 // Consulta reactiva a productos en riesgo de producción
-const { data: atRiskData, refresh: refreshAtRisk, pending: pendingAtRisk } = await useFetch<{
+const { data: atRiskData, refresh: refreshAtRisk } = await useFetch<{
   success: boolean;
   data: AtRiskProductItem[];
 }>('/api/admin/dashboard/at-risk-products', {
@@ -57,12 +57,6 @@ const currentDateFormatted = computed<string>(() => {
 // Computed properties for dashboard metrics
 const totalProducts = computed<number>(() => props.catalog?.data?.length || 0);
 const totalMaterials = computed<number>(() => props.materials?.data?.length || 0);
-
-// Helper para compatibilidad de stock tradicional
-const lowStockProducts = computed<ProductRow[]>(() => {
-  if (!props.catalog?.data) return [];
-  return props.catalog.data.filter((p: ProductRow) => Number(p.stock) <= 5);
-});
 
 const lowStockMaterials = computed<RawMaterialRow[]>(() => {
   if (!props.materials?.data) return [];

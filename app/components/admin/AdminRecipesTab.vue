@@ -42,7 +42,6 @@ const isLoadingComposition = ref(false)
 
 const isMobileAddSheetOpen = ref(false)
 const isMobilePublishSheetOpen = ref(false)
-const isCifExpandedMobile = ref(false)
 
 // Composable de Tandas Maestras
 const {
@@ -64,9 +63,7 @@ const {
   additionalCosts,
   newRecipeItem,
   isSubmittingRecipe,
-  pendingRecipe,
   recipeErrorMessage,
-  isExporting,
   isPublishing,
   publishData,
   computedTotalCost,

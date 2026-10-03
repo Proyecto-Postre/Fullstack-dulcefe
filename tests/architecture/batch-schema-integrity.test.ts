@@ -4,9 +4,7 @@ import path from 'node:path'
 import type { Database } from '../../app/types/database.types'
 import type {
   BaseRecipeDetail,
-  RecipeYieldDetail,
-  QuickPieceDeductionInput,
-  ProductBatchComposition
+  QuickPieceDeductionInput
 } from '../../app/types/batch-recipe'
 
 describe('Batch Recipe & Yields Schema Integrity Suite (Fase 1 / SSOT)', () => {

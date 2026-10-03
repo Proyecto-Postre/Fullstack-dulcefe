@@ -38,7 +38,6 @@ test.describe('Smoke: Tandas Maestras, Dashboard Preventivo y Vitrina Fresca', (
       await expect(page.locator('input[type="email"], button[type="submit"]')).toBeVisible()
     } else {
       // Si la sesión de prueba está autenticada, verificar pestañas de recetas
-      const classicTab = page.locator('button:has-text("Recetas Clásicas")')
       const batchTab = page.locator('button:has-text("Tandas Maestras")')
 
       if (await batchTab.isVisible()) {
