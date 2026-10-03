@@ -107,3 +107,21 @@ Rutas con namespace dedicado que delegan a `CatalogService`, `InventoryService` 
 * `/api/admin/products` — Endpoints POST, PUT, DELETE delegados a `CatalogService`.
 * `/api/admin/materials` — Endpoints GET, POST, PUT, DELETE con kardex delegados a `InventoryService`.
 * `/api/admin/recipes` — Endpoints GET, POST, DELETE delegados a `RecipeService`.
+
+---
+
+## 🥣 12. Módulo: Tandas Maestras, Porcionamiento & Empaques (`/api/admin/batch-recipes` & `/api/admin/product-recipes`) [Fase 7 / ADR-008]
+* [[GET-api-admin-batch-recipes|GET /api/admin/batch-recipes]] — 🔒 Listado completo de tandas maestras con insumos, rendimientos, CIF, mano de obra y productos enlazados.
+* [[POST-api-admin-batch-recipes|POST /api/admin/batch-recipes]] — 🔒 Creación atómica de tanda maestra con ingredientes base y rendimientos físicos.
+* [[GET-api-admin-batch-recipes-id|GET /api/admin/batch-recipes/:id]] — 🔒 Detalle exhaustivo de una tanda maestra por ID.
+* [[PUT-api-admin-batch-recipes-id|PUT /api/admin/batch-recipes/:id]] — 🔒 Actualización atómica de tanda maestra, insumos y rendimientos.
+* [[DELETE-api-admin-batch-recipes-id|DELETE /api/admin/batch-recipes/:id]] — 🔒 Baja controlada de tanda maestra en cascada.
+* [[POST-api-admin-batch-recipes-quick-deduction|POST /api/admin/batch-recipes/quick-deduction]] — 🔒 Descargo rápido de piezas rotas o quemadas en taller con deducción proporcional en kardex contable (`waste_declaration`).
+* [[POST-api-admin-product-recipes-mapping|POST /api/admin/product-recipes/mapping]] — 🔒 Asignación de porciones de tanda y materiales de empaque desacoplados a productos del catálogo.
+* [[GET-api-admin-product-recipes-productId-composition|GET /api/admin/product-recipes/:productId/composition]] — 🔒 Estructura y composición de tandas y empaque para un producto de vitrina.
+
+---
+
+## 📈 13. Módulo: Monitoreo & Dashboard Vitrina (`/api/admin/dashboard`) [Fase 7]
+* [[GET-api-admin-dashboard-at-risk-products|GET /api/admin/dashboard/at-risk-products]] — 🔒 Análisis predictivo de cuellos de botella de insumos y stock virtual máximo horneable para prevención de quiebres en vitrina.
+

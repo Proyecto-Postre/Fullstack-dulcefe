@@ -4,6 +4,7 @@ export type RawMaterialRow = Database['public']['Tables']['raw_materials']['Row'
 export type InventoryMovementRow = Database['public']['Tables']['inventory_movements']['Row']
 
 export type BaseUnit = 'kg' | 'g' | 'L' | 'ml' | 'und'
+export type MaterialType = 'ingredient' | 'packaging'
 
 export interface MaterialFormData {
   id?: number | string
@@ -12,6 +13,7 @@ export interface MaterialFormData {
   purchase_price: number | string
   purchase_quantity: number | string
   stock: number | string
+  type?: MaterialType
 }
 
 export interface MaterialApiResponse {

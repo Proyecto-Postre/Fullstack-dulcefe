@@ -10,6 +10,7 @@ export interface CreateMaterialInput {
   purchase_quantity: number
   unit: string
   stock?: number
+  type?: 'ingredient' | 'packaging'
 }
 
 export interface UpdateMaterialInput {
@@ -19,6 +20,7 @@ export interface UpdateMaterialInput {
   unit?: string
   stock?: number
   reason?: string
+  type?: 'ingredient' | 'packaging'
 }
 
 export class InventoryService {
@@ -35,7 +37,8 @@ export class InventoryService {
         purchase_price: Number(dto.purchase_price),
         purchase_quantity: Number(dto.purchase_quantity),
         unit: dto.unit.trim(),
-        stock: initialStock
+        stock: initialStock,
+        type: dto.type || 'ingredient'
       })
       .select()
       .single()
@@ -110,6 +113,7 @@ export class InventoryService {
     if (dto.purchase_price !== undefined) updatePayload.purchase_price = Number(dto.purchase_price)
     if (dto.purchase_quantity !== undefined) updatePayload.purchase_quantity = Number(dto.purchase_quantity)
     if (dto.unit !== undefined) updatePayload.unit = dto.unit.trim()
+    if (dto.type !== undefined) updatePayload.type = dto.type
 
     const stockBefore = Number(existing.stock ?? 0)
     let isStockAdjusted = false

@@ -225,11 +225,8 @@ async function processCheckout(): Promise<void> {
             :payment-reference="formData.paymentReference || ''"
             :payment-receipt-url="formData.paymentReceiptUrl || ''"
             @update:payment-method="formData.paymentMethod = $event"
-            @update:paymentMethod="formData.paymentMethod = $event"
             @update:payment-reference="formData.paymentReference = $event"
-            @update:paymentReference="formData.paymentReference = $event"
             @update:payment-receipt-url="formData.paymentReceiptUrl = $event"
-            @update:paymentReceiptUrl="formData.paymentReceiptUrl = $event"
           />
           <CheckoutItemsList />
         </div>
