@@ -52,6 +52,13 @@ export function getMaterialIcon(name: string | null | undefined): string {
   if (n.includes('aceite') || n.includes('oliva') || n.includes('vegetal')) return 'lucide:droplet'
   if (n.includes('esencia') || n.includes('vainilla') || n.includes('aroma') || n.includes('colorante') || n.includes('tinta')) return 'lucide:amphora'
 
+  // 11. Empaques, Cajas, Bolsas y Presentación
+  if (n.includes('caja') || n.includes('carton') || n.includes('cartón')) return 'lucide:package'
+  if (n.includes('bolsa') || n.includes('funda') || n.includes('kraft')) return 'lucide:shopping-bag'
+  if (n.includes('domo') || n.includes('taper') || n.includes('envase') || n.includes('recipiente') || n.includes('vaso')) return 'lucide:box'
+  if (n.includes('etiqueta') || n.includes('sticker') || n.includes('rotulo') || n.includes('rótulo')) return 'lucide:tag'
+  if (n.includes('cinta') || n.includes('lazo') || n.includes('moño') || n.includes('pirotin') || n.includes('pirotín') || n.includes('papel')) return 'lucide:gift'
+
   return 'lucide:box'
 }
 
@@ -60,14 +67,21 @@ export function calculateUnitCost(price: number | null | undefined, quantity: nu
   return price / quantity
 }
 
-export function useAdminMaterials(materialsList: Ref<RawMaterialRow[]>, pageSize: Ref<number> | number = 7) {
+export function useAdminMaterials(
+  materialsList: Ref<RawMaterialRow[]>, 
+  pageSize: Ref<number> | number = 7,
+  selectedType: Ref<'all' | 'ingredient' | 'packaging'> = ref('all')
+) {
   const searchQuery = ref<string>('')
   const isSearchFocused = ref<boolean>(false)
   const currentPage = ref<number>(1)
   const itemsPerPage = isRef(pageSize) ? pageSize : ref(pageSize)
 
   const filteredMaterials = computed<RawMaterialRow[]>(() => {
-    const list = materialsList.value || []
+    let list = materialsList.value || []
+    if (selectedType.value !== 'all') {
+      list = list.filter((item: RawMaterialRow) => (item.type || 'ingredient') === selectedType.value)
+    }
     if (!list.length) return []
     if (!searchQuery.value.trim()) return list
 

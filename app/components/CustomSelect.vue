@@ -6,6 +6,9 @@ defineProps<{
   modelValue: unknown
   placeholder?: string
   bgClass?: string
+  buttonClass?: string
+  disabled?: boolean
+  size?: 'sm' | 'md'
 }>()
 
 defineEmits<{
@@ -15,5 +18,15 @@ defineEmits<{
 </script>
 
 <template>
-  <UiCustomSelect :options="options" :modelValue="modelValue" :placeholder="placeholder" :bgClass="bgClass" @update:model-value="$emit('update:modelValue', $event)" @change="$emit('change', $event)" />
+  <UiCustomSelect
+    :options="options"
+    :modelValue="modelValue"
+    :placeholder="placeholder"
+    :bgClass="bgClass"
+    :buttonClass="buttonClass"
+    :disabled="disabled"
+    :size="size"
+    @update:model-value="$emit('update:modelValue', $event)"
+    @change="$emit('change', $event)"
+  />
 </template>

@@ -230,15 +230,16 @@ const createOrder = async (): Promise<void> => {
               </h4>
             
               <div class="flex gap-2">
-                <select 
-                  v-model="selectedProductId" 
-                  class="flex-1 px-3 py-2 bg-[#F4F1E1]/30 rounded-xl border border-[#4A5D23]/20 text-sm font-bold text-[#2A321B] focus:outline-none focus:border-[#4A5D23]"
-                >
-                  <option value="" disabled>Selecciona un producto...</option>
-                  <option v-for="opt in productOptions" :key="opt.value" :value="opt.value">
-                    {{ opt.label }}
-                  </option>
-                </select>
+                <div class="flex-1 min-w-0">
+                  <CustomSelect 
+                    v-model="selectedProductId" 
+                    :options="productOptions"
+                    placeholder="Selecciona un producto..."
+                    bgClass="bg-[#F4F1E1]/30"
+                    size="sm"
+                    class="w-full text-xs font-bold"
+                  />
+                </div>
                 <button 
                   @click="addProduct(selectedProductId)" 
                   type="button" 

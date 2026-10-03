@@ -5,7 +5,7 @@ export default defineEventHandler(async (event) => {
   const requestId = getOrCreateRequestId(event)
 
   const body = await readBody(event)
-  const { name, unit, purchase_price, purchase_quantity, stock } = body || {}
+  const { name, unit, purchase_price, purchase_quantity, stock, type } = body || {}
 
   if (!name || !unit || !purchase_price || !purchase_quantity) {
     throw createError({
@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
 
   const data = await InventoryService.createMaterial(
     event,
-    { name, unit, purchase_price, purchase_quantity, stock },
+    { name, unit, purchase_price, purchase_quantity, stock, type },
     requestId
   )
 

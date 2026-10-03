@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
 import type { RawMaterialRow } from '~/types/inventory'
 import { useAdminMaterials } from '~/composables/admin/useAdminMaterials'
 import MaterialModal from './MaterialModal.vue'
@@ -13,7 +13,6 @@ const emit = defineEmits<{
   (e: 'refresh'): void
 }>()
 
-
 // Local state for Optimistic UI
 const localMaterials = ref<RawMaterialRow[]>([])
 
@@ -22,6 +21,17 @@ watch(() => props.materials?.data, (newData) => {
     localMaterials.value = [...newData]
   }
 }, { immediate: true })
+
+// Filtro de Categoría de Almacén: Ingredientes vs Empaques
+const activeSubtab = ref<'ingredient' | 'packaging'>('ingredient')
+
+const ingredientsCount = computed(() => {
+  return localMaterials.value.filter(m => (m.type || 'ingredient') === 'ingredient').length
+})
+
+const packagingCount = computed(() => {
+  return localMaterials.value.filter(m => m.type === 'packaging').length
+})
 
 // Paginación dinámica según la altura disponible en pantalla
 const dynamicPageSize = ref<number>(7)
@@ -66,13 +76,18 @@ const {
   prevPage,
   getMaterialIcon,
   calculateUnitCost
-} = useAdminMaterials(localMaterials, dynamicPageSize)
+} = useAdminMaterials(localMaterials, dynamicPageSize, activeSubtab)
 
 function handleSearchBlur(): void {
   setTimeout(() => {
     isSearchFocused.value = false
   }, 150)
 }
+
+watch(activeSubtab, () => {
+  currentPage.value = 1
+  searchQuery.value = ''
+})
 
 watch(searchQuery, () => {
   currentPage.value = 1
@@ -152,17 +167,59 @@ function openEditMaterial(item: RawMaterialRow): void {
   <div class="space-y-3.5 sm:space-y-4">
     <!-- Header Section con Búsqueda y Acción integradas -->
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-5 sm:p-6 rounded-[2rem] border border-[#4A5D23]/10 shadow-soft-sm">
-      <div class="shrink-0">
-        <div class="flex items-center gap-3">
-          <h2 class="text-2xl font-black font-playfair text-[#2A321B]">Almacén de Insumos</h2>
-          <span v-if="localMaterials.length" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#4A5D23]/10 text-[#4A5D23] border border-[#4A5D23]/15">
-            {{ searchQuery ? `${filteredMaterials.length} de ${localMaterials.length} ${localMaterials.length === 1 ? 'insumo' : 'insumos'}` : `${localMaterials.length} ${localMaterials.length === 1 ? 'insumo' : 'insumos'}` }}
-          </span>
+      <div class="shrink-0 space-y-2">
+        <div class="flex items-center gap-3 flex-wrap">
+          <h2 class="text-2xl font-black font-playfair text-[#2A321B]">Almacén y Stock</h2>
+          
+          <!-- Pestañas de categoría segmentadas: Ingredientes vs Empaques -->
+          <div class="flex items-center p-1 bg-[#F4F1E1]/80 rounded-xl border border-[#4A5D23]/15">
+            <button
+              type="button"
+              @click="activeSubtab = 'ingredient'"
+              :class="[
+                'px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer',
+                activeSubtab === 'ingredient'
+                  ? 'bg-[#4A5D23] text-white shadow-2xs'
+                  : 'text-[#4A5D23]/70 hover:text-[#2A321B]'
+              ]"
+            >
+              <Icon name="lucide:wheat" class="w-3.5 h-3.5" />
+              <span>Ingredientes</span>
+              <span 
+                class="px-1.5 py-0.2 rounded-full text-[10px] font-black"
+                :class="activeSubtab === 'ingredient' ? 'bg-white/20 text-white' : 'bg-[#4A5D23]/10 text-[#4A5D23]'"
+              >
+                {{ ingredientsCount }}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              @click="activeSubtab = 'packaging'"
+              :class="[
+                'px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer',
+                activeSubtab === 'packaging'
+                  ? 'bg-[#4A5D23] text-white shadow-2xs'
+                  : 'text-[#4A5D23]/70 hover:text-[#2A321B]'
+              ]"
+            >
+              <Icon name="lucide:package" class="w-3.5 h-3.5" />
+              <span>Empaques</span>
+              <span 
+                class="px-1.5 py-0.2 rounded-full text-[10px] font-black"
+                :class="activeSubtab === 'packaging' ? 'bg-white/20 text-white' : 'bg-[#4A5D23]/10 text-[#4A5D23]'"
+              >
+                {{ packagingCount }}
+              </span>
+            </button>
+          </div>
         </div>
-        <p class="text-xs text-[#4A5D23]/70 font-medium mt-0.5">Control de materias primas, costos de adquisición y stock físico</p>
+        <p class="text-xs text-[#4A5D23]/70 font-medium">
+          {{ activeSubtab === 'packaging' ? 'Control de cajas, bolsas, domos y empaques de presentación comercial' : 'Control de materias primas culinarias, costos de adquisición y stock físico' }}
+        </p>
       </div>
 
-      <!-- Barra de herramientas compacta: Búsqueda focalizada + Botón Nuevo Insumo -->
+      <!-- Barra de herramientas compacta: Búsqueda focalizada + Botón Nuevo Insumo / Empaque -->
       <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
         <!-- Search Bar with Suggestions -->
         <div class="relative w-full sm:w-64 md:w-72 lg:w-80">
@@ -173,7 +230,7 @@ function openEditMaterial(item: RawMaterialRow): void {
               @focus="isSearchFocused = true"
               @blur="handleSearchBlur"
               type="text" 
-              placeholder="Buscar insumos o unidad..."
+              :placeholder="activeSubtab === 'packaging' ? 'Buscar empaques, cajas o unidad...' : 'Buscar insumos o unidad...'"
               class="w-full pl-10 pr-10 py-2.5 bg-[#F4F1E1]/40 hover:bg-[#F4F1E1]/70 focus:bg-white border border-[#4A5D23]/15 rounded-xl text-xs font-bold text-[#2A321B] placeholder:text-[#4A5D23]/40 focus:outline-none focus:border-[#4A5D23] focus:ring-2 focus:ring-[#4A5D23]/15 transition-all shadow-xs"
             />
             <Transition name="fade">
@@ -209,14 +266,14 @@ function openEditMaterial(item: RawMaterialRow): void {
           </Transition>
         </div>
 
-        <!-- Botón Nuevo Insumo -->
+        <!-- Botón Contextual Nuevo Insumo / Nuevo Empaque -->
         <button
           @click="openNewMaterialModal"
           type="button"
           class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#4A5D23] text-white text-xs font-bold hover:bg-[#3C4A1C] transition-all shadow-sm active:scale-95 cursor-pointer shrink-0"
         >
           <Icon name="lucide:plus" class="w-4 h-4" />
-          <span>Nuevo Insumo</span>
+          <span>{{ activeSubtab === 'packaging' ? 'Nuevo Empaque' : 'Nuevo Insumo' }}</span>
         </button>
       </div>
     </div>
@@ -226,19 +283,23 @@ function openEditMaterial(item: RawMaterialRow): void {
       <Icon name="lucide:loader-2" class="w-8 h-8 text-[#4A5D23] animate-spin" />
     </div>
 
-    <!-- Empty State General (Sin insumos registrados) -->
-    <div v-else-if="!localMaterials.length" class="text-center py-16 bg-white rounded-2xl sm:rounded-[1.75rem] border border-[#4A5D23]/10 p-6 sm:p-8 shadow-soft-sm">
+    <!-- Empty State General (Sin registros en la categoría activa) -->
+    <div v-else-if="!filteredMaterials.length && !searchQuery" class="text-center py-16 bg-white rounded-2xl sm:rounded-[1.75rem] border border-[#4A5D23]/10 p-6 sm:p-8 shadow-soft-sm">
       <div class="w-16 h-16 rounded-full bg-[#F4F1E1] flex items-center justify-center mx-auto mb-4 text-[#4A5D23]">
-        <Icon name="lucide:scale" class="w-8 h-8" />
+        <Icon :name="activeSubtab === 'packaging' ? 'lucide:package-open' : 'lucide:scale'" class="w-8 h-8" />
       </div>
-      <h3 class="text-xl font-bold font-playfair text-[#2A321B] mb-1">Sin insumos registrados</h3>
-      <p class="text-xs text-[#4A5D23]/70 max-w-sm mx-auto mb-6">Comienza registrando tus materias primas para calcular recetas y escandallos.</p>
+      <h3 class="text-xl font-bold font-playfair text-[#2A321B] mb-1">
+        {{ activeSubtab === 'packaging' ? 'Sin empaques registrados' : 'Sin insumos registrados' }}
+      </h3>
+      <p class="text-xs text-[#4A5D23]/70 max-w-sm mx-auto mb-6">
+        {{ activeSubtab === 'packaging' ? 'Comienza registrando tus cajas, bolsas y materiales para costear la presentación de tus postres.' : 'Comienza registrando tus materias primas para calcular recetas y escandallos.' }}
+      </p>
       <button
         @click="openNewMaterialModal"
         type="button"
         class="px-5 py-2.5 rounded-xl bg-[#4A5D23] text-white text-xs font-bold hover:bg-[#3C4A1C] transition-all cursor-pointer shadow-sm"
       >
-        Crear Primer Insumo
+        {{ activeSubtab === 'packaging' ? 'Crear Primer Empaque' : 'Crear Primer Insumo' }}
       </button>
     </div>
 
@@ -252,8 +313,8 @@ function openEditMaterial(item: RawMaterialRow): void {
         <div class="w-12 h-12 rounded-full bg-[#F4F1E1] flex items-center justify-center mx-auto mb-2 text-[#4A5D23]">
           <Icon name="lucide:search-x" class="w-6 h-6" />
         </div>
-        <p class="text-xs sm:text-sm font-bold text-[#2A321B]">No se encontraron insumos</p>
-        <p class="text-[11px] sm:text-xs text-[#4A5D23]/60 mt-0.5">No hay materias primas que coincidan con "{{ searchQuery }}"</p>
+        <p class="text-xs sm:text-sm font-bold text-[#2A321B]">No se encontraron {{ activeSubtab === 'packaging' ? 'empaques' : 'insumos' }}</p>
+        <p class="text-[11px] sm:text-xs text-[#4A5D23]/60 mt-0.5">No hay resultados que coincidan con "{{ searchQuery }}"</p>
         <button 
           v-if="searchQuery" 
           @click="clearSearch" 
@@ -507,9 +568,11 @@ function openEditMaterial(item: RawMaterialRow): void {
     </div>
 
     <!-- Modal de Insumo -->
+    <!-- Modal de Insumo / Empaque -->
     <MaterialModal
       :show="showModal"
       :material-to-edit="selectedMaterial"
+      :default-type="activeSubtab"
       @close="showModal = false"
       @saved="emit('refresh')"
     />

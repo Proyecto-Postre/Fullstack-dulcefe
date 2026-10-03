@@ -164,4 +164,44 @@ Permite a los clientes (tanto autenticados como invitados) monitorear en tiempo 
 4. **Detalle Enriquecido con Imágenes y Montos:**
    - Muestra miniaturas oficiales de los postres ordenados, precio unitario, desglose por línea, dirección o modalidad de entrega y total financiero en soles.
 
+---
+
+## 9. Componentes Base de Interfaz: El Estándar `CustomSelect.vue`
+
+Para mantener la coherencia cromática y tipográfica con la identidad botánica de Dulce Fe y evitar inconsistencias entre sistemas operativos, **está estrictamente prohibido usar `<select>` nativo de HTML**.
+
+### `app/components/ui/CustomSelect.vue` (y su alias `app/components/CustomSelect.vue`)
+- **Propósito:** Reemplazo integral y estandarizado para todos los desplegables de selección del ERP y la tienda pública.
+- **Props Soportadas:**
+  - `options: SelectOption[]` — Array de `{ label: string, value: unknown, sublabel?: string, disabled?: boolean }`.
+  - `modelValue: unknown` — Valor enlazado bidireccionalmente vía `v-model`.
+  - `placeholder?: string` — Texto de apoyo cuando no hay selección (por defecto: `"Seleccionar..."`).
+  - `size?: 'sm' | 'md'` — Tamaño compacto (`sm`, h-9 con texto xs) para formularios densos de taller o estándar (`md`, h-11 con texto sm).
+  - `bgClass?: string` — Fondo dinámico adaptado al contexto (por defecto: `bg-surface` o `bg-white`).
+  - `buttonClass?: string` — Clases de utilidad Tailwind adicionales para el botón principal.
+  - `disabled?: boolean` — Deshabilita el control con opacidad al 50% y cursor no permitido.
+- **Detalles de Implementación:**
+  - Flecha vectorizada de Lucide (`lucide:chevron-down`) centrada matemáticamente con `absolute top-1/2 -translate-y-1/2 right-3 sm:right-4` que rota 180° fluidamente (`transition-transform duration-300`) al abrirse.
+  - Cierre automático al hacer clic fuera mediante un overlay fixed transparente (`z-40`).
+  - Menú flotante con desenfoque de fondo (`backdrop-blur-md`), borde botánico (`border-brand-primary/20`), scrollbar estilizada verde oliva (`#4A5D23`) e ícono de confirmación `lucide:check` en la opción actualmente seleccionada.
+
+---
+
+## 10. Modales de Taller y Escandallo por Tandas (Fase 7)
+
+### `BatchRecipeModal.vue` (Gestión de Recetas Maestras / Masas Base)
+- **Responsabilidad:** Permite al administrador crear o modificar tandas maestras de pastelería, registrando los insumos del almacén, costos indirectos de fabricación (CIF: mano de obra y servicios/gas) y múltiples rendimientos/cortes de porcionamiento.
+- **Single-Screen Fit:** Cabecera fija con resumen dinámico, cuerpo scrollable con `max-h-[92vh] flex flex-col` y footer de acciones fijo.
+- **Fila Táctil de Insumos:** En pantallas móviles (`< sm`), cada fila de insumo se divide en una línea completa para el `CustomSelect` y una sub-línea inferior para cantidad, unidad, subtotal y botón de eliminación.
+
+### `ProductBatchMappingModal.vue` (Composición Comercial de Productos)
+- **Responsabilidad:** Conecta un producto del catálogo comercial con su porción de masa base (tanda maestra + formato de corte + piezas) y sus empaques directos de presentación (caja, bolsa, cinta, etiqueta).
+- **KPI Financiero en Vivo:** Calcula en tiempo real el costo de masa, costo de empaques, costo total unitario y margen comercial porcentual/monetario.
+- **Controles Estandarizados:** 100% migrado a `CustomSelect` para tanda, corte y empaques.
+
+### `QuickPieceDeductionModal.vue` (Descargo Rápido de Piezas Sueltas)
+- **Responsabilidad:** Permite al pastelero registrar la producción física de piezas sueltas (ej: "12 piezas de Torta Selva Negra Mediana") y descontar automáticamente la fracción proporcional exacta de insumos del almacén sin fórmulas manuales.
+- **Resumen Instantáneo:** Muestra el porcentaje de tanda consumido, el costo total del descargo y el desglose de insumos antes de confirmar la transacción atómica en Supabase.
+
+
 

@@ -521,7 +521,7 @@ export class OrderService {
       if (orderItems.length > 0) {
         const productIds = orderItems.map(it => it.product_id)
 
-        // Consultar recetas vigentes
+        // 1. Consultar recetas directas vigentes
         const { data: recipeItems, error: recipeErr } = await supabase
           .from('recipe_items')
           .select('product_id, raw_material_id, quantity_used')
@@ -541,19 +541,72 @@ export class OrderService {
           })
         }
 
-        if (recipeItems && recipeItems.length > 0) {
-          // Calcular insumos necesarios agrupados
-          const neededMap = new Map<number, number>()
-          for (const item of orderItems) {
-            const recipes = recipeItems.filter(r => r.product_id === item.product_id)
-            for (const rec of recipes) {
-              const qtyPerUnit = Number(rec.quantity_used ?? 0)
-              const current = neededMap.get(rec.raw_material_id) || 0
-              neededMap.set(rec.raw_material_id, current + (qtyPerUnit * item.quantity))
+        // 2. Consultar mapeos de tandas porcionadas vigentes
+        const { data: batchMappings } = await supabase
+          .from('product_recipe_mappings')
+          .select(`
+            product_id,
+            units_contained,
+            recipe_yields (
+              yield_units,
+              base_recipes (
+                base_recipe_items (
+                  raw_material_id,
+                  quantity_used
+                )
+              )
+            )
+          `)
+          .in('product_id', productIds)
+
+        // 3. Consultar empaques directos de producto
+        const { data: packagingItems } = await supabase
+          .from('product_packaging_items')
+          .select('product_id, raw_material_id, quantity_used')
+          .in('product_id', productIds)
+
+        // Calcular insumos necesarios agrupados (receta directa + tanda porcionada + empaques)
+        const neededMap = new Map<number, number>()
+        for (const item of orderItems) {
+          // A. Recetas directas tradicionales
+          const directRecipes = (recipeItems || []).filter(r => r.product_id === item.product_id)
+          for (const rec of directRecipes) {
+            const qtyPerUnit = Number(rec.quantity_used ?? 0)
+            const current = neededMap.get(rec.raw_material_id) || 0
+            neededMap.set(rec.raw_material_id, current + (qtyPerUnit * item.quantity))
+          }
+
+          // B. Tandas porcionadas (masa por piezas de rendimiento)
+          const mappings = (batchMappings || []).filter(m => m.product_id === item.product_id)
+          for (const map of mappings) {
+            const yld = map.recipe_yields as {
+              yield_units?: number
+              base_recipes?: {
+                base_recipe_items?: Array<{ raw_material_id: number; quantity_used: number }>
+              } | null
+            } | null
+            const yieldUnits = Math.max(1, Number(yld?.yield_units || 1))
+            const unitsContained = Number(map.units_contained || 1)
+            const fraction = unitsContained / yieldUnits
+            const bItems = yld?.base_recipes?.base_recipe_items || []
+
+            for (const bi of bItems) {
+              const qtyPerProduct = Number(bi.quantity_used || 0) * fraction
+              const current = neededMap.get(bi.raw_material_id) || 0
+              neededMap.set(bi.raw_material_id, current + (qtyPerProduct * item.quantity))
             }
           }
 
-          if (neededMap.size > 0) {
+          // C. Empaques directos del producto
+          const pkgs = (packagingItems || []).filter(p => p.product_id === item.product_id)
+          for (const pkg of pkgs) {
+            const pkgQty = Number(pkg.quantity_used || 0)
+            const current = neededMap.get(pkg.raw_material_id) || 0
+            neededMap.set(pkg.raw_material_id, current + (pkgQty * item.quantity))
+          }
+        }
+
+        if (neededMap.size > 0) {
             const materialIds = Array.from(neededMap.keys())
             const { data: materials, error: matErr } = await supabase
               .from('raw_materials')
@@ -629,13 +682,12 @@ export class OrderService {
             }
 
             inventoryProcessed = true
+          } else {
+            // Si los productos no consumen insumos registrados, no bloquean la orden
+            inventoryProcessed = true
           }
-        } else {
-          // Productos sin receta no bloquean
-          inventoryProcessed = true
         }
       }
-    }
 
     // Congelar snapshot inmutable de escandallo al entrar a producción (ADR-008 / D8)
     if (newStatus === 'processing') {
@@ -1201,6 +1253,43 @@ export class OrderService {
       } | null
     }> = []
 
+    interface BatchMappingItem {
+      product_id: number
+      units_contained: number | null
+      recipe_yields: {
+        yield_units: number | null
+        base_recipes: {
+          base_recipe_items: Array<{
+            raw_material_id: number
+            quantity_used: number | null
+            raw_materials: {
+              id: number
+              name: string | null
+              unit: string | null
+              purchase_price: number | null
+              purchase_quantity: number | null
+            } | null
+          }>
+        } | null
+      } | null
+    }
+
+    interface PackagingItemRecord {
+      product_id: number
+      raw_material_id: number
+      quantity_used: number | null
+      raw_materials: {
+        id: number
+        name: string | null
+        unit: string | null
+        purchase_price: number | null
+        purchase_quantity: number | null
+      } | null
+    }
+
+    let batchMappings: BatchMappingItem[] = []
+    let packagingItems: PackagingItemRecord[] = []
+
     if (productIds.length > 0) {
       const { data: recipes } = await supabase
         .from('recipe_items')
@@ -1213,6 +1302,38 @@ export class OrderService {
         .in('product_id', productIds)
 
       recipeItems = (recipes || []) as unknown as typeof recipeItems
+
+      const { data: bMappings } = await supabase
+        .from('product_recipe_mappings')
+        .select(`
+          product_id,
+          units_contained,
+          recipe_yields (
+            yield_units,
+            base_recipes (
+              base_recipe_items (
+                raw_material_id,
+                quantity_used,
+                raw_materials ( id, name, unit, purchase_price, purchase_quantity )
+              )
+            )
+          )
+        `)
+        .in('product_id', productIds)
+
+      batchMappings = (bMappings || []) as unknown as BatchMappingItem[]
+
+      const { data: pkgs } = await supabase
+        .from('product_packaging_items')
+        .select(`
+          product_id,
+          raw_material_id,
+          quantity_used,
+          raw_materials ( id, name, unit, purchase_price, purchase_quantity )
+        `)
+        .in('product_id', productIds)
+
+      packagingItems = (pkgs || []) as unknown as PackagingItemRecord[]
     }
 
     let totalOrderCostCents = 0
@@ -1221,10 +1342,11 @@ export class OrderService {
     for (const item of orderItems) {
       if (!item.product_id) continue
 
-      const productRecipes = recipeItems.filter((r) => r.product_id === item.product_id)
       let productUnitCostCents = 0
       const ingredientSnapshots: CostSnapshotIngredient[] = []
 
+      // A. Recetas directas tradicionales
+      const productRecipes = recipeItems.filter((r) => r.product_id === item.product_id)
       for (const rec of productRecipes) {
         const mat = rec.raw_materials
         const purchasePriceCents = solesToCents(mat?.purchase_price ?? 0)
@@ -1239,6 +1361,58 @@ export class OrderService {
           material_id: rec.raw_material_id,
           material_name: mat?.name ?? 'Insumo',
           unit: mat?.unit ?? 'g',
+          quantity_used: qtyUsed,
+          cost_per_unit_cents: Math.round(costPerUnitCents),
+          total_cost_cents: ingredientTotalCostCents
+        })
+      }
+
+      // B. Tandas porcionadas
+      const mappings = batchMappings.filter((m) => m.product_id === item.product_id)
+      for (const map of mappings) {
+        const yld = map.recipe_yields
+        const yieldUnits = Math.max(1, Number(yld?.yield_units || 1))
+        const unitsContained = Number(map.units_contained || 1)
+        const fraction = unitsContained / yieldUnits
+        const bItems = yld?.base_recipes?.base_recipe_items || []
+
+        for (const bi of bItems) {
+          const mat = bi.raw_materials
+          const purchasePriceCents = solesToCents(mat?.purchase_price ?? 0)
+          const purchaseQty = Number(mat?.purchase_quantity ?? 1)
+          const costPerUnitCents = purchaseQty > 0 ? purchasePriceCents / purchaseQty : 0
+          const qtyUsed = Number((Number(bi.quantity_used || 0) * fraction).toFixed(4))
+          const ingredientTotalCostCents = Math.round(costPerUnitCents * qtyUsed)
+
+          productUnitCostCents += ingredientTotalCostCents
+
+          ingredientSnapshots.push({
+            material_id: bi.raw_material_id,
+            material_name: mat?.name ? `${mat.name} (Porción masa)` : 'Insumo Tanda',
+            unit: mat?.unit ?? 'g',
+            quantity_used: qtyUsed,
+            cost_per_unit_cents: Math.round(costPerUnitCents),
+            total_cost_cents: ingredientTotalCostCents
+          })
+        }
+      }
+
+      // C. Empaques directos
+      const pkgs = packagingItems.filter((p) => p.product_id === item.product_id)
+      for (const pkg of pkgs) {
+        const mat = pkg.raw_materials
+        const purchasePriceCents = solesToCents(mat?.purchase_price ?? 0)
+        const purchaseQty = Number(mat?.purchase_quantity ?? 1)
+        const costPerUnitCents = purchaseQty > 0 ? purchasePriceCents / purchaseQty : 0
+        const qtyUsed = Number(pkg.quantity_used || 0)
+        const ingredientTotalCostCents = Math.round(costPerUnitCents * qtyUsed)
+
+        productUnitCostCents += ingredientTotalCostCents
+
+        ingredientSnapshots.push({
+          material_id: pkg.raw_material_id,
+          material_name: mat?.name ? `${mat.name} (Empaque)` : 'Empaque',
+          unit: mat?.unit ?? 'und',
           quantity_used: qtyUsed,
           cost_per_unit_cents: Math.round(costPerUnitCents),
           total_cost_cents: ingredientTotalCostCents

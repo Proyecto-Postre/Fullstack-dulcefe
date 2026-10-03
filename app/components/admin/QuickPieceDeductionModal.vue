@@ -1,0 +1,468 @@
+<script setup lang="ts">
+import { ref, computed, watch } from 'vue'
+import { toast } from 'vue-sonner'
+import type {
+  BaseRecipeDetail,
+  BatchWasteReason,
+  QuickPieceDeductionResult
+} from '~/types/batch-recipe'
+import type { RawMaterialRow } from '~/types/inventory'
+import { calculateProportionalPreview } from '~/composables/admin/useAdminBatchRecipes'
+import CustomSelect from '~/components/CustomSelect.vue'
+
+const props = defineProps<{
+  show: boolean
+  batchRecipes: BaseRecipeDetail[]
+  materials: RawMaterialRow[]
+  initialBatchId?: number | null
+}>()
+
+const emit = defineEmits<{
+  (e: 'close'): void
+  (e: 'deducted', result: QuickPieceDeductionResult): void
+}>()
+
+const selectedBatchId = ref<number | ''>('')
+const selectedYieldId = ref<number | ''>('')
+const piecesCount = ref<number>(1)
+const reason = ref<BatchWasteReason>('personal_consumption')
+const notes = ref<string>('')
+
+const isSubmitting = ref(false)
+const errorMessage = ref('')
+
+const reasonOptions: Array<{ id: BatchWasteReason; label: string; icon: string; desc: string }> = [
+  { id: 'personal_consumption', label: 'Consumo Taller', icon: 'lucide:coffee', desc: 'Desayuno o prueba del equipo' },
+  { id: 'gift', label: 'Cortesía / Regalo', icon: 'lucide:gift', desc: 'Degustación o fidelización de cliente' },
+  { id: 'spoilage', label: 'Merma o Calidad', icon: 'lucide:alert-triangle', desc: 'Pieza sobrecalentada o no apta' },
+  { id: 'direct_sale', label: 'Venta Externa', icon: 'lucide:shopping-bag', desc: 'Venta en taller fuera de la web' }
+]
+
+watch(
+  () => props.show,
+  (newVal) => {
+    if (newVal) {
+      errorMessage.value = ''
+      piecesCount.value = 1
+      reason.value = 'personal_consumption'
+      notes.value = ''
+
+      if (props.initialBatchId) {
+        selectedBatchId.value = props.initialBatchId
+      } else if (props.batchRecipes.length > 0 && props.batchRecipes[0]) {
+        selectedBatchId.value = props.batchRecipes[0].id
+      } else {
+        selectedBatchId.value = ''
+      }
+
+      selectFirstYield()
+    }
+  }
+)
+
+watch(selectedBatchId, () => {
+  selectFirstYield()
+})
+
+function selectFirstYield() {
+  const currentBatch = activeBatch.value
+  if (currentBatch && currentBatch.yields && currentBatch.yields.length > 0 && currentBatch.yields[0]) {
+    selectedYieldId.value = currentBatch.yields[0].id ?? ''
+  } else {
+    selectedYieldId.value = ''
+  }
+}
+
+const activeBatch = computed<BaseRecipeDetail | null>(() => {
+  if (!selectedBatchId.value) return null
+  return props.batchRecipes.find((b) => b.id === Number(selectedBatchId.value)) || null
+})
+
+const activeYield = computed(() => {
+  if (!activeBatch.value || !selectedYieldId.value) return null
+  return activeBatch.value.yields.find((y) => y.id === Number(selectedYieldId.value)) || null
+})
+
+const batchOptions = computed(() => {
+  return props.batchRecipes.map((b) => ({
+    label: b.name,
+    sublabel: `${b.items.length} insumos — Costo: S/ ${b.total_batch_cost.toFixed(2)}`,
+    value: b.id
+  }))
+})
+
+const yieldOptions = computed(() => {
+  if (!activeBatch.value) return []
+  return activeBatch.value.yields.map((y) => ({
+    label: y.size_name,
+    sublabel: `Rinde ${y.yield_units} piezas — S/ ${y.unit_cost.toFixed(2)}/u`,
+    value: y.id
+  }))
+})
+
+// Cálculo de previsualización en vivo de los insumos que se descontarán
+const previewMaterials = computed(() => {
+  if (!activeBatch.value || !selectedYieldId.value || piecesCount.value <= 0) return []
+  return calculateProportionalPreview(
+    activeBatch.value,
+    Number(selectedYieldId.value),
+    piecesCount.value
+  )
+})
+
+function addPieces(amount: number) {
+  const current = Number(piecesCount.value) || 0
+  piecesCount.value = Math.max(1, current + amount)
+}
+
+function sanitizePiecesCount() {
+  const num = Math.floor(Number(piecesCount.value))
+  if (isNaN(num) || num < 1) {
+    piecesCount.value = 1
+  } else {
+    piecesCount.value = num
+  }
+}
+
+function closeModal() {
+  emit('close')
+}
+
+async function handleConfirmDeduction() {
+  errorMessage.value = ''
+
+  if (!selectedYieldId.value) {
+    errorMessage.value = 'Selecciona una tanda base y un corte de rendimiento.'
+    return
+  }
+  if (!piecesCount.value || piecesCount.value <= 0) {
+    errorMessage.value = 'Ingresa una cantidad de piezas válida mayor a 0.'
+    return
+  }
+
+  isSubmitting.value = true
+  try {
+    const res = await $fetch<{ success: boolean; data: QuickPieceDeductionResult }>(
+      '/api/admin/batch-recipes/quick-deduction',
+      {
+        method: 'POST',
+        body: {
+          recipe_yield_id: Number(selectedYieldId.value),
+          pieces_count: Number(piecesCount.value),
+          reason: reason.value,
+          notes: notes.value.trim() || undefined
+        }
+      }
+    )
+
+    if (res?.success && res.data) {
+      toast.success(
+        `Descargo exitoso: Se descontaron materias primas equivalentes a ${piecesCount.value} ${res.data.yield_name}`
+      )
+      emit('deducted', res.data)
+      closeModal()
+    }
+  } catch (err: unknown) {
+    const fetchErr = err as { data?: { statusMessage?: string; error?: { message?: string } }; message?: string }
+    errorMessage.value =
+      fetchErr.data?.error?.message ||
+      fetchErr.data?.statusMessage ||
+      fetchErr.message ||
+      'Error al procesar el descargo de piezas.'
+  } finally {
+    isSubmitting.value = false
+  }
+}
+</script>
+
+<template>
+  <ClientOnly>
+    <Teleport to="#admin-modal-portal">
+      <div
+        v-if="show"
+        class="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 overflow-y-auto pointer-events-auto"
+      >
+        <!-- Overlay -->
+        <div
+          class="fixed inset-0 bg-[#2A321B]/50 backdrop-blur-sm transition-opacity"
+          @click="closeModal"
+        ></div>
+
+        <!-- Modal Container -->
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-deduction-title"
+          class="relative w-full max-w-2xl bg-white rounded-3xl sm:rounded-[2rem] shadow-2xl overflow-hidden animate-pop border border-[#4A5D23]/10 max-h-[92vh] flex flex-col z-10"
+        >
+          <!-- Header Compacto y Adaptativo (Mobile-First) -->
+          <div class="px-4 py-3 sm:px-6 sm:py-4 border-b border-brand-primary/10 flex items-center sm:items-start justify-between gap-3 bg-gradient-to-r from-surface via-surface to-brand-cream/30 shrink-0">
+            <div class="flex items-center sm:items-start gap-2.5 sm:gap-3.5 min-w-0">
+              <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-amber-50 border border-amber-200/80 text-amber-800 flex items-center justify-center shrink-0 shadow-2xs sm:mt-0.5">
+                <Icon name="lucide:package-minus" class="w-4 h-4 sm:w-6 sm:h-6 stroke-[2]" />
+              </div>
+              <div class="min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <h3 id="modal-deduction-title" class="text-sm sm:text-base lg:text-xl font-playfair font-bold text-brand-secondary leading-snug">
+                    Descargo de Piezas
+                  </h3>
+                  <span class="px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-200/70 shrink-0">
+                    Ajuste Directo
+                  </span>
+                </div>
+                <!-- Subtítulo visible solo en pantallas medianas y grandes para ahorrar espacio en móvil -->
+                <p class="hidden sm:block text-xs text-brand-primary/75 font-medium leading-relaxed mt-0.5 max-w-sm sm:max-w-md">
+                  Descuenta materias primas automáticamente del almacén según el formato y piezas indicadas.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              aria-label="Cerrar modal"
+              @click="closeModal"
+              class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-white border border-brand-primary/20 text-brand-secondary hover:bg-brand-cream hover:text-brand-primary hover:border-brand-primary/40 active:scale-95 transition-all shadow-2xs shrink-0 cursor-pointer sm:mt-0.5"
+            >
+              <Icon name="lucide:x" class="w-4 h-4" />
+            </button>
+          </div>
+
+          <!-- Body Scrollable -->
+          <div class="p-5 sm:p-6 overflow-y-auto flex-1 space-y-5">
+            <!-- Error Banner -->
+            <div
+              v-if="errorMessage"
+              class="p-3 bg-red-50 border border-red-200 text-red-800 rounded-xl text-xs sm:text-sm flex items-start gap-2.5"
+            >
+              <Icon name="lucide:alert-circle" class="w-4 h-4 shrink-0 mt-0.5 text-red-600" />
+              <span>{{ errorMessage }}</span>
+            </div>
+
+            <!-- Paso 1: Selección de Tanda y Formato -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div>
+                <label class="flex items-center gap-1.5 text-[10px] font-bold text-brand-primary uppercase tracking-widest mb-1.5">
+                  <span class="w-4 h-4 rounded-full bg-brand-primary/10 text-brand-primary text-[10px] font-black flex items-center justify-center shrink-0">1</span>
+                  Tanda Base / Receta Maestra
+                </label>
+                <CustomSelect
+                  v-model="selectedBatchId"
+                  :options="batchOptions"
+                  placeholder="Selecciona una tanda..."
+                  size="sm"
+                  bgClass="bg-white"
+                />
+              </div>
+
+              <div>
+                <label class="flex items-center gap-1.5 text-[10px] font-bold text-brand-primary uppercase tracking-widest mb-1.5">
+                  <span class="w-4 h-4 rounded-full bg-brand-primary/10 text-brand-primary text-[10px] font-black flex items-center justify-center shrink-0">2</span>
+                  Tamaño / Formato de Corte
+                </label>
+                <CustomSelect
+                  v-model="selectedYieldId"
+                  :options="yieldOptions"
+                  :disabled="!activeBatch || yieldOptions.length === 0"
+                  placeholder="Selecciona el corte..."
+                  size="sm"
+                  bgClass="bg-white"
+                />
+              </div>
+            </div>
+
+            <!-- Paso 3: Cantidad de Piezas -->
+            <div class="p-4 sm:p-5 bg-gradient-to-br from-brand-cream/50 via-brand-cream/30 to-brand-cream/15 rounded-2xl border border-brand-primary/15 space-y-3.5 shadow-soft-sm">
+              <div class="flex items-center justify-between gap-2 flex-wrap">
+                <div class="flex items-center gap-2">
+                  <span class="w-5 h-5 rounded-full bg-brand-primary text-white text-[10px] font-black flex items-center justify-center shrink-0">
+                    3
+                  </span>
+                  <label class="text-[11px] font-bold text-brand-primary uppercase tracking-wider">
+                    Cantidad de Piezas a Descargar
+                  </label>
+                </div>
+                <span v-if="activeYield" class="text-[11px] font-semibold text-brand-primary/80 bg-white px-2.5 py-1 rounded-full border border-brand-primary/10 shadow-2xs">
+                  Corte: <strong class="text-brand-secondary">{{ activeYield.size_name }}</strong>
+                </span>
+              </div>
+
+              <!-- Fila Principal: Stepper Unificado + Botones de Incremento Rápido -->
+              <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <!-- Stepper Ergonómico con Minus, Input Centrado y Plus -->
+                <div class="flex items-center justify-between sm:justify-start bg-white rounded-2xl border border-brand-primary/20 shadow-soft-sm p-1.5 shrink-0">
+                  <button
+                    type="button"
+                    @click="addPieces(-1)"
+                    :disabled="piecesCount <= 1"
+                    class="w-11 h-11 rounded-xl bg-brand-cream/50 hover:bg-brand-primary hover:text-white text-brand-secondary flex items-center justify-center transition-all disabled:opacity-25 disabled:cursor-not-allowed cursor-pointer active:scale-95 shrink-0"
+                    title="Restar 1 pieza"
+                    aria-label="Restar una pieza"
+                  >
+                    <Icon name="lucide:minus" class="w-4 h-4 stroke-[2.5]" />
+                  </button>
+
+                  <div class="px-3 min-w-[84px] text-center flex flex-col justify-center">
+                    <input
+                      v-model.number="piecesCount"
+                      type="number"
+                      min="1"
+                      required
+                      @blur="sanitizePiecesCount"
+                      class="w-full text-center font-playfair font-black text-2xl text-brand-secondary focus:outline-none bg-transparent"
+                    />
+                    <span class="text-[9px] font-bold uppercase tracking-wider text-brand-primary/70 -mt-0.5">
+                      {{ piecesCount === 1 ? 'unidad' : 'unidades' }}
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    @click="addPieces(1)"
+                    class="w-11 h-11 rounded-xl bg-brand-cream/50 hover:bg-brand-primary hover:text-white text-brand-secondary flex items-center justify-center transition-all cursor-pointer active:scale-95 shrink-0"
+                    title="Sumar 1 pieza"
+                    aria-label="Sumar una pieza"
+                  >
+                    <Icon name="lucide:plus" class="w-4 h-4 stroke-[2.5]" />
+                  </button>
+                </div>
+
+                <!-- Botones de Acceso Rápido en Grid Simétrico de 3 Columnas -->
+                <div class="grid grid-cols-3 gap-2 flex-1">
+                  <button
+                    type="button"
+                    @click="addPieces(1)"
+                    class="h-12 sm:h-[54px] bg-white hover:bg-brand-primary hover:text-white text-brand-primary border border-brand-primary/20 rounded-xl transition-all cursor-pointer active:scale-95 flex flex-col items-center justify-center shadow-2xs group"
+                  >
+                    <span class="text-xs sm:text-sm font-black group-hover:scale-110 transition-transform leading-none">+1</span>
+                    <span class="text-[9px] font-medium opacity-75 leading-none mt-1">pieza</span>
+                  </button>
+                  <button
+                    type="button"
+                    @click="addPieces(2)"
+                    class="h-12 sm:h-[54px] bg-white hover:bg-brand-primary hover:text-white text-brand-primary border border-brand-primary/20 rounded-xl transition-all cursor-pointer active:scale-95 flex flex-col items-center justify-center shadow-2xs group"
+                  >
+                    <span class="text-xs sm:text-sm font-black group-hover:scale-110 transition-transform leading-none">+2</span>
+                    <span class="text-[9px] font-medium opacity-75 leading-none mt-1">piezas</span>
+                  </button>
+                  <button
+                    type="button"
+                    @click="addPieces(6)"
+                    class="h-12 sm:h-[54px] bg-white hover:bg-brand-primary hover:text-white text-brand-primary border border-brand-primary/20 rounded-xl transition-all cursor-pointer active:scale-95 flex flex-col items-center justify-center shadow-2xs group"
+                  >
+                    <span class="text-xs sm:text-sm font-black group-hover:scale-110 transition-transform leading-none">+6</span>
+                    <span class="text-[9px] font-medium opacity-75 leading-none mt-1">½ docena</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Paso 4: Motivo del Descargo -->
+            <div class="space-y-2">
+              <label class="flex items-center gap-1.5 text-[10px] font-bold text-brand-primary uppercase tracking-widest">
+                <span class="w-4 h-4 rounded-full bg-brand-primary/10 text-brand-primary text-[10px] font-black flex items-center justify-center shrink-0">4</span>
+                Motivo del Descargo
+              </label>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <button
+                  v-for="opt in reasonOptions"
+                  :key="opt.id"
+                  type="button"
+                  @click="reason = opt.id"
+                  :class="[
+                    'p-2.5 rounded-xl border text-left flex flex-col gap-1 transition-all cursor-pointer active:scale-98',
+                    reason === opt.id
+                      ? 'bg-brand-primary text-white border-brand-primary shadow-sm'
+                      : 'bg-white hover:bg-brand-cream/50 text-brand-secondary border-brand-primary/15'
+                  ]"
+                >
+                  <div class="flex items-center gap-1.5">
+                    <Icon :name="opt.icon" class="w-3.5 h-3.5" />
+                    <span class="text-xs font-bold leading-tight">{{ opt.label }}</span>
+                  </div>
+                  <span
+                    :class="[
+                      'text-[9px] leading-tight',
+                      reason === opt.id ? 'text-white/80' : 'text-brand-primary/70'
+                    ]"
+                  >
+                    {{ opt.desc }}
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Notas Opcionales -->
+            <div>
+              <label class="block text-[10px] font-bold text-brand-primary uppercase tracking-widest mb-1">
+                Detalles / Observaciones (Opcional)
+              </label>
+              <input
+                v-model="notes"
+                type="text"
+                placeholder="Ej: Se probó horneado con 5 min adicionales"
+                class="w-full px-3 py-2 bg-brand-cream/30 rounded-xl border border-brand-primary/20 text-xs text-brand-secondary focus:outline-none focus:border-brand-primary"
+              />
+            </div>
+
+            <!-- Previsualización de Insumos Proporcionales que se descontarán -->
+            <div
+              v-if="previewMaterials.length > 0"
+              class="p-4 bg-amber-50/70 border border-amber-200/80 rounded-2xl space-y-2.5"
+            >
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <Icon name="lucide:check-check" class="w-4 h-4 text-amber-700" />
+                  <span class="text-xs font-bold text-amber-900 uppercase tracking-wider">
+                    Insumos exactos que se descontarán del almacén
+                  </span>
+                </div>
+                <span class="text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full">
+                  {{ ( (piecesCount / (activeYield?.yield_units || 1)) * 100 ).toFixed(1) }}% de la tanda
+                </span>
+              </div>
+
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1">
+                <div
+                  v-for="mat in previewMaterials"
+                  :key="mat.raw_material_id"
+                  class="bg-white/90 p-2 rounded-xl border border-amber-200/60 flex items-center justify-between gap-1 shadow-2xs"
+                >
+                  <span class="text-xs font-semibold text-brand-secondary break-words leading-tight">
+                    {{ mat.material_name }}
+                  </span>
+                  <span class="text-xs font-black text-amber-900 whitespace-nowrap">
+                    -{{ mat.quantity_to_deduct }} {{ mat.unit }}
+                  </span>
+                </div>
+              </div>
+
+              <p class="text-[10px] text-amber-800/90 font-medium pt-1">
+                🛡️ <strong>Garantía de Almacén:</strong> Solo se deducen las materias primas mostradas arriba. Las recetas y otros productos permanecen intactos.
+              </p>
+            </div>
+          </div>
+
+          <!-- Footer con Acciones -->
+          <div class="px-4 py-3 sm:px-6 sm:py-4 bg-brand-cream/30 border-t border-brand-primary/10 flex items-center justify-end gap-2.5 sm:gap-3 shrink-0">
+            <button
+              type="button"
+              @click="closeModal"
+              class="flex-1 sm:flex-initial px-4 py-2.5 text-xs font-bold text-brand-secondary hover:bg-brand-cream/80 rounded-xl transition-colors cursor-pointer text-center"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              @click="handleConfirmDeduction"
+              :disabled="isSubmitting || !activeYield || piecesCount <= 0"
+              class="flex-2 sm:flex-initial px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl shadow-soft-sm active:scale-95 disabled:opacity-50 transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <Icon v-if="isSubmitting" name="lucide:loader-2" class="w-4 h-4 animate-spin" />
+              <Icon v-else name="lucide:check-circle" class="w-4 h-4" />
+              <span>{{ isSubmitting ? 'Descontando...' : `Confirmar Descargo de ${piecesCount} Piezas` }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+  </ClientOnly>
+</template>
