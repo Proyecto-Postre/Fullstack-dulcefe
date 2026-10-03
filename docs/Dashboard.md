@@ -81,8 +81,10 @@ flowchart TD
   * **Checkout & Pagos:** [[POST-api-checkout]], [[POST-api-checkout-upload-receipt]].
   * **Tracking Invitados:** [[GET-api-orders-track-token]].
   * **Operaciones Admin & KDS:** [[GET-api-admin-orders]], [[GET-api-admin-orders-id]], [[PATCH-api-admin-orders-id]], [[PATCH-api-admin-orders-id-status]], [[POST-api-admin-orders]], [[POST-api-admin-orders-id-verify-payment]], [[GET-api-admin-orders-id-cost-snapshot]], [[GET-api-admin-kds-orders]].
-* [[esquema-base-datos]] — Esquema relacional oficial, tablas `products`, `categories`, `orders`, `order_items`, `profiles`, `addresses`, `inventory_movements`, `raw_materials`, `recipe_items` y RLS.
-* [[sql/README]] — Gobernanza de base de datos y catálogo de 8 migraciones oficiales en `supabase/migrations/`.
+  * **Tandas Maestras, Porcionamiento & Vitrina (Fase 7):** [[GET-api-admin-batch-recipes]], [[POST-api-admin-batch-recipes]], [[GET-api-admin-batch-recipes-id]], [[PUT-api-admin-batch-recipes-id]], [[DELETE-api-admin-batch-recipes-id]], [[POST-api-admin-batch-recipes-quick-deduction]], [[POST-api-admin-product-recipes-mapping]], [[GET-api-admin-product-recipes-productId-composition]], [[GET-api-admin-dashboard-at-risk-products]].
+* [[esquema-base-datos]] — Esquema relacional oficial, tablas `products`, `categories`, `orders`, `order_items`, `profiles`, `addresses`, `inventory_movements`, `raw_materials`, `recipe_items`, `base_recipes`, `base_recipe_items`, `recipe_yields`, `product_recipe_mappings`, `product_packaging_items`, `piece_waste_logs` y RLS.
+* [[sql/README]] — Gobernanza de base de datos y catálogo de 11 migraciones oficiales en `supabase/migrations/`.
+
 
 ### 📁 03 - Arquitectura & UI
 * [[architecture-refactor-plan]] — Diagnóstico arquitectónico y plan de refactorización.
@@ -133,6 +135,8 @@ flowchart TD
 * [[fase-7-subfase-7.3-ui-admin-tandas-informe]] — **Interfaz de Usuario Administrativa (UI/UX) de Tandas Maestras, Rendimientos y Descargo Rápido (Subfase 7.3)**.
 * [[fase-7-subfase-7.4-dashboard-vitrina-informe]] — **Dashboard Preventivo de Productos en Riesgo y Vitrina Comercial Artesanal (Subfase 7.4)**.
 * [[fase-7-subfase-7.5-pruebas-e2e-cierre-informe]] — **Pruebas de Integración de Ciclo Completo, E2E y Cierre de Producción (Subfase 7.5)**.
+* [[fase-7-adenda-custom-select-responsive-informe]] — **Adenda de Estandarización Universal de CustomSelect, Single-Screen Fit y Refinamiento Estético**.
+* [[seguimiento-pedidos-responsivo-informe]] — **Informe de Rediseño y Responsividad Móvil del Seguimiento de Pedidos**.
 
 ### 📁 05 - Operaciones & Resiliencia
 * [[playbook-operaciones]] — Variables por entorno, rotación de claves, runbook de restore V44, Vercel Git-Ops y telemetría de alertas.
@@ -156,6 +160,9 @@ flowchart TD
 * [[ADR-004-motor-escandallos-exportacion-exceljs]] — Escandallos en gramos y exportación ExcelJS viva en servidor.
 * [[ADR-005-automatizacion-event-driven-n8n]] — Automatizaciones con n8n Open-Source vs Zapier/Make.
 * [[ADR-006-carrito-cliente-pinia-cookies]] — Carrito en cliente con Pinia + Cookies vs tablas en BD.
+* [[ADR-007-tiempo-real-server-sent-events]] — Streaming de estado de pedidos con Server-Sent Events (SSE).
+* [[ADR-008-modelo-tandas-maestras-rendimientos-porcionamiento]] — Modelo dual de tandas maestras, rendimientos proporcionales, empaques desacoplados y descargo rápido de mermas (Fase 7).
+
 
 ---
 
