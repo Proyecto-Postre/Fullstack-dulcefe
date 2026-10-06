@@ -22,8 +22,8 @@ Toda variable debe gestionarse a través del panel de configuración de Vercel y
 | `CLOUDINARY_API_KEY` | Llave de API para upload de fotos | Privado / Server | Token local | Token staging | Token producción |
 | `CLOUDINARY_API_SECRET` | Secreto de API Cloudinary | **Estrictamente Privado** | Token local | Token staging | Token producción |
 
-> [!TIP]
-> **Resiliencia SSR:** En `nuxt.config.ts` se han incorporado fallbacks canónicos de Supabase para evitar caídas catastróficas 500 durante despliegues de ramas Preview virgen. Consulta el runbook detallado en la [Sección 8](#8-runbook-de-incidencias-vercel-ssr-error-500-cadena-supabase--pinia).
+> [!IMPORTANT]
+> **Seguridad y Cero Fallbacks:** En `nuxt.config.ts` se han erradicado los fallbacks quemados con credenciales de producción para evitar filtraciones y conexiones accidentales a bases de datos de clientes reales. Toda variable debe provenir de las *Environment Variables* de Vercel en la nube o del `.env` local en desarrollo. Para inicializar una base de datos de desarrollo o staging idéntica a producción, ejecute el script consolidado [`supabase/init_dev_database.sql`](file:///c:/Users/PRUEBA/Documents/Visual%20Proyects/Fullstack-dulcefe/supabase/init_dev_database.sql).
 
 ---
 
