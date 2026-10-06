@@ -28,10 +28,10 @@ export default defineNuxtConfig({
   ],
 
   runtimeConfig: {
-    supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrbHhmcnd6dXdqdm5mY2RobWVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM4Nzg4NTQsImV4cCI6MjA5OTQ1NDg1NH0.aZPDwe2FG2oF12-NXpEbR9ADfLyJYhxePQjC8xHHKqs',
+    supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
     public: {
-      supabaseUrl: process.env.SUPABASE_URL || process.env.NUXT_PUBLIC_SUPABASE_URL || 'https://rklxfrwzuwjvnfcdhmei.supabase.co',
-      supabaseAnonKey: process.env.SUPABASE_KEY || process.env.NUXT_PUBLIC_SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrbHhmcnd6dXdqdm5mY2RobWVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM4Nzg4NTQsImV4cCI6MjA5OTQ1NDg1NH0.aZPDwe2FG2oF12-NXpEbR9ADfLyJYhxePQjC8xHHKqs',
+      supabaseUrl: process.env.SUPABASE_URL || process.env.NUXT_PUBLIC_SUPABASE_URL || '',
+      supabaseAnonKey: process.env.SUPABASE_KEY || process.env.NUXT_PUBLIC_SUPABASE_KEY || '',
       whatsappNumber: process.env.NUXT_PUBLIC_WHATSAPP_NUMBER || '51998265700',
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000'
     }
@@ -50,9 +50,9 @@ export default defineNuxtConfig({
 
   supabase: {
     redirect: false,
-    url: process.env.SUPABASE_URL || process.env.NUXT_PUBLIC_SUPABASE_URL || 'https://rklxfrwzuwjvnfcdhmei.supabase.co',
-    key: process.env.SUPABASE_KEY || process.env.NUXT_PUBLIC_SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrbHhmcnd6dXdqdm5mY2RobWVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM4Nzg4NTQsImV4cCI6MjA5OTQ1NDg1NH0.aZPDwe2FG2oF12-NXpEbR9ADfLyJYhxePQjC8xHHKqs',
-    serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrbHhmcnd6dXdqdm5mY2RobWVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM4Nzg4NTQsImV4cCI6MjA5OTQ1NDg1NH0.aZPDwe2FG2oF12-NXpEbR9ADfLyJYhxePQjC8xHHKqs',
+    url: process.env.SUPABASE_URL || process.env.NUXT_PUBLIC_SUPABASE_URL || '',
+    key: process.env.SUPABASE_KEY || process.env.NUXT_PUBLIC_SUPABASE_KEY || '',
+    serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
     cookieOptions: {
       maxAge: 60 * 60 * 24 * 7,
       sameSite: 'lax',
