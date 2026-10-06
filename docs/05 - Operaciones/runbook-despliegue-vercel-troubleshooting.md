@@ -78,18 +78,19 @@ Para garantizar que el servidor SSR sea **autónomo y tolerante a fallos de conf
 
 ### 3.1 Blindaje de Fallbacks en `nuxt.config.ts`
 
-Se configuraron valores de contingencia canónicos con el proyecto de producción oficial de Supabase. La clave anónima (`anon key`) está diseñada por la arquitectura de Supabase para ser pública en el navegador, por lo que su inclusión como fallback en el servidor es segura y garantiza que el SDK nunca lance excepciones de inicialización:
+> [!NOTE]
+> **Actualización de Seguridad (Octubre 2026):**
+> Para erradicar la exposición de credenciales y evitar que entornos de prueba muten datos de clientes en la base de producción (`rklxfrwzuwjvnfcdhmei`), se eliminaron los fallbacks hardcodeados en `nuxt.config.ts`.
+> Es **obligatorio** que el panel de Vercel tenga configuradas las variables `SUPABASE_URL`, `SUPABASE_KEY` y `SUPABASE_SERVICE_ROLE_KEY` tanto para `Production` como para `Preview`.
 
 ```typescript
-// nuxt.config.ts
+// nuxt.config.ts (Configuración Limpia y Segura)
 export default defineNuxtConfig({
-  // ...
   runtimeConfig: {
-    // Clave de servicio para operaciones privadas de backend
-    supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsIn...',
+    supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
     public: {
-      supabaseUrl: process.env.SUPABASE_URL || process.env.NUXT_PUBLIC_SUPABASE_URL || 'https://rklxfrwzuwjvnfcdhmei.supabase.co',
-      supabaseAnonKey: process.env.SUPABASE_KEY || process.env.NUXT_PUBLIC_SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsIn...',
+      supabaseUrl: process.env.SUPABASE_URL || process.env.NUXT_PUBLIC_SUPABASE_URL || '',
+      supabaseAnonKey: process.env.SUPABASE_KEY || process.env.NUXT_PUBLIC_SUPABASE_KEY || '',
       whatsappNumber: process.env.NUXT_PUBLIC_WHATSAPP_NUMBER || '51998265700',
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000'
     }
@@ -97,9 +98,9 @@ export default defineNuxtConfig({
 
   supabase: {
     redirect: false,
-    url: process.env.SUPABASE_URL || process.env.NUXT_PUBLIC_SUPABASE_URL || 'https://rklxfrwzuwjvnfcdhmei.supabase.co',
-    key: process.env.SUPABASE_KEY || process.env.NUXT_PUBLIC_SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsIn...',
-    serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsIn...',
+    url: process.env.SUPABASE_URL || process.env.NUXT_PUBLIC_SUPABASE_URL || '',
+    key: process.env.SUPABASE_KEY || process.env.NUXT_PUBLIC_SUPABASE_KEY || '',
+    serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
     cookieOptions: {
       maxAge: 60 * 60 * 24 * 7,
       sameSite: 'lax',
@@ -109,10 +110,10 @@ export default defineNuxtConfig({
 })
 ```
 
-### 3.2 Beneficios del Blindaje
-- **Cero caídas 500 por omisión:** Si se despliega una nueva rama o preview sin configurar variables en Vercel, el SSR arranca de forma exitosa (HTTP 200).
-- **Sobreescritura transparente:** Si se especifican variables en el panel de Vercel, estas toman precedencia inmediata gracias a la evaluación `process.env.VARIABLE || fallback`.
-- **Preservación de la cadena de plugins:** El plugin de Supabase concluye con éxito, permitiendo que Pinia inicialice su store y que el hook `app:rendered` serialice el estado con normalidad.
+### 3.2 Beneficios del Aislamiento y Configuración Formal
+- **Aislamiento Total Dev/Prod:** Las pruebas de desarrollo local no tocan producción bajo ninguna circunstancia.
+- **Cero Fuga de Credenciales:** El repositorio en GitHub queda libre de tokens y claves JWT privadas.
+- **Gestión Centralizada en Vercel:** Las credenciales se administran de forma segura y cifrada en el panel de Vercel.
 
 ---
 
