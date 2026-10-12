@@ -11,14 +11,6 @@ export function normalizeCatalogText(text: string): string {
     .trim()
 }
 
-export const CATALOG_CATEGORIES: CatalogCategory[] = [
-  { id: 'todos', name: 'Todos los Postres', icon: 'lucide:sparkles' },
-  { id: 'tortas', name: 'Tortas & Pasteles', icon: 'lucide:cake' },
-  { id: 'tartaletas', name: 'Tartaletas & Pies', icon: 'lucide:pie-chart' },
-  { id: 'cheesecakes', name: 'Cheesecakes', icon: 'lucide:heart' },
-  { id: 'bocaditos', name: 'Boxes & Porciones', icon: 'lucide:box' }
-]
-
 export function useCatalog(
   rawProducts: ComputedRef<CatalogProduct[]>,
   rawCategories?: ComputedRef<CatalogCategory[]>
@@ -29,7 +21,7 @@ export function useCatalog(
 
   const categories = computed<CatalogCategory[]>(() => {
     const list = rawCategories?.value
-    // Si no se proporcionaron categorías o la tabla en BD está vacía, no mostrar categorías
+    // Si no se proporcionaron categorías o la tabla en BD está vacía, no mostrar filtros en duro
     if (!list || list.length === 0) {
       return []
     }
@@ -57,32 +49,21 @@ export function useCatalog(
         if (!matchesSearch) return false
       }
 
-      // 2. Filtro por categoría
+      // 2. Filtro por categoría dinámico desde BD
       if (cat === 'todos') return true
 
-      // Coincidencia con categoría asignada o texto
-      if ((product as { category_id?: string }).category_id === cat) return true
-
-      if (cat === 'tortas') {
-        return (nameNorm.includes('torta') || nameNorm.includes('pastel') || nameNorm.includes('cake')) && !nameNorm.includes('cheesecake')
-      }
-      if (cat === 'tartaletas') {
-        return nameNorm.includes('tarta') || nameNorm.includes('pie')
-      }
-      if (cat === 'cheesecakes') {
-        return nameNorm.includes('cheesecake') || nameNorm.includes('cheese')
-      }
-      if (cat === 'bocaditos') {
-        return nameNorm.includes('box') || nameNorm.includes('alfajor') || nameNorm.includes('brownie') || nameNorm.includes('cajita')
-      }
-      return nameNorm.includes(cat) || descNorm.includes(cat)
+      const productCatId = String((product as { category_id?: string | number }).category_id || '')
+      return productCatId === String(cat)
     })
   })
 
-  function handleAddToCart(product: CatalogProduct): void {
-    cartStore.addToCart(product)
+  function handleAddToCart(product: CatalogProduct, quantity: number = 1): void {
+    const qty = Math.max(1, quantity)
+    for (let i = 0; i < qty; i++) {
+      cartStore.addToCart(product)
+    }
     toast.success('¡Agregado al pedido!', {
-      description: `${product.name} — S/ ${Number(product.price).toFixed(2)}`
+      description: `${qty > 1 ? `${qty}x ` : ''}${product.name} — S/ ${(Number(product.price) * qty).toFixed(2)}`
     })
   }
 

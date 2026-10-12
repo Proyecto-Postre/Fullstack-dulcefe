@@ -8,6 +8,7 @@ defineProps<{
 
 defineEmits<{
   (e: 'addToCart', product: CatalogProduct): void
+  (e: 'viewDetail', product: CatalogProduct): void
 }>()
 </script>
 
@@ -16,7 +17,10 @@ defineEmits<{
     class="group bg-surface rounded-2xl sm:rounded-[2rem] overflow-hidden shadow-soft-sm hover:shadow-soft-lg transition-all duration-300 ease-out flex flex-col border border-brand-primary/10 hover:-translate-y-1.5 h-full"
   >
     <!-- Contenedor de Imagen -->
-    <div class="aspect-[4/3] sm:aspect-auto sm:h-56 md:h-64 w-full relative overflow-hidden bg-brand-cream/60 shrink-0">
+    <div 
+      @click="$emit('viewDetail', product)"
+      class="aspect-[4/3] sm:aspect-auto sm:h-56 md:h-64 w-full relative overflow-hidden bg-brand-cream/60 shrink-0 cursor-pointer"
+    >
       <!-- Badge Artesanal: Horneado Fresco / A Pedido o Agotado por hoy -->
       <div 
         v-if="product.stock > 0" 
@@ -44,8 +48,11 @@ defineEmits<{
 
     <!-- Contenido y Precio -->
     <div class="p-3 sm:p-5 md:p-6 flex-1 flex flex-col justify-between bg-surface">
-      <div>
-        <h3 class="text-xs sm:text-base md:text-xl font-playfair font-bold text-brand-secondary mb-1 sm:mb-2 tracking-tight leading-snug line-clamp-2">
+      <div 
+        @click="$emit('viewDetail', product)"
+        class="cursor-pointer"
+      >
+        <h3 class="text-xs sm:text-base md:text-xl font-playfair font-bold text-brand-secondary mb-1 sm:mb-2 tracking-tight leading-snug line-clamp-2 group-hover:text-brand-primary transition-colors">
           {{ product.name }}
         </h3>
         <p class="hidden sm:block text-xs text-brand-primary/75 line-clamp-2 leading-relaxed mb-4 md:mb-6 font-medium">
