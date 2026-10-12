@@ -3,15 +3,15 @@
 </script>
 
 <template>
-  <div class="text-center mb-6 sm:mb-8 max-w-3xl mx-auto">
+  <div class="text-center mb-6 sm:mb-8 max-w-5xl mx-auto px-2">
     <!-- Píldora Superior de Marca -->
     <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-primary/10 text-brand-primary text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-3 border border-brand-primary/20 shadow-soft-sm">
       <Icon name="lucide:sparkles" class="w-3.5 h-3.5 text-brand-accent" />
       <span>Colección Dulce Fe · Taller Artesanal</span>
     </div>
 
-    <!-- Título Principal Editorial -->
-    <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-playfair font-black text-brand-secondary mb-2 tracking-tight">
+    <!-- Título Principal Editorial en una sola línea continua -->
+    <h1 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-playfair font-black text-brand-secondary mb-2 tracking-tight whitespace-nowrap">
       Nuestra Carta & Especialidades
     </h1>
 
