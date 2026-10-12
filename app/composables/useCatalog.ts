@@ -53,7 +53,18 @@ export function useCatalog(
       if (cat === 'todos') return true
 
       const productCatId = String((product as { category_id?: string | number }).category_id || '')
-      return productCatId === String(cat)
+      if (productCatId.length > 0 && productCatId === String(cat)) {
+        return true
+      }
+
+      // Fallback inteligente para compatibilidad si el producto no tiene category_id en BD
+      const catLower = String(cat).toLowerCase()
+      if (catLower === 'tortas' && (nameNorm.includes('torta') || descNorm.includes('torta') || nameNorm.includes('cake'))) return true
+      if ((catLower === 'tartaletas' || catLower.includes('pie')) && (nameNorm.includes('tarta') || nameNorm.includes('pie') || descNorm.includes('tarta'))) return true
+      if (catLower === 'boxes' && (nameNorm.includes('box') || descNorm.includes('box') || descNorm.includes('caja') || nameNorm.includes('regalo'))) return true
+      if (catLower === 'bocaditos' && (nameNorm.includes('bocadito') || nameNorm.includes('alfajor') || nameNorm.includes('trufa') || nameNorm.includes('macaron') || descNorm.includes('bocadito'))) return true
+
+      return false
     })
   })
 

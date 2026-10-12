@@ -9,6 +9,7 @@ export interface CatalogProduct {
   stock: number
   image_url: string | null
   description?: string | null
+  category_id?: string | null
   created_at?: string
   updated_at?: string
 }
@@ -17,6 +18,8 @@ export interface CatalogCategory {
   id: string
   name: string
   icon: string
+  sort_order?: number
+  is_active?: boolean
 }
 
 export interface CatalogApiResponse {
@@ -31,6 +34,7 @@ export interface ProductFormData {
   price: number | string
   stock: number | string
   image_url: string
+  category_id?: string | null
 }
 
 export interface ProductUploadResponse {

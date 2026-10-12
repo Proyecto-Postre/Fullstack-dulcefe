@@ -106,6 +106,19 @@ function goToRecipeTab(product: ProductItem) {
         </button>
 
         <button 
+          @click="currentTab = 'categories'"
+          type="button"
+          :class="[
+            'flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold transition-all text-left w-full border relative overflow-hidden group cursor-pointer text-sm',
+            currentTab === 'categories' ? 'bg-brand-cream text-brand-primary border-brand-primary/20 shadow-soft-sm' : 'bg-transparent text-brand-secondary border-transparent hover:bg-brand-cream/50'
+          ]"
+        >
+          <div :class="['absolute left-0 top-0 bottom-0 w-1 bg-brand-primary transition-transform duration-300', currentTab === 'categories' ? 'scale-y-100' : 'scale-y-0 group-hover:scale-y-50']"></div>
+          <Icon name="lucide:tags" :class="['w-5 h-5 transition-transform duration-300', currentTab === 'categories' ? 'scale-110' : 'group-hover:scale-110']" />
+          Secciones del Menú
+        </button>
+
+        <button 
           @click="currentTab = 'materials'"
           type="button"
           :class="[
@@ -172,6 +185,10 @@ function goToRecipeTab(product: ProductItem) {
           :pendingCatalog="pendingCatalog"
           @refresh="refreshCatalog"
           @view-recipe="goToRecipeTab"
+        />
+
+        <AdminCategoriesTab
+          v-if="currentTab === 'categories'"
         />
 
         <AdminMaterialsTab 

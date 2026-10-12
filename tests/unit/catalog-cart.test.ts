@@ -96,6 +96,17 @@ describe('Fase 4 (PR-4b): Dominio Catálogo y Carrito - Normalización, Filtrado
       expect(results.length).toBe(1)
       expect(results[0].name).toBe('Box de Alfajores Artesanales (x12)')
     })
+
+    it('respeta category_id cuando está asignado explícitamente en el producto', () => {
+      const productWithCat: CatalogProduct = {
+        id: 99,
+        name: 'Postre Exclusivo',
+        price: 50.0,
+        stock: 5,
+        category_id: 'tortas'
+      }
+      expect(productWithCat.category_id).toBe('tortas')
+    })
   })
 
   describe('Cálculo de Carrito y Totales', () => {

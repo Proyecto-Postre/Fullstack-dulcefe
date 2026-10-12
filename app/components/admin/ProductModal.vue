@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import type { ProductRow, ProductUploadResponse } from '~/types/catalog'
+import { ref, watch, computed } from 'vue'
+import type { ProductRow, ProductUploadResponse, CatalogCategory } from '~/types/catalog'
 
 const props = defineProps<{
   show: boolean
@@ -12,13 +12,20 @@ const emit = defineEmits<{
   (e: 'saved', product: ProductRow, isNew: boolean): void
 }>()
 
+// Carga reactiva de categorías disponibles
+const { data: categoriesResponse } = await useFetch<{ success: boolean; data: CatalogCategory[] }>('/api/categories', {
+  default: () => ({ success: true, data: [] })
+})
+const availableCategories = computed<CatalogCategory[]>(() => categoriesResponse.value?.data || [])
+
 const newProduct = ref<{
   id: number | string
   name: string
   price: number | string
   stock: number | string
   image_url: string
-}>({ id: '', name: '', price: '', stock: '', image_url: '' })
+  category_id: string
+}>({ id: '', name: '', price: '', stock: '', image_url: '', category_id: '' })
 
 const isSubmitting = ref(false)
 const errorMessage = ref('')
@@ -34,11 +41,12 @@ watch(() => props.show, (newVal) => {
         name: props.productToEdit.name, 
         price: props.productToEdit.price ?? '', 
         stock: props.productToEdit.stock ?? '',
-        image_url: props.productToEdit.image_url || ''
+        image_url: props.productToEdit.image_url || '',
+        category_id: (props.productToEdit as unknown as { category_id?: string }).category_id || ''
       }
       previewUrl.value = props.productToEdit.image_url || null
     } else {
-      newProduct.value = { id: '', name: '', price: '', stock: '', image_url: '' }
+      newProduct.value = { id: '', name: '', price: '', stock: '', image_url: '', category_id: '' }
       previewUrl.value = null
     }
     errorMessage.value = ''
@@ -92,7 +100,8 @@ async function saveProduct(): Promise<void> {
         name: newProduct.value.name,
         price: Number(newProduct.value.price || 0),
         stock: Number(newProduct.value.stock || 0),
-        image_url: uploadedImageUrl
+        image_url: uploadedImageUrl,
+        category_id: newProduct.value.category_id || null
       }
     })
     
@@ -173,6 +182,23 @@ async function saveProduct(): Promise<void> {
               <div>
                 <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest mb-1.5">Nombre</label>
                 <input v-model="newProduct.name" type="text" required placeholder="Ej. Torta de Chocolate" class="w-full bg-[#F4F1E1]/30 border border-[#4A5D23]/20 rounded-xl px-4 py-2.5 text-sm font-bold text-[#2A321B] focus:outline-none focus:border-[#4A5D23] transition-colors" />
+              </div>
+
+              <!-- Categoría / Sección del Menú -->
+              <div>
+                <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest mb-1.5">Sección / Categoría del Menú</label>
+                <select
+                  v-model="newProduct.category_id"
+                  class="w-full bg-[#F4F1E1]/30 border border-[#4A5D23]/20 rounded-xl px-4 py-2.5 text-sm font-bold text-[#2A321B] focus:outline-none focus:border-[#4A5D23] transition-colors cursor-pointer"
+                >
+                  <option value="">(Sin categoría asignada)</option>
+                  <option v-for="cat in availableCategories" :key="cat.id" :value="cat.id">
+                    {{ cat.name }}
+                  </option>
+                </select>
+                <p class="text-[10px] text-[#4A5D23]/70 font-medium mt-1">
+                  Permite a los clientes filtrar este postre en la carta principal.
+                </p>
               </div>
 
               <!-- Precio & Stock -->

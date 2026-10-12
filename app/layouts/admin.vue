@@ -9,6 +9,7 @@ const isMobileAdminMenuOpen = useAdminMobileMenu()
 const adminModules: { id: AdminTab; label: string; icon: string; desc: string }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: 'lucide:layout-dashboard', desc: 'Resumen y alertas de stock' },
   { id: 'products', label: 'Vitrina Comercial', icon: 'lucide:cake-slice', desc: 'Productos, precios y estado' },
+  { id: 'categories', label: 'Secciones del Menú', icon: 'lucide:tags', desc: 'Categorías y filtros de la carta' },
   { id: 'materials', label: 'Almacén de Insumos', icon: 'lucide:scale', desc: 'Control de materias primas' },
   { id: 'recipes', label: 'Escandallo', icon: 'lucide:calculator', desc: 'Fichas técnicas y costos' },
   { id: 'orders', label: 'Gestión de Pedidos', icon: 'lucide:clipboard-list', desc: 'Kanban comercial y comprobantes' }
