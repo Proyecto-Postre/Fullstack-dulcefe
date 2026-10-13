@@ -26,8 +26,9 @@ const newProduct = ref<{
   image_url: string
   category_id: string
   description: string
+  shelf_life: string
   is_featured: boolean
-}>({ id: '', name: '', price: '', stock: '', image_url: '', category_id: '', description: '', is_featured: false })
+}>({ id: '', name: '', price: '', stock: '', image_url: '', category_id: '', description: '', shelf_life: '', is_featured: false })
 
 const isSubmitting = ref(false)
 const errorMessage = ref('')
@@ -46,11 +47,12 @@ watch(() => props.show, (newVal) => {
         image_url: props.productToEdit.image_url || '',
         category_id: (props.productToEdit as unknown as { category_id?: string }).category_id || '',
         description: (props.productToEdit as unknown as { description?: string | null }).description || '',
+        shelf_life: (props.productToEdit as unknown as { shelf_life?: string | null }).shelf_life || '',
         is_featured: Boolean((props.productToEdit as unknown as { is_featured?: boolean | null }).is_featured)
       }
       previewUrl.value = props.productToEdit.image_url || null
     } else {
-      newProduct.value = { id: '', name: '', price: '', stock: '', image_url: '', category_id: '', description: '', is_featured: false }
+      newProduct.value = { id: '', name: '', price: '', stock: '', image_url: '', category_id: '', description: '', shelf_life: '', is_featured: false }
       previewUrl.value = null
     }
     errorMessage.value = ''
@@ -139,6 +141,7 @@ async function saveProduct(): Promise<void> {
         image_url: uploadedImageUrl,
         category_id: newProduct.value.category_id || null,
         description: newProduct.value.description?.trim() || null,
+        shelf_life: newProduct.value.shelf_life?.trim() || null,
         is_featured: Boolean(newProduct.value.is_featured)
       }
     })
@@ -153,6 +156,7 @@ async function saveProduct(): Promise<void> {
           image_url: uploadedImageUrl || null,
           category_id: newProduct.value.category_id || null,
           description: newProduct.value.description?.trim() || null,
+          shelf_life: newProduct.value.shelf_life?.trim() || null,
           is_featured: Boolean(newProduct.value.is_featured),
           created_at: new Date().toISOString()
         } as unknown as ProductRow
@@ -259,6 +263,22 @@ async function saveProduct(): Promise<void> {
                   placeholder="Ej. Bizcocho húmedo de cacao con ganache bitter al 70%, frambuesas frescas y frutos secos..." 
                   class="w-full bg-[#F4F1E1]/30 border border-[#4A5D23]/20 rounded-xl px-4 py-2 text-xs font-medium text-[#2A321B] focus:outline-none focus:border-[#4A5D23] transition-colors resize-none"
                 ></textarea>
+              </div>
+
+              <!-- Tiempo de Consumo Óptimo -->
+              <div>
+                <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest mb-1.5">
+                  Tiempo de Consumo Óptimo
+                </label>
+                <input 
+                  v-model="newProduct.shelf_life" 
+                  type="text" 
+                  placeholder="Ej. 3-4 días, 1-2 días en frío, 5-7 días..." 
+                  class="w-full bg-[#F4F1E1]/30 border border-[#4A5D23]/20 rounded-xl px-4 py-2.5 text-xs font-bold text-[#2A321B] focus:outline-none focus:border-[#4A5D23] transition-colors" 
+                />
+                <p class="text-[10px] text-[#4A5D23]/70 font-medium mt-1">
+                  Recomendación visible en la vitrina para el cliente (por defecto: 3-4 días).
+                </p>
               </div>
 
               <!-- Precio & Stock -->

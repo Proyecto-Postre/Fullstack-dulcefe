@@ -210,4 +210,28 @@ describe('Fase 4 (PR-4b): Dominio Catálogo y Carrito - Normalización, Filtrado
       expect(filtered.map(p => p.id)).toEqual([1, 3])
     })
   })
+
+  describe('Recomendación de Conservación y Consumo Óptimo (shelf_life)', () => {
+    it('muestra shelf_life personalizado si está definido o aplica el fallback estándar "3-4 días"', () => {
+      const pieConFruta: CatalogProduct = {
+        id: 10,
+        name: 'Pie de Limón con Merengue Suizo',
+        price: 45,
+        stock: 6,
+        shelf_life: '1-2 días en frío'
+      }
+      const tortaEstandar: CatalogProduct = {
+        id: 11,
+        name: 'Torta Selva de Cacao',
+        price: 80,
+        stock: 4
+      }
+
+      const getDisplayShelfLife = (product: CatalogProduct) => product.shelf_life || '3-4 días'
+
+      expect(getDisplayShelfLife(pieConFruta)).toBe('1-2 días en frío')
+      expect(getDisplayShelfLife(tortaEstandar)).toBe('3-4 días')
+    })
+  })
 })
+

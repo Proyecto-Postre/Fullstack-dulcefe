@@ -12,6 +12,7 @@ export interface CreateProductInput {
   description?: string | null
   is_featured?: boolean | null
   category_id?: string | null
+  shelf_life?: string | null
 }
 
 export interface UpdateProductInput {
@@ -22,6 +23,7 @@ export interface UpdateProductInput {
   description?: string | null
   is_featured?: boolean | null
   category_id?: string | null
+  shelf_life?: string | null
 }
 
 export interface CreateCategoryInput {
@@ -58,6 +60,9 @@ export class CatalogService {
     }
     if (dto.category_id !== undefined) {
       insertPayload.category_id = dto.category_id
+    }
+    if (dto.shelf_life !== undefined) {
+      insertPayload.shelf_life = dto.shelf_life ? dto.shelf_life.trim() : null
     }
 
     const { data, error } = await supabase
@@ -108,6 +113,9 @@ export class CatalogService {
       updatePayload.is_featured = Boolean(dto.is_featured)
     }
     if (dto.category_id !== undefined) updatePayload.category_id = dto.category_id
+    if (dto.shelf_life !== undefined) {
+      updatePayload.shelf_life = dto.shelf_life ? dto.shelf_life.trim() : null
+    }
 
     const { data, error } = await supabase
       .from('products')

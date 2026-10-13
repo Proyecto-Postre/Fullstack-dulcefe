@@ -50,7 +50,7 @@ export function useCatalog(
         return 'todos'
       }
       if (selectedCategories.value.length === 1) {
-        return selectedCategories.value[0]
+        return selectedCategories.value[0] || 'todos'
       }
       return 'multiple'
     },
@@ -149,7 +149,7 @@ export function useCatalog(
 
     // Si hay una categoría única seleccionada distinta de 'todos'
     if (selectedCategories.value.length === 1 && selectedCategories.value[0] !== 'todos') {
-      const singleId = selectedCategories.value[0]
+      const singleId = selectedCategories.value[0] || 'todos'
       const activeCat = catsList.find(c => c.id === singleId)
       return [{
         id: singleId,

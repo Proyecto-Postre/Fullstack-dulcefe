@@ -15,7 +15,9 @@ export default defineEventHandler(async (event) => {
   const { data, error } = await (supabase as unknown as {
     from: (table: string) => {
       select: (cols: string) => {
-        order: (col: string, opts: { ascending: boolean }) => Promise<{ data: CategoryDTO[] | null; error: unknown }>
+        eq: (col: string, val: unknown) => {
+          order: (col: string, opts: { ascending: boolean }) => Promise<{ data: CategoryDTO[] | null; error: unknown }>
+        }
       }
     }
   })

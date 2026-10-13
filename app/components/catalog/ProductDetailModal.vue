@@ -36,7 +36,9 @@ watch(() => [props.isOpen, props.product?.id], ([open]) => {
 
 function onTouchMoveWindow(e: TouchEvent) {
   if (!isDragging.value || e.touches.length !== 1) return
-  const currentY = e.touches[0].clientY
+  const touch = e.touches[0]
+  if (!touch) return
+  const currentY = touch.clientY
   const delta = currentY - startY
   if (delta > 0) {
     dragOffsetY.value = delta
@@ -73,8 +75,10 @@ function onTouchEndWindow() {
 
 function onTouchStart(e: TouchEvent) {
   if (e.touches.length !== 1) return
+  const touch = e.touches[0]
+  if (!touch) return
   isDragging.value = true
-  startY = e.touches[0].clientY
+  startY = touch.clientY
   if (typeof window !== 'undefined') {
     window.addEventListener('touchmove', onTouchMoveWindow, { passive: false })
     window.addEventListener('touchend', onTouchEndWindow)
@@ -348,7 +352,7 @@ async function copyProductShareLink() {
               <div class="grid grid-cols-2 gap-2.5 mb-6 text-xs font-semibold text-brand-secondary/85">
                 <div class="flex items-center gap-2 p-2.5 rounded-xl bg-brand-cream/60 border border-brand-primary/10">
                   <Icon name="lucide:clock" class="w-4 h-4 text-brand-primary" />
-                  <span>Consumo: 3-4 días</span>
+                  <span>Consumo: {{ product.shelf_life || '3-4 días' }}</span>
                 </div>
                 <div class="flex items-center gap-2 p-2.5 rounded-xl bg-brand-cream/60 border border-brand-primary/10">
                   <Icon name="lucide:shield-check" class="w-4 h-4 text-brand-primary" />

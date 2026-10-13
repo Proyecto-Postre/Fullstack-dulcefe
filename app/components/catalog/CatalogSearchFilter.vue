@@ -92,7 +92,8 @@ function toggleCategory(catId: string) {
   }
 
   emit('update:selectedCategories', next)
-  emit('update:selectedCategory', next.includes('todos') ? 'todos' : (next.length === 1 ? next[0] : 'multiple'))
+  const singleCat = next[0] || 'todos'
+  emit('update:selectedCategory', next.includes('todos') ? 'todos' : (next.length === 1 ? singleCat : 'multiple'))
 }
 
 function toggleDropdown() {
