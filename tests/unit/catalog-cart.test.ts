@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { normalizeCatalogText } from '../../app/composables/useCatalog'
+import { normalizeCatalogText, matchProductCategory } from '../../app/composables/useCatalog'
 import type { CatalogProduct } from '../../app/types/catalog'
 import type { CartItem, AddToCartInput } from '../../app/types/cart'
 
@@ -178,12 +178,22 @@ describe('Fase 4 (PR-4b): Dominio Catálogo y Carrito - Normalización, Filtrado
 
       const sortedFeatured = [...featured].sort((a, b) => (Number(b.stock) > 0 ? 1 : 0) - (Number(a.stock) > 0 ? 1 : 0))
       const sortedOthers = [...others].sort((a, b) => (Number(b.stock) > 0 ? 1 : 0) - (Number(a.stock) > 0 ? 1 : 0))
-
       const result = [...sortedFeatured, ...sortedOthers].slice(0, 3)
 
       expect(result.length).toBe(3)
       // Los primeros deben ser los destacados en stock (id 3 y id 5), luego el destacado agotado (id 2)
       expect(result.map(p => p.id)).toEqual([3, 5, 2])
+    })
+  })
+
+  describe('Agrupación por Secciones y Coincidencias de Categoría', () => {
+    it('asocia correctamente un producto con category_id explícito o fallback de nombre', () => {
+      const torta: CatalogProduct = { id: 1, name: 'Torta Ópera Francesa', price: 68, stock: 10, category_id: 'tortas' }
+      const tartaletaSinId: CatalogProduct = { id: 2, name: 'Tartaleta de Fresas & Pistacho', price: 45, stock: 8 }
+
+      expect(matchProductCategory(torta, 'tortas')).toBe(true)
+      expect(matchProductCategory(torta, 'boxes')).toBe(false)
+      expect(matchProductCategory(tartaletaSinId, 'tartaletas')).toBe(true)
     })
   })
 })

@@ -11,6 +11,30 @@ export function normalizeCatalogText(text: string): string {
     .trim()
 }
 
+export interface CatalogSection {
+  id: string
+  name: string
+  icon: string
+  products: CatalogProduct[]
+}
+
+export function matchProductCategory(product: CatalogProduct, categoryId: string): boolean {
+  if (!product) return false
+  const pCat = String((product as { category_id?: string | number }).category_id || '')
+  if (pCat.length > 0 && pCat === String(categoryId)) return true
+
+  const nameNorm = normalizeCatalogText(product.name || '')
+  const descNorm = normalizeCatalogText(product.description || '')
+  const catLower = String(categoryId).toLowerCase()
+
+  if (catLower === 'tortas' && (nameNorm.includes('torta') || descNorm.includes('torta') || nameNorm.includes('cake'))) return true
+  if ((catLower === 'tartaletas' || catLower.includes('pie')) && (nameNorm.includes('tarta') || nameNorm.includes('pie') || descNorm.includes('tarta'))) return true
+  if (catLower === 'boxes' && (nameNorm.includes('box') || descNorm.includes('box') || descNorm.includes('caja') || nameNorm.includes('regalo'))) return true
+  if (catLower === 'bocaditos' && (nameNorm.includes('bocadito') || nameNorm.includes('alfajor') || nameNorm.includes('trufa') || nameNorm.includes('macaron') || descNorm.includes('bocadito'))) return true
+
+  return false
+}
+
 export function useCatalog(
   rawProducts: ComputedRef<CatalogProduct[]>,
   rawCategories?: ComputedRef<CatalogCategory[]>
@@ -52,20 +76,60 @@ export function useCatalog(
       // 2. Filtro por categoría dinámico desde BD
       if (cat === 'todos') return true
 
-      const productCatId = String((product as { category_id?: string | number }).category_id || '')
-      if (productCatId.length > 0 && productCatId === String(cat)) {
-        return true
-      }
-
-      // Fallback inteligente para compatibilidad si el producto no tiene category_id en BD
-      const catLower = String(cat).toLowerCase()
-      if (catLower === 'tortas' && (nameNorm.includes('torta') || descNorm.includes('torta') || nameNorm.includes('cake'))) return true
-      if ((catLower === 'tartaletas' || catLower.includes('pie')) && (nameNorm.includes('tarta') || nameNorm.includes('pie') || descNorm.includes('tarta'))) return true
-      if (catLower === 'boxes' && (nameNorm.includes('box') || descNorm.includes('box') || descNorm.includes('caja') || nameNorm.includes('regalo'))) return true
-      if (catLower === 'bocaditos' && (nameNorm.includes('bocadito') || nameNorm.includes('alfajor') || nameNorm.includes('trufa') || nameNorm.includes('macaron') || descNorm.includes('bocadito'))) return true
-
-      return false
+      return matchProductCategory(product, cat)
     })
+  })
+
+  // Agrupación de productos por secciones de categoría (respetando sort_order del admin)
+  const groupedSections = computed<CatalogSection[]>(() => {
+    const prods = filteredProducts.value || []
+    if (prods.length === 0) return []
+
+    const catsList = rawCategories?.value || []
+    const sections: CatalogSection[] = []
+    const assignedIds = new Set<string | number>()
+
+    // Si el usuario seleccionó una categoría específica distinta de 'todos'
+    if (selectedCategory.value !== 'todos') {
+      const activeCat = catsList.find(c => c.id === selectedCategory.value)
+      return [{
+        id: selectedCategory.value,
+        name: activeCat?.name || 'Selección',
+        icon: activeCat?.icon || 'lucide:sparkles',
+        products: prods
+      }]
+    }
+
+    // Para cada categoría de la BD (en orden de prioridad del admin)
+    for (const cat of catsList) {
+      const sectionProducts = prods.filter(p => {
+        const matches = matchProductCategory(p, cat.id)
+        if (matches) assignedIds.add(p.id)
+        return matches
+      })
+
+      if (sectionProducts.length > 0) {
+        sections.push({
+          id: cat.id,
+          name: cat.name,
+          icon: cat.icon || 'lucide:sparkles',
+          products: sectionProducts
+        })
+      }
+    }
+
+    // Postres sin categoría asociada
+    const unassigned = prods.filter(p => !assignedIds.has(p.id))
+    if (unassigned.length > 0) {
+      sections.push({
+        id: 'otras',
+        name: 'Otras Creaciones del Taller',
+        icon: 'lucide:sparkles',
+        products: unassigned
+      })
+    }
+
+    return sections
   })
 
   function handleAddToCart(product: CatalogProduct, quantity: number = 1): void {
@@ -102,6 +166,7 @@ export function useCatalog(
     selectedCategory,
     categories,
     filteredProducts,
+    groupedSections,
     handleAddToCart,
     getProductImage,
     resetFilters

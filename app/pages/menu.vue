@@ -144,21 +144,135 @@ watch([rawProducts, () => route.query.producto], ([products, prodId]) => {
       @reset="resetFilters"
     />
 
-    <!-- Estado: Cuadrícula de Productos con Deslizamiento Suave FLIP -->
-    <AnimatedGrid
-      v-else
-      :items="filteredProducts"
-      grid-class="grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 lg:gap-7"
-    >
-      <template #default="{ item: product }">
-        <CatalogProductCard
-          :product="product"
-          :image-url="getProductImage(product)"
-          @add-to-cart="handleAddToCart"
-          @view-detail="openProductDetail"
-        />
-      </template>
-    </AnimatedGrid>
+    <!-- Estado: Catálogo Activo (Organizado por Secciones Dinámicas) -->
+    <div v-else class="space-y-10 sm:space-y-12">
+      <!-- Indicador de Coincidencias de Búsqueda -->
+      <div 
+        v-if="searchQuery.trim().length > 0"
+        class="bg-surface px-4 py-3 sm:px-5 sm:py-3.5 rounded-2xl border border-brand-primary/15 shadow-soft-sm flex items-center justify-between"
+      >
+        <div class="flex items-center gap-2">
+          <Icon name="lucide:sparkles" class="w-4 h-4 text-brand-accent shrink-0" />
+          <span class="text-xs font-bold text-brand-secondary">
+            {{ filteredProducts.length }} {{ filteredProducts.length === 1 ? 'postre encontrado' : 'postres encontrados' }} en {{ groupedSections.length }} {{ groupedSections.length === 1 ? 'sección' : 'secciones' }}
+          </span>
+        </div>
+        <button
+          @click="searchQuery = ''"
+          type="button"
+          class="text-xs font-bold text-brand-primary hover:text-brand-secondary transition-colors cursor-pointer"
+        >
+          Limpiar filtro
+        </button>
+      </div>
+
+      <!-- CASO A: Categoría Específica Seleccionada (Vista Directa en Cuadrícula) -->
+      <div v-if="selectedCategory !== 'todos'" class="space-y-4 sm:space-y-6">
+        <div class="flex items-center justify-between border-b border-brand-primary/10 pb-3">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-brand-cream text-brand-primary flex items-center justify-center border border-brand-primary/15 shrink-0">
+              <Icon :name="groupedSections[0]?.icon || 'lucide:cake'" class="w-5 h-5" />
+            </div>
+            <div>
+              <h2 class="font-playfair font-bold text-xl sm:text-2xl text-brand-secondary leading-tight">
+                {{ groupedSections[0]?.name || 'Selección' }}
+              </h2>
+              <span class="text-[11px] font-bold text-brand-primary/70">
+                {{ filteredProducts.length }} postres disponibles
+              </span>
+            </div>
+          </div>
+          <button
+            @click="selectedCategory = 'todos'"
+            type="button"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-brand-primary/20 text-xs font-bold text-brand-secondary hover:bg-brand-cream transition-colors cursor-pointer"
+          >
+            <Icon name="lucide:arrow-left" class="w-3.5 h-3.5" />
+            <span class="hidden sm:inline">Ver toda la carta</span>
+            <span class="sm:hidden">Todos</span>
+          </button>
+        </div>
+
+        <AnimatedGrid
+          :items="filteredProducts"
+          grid-class="grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 lg:gap-7"
+        >
+          <template #default="{ item: product }">
+            <CatalogProductCard
+              :product="product"
+              :image-url="getProductImage(product)"
+              @add-to-cart="handleAddToCart"
+              @view-detail="openProductDetail"
+            />
+          </template>
+        </AnimatedGrid>
+      </div>
+
+      <!-- CASO B: Vista 'Todos' o Resultados de Búsqueda (Secciones con Carrusel en Mobile y Grid en Desktop) -->
+      <div v-else class="space-y-10 sm:space-y-14">
+        <section
+          v-for="section in groupedSections"
+          :key="section.id"
+          class="space-y-3 sm:space-y-5"
+        >
+          <!-- Encabezado de la Sección / Categoría -->
+          <div class="flex items-center justify-between border-b border-brand-primary/10 pb-2.5">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-brand-cream text-brand-primary flex items-center justify-center border border-brand-primary/15 shrink-0">
+                <Icon :name="section.icon" class="w-4 h-4" />
+              </div>
+              <div>
+                <h2 class="font-playfair font-bold text-lg sm:text-2xl text-brand-secondary leading-tight">
+                  {{ section.name }}
+                </h2>
+              </div>
+              <span class="text-[10px] font-bold text-brand-primary bg-brand-cream/80 px-2 py-0.5 rounded-full border border-brand-primary/15 shrink-0">
+                {{ section.products.length }}
+              </span>
+            </div>
+
+            <!-- Botón de acceso directo a la sección si hay más de 2 postres -->
+            <button
+              v-if="section.id !== 'otras'"
+              @click="selectedCategory = section.id"
+              type="button"
+              class="text-xs font-bold text-brand-primary hover:text-brand-secondary flex items-center gap-1 transition-colors cursor-pointer group"
+            >
+              <span>Ver sección</span>
+              <Icon name="lucide:arrow-right" class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+            </button>
+          </div>
+
+          <!-- Disposición Móvil: Carrusel Horizontal Suave con Snap (Entran 2 postres con swipe) -->
+          <div class="block sm:hidden -mx-4 px-4 overflow-x-auto overflow-y-hidden flex gap-3 snap-x snap-mandatory hide-scrollbar pb-3 pt-1">
+            <div
+              v-for="product in section.products"
+              :key="product.id"
+              class="w-[66vw] max-w-[250px] shrink-0 snap-start flex flex-col h-auto"
+            >
+              <CatalogProductCard
+                :product="product"
+                :image-url="getProductImage(product)"
+                @add-to-cart="handleAddToCart"
+                @view-detail="openProductDetail"
+              />
+            </div>
+          </div>
+
+          <!-- Disposición Desktop / Tablet: Cuadrícula Completa de 2 a 4 Columnas -->
+          <div class="hidden sm:grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-7">
+            <CatalogProductCard
+              v-for="product in section.products"
+              :key="product.id"
+              :product="product"
+              :image-url="getProductImage(product)"
+              @add-to-cart="handleAddToCart"
+              @view-detail="openProductDetail"
+            />
+          </div>
+        </section>
+      </div>
+    </div>
 
     <!-- Modal de Detalle de Producto -->
     <ProductDetailModal
