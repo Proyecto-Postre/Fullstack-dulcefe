@@ -2,7 +2,7 @@ import { serverSupabaseClient } from '#supabase/server'
 import type { Database } from '~/types/database.types'
 
 export default defineEventHandler(async (event) => {
-  // 1. Conectamos con el cliente de Supabase
+  // 1. Conectamos con el cliente de Supabase del entorno
   const supabase = await serverSupabaseClient<Database>(event)
 
   // 2. Hacemos la consulta: "Tráeme todas las columnas de la tabla products ordenadas por fecha"
@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
     .order('created_at', { ascending: false })
     .order('id', { ascending: true })
 
-  // 3. Si algo falla en la base de datos, arrojamos error 500
+  // 3. Si algo falla en la base de datos, arrojamos error
   if (error) {
     throw createError({
       statusCode: 500,

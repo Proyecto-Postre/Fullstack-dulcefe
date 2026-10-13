@@ -70,6 +70,8 @@ erDiagram
         decimal price "Precio de venta al publico (S/)"
         int stock "Unidades terminadas disponibles"
         string image_url "Bucket storage products"
+        text description "Notas de autor e ingredientes finos"
+        boolean is_featured "Exhibicion en Vitrina de Portada"
         timestamp created_at
     }
 
@@ -181,6 +183,8 @@ Permite categorizar la vitrina desde base de datos según [[refinamiento-ui-auth
 * **`price`** (`NUMERIC(10, 2)`, NOT NULL): Precio final de venta al cliente en Soles (S/).
 * **`stock`** (`INT`, DEFAULT 0): Stock físico disponible para entrega inmediata.
 * **`image_url`** (`TEXT`): Enlace público de la imagen alojada en el bucket `products` de Supabase Storage.
+* **`description`** (`TEXT`, NULLABLE): Notas de autor, descripción sensorial e insumos seleccionados (máx 400 caracteres recomendados).
+* **`is_featured`** (`BOOLEAN DEFAULT false`, NOT NULL): Flag para exhibición prioritaria en la sección de Vitrina Destacada de la portada.
 * **`created_at`** (`TIMESTAMPTZ`, DEFAULT now())
 
 ---

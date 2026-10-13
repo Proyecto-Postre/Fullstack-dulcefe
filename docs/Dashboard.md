@@ -137,6 +137,7 @@ flowchart TD
 * [[fase-7-subfase-7.5-pruebas-e2e-cierre-informe]] — **Pruebas de Integración de Ciclo Completo, E2E y Cierre de Producción (Subfase 7.5)**.
 * [[fase-7-adenda-custom-select-responsive-informe]] — **Adenda de Estandarización Universal de CustomSelect, Single-Screen Fit y Refinamiento Estético**.
 * [[seguimiento-pedidos-responsivo-informe]] — **Informe de Rediseño y Responsividad Móvil del Seguimiento de Pedidos**.
+* [[rediseño-experiencia-cliente-atelier-editorial-y-categorias-informe]] — **Informe de Rediseño Atelier Editorial de Cliente, Gestión de Categorías y Blindaje de Catálogo**.
 
 ### 📁 05 - Operaciones & Resiliencia
 * [[playbook-operaciones]] — Variables por entorno, rotación de claves, runbook de restore V44, Vercel Git-Ops y telemetría de alertas.

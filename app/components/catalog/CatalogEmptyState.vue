@@ -15,7 +15,12 @@ defineEmits<{
     </div>
     <h3 class="text-2xl font-playfair font-bold text-brand-secondary mb-2 tracking-tight">Sin resultados</h3>
     <p class="text-brand-primary/80 font-medium text-xs max-w-sm mx-auto leading-relaxed mb-6">
-      No encontramos ningún postre para "{{ searchQuery }}". Prueba buscando con otra palabra o seleccionando "Todos los Postres".
+      <template v-if="searchQuery && searchQuery.trim().length > 0">
+        No encontramos ningún postre para "{{ searchQuery }}". Prueba buscando con otra palabra o seleccionando otra categoría.
+      </template>
+      <template v-else>
+        No hay postres disponibles en esta categoría por el momento.
+      </template>
     </p>
     <button 
       @click="$emit('reset')"

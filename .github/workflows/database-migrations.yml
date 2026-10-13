@@ -1,0 +1,52 @@
+name: Supabase Database Migrations
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+    paths:
+      - 'supabase/migrations/**'
+  workflow_dispatch:
+
+concurrency:
+  group: supabase-migrations-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    name: Apply SQL Migrations to Database
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Select Database Connection URL
+        id: db_env
+        shell: bash
+        run: |
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            echo "Target environment: PRODUCTION"
+            DB_URL="${{ secrets.SUPABASE_DB_URL_PROD || secrets.SUPABASE_DB_URL }}"
+          else
+            echo "Target environment: DEVELOPMENT"
+            DB_URL="${{ secrets.SUPABASE_DB_URL_DEV || secrets.SUPABASE_DB_URL }}"
+          fi
+
+          if [ -z "$DB_URL" ]; then
+            echo "::error::No se encontro el secreto con la URL de conexion a la base de datos (SUPABASE_DB_URL_PROD / SUPABASE_DB_URL_DEV)."
+            exit 1
+          fi
+
+          echo "::add-mask::$DB_URL"
+          echo "db_url=$DB_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Run Migrations (supabase db push)
+        shell: bash
+        run: |
+          supabase db push --db-url "${{ steps.db_env.outputs.db_url }}"
