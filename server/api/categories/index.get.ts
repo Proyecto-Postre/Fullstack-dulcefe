@@ -21,6 +21,7 @@ export default defineEventHandler(async (event) => {
   })
     .from('categories')
     .select('id, name, icon, sort_order')
+    .eq('is_active', true)
     .order('sort_order', { ascending: true })
 
   if (error) {

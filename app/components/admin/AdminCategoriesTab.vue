@@ -172,6 +172,54 @@ async function toggleActive(cat: CategoryItem) {
     toast.error('No se pudo actualizar el estado de la sección.')
   }
 }
+
+// Categorías ordenadas reactivamente por prioridad
+const sortedCategories = computed<CategoryItem[]>(() => {
+  return [...categories.value].sort((a, b) => (Number(a.sort_order ?? 0)) - (Number(b.sort_order ?? 0)))
+})
+
+const isReordering = ref(false)
+
+async function moveCategoryOrder(cat: CategoryItem, direction: 'up' | 'down') {
+  if (isReordering.value) return
+  const list = [...sortedCategories.value]
+  const currentIndex = list.findIndex(c => c.id === cat.id)
+  if (currentIndex === -1) return
+
+  const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
+  if (targetIndex < 0 || targetIndex >= list.length) return
+
+  const targetCat = list[targetIndex]
+  if (!targetCat) return
+
+  isReordering.value = true
+  const currentOrder = Number(cat.sort_order ?? (currentIndex + 1))
+  const targetOrder = Number(targetCat.sort_order ?? (targetIndex + 1))
+
+  const newCurrentOrder = currentOrder === targetOrder
+    ? (direction === 'up' ? Math.max(1, targetOrder - 1) : targetOrder + 1)
+    : targetOrder
+  const newTargetOrder = currentOrder
+
+  try {
+    await Promise.all([
+      $fetch(`/api/admin/categories/${cat.id}`, {
+        method: 'PUT',
+        body: { sort_order: newCurrentOrder }
+      }),
+      $fetch(`/api/admin/categories/${targetCat.id}`, {
+        method: 'PUT',
+        body: { sort_order: newTargetOrder }
+      })
+    ])
+    toast.success(`Prioridad de "${cat.name}" actualizada.`)
+    await refresh()
+  } catch {
+    toast.error('No se pudo actualizar la prioridad de la sección.')
+  } finally {
+    isReordering.value = false
+  }
+}
 </script>
 
 <template>
@@ -227,7 +275,7 @@ async function toggleActive(cat: CategoryItem) {
 
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       <div
-        v-for="cat in categories"
+        v-for="(cat, idx) in sortedCategories"
         :key="cat.id"
         class="bg-surface rounded-2xl p-5 border border-brand-primary/15 shadow-soft-sm flex flex-col justify-between hover:shadow-soft-md transition-shadow"
       >
@@ -255,13 +303,40 @@ async function toggleActive(cat: CategoryItem) {
         </div>
 
         <div class="flex items-center justify-between pt-3 border-t border-brand-primary/10 text-xs text-brand-secondary/80 font-medium">
-          <span class="text-[11px]">Orden en vitrina: <strong>#{{ cat.sort_order }}</strong></span>
-
+          <!-- Control de Posición / Prioridad en Vitrina -->
           <div class="flex items-center gap-1.5">
+            <span class="text-[10px] font-bold text-brand-primary bg-brand-cream/80 px-2 py-0.5 rounded-md border border-brand-primary/15">
+              #{{ idx + 1 }} en vitrina
+            </span>
+            <div class="flex items-center gap-0.5">
+              <button
+                @click="moveCategoryOrder(cat, 'up')"
+                :disabled="idx === 0 || isReordering"
+                type="button"
+                class="w-6 h-6 rounded-md hover:bg-brand-cream text-brand-secondary flex items-center justify-center transition-all disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
+                title="Mover antes (más prioridad)"
+                aria-label="Subir prioridad"
+              >
+                <Icon name="lucide:arrow-up" class="w-3.5 h-3.5" />
+              </button>
+              <button
+                @click="moveCategoryOrder(cat, 'down')"
+                :disabled="idx === sortedCategories.length - 1 || isReordering"
+                type="button"
+                class="w-6 h-6 rounded-md hover:bg-brand-cream text-brand-secondary flex items-center justify-center transition-all disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
+                title="Mover después (menos prioridad)"
+                aria-label="Bajar prioridad"
+              >
+                <Icon name="lucide:arrow-down" class="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-1">
             <button
               @click="toggleActive(cat)"
               type="button"
-              class="p-2 rounded-lg hover:bg-brand-cream text-brand-secondary transition-colors"
+              class="p-1.5 rounded-lg hover:bg-brand-cream text-brand-secondary transition-colors"
               :title="cat.is_active ? 'Ocultar de la vitrina' : 'Mostrar en la vitrina'"
             >
               <Icon :name="cat.is_active ? 'lucide:eye' : 'lucide:eye-off'" class="w-4 h-4" />
@@ -269,7 +344,7 @@ async function toggleActive(cat: CategoryItem) {
             <button
               @click="openEditModal(cat)"
               type="button"
-              class="p-2 rounded-lg hover:bg-brand-cream text-brand-primary transition-colors"
+              class="p-1.5 rounded-lg hover:bg-brand-cream text-brand-primary transition-colors"
               title="Editar sección"
             >
               <Icon name="lucide:pencil" class="w-4 h-4" />
@@ -277,7 +352,7 @@ async function toggleActive(cat: CategoryItem) {
             <button
               @click="handleDeleteCategory(cat)"
               type="button"
-              class="p-2 rounded-lg hover:bg-red-50 text-red-600 transition-colors"
+              class="p-1.5 rounded-lg hover:bg-red-50 text-red-600 transition-colors"
               title="Eliminar sección"
             >
               <Icon name="lucide:trash-2" class="w-4 h-4" />
@@ -371,14 +446,15 @@ async function toggleActive(cat: CategoryItem) {
 
               <div class="grid grid-cols-2 gap-4">
                 <div>
-                  <label for="cat-order" class="block text-xs font-bold text-brand-primary uppercase tracking-wider mb-1">Orden (#)</label>
+                  <label for="cat-order" class="block text-xs font-bold text-brand-primary uppercase tracking-wider mb-1">Prioridad en Vitrina (#)</label>
                   <input
                     id="cat-order"
                     v-model.number="categoryForm.sort_order"
                     type="number"
-                    min="0"
+                    min="1"
                     class="w-full px-4 py-2.5 rounded-xl border border-brand-primary/20 bg-brand-cream/30 text-sm font-bold text-brand-secondary focus-visible:ring-2 focus-visible:ring-brand-primary"
                   />
+                  <p class="text-[10px] text-brand-secondary/60 mt-1">1 = Primera en la vitrina. Menor número = Mayor prioridad.</p>
                 </div>
                 <div class="flex items-center gap-2 pt-6">
                   <input
