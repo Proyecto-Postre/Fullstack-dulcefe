@@ -45,6 +45,7 @@ const {
   selectedCategory,
   categories,
   filteredProducts,
+  groupedSections,
   handleAddToCart,
   getProductImage,
   resetFilters
@@ -171,11 +172,11 @@ watch([rawProducts, () => route.query.producto], ([products, prodId]) => {
         <div class="flex items-center justify-between border-b border-brand-primary/10 pb-3">
           <div class="flex items-center gap-3">
             <div class="w-9 h-9 rounded-xl bg-brand-cream text-brand-primary flex items-center justify-center border border-brand-primary/15 shrink-0">
-              <Icon :name="groupedSections[0]?.icon || 'lucide:cake'" class="w-5 h-5" />
+              <Icon :name="groupedSections?.[0]?.icon || 'lucide:cake'" class="w-5 h-5" />
             </div>
             <div>
               <h2 class="font-playfair font-bold text-xl sm:text-2xl text-brand-secondary leading-tight">
-                {{ groupedSections[0]?.name || 'Selección' }}
+                {{ groupedSections?.[0]?.name || 'Selección' }}
               </h2>
               <span class="text-[11px] font-bold text-brand-primary/70">
                 {{ filteredProducts.length }} postres disponibles
@@ -243,12 +244,12 @@ watch([rawProducts, () => route.query.producto], ([products, prodId]) => {
             </button>
           </div>
 
-          <!-- Disposición Móvil: Carrusel Horizontal Suave con Snap (Entran 2 postres con swipe) -->
-          <div class="block sm:hidden -mx-4 px-4 overflow-x-auto overflow-y-hidden flex gap-3 snap-x snap-mandatory hide-scrollbar pb-3 pt-1">
+          <!-- Disposición Móvil: Carrusel Horizontal con 2 tarjetas completas + indicio visual de la 3ra -->
+          <div class="block sm:hidden -mx-4 px-4 overflow-x-auto overflow-y-hidden flex gap-2.5 snap-x snap-mandatory scroll-px-4 hide-scrollbar pb-3 pt-1">
             <div
               v-for="product in section.products"
               :key="product.id"
-              class="w-[66vw] max-w-[250px] shrink-0 snap-start flex flex-col h-auto"
+              class="w-[calc((100vw-42px)/2.35)] min-w-[138px] max-w-[178px] shrink-0 snap-start flex flex-col h-auto"
             >
               <CatalogProductCard
                 :product="product"
@@ -257,6 +258,8 @@ watch([rawProducts, () => route.query.producto], ([products, prodId]) => {
                 @view-detail="openProductDetail"
               />
             </div>
+            <!-- Espaciador de cierre para conservar margen derecho al llegar al final -->
+            <div class="w-2 shrink-0" aria-hidden="true"></div>
           </div>
 
           <!-- Disposición Desktop / Tablet: Cuadrícula Completa de 2 a 4 Columnas -->
