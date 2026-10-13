@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useAsyncData, navigateTo } from 'nuxt/app'
 import { useCartStore } from '~/stores/cart'
 import { toast } from 'vue-sonner'
@@ -32,7 +32,7 @@ const displayFeatured = computed<CatalogProduct[]>(() => {
   const sortedFeatured = [...featured].sort((a, b) => (Number(b.stock) > 0 ? 1 : 0) - (Number(a.stock) > 0 ? 1 : 0))
   const sortedOthers = [...others].sort((a, b) => (Number(b.stock) > 0 ? 1 : 0) - (Number(a.stock) > 0 ? 1 : 0))
 
-  return [...sortedFeatured, ...sortedOthers].slice(0, 3)
+  return [...sortedFeatured, ...sortedOthers].slice(0, 6)
 })
 
 // Estado del Modal de Detalle Rápido
@@ -76,6 +76,123 @@ function goToMenuWithFilter(keyword: string) {
     query: { q: keyword }
   })
 }
+
+// =========================================================================
+// Lógica de Carrusel Automático Seguro (Cero saltos ni tirones de pantalla)
+// =========================================================================
+const carouselContainer = ref<HTMLElement | null>(null)
+const activeSlideIndex = ref(0)
+const isUserInteracting = ref(false)
+const isVisibleOnScreen = ref(false)
+let autoplayTimer: ReturnType<typeof setInterval> | null = null
+let interactionResumeTimeout: ReturnType<typeof setTimeout> | null = null
+
+function updateActiveIndex() {
+  if (!carouselContainer.value) return
+  const el = carouselContainer.value
+  const children = Array.from(el.children) as HTMLElement[]
+  if (children.length === 0) return
+  const scrollCenter = el.scrollLeft + el.clientWidth / 2
+  let closestIndex = 0
+  let closestDist = Infinity
+
+  children.forEach((child, index) => {
+    const childCenter = child.offsetLeft + child.clientWidth / 2
+    const dist = Math.abs(scrollCenter - childCenter)
+    if (dist < closestDist) {
+      closestDist = dist
+      closestIndex = index
+    }
+  })
+  activeSlideIndex.value = closestIndex
+}
+
+function scrollToIndex(index: number) {
+  if (!carouselContainer.value) return
+  const el = carouselContainer.value
+  const children = Array.from(el.children) as HTMLElement[]
+  const target = children[index]
+  if (target) {
+    // Scroll LOCAL del contenedor, NUNCA toca window ni el scroll vertical de la página
+    el.scrollTo({
+      left: target.offsetLeft - (el.clientWidth - target.clientWidth) / 2,
+      behavior: 'smooth'
+    })
+    activeSlideIndex.value = index
+  }
+}
+
+function scrollNext() {
+  if (!carouselContainer.value || displayFeatured.value.length === 0) return
+  const nextIdx = (activeSlideIndex.value + 1) % displayFeatured.value.length
+  scrollToIndex(nextIdx)
+}
+
+function scrollPrev() {
+  if (!carouselContainer.value || displayFeatured.value.length === 0) return
+  const prevIdx = (activeSlideIndex.value - 1 + displayFeatured.value.length) % displayFeatured.value.length
+  scrollToIndex(prevIdx)
+}
+
+function pauseAutoplay() {
+  isUserInteracting.value = true
+  if (interactionResumeTimeout) clearTimeout(interactionResumeTimeout)
+}
+
+function resumeAutoplay() {
+  if (interactionResumeTimeout) clearTimeout(interactionResumeTimeout)
+  interactionResumeTimeout = setTimeout(() => {
+    isUserInteracting.value = false
+  }, 5000)
+}
+
+function startAutoplay() {
+  stopAutoplay()
+  autoplayTimer = setInterval(() => {
+    // Solo avanzamos si el carrusel ESTÁ EN PANTALLA y el usuario no está tocándolo
+    if (!isUserInteracting.value && isVisibleOnScreen.value && displayFeatured.value.length > 1) {
+      scrollNext()
+    }
+  }, 4200)
+}
+
+function stopAutoplay() {
+  if (autoplayTimer) {
+    clearInterval(autoplayTimer)
+    autoplayTimer = null
+  }
+}
+
+onMounted(() => {
+  if (typeof window !== 'undefined') {
+    startAutoplay()
+
+    // IntersectionObserver: garantiza que el carrusel se quede inmóvil si el usuario está en otra sección
+    if ('IntersectionObserver' in window && carouselContainer.value) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          const entry = entries[0]
+          if (entry) {
+            isVisibleOnScreen.value = entry.isIntersecting
+          }
+        },
+        { threshold: 0.2 }
+      )
+      observer.observe(carouselContainer.value)
+    } else {
+      isVisibleOnScreen.value = true
+    }
+
+    if (carouselContainer.value) {
+      carouselContainer.value.addEventListener('scroll', updateActiveIndex, { passive: true })
+    }
+  }
+})
+
+onBeforeUnmount(() => {
+  stopAutoplay()
+  if (interactionResumeTimeout) clearTimeout(interactionResumeTimeout)
+})
 </script>
 
 <template>
@@ -306,91 +423,148 @@ function goToMenuWithFilter(keyword: string) {
     <section class="relative py-16 sm:py-24 z-10">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12">
         
-        <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 sm:mb-14 gap-4">
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-8 sm:mb-12 gap-3">
           <div>
-            <div class="inline-flex items-center gap-1.5 text-xs font-bold text-brand-primary uppercase tracking-widest mb-2">
+            <div class="inline-flex items-center gap-1.5 text-xs font-bold text-brand-primary uppercase tracking-widest mb-1.5">
               <Icon name="lucide:sparkles" class="w-3.5 h-3.5 text-brand-accent" />
               <span>Selección de Autor</span>
             </div>
-            <h2 class="text-3xl sm:text-4xl md:text-5xl font-playfair font-black text-brand-secondary tracking-tight">
+            <h2 class="text-2xl sm:text-4xl md:text-5xl font-playfair font-black text-brand-secondary tracking-tight">
               Nuestras Joyas Dulces
             </h2>
           </div>
+          <!-- En desktop: Enlace arriba a la derecha -->
           <NuxtLink 
             to="/menu"
-            class="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-brand-primary hover:text-brand-secondary uppercase tracking-widest border-b border-brand-primary pb-1 self-start md:self-auto transition-colors"
+            class="hidden sm:inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-brand-primary hover:text-brand-secondary uppercase tracking-widest border-b border-brand-primary pb-1 transition-colors"
           >
-            Ver toda la carta
+            <span>Ver toda la carta</span>
             <Icon name="lucide:arrow-right" class="w-4 h-4" />
           </NuxtLink>
         </div>
 
-        <!-- Grid de Productos Destacados (100% reales desde Supabase) -->
-        <div v-if="displayFeatured.length > 0" class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-          <article
-            v-for="product in displayFeatured"
-            :key="product.id"
-            class="group bg-surface rounded-3xl overflow-hidden shadow-soft-sm hover:shadow-soft-lg transition-all duration-300 flex flex-col border border-brand-primary/10 hover:-translate-y-1.5"
+        <!-- Carrusel Protegido de Productos Destacados (Sin saltos de pantalla) -->
+        <div v-if="displayFeatured.length > 0" class="relative group/carousel">
+          <!-- Contenedor scrollable horizontal -->
+          <div 
+            ref="carouselContainer"
+            @mouseenter="pauseAutoplay"
+            @mouseleave="resumeAutoplay"
+            @touchstart.passive="pauseAutoplay"
+            @touchend.passive="resumeAutoplay"
+            class="flex gap-4 sm:gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory py-2 px-1 no-scrollbar touch-pan-x"
           >
-            <!-- Imagen con click para ver detalle -->
-            <div 
-              @click="openDetail(product)"
-              class="h-64 sm:h-72 w-full relative overflow-hidden bg-brand-cream/60 shrink-0 cursor-pointer"
+            <article
+              v-for="(product, idx) in displayFeatured"
+              :key="product.id"
+              :data-index="idx"
+              class="w-[82vw] sm:w-[320px] md:w-[360px] shrink-0 snap-center bg-surface rounded-3xl overflow-hidden shadow-soft-sm hover:shadow-soft-lg transition-all duration-300 flex flex-col border border-brand-primary/10 hover:-translate-y-1.5"
             >
+              <!-- Imagen con click para ver detalle -->
               <div 
-                v-if="product.stock > 0" 
-                class="absolute top-3.5 right-3.5 z-20 bg-surface/90 backdrop-blur-md text-brand-primary border border-brand-primary/20 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5 shadow-soft-sm"
+                @click="openDetail(product)"
+                class="h-60 sm:h-72 w-full relative overflow-hidden bg-brand-cream/60 shrink-0 cursor-pointer"
               >
-                <span class="w-1.5 h-1.5 rounded-full bg-brand-primary"></span>
-                <span>Horneado Diario</span>
-              </div>
-
-              <img 
-                :src="getProductImage(product)" 
-                :alt="product.name" 
-                class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out" 
-              />
-            </div>
-
-            <!-- Contenido -->
-            <div class="p-5 sm:p-6 flex-1 flex flex-col justify-between bg-surface">
-              <div @click="openDetail(product)" class="cursor-pointer">
-                <h3 class="text-base sm:text-lg font-sans font-bold text-brand-secondary mb-2 leading-snug group-hover:text-brand-primary transition-colors">
-                  {{ product.name }}
-                </h3>
-              </div>
-
-              <div class="flex items-center justify-between pt-4 border-t border-brand-primary/10 mt-auto">
-                <div class="flex items-baseline gap-1">
-                  <span class="text-xs font-bold text-brand-primary uppercase tracking-widest">S/</span>
-                  <span class="text-2xl font-inter font-black text-brand-secondary">
-                    {{ Number(product.price).toFixed(2) }}
-                  </span>
+                <!-- Badge solo si está agotado (evitando repetir Horneado Diario) -->
+                <div 
+                  v-if="product.stock === 0" 
+                  class="absolute top-3.5 right-3.5 z-20 bg-brand-secondary/90 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5 shadow-soft-sm"
+                >
+                  <span>Agotado</span>
                 </div>
 
-                <div class="flex items-center gap-2">
-                  <button
-                    @click="openDetail(product)"
-                    type="button"
-                    class="h-10 px-3.5 rounded-full border border-brand-primary/20 bg-brand-cream/40 hover:bg-brand-cream text-brand-secondary text-xs font-bold transition-all active:scale-95 cursor-pointer"
-                    aria-label="Ver detalle"
-                  >
-                    Detalle
-                  </button>
-                  <button
-                    @click="handleAddToCart(product)"
-                    type="button"
-                    :disabled="product.stock === 0"
-                    class="h-10 px-4 rounded-full bg-brand-primary hover:bg-brand-secondary text-white text-xs font-bold flex items-center gap-1.5 shadow-soft-sm transition-all active:scale-95 cursor-pointer disabled:opacity-40"
-                    :aria-label="`Pedir ${product.name}`"
-                  >
-                    <span>Pedir</span>
-                    <Icon name="lucide:shopping-bag" class="w-3.5 h-3.5" />
-                  </button>
+                <img 
+                  :src="getProductImage(product)" 
+                  :alt="product.name" 
+                  class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out" 
+                />
+              </div>
+
+              <!-- Contenido -->
+              <div class="p-5 sm:p-6 flex-1 flex flex-col justify-between bg-surface">
+                <div @click="openDetail(product)" class="cursor-pointer">
+                  <h3 class="text-base sm:text-lg font-sans font-bold text-brand-secondary mb-2 leading-snug group-hover:text-brand-primary transition-colors">
+                    {{ product.name }}
+                  </h3>
+                </div>
+
+                <div class="flex items-center justify-between pt-4 border-t border-brand-primary/10 mt-auto">
+                  <div class="flex items-baseline gap-1">
+                    <span class="text-xs font-bold text-brand-primary uppercase tracking-widest">S/</span>
+                    <span class="text-2xl font-inter font-black text-brand-secondary">
+                      {{ Number(product.price).toFixed(2) }}
+                    </span>
+                  </div>
+
+                  <div class="flex items-center gap-2">
+                    <button
+                      @click="openDetail(product)"
+                      type="button"
+                      class="h-10 px-3.5 rounded-full border border-brand-primary/20 bg-brand-cream/40 hover:bg-brand-cream text-brand-secondary text-xs font-bold transition-all active:scale-95 cursor-pointer"
+                      aria-label="Ver detalle"
+                    >
+                      Detalle
+                    </button>
+                    <button
+                      @click="handleAddToCart(product)"
+                      type="button"
+                      :disabled="product.stock === 0"
+                      class="h-10 px-4 rounded-full bg-brand-primary hover:bg-brand-secondary text-white text-xs font-bold flex items-center gap-1.5 shadow-soft-sm transition-all active:scale-95 cursor-pointer disabled:opacity-40"
+                      :aria-label="`Pedir ${product.name}`"
+                    >
+                      <span>Pedir</span>
+                      <Icon name="lucide:shopping-bag" class="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               </div>
+            </article>
+          </div>
+
+          <!-- Flechas flotantes (Desktop) -->
+          <button 
+            @click="scrollPrev"
+            type="button"
+            aria-label="Anterior joya dulce"
+            class="hidden md:flex absolute -left-5 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-surface/95 border border-brand-primary/20 text-brand-secondary hover:text-brand-primary hover:scale-110 active:scale-95 shadow-soft-md items-center justify-center transition-all z-20 cursor-pointer"
+          >
+            <Icon name="lucide:chevron-left" class="w-5 h-5" />
+          </button>
+          <button 
+            @click="scrollNext"
+            type="button"
+            aria-label="Siguiente joya dulce"
+            class="hidden md:flex absolute -right-5 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-surface/95 border border-brand-primary/20 text-brand-secondary hover:text-brand-primary hover:scale-110 active:scale-95 shadow-soft-md items-center justify-center transition-all z-20 cursor-pointer"
+          >
+            <Icon name="lucide:chevron-right" class="w-5 h-5" />
+          </button>
+
+          <!-- Paginación de Dots y Botón Mobile al pie -->
+          <div class="flex flex-col items-center gap-4 mt-6 sm:mt-8">
+            <!-- Indicadores (Dots) -->
+            <div class="flex items-center gap-2">
+              <button
+                v-for="(_, i) in displayFeatured"
+                :key="i"
+                @click="scrollToIndex(i)"
+                type="button"
+                :aria-label="`Ir a la joya dulce ${i + 1}`"
+                class="h-2 rounded-full transition-all duration-300 cursor-pointer"
+                :class="activeSlideIndex === i ? 'w-6 bg-brand-primary' : 'w-2 bg-brand-primary/25 hover:bg-brand-primary/50'"
+              ></button>
             </div>
-          </article>
+
+            <!-- Botón Ver Toda la Carta en Mobile (Ubicado armónicamente al pie del carrusel) -->
+            <div class="sm:hidden w-full max-w-xs pt-1">
+              <NuxtLink 
+                to="/menu"
+                class="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-surface border border-brand-primary/30 text-xs font-bold text-brand-primary uppercase tracking-widest shadow-soft-sm hover:bg-brand-cream transition-all active:scale-95"
+              >
+                <span>Ver Toda la Carta</span>
+                <Icon name="lucide:arrow-right" class="w-4 h-4" />
+              </NuxtLink>
+            </div>
+          </div>
         </div>
 
         <!-- Estado si la base de datos aún no tiene postres registrados -->
