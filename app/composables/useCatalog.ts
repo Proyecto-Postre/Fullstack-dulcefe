@@ -41,7 +41,59 @@ export function useCatalog(
 ) {
   const cartStore = useCartStore()
   const searchQuery = ref<string>('')
-  const selectedCategory = ref<string>('todos')
+  const selectedCategories = ref<string[]>(['todos'])
+
+  // Getter/Setter retrocompatible con selectedCategory (string)
+  const selectedCategory = computed<string>({
+    get() {
+      if (selectedCategories.value.includes('todos') || selectedCategories.value.length === 0) {
+        return 'todos'
+      }
+      if (selectedCategories.value.length === 1) {
+        return selectedCategories.value[0]
+      }
+      return 'multiple'
+    },
+    set(val: string) {
+      if (!val || val === 'todos') {
+        selectedCategories.value = ['todos']
+      } else {
+        selectedCategories.value = [val]
+      }
+    }
+  })
+
+  function toggleCategory(catId: string): void {
+    if (catId === 'todos') {
+      selectedCategories.value = ['todos']
+      return
+    }
+
+    const current = selectedCategories.value.filter(id => id !== 'todos')
+    const exists = current.includes(catId)
+
+    if (exists) {
+      const remaining = current.filter(id => id !== catId)
+      selectedCategories.value = remaining.length === 0 ? ['todos'] : remaining
+    } else {
+      selectedCategories.value = [...current, catId]
+    }
+  }
+
+  function setOnlyCategory(catId: string): void {
+    if (!catId || catId === 'todos') {
+      selectedCategories.value = ['todos']
+    } else {
+      selectedCategories.value = [catId]
+    }
+  }
+
+  function isCategoryActive(catId: string): boolean {
+    if (catId === 'todos') {
+      return selectedCategories.value.includes('todos') || selectedCategories.value.length === 0
+    }
+    return selectedCategories.value.includes(catId)
+  }
 
   const categories = computed<CatalogCategory[]>(() => {
     const list = rawCategories?.value
@@ -55,12 +107,15 @@ export function useCatalog(
     ]
   })
 
+  const isAllSelected = computed<boolean>(() => {
+    return selectedCategories.value.includes('todos') || selectedCategories.value.length === 0
+  })
+
   const filteredProducts = computed<CatalogProduct[]>(() => {
     const list = rawProducts.value || []
     if (!Array.isArray(list) || list.length === 0) return []
 
     const q = normalizeCatalogText(searchQuery.value)
-    const cat = selectedCategory.value
 
     return list.filter((product: CatalogProduct) => {
       if (!product || !product.name) return false
@@ -73,10 +128,10 @@ export function useCatalog(
         if (!matchesSearch) return false
       }
 
-      // 2. Filtro por categoría dinámico desde BD
-      if (cat === 'todos') return true
+      // 2. Filtro por categorías seleccionadas dinámicamente
+      if (isAllSelected.value) return true
 
-      return matchProductCategory(product, cat)
+      return selectedCategories.value.some(catId => matchProductCategory(product, catId))
     })
   })
 
@@ -89,19 +144,25 @@ export function useCatalog(
     const sections: CatalogSection[] = []
     const assignedIds = new Set<string | number>()
 
-    // Si el usuario seleccionó una categoría específica distinta de 'todos'
-    if (selectedCategory.value !== 'todos') {
-      const activeCat = catsList.find(c => c.id === selectedCategory.value)
+    // Si hay una categoría única seleccionada distinta de 'todos'
+    if (selectedCategories.value.length === 1 && selectedCategories.value[0] !== 'todos') {
+      const singleId = selectedCategories.value[0]
+      const activeCat = catsList.find(c => c.id === singleId)
       return [{
-        id: selectedCategory.value,
+        id: singleId,
         name: activeCat?.name || 'Selección',
         icon: activeCat?.icon || 'lucide:sparkles',
         products: prods
       }]
     }
 
-    // Para cada categoría de la BD (en orden de prioridad del admin)
-    for (const cat of catsList) {
+    // Filtrar lista de categorías si hay selección múltiple activa
+    const visibleCats = isAllSelected.value
+      ? catsList
+      : catsList.filter(c => selectedCategories.value.includes(c.id))
+
+    // Para cada categoría activa de la BD (en orden de prioridad del admin)
+    for (const cat of visibleCats) {
       const sectionProducts = prods.filter(p => {
         const matches = matchProductCategory(p, cat.id)
         if (matches) assignedIds.add(p.id)
@@ -118,15 +179,17 @@ export function useCatalog(
       }
     }
 
-    // Postres sin categoría asociada
-    const unassigned = prods.filter(p => !assignedIds.has(p.id))
-    if (unassigned.length > 0) {
-      sections.push({
-        id: 'otras',
-        name: 'Otras Creaciones del Taller',
-        icon: 'lucide:sparkles',
-        products: unassigned
-      })
+    // Postres sin categoría asociada (sólo si se ve 'todos' o se seleccionó 'otras')
+    if (isAllSelected.value || selectedCategories.value.includes('otras')) {
+      const unassigned = prods.filter(p => !assignedIds.has(p.id))
+      if (unassigned.length > 0) {
+        sections.push({
+          id: 'otras',
+          name: 'Otras Creaciones del Taller',
+          icon: 'lucide:sparkles',
+          products: unassigned
+        })
+      }
     }
 
     return sections
@@ -158,15 +221,20 @@ export function useCatalog(
 
   function resetFilters(): void {
     searchQuery.value = ''
-    selectedCategory.value = 'todos'
+    selectedCategories.value = ['todos']
   }
 
   return {
     searchQuery,
     selectedCategory,
+    selectedCategories,
     categories,
     filteredProducts,
     groupedSections,
+    isAllSelected,
+    toggleCategory,
+    setOnlyCategory,
+    isCategoryActive,
     handleAddToCart,
     getProductImage,
     resetFilters

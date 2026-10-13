@@ -43,9 +43,13 @@ const rawCategories = computed<CatalogCategory[]>(() => {
 const {
   searchQuery,
   selectedCategory,
+  selectedCategories,
   categories,
   filteredProducts,
   groupedSections,
+  isAllSelected,
+  toggleCategory,
+  setOnlyCategory,
   handleAddToCart,
   getProductImage,
   resetFilters
@@ -56,12 +60,12 @@ if (route.query.q) {
   searchQuery.value = String(route.query.q)
 }
 if (route.query.cat) {
-  selectedCategory.value = String(route.query.cat)
+  setOnlyCategory(String(route.query.cat))
 }
 
 watch(() => route.query, (q) => {
   if (q.q !== undefined) searchQuery.value = String(q.q || '')
-  if (q.cat !== undefined) selectedCategory.value = String(q.cat || 'todos')
+  if (q.cat !== undefined) setOnlyCategory(String(q.cat || 'todos'))
 })
 
 // Estado del Modal de Detalle y sincronización de URL (?producto=ID)
@@ -102,13 +106,16 @@ watch([rawProducts, () => route.query.producto], ([products, prodId]) => {
     <!-- Encabezado de Vitrina Editorial -->
     <CatalogHeader />
 
-    <!-- Barra de Búsqueda y Píldoras de Categoría Dinámica -->
+    <!-- Barra de Búsqueda y Selector Desplegable Único -->
     <CatalogSearchFilter
       :search-query="searchQuery"
       :selected-category="selectedCategory"
+      :selected-categories="selectedCategories"
       :categories="categories"
       @update:search-query="searchQuery = $event"
       @update:selected-category="selectedCategory = $event"
+      @update:selected-categories="selectedCategories = $event"
+      @toggle-category="toggleCategory"
     />
 
     <!-- Estado: Cargando -->
@@ -146,7 +153,7 @@ watch([rawProducts, () => route.query.producto], ([products, prodId]) => {
     />
 
     <!-- Estado: Catálogo Activo (Organizado por Secciones Dinámicas) -->
-    <div v-else class="space-y-10 sm:space-y-12">
+    <div v-else class="space-y-8 sm:space-y-12">
       <!-- Indicador de Coincidencias de Búsqueda -->
       <div 
         v-if="searchQuery.trim().length > 0"
@@ -167,15 +174,15 @@ watch([rawProducts, () => route.query.producto], ([products, prodId]) => {
         </button>
       </div>
 
-      <!-- CASO A: Categoría Específica Seleccionada (Vista Directa en Cuadrícula) -->
-      <div v-if="selectedCategory !== 'todos'" class="space-y-4 sm:space-y-6">
+      <!-- CASO A: Categoría Específica Única Seleccionada (Vista Directa en Cuadrícula) -->
+      <div v-if="!isAllSelected && selectedCategories.length === 1" class="space-y-4 sm:space-y-6">
         <div class="flex items-center justify-between border-b border-brand-primary/10 pb-3">
-          <div class="flex items-center gap-3">
+          <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
             <div class="w-9 h-9 rounded-xl bg-brand-cream text-brand-primary flex items-center justify-center border border-brand-primary/15 shrink-0">
               <Icon :name="groupedSections?.[0]?.icon || 'lucide:cake'" class="w-5 h-5" />
             </div>
             <div>
-              <h2 class="font-playfair font-bold text-xl sm:text-2xl text-brand-secondary leading-tight">
+              <h2 class="font-playfair font-bold text-lg sm:text-2xl text-brand-secondary leading-tight truncate">
                 {{ groupedSections?.[0]?.name || 'Selección' }}
               </h2>
               <span class="text-[11px] font-bold text-brand-primary/70">
@@ -184,9 +191,9 @@ watch([rawProducts, () => route.query.producto], ([products, prodId]) => {
             </div>
           </div>
           <button
-            @click="selectedCategory = 'todos'"
+            @click="setOnlyCategory('todos')"
             type="button"
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-brand-primary/20 text-xs font-bold text-brand-secondary hover:bg-brand-cream transition-colors cursor-pointer"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-brand-primary/20 text-xs font-bold text-brand-secondary hover:bg-brand-cream transition-colors cursor-pointer shrink-0"
           >
             <Icon name="lucide:arrow-left" class="w-3.5 h-3.5" />
             <span class="hidden sm:inline">Ver toda la carta</span>
@@ -209,37 +216,36 @@ watch([rawProducts, () => route.query.producto], ([products, prodId]) => {
         </AnimatedGrid>
       </div>
 
-      <!-- CASO B: Vista 'Todos' o Resultados de Búsqueda (Secciones con Carrusel en Mobile y Grid en Desktop) -->
-      <div v-else class="space-y-10 sm:space-y-14">
+      <!-- CASO B: Vista 'Todos' o Selección Múltiple (Secciones con Carrusel en Mobile y Grid en Desktop) -->
+      <div v-else class="space-y-8 sm:space-y-12">
         <section
           v-for="section in groupedSections"
           :key="section.id"
-          class="space-y-3 sm:space-y-5"
+          class="space-y-3 sm:space-y-4"
         >
-          <!-- Encabezado de la Sección / Categoría -->
-          <div class="flex items-center justify-between border-b border-brand-primary/10 pb-2.5">
-            <div class="flex items-center gap-2.5">
+          <!-- Encabezado de la Sección: amplio, holgado y con flecha circular minimalista -->
+          <div class="flex items-center justify-between border-b border-brand-primary/10 pb-2">
+            <div class="flex items-center gap-2 sm:gap-2.5 min-w-0 pr-2">
               <div class="w-8 h-8 rounded-xl bg-brand-cream text-brand-primary flex items-center justify-center border border-brand-primary/15 shrink-0">
                 <Icon :name="section.icon" class="w-4 h-4" />
               </div>
-              <div>
-                <h2 class="font-playfair font-bold text-lg sm:text-2xl text-brand-secondary leading-tight">
-                  {{ section.name }}
-                </h2>
-              </div>
+              <h2 class="font-playfair font-bold text-base sm:text-xl text-brand-secondary leading-tight truncate">
+                {{ section.name }}
+              </h2>
               <span class="text-[10px] font-bold text-brand-primary bg-brand-cream/80 px-2 py-0.5 rounded-full border border-brand-primary/15 shrink-0">
                 {{ section.products.length }}
               </span>
             </div>
 
-            <!-- Botón de acceso directo a la sección si hay más de 2 postres -->
+            <!-- Botón de acceso directo a la sección: flecha circular minimalista que nunca aprieta el título -->
             <button
               v-if="section.id !== 'otras'"
-              @click="selectedCategory = section.id"
+              @click="setOnlyCategory(section.id)"
               type="button"
-              class="text-xs font-bold text-brand-primary hover:text-brand-secondary flex items-center gap-1 transition-colors cursor-pointer group"
+              class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-brand-cream/80 hover:bg-brand-primary hover:text-white text-brand-primary border border-brand-primary/15 flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-90 group shadow-soft-sm"
+              :aria-label="`Ver solo ${section.name}`"
+              :title="`Ver solo ${section.name}`"
             >
-              <span>Ver sección</span>
               <Icon name="lucide:arrow-right" class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
             </button>
           </div>

@@ -195,5 +195,19 @@ describe('Fase 4 (PR-4b): Dominio Catálogo y Carrito - Normalización, Filtrado
       expect(matchProductCategory(torta, 'boxes')).toBe(false)
       expect(matchProductCategory(tartaletaSinId, 'tartaletas')).toBe(true)
     })
+
+    it('soporta filtrado multi-categoría permitiendo seleccionar múltiples secciones simultáneas', () => {
+      const prods: CatalogProduct[] = [
+        { id: 1, name: 'Torta Red Velvet', price: 70, stock: 5, category_id: 'tortas' },
+        { id: 2, name: 'Tartaleta de Manzana', price: 38, stock: 4, category_id: 'tartaletas' },
+        { id: 3, name: 'Box Cumpleañero Deluxe', price: 65, stock: 3, category_id: 'boxes' }
+      ]
+
+      const selected = ['tortas', 'boxes']
+      const filtered = prods.filter(p => selected.some(catId => matchProductCategory(p, catId)))
+
+      expect(filtered.length).toBe(2)
+      expect(filtered.map(p => p.id)).toEqual([1, 3])
+    })
   })
 })
