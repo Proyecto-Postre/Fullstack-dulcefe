@@ -102,7 +102,7 @@ watch([rawProducts, () => route.query.producto], ([products, prodId]) => {
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 pt-4 sm:pt-6 pb-24 sm:pb-12 w-full relative">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 pt-4 sm:pt-6 pb-24 sm:pb-12 w-full relative overflow-x-clip">
     <!-- Encabezado de Vitrina Editorial -->
     <CatalogHeader />
 
@@ -250,12 +250,12 @@ watch([rawProducts, () => route.query.producto], ([products, prodId]) => {
             </button>
           </div>
 
-          <!-- Disposición Móvil: Carrusel Horizontal con 2 tarjetas completas + indicio visual de la 3ra -->
+          <!-- Disposición Móvil: Carrusel Horizontal Calibrado (2 tarjetas completas simétricas + peek sutil de la 3ra en cualquier modelo) -->
           <div class="block sm:hidden -mx-4 px-4 overflow-x-auto overflow-y-hidden flex gap-2.5 snap-x snap-mandatory scroll-px-4 hide-scrollbar pb-3 pt-1">
             <div
               v-for="product in section.products"
               :key="product.id"
-              class="w-[calc((100vw-42px)/2.35)] min-w-[138px] max-w-[178px] shrink-0 snap-start flex flex-col h-auto"
+              class="w-[calc((100vw-70px)/2)] min-w-[140px] max-w-[200px] shrink-0 snap-start flex flex-col h-auto"
             >
               <CatalogProductCard
                 :product="product"
