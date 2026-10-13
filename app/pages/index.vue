@@ -17,38 +17,14 @@ const { data: catalogResponse, pending } = await useAsyncData(
   }
 )
 
-// Joyas canónicas de respaldo si la base de datos aún no tiene suficientes productos
-const fallbackFeatured: CatalogProduct[] = [
-  {
-    id: 13,
-    name: 'Torta Artesanal de Chocolate & Frutos Rojos',
-    price: 95.00,
-    stock: 6,
-    image_url: '/images/desserts/torta-chocolate-frutos.jpg',
-    description: 'Bizcocho húmedo y esponjoso de chocolate, suave ganache artesanal, frambuesas frescas y arándanos seleccionados.'
-  },
-  {
-    id: 10,
-    name: 'Tartaleta Sableé de Fresas & Crema Fina',
-    price: 45.00,
-    stock: 8,
-    image_url: '/images/desserts/tartaleta-fresas-pistacho.jpg',
-    description: 'Masa crujiente y dorada, crema pastelera suave de la casa y abundante fruta fresca del día.'
-  },
-  {
-    id: 12,
-    name: 'Cheesecake Horno Lento con Frutos del Bosque',
-    price: 85.00,
-    stock: 4,
-    image_url: 'https://images.unsplash.com/photo-1533134242443-d4fd215305ad?q=80&w=800&auto=format&fit=crop',
-    description: 'Cremoso y suave horneado a baño maría, compota artesanal de frutos rojos y base crocante de galleta.'
-  }
-]
+const allProducts = computed<CatalogProduct[]>(() => {
+  return catalogResponse.value?.data || []
+})
 
 // Prioriza creaciones marcadas como 'is_featured' por el administrador, ordenando por disponibilidad de stock
 const displayFeatured = computed<CatalogProduct[]>(() => {
-  const serverItems = catalogResponse.value?.data || []
-  if (serverItems.length === 0) return fallbackFeatured
+  const serverItems = allProducts.value
+  if (serverItems.length === 0) return []
 
   const featured = serverItems.filter(p => p.is_featured === true)
   const others = serverItems.filter(p => p.is_featured !== true)
@@ -56,11 +32,7 @@ const displayFeatured = computed<CatalogProduct[]>(() => {
   const sortedFeatured = [...featured].sort((a, b) => (Number(b.stock) > 0 ? 1 : 0) - (Number(a.stock) > 0 ? 1 : 0))
   const sortedOthers = [...others].sort((a, b) => (Number(b.stock) > 0 ? 1 : 0) - (Number(a.stock) > 0 ? 1 : 0))
 
-  const candidateList = [...sortedFeatured, ...sortedOthers]
-  if (candidateList.length >= 3) {
-    return candidateList.slice(0, 3)
-  }
-  return [...candidateList, ...fallbackFeatured].slice(0, 3)
+  return [...sortedFeatured, ...sortedOthers].slice(0, 3)
 })
 
 // Estado del Modal de Detalle Rápido
@@ -317,8 +289,8 @@ function goToMenuWithFilter(keyword: string) {
           </NuxtLink>
         </div>
 
-        <!-- Grid de Productos Destacados -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+        <!-- Grid de Productos Destacados (100% reales desde Supabase) -->
+        <div v-if="displayFeatured.length > 0" class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
           <article
             v-for="product in displayFeatured"
             :key="product.id"
@@ -386,6 +358,29 @@ function goToMenuWithFilter(keyword: string) {
               </div>
             </div>
           </article>
+        </div>
+
+        <!-- Estado si la base de datos aún no tiene postres registrados -->
+        <div 
+          v-else 
+          class="max-w-xl mx-auto text-center bg-surface border border-brand-primary/15 rounded-3xl p-8 sm:p-10 shadow-soft-sm"
+        >
+          <div class="w-12 h-12 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center mx-auto mb-3">
+            <Icon name="lucide:sparkles" class="w-6 h-6 text-brand-accent" />
+          </div>
+          <h3 class="text-xl font-playfair font-bold text-brand-secondary mb-2">
+            Nuevas Creaciones en el Horno
+          </h3>
+          <p class="text-xs sm:text-sm text-brand-secondary/75 font-medium leading-relaxed mb-6">
+            Actualmente no hay postres registrados en la base de datos. Puedes registrar nuevos postres desde el panel de administración para que se exhiban automáticamente aquí y en la carta.
+          </p>
+          <NuxtLink
+            to="/admin"
+            class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-brand-primary text-white text-xs font-bold shadow-soft-sm hover:bg-brand-secondary transition-all active:scale-95 cursor-pointer"
+          >
+            <Icon name="lucide:plus" class="w-4 h-4" />
+            <span>Agregar Productos en Admin</span>
+          </NuxtLink>
         </div>
 
       </div>
