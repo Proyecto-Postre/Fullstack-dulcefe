@@ -87,15 +87,15 @@ function goToMenuWithFilter(keyword: string) {
       <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
         
         <!-- Columna Izquierda: Mensaje Editorial & Acciones -->
-        <div class="lg:col-span-7 space-y-6 sm:space-y-8 animate-fade-in-up">
-          <!-- Badge de Taller en Vivo -->
-          <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-primary/10 text-brand-primary text-xs font-bold uppercase tracking-widest border border-brand-primary/20 shadow-soft-sm">
+        <div class="lg:col-span-7 space-y-3.5 sm:space-y-8 animate-fade-in-up">
+          <!-- Badge de Taller en Vivo (Oculto en móvil) -->
+          <div class="hidden sm:inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-primary/10 text-brand-primary text-xs font-bold uppercase tracking-widest border border-brand-primary/20 shadow-soft-sm">
             <span class="w-2 h-2 rounded-full bg-brand-primary animate-pulse"></span>
             <span>Taller Artesanal Dulce Fe · Lima</span>
           </div>
           
           <!-- Titular Editorial -->
-          <h1 class="text-4xl sm:text-6xl md:text-7xl font-playfair font-black text-brand-secondary leading-[1.08] tracking-tight text-balance">
+          <h1 class="text-3xl sm:text-6xl md:text-7xl font-playfair font-black text-brand-secondary leading-[1.08] tracking-tight text-balance">
             El arte de crear <br />
             <span class="italic font-medium text-brand-primary underline decoration-brand-accent/40 decoration-wavy decoration-2">
               momentos dulces
@@ -103,8 +103,8 @@ function goToMenuWithFilter(keyword: string) {
           </h1>
 
           <!-- Fotografía Protagonista del Postre en Móvil (Visible de inmediato en < lg) -->
-          <div class="lg:hidden relative w-full max-w-sm mx-auto my-1 pt-1 animate-fade-in">
-            <div class="relative rounded-[2rem] overflow-hidden aspect-[4/3] shadow-xl border-3 border-surface bg-brand-cream">
+          <div class="lg:hidden relative w-full max-w-[290px] sm:max-w-sm mx-auto my-1 pt-0.5 animate-fade-in">
+            <div class="relative rounded-[1.75rem] overflow-hidden aspect-[16/11] shadow-xl border-3 border-surface bg-brand-cream">
               <img 
                 src="/images/desserts/torta-chocolate-frutos.jpg" 
                 alt="Torta Artesanal de Chocolate Dulce Fe" 
@@ -113,35 +113,39 @@ function goToMenuWithFilter(keyword: string) {
               <div class="absolute inset-0 bg-gradient-to-t from-brand-secondary/60 via-transparent to-transparent pointer-events-none"></div>
 
               <!-- Badge de Elaboración Diaria en Móvil -->
-              <div class="absolute bottom-2.5 left-2.5 right-2.5 pr-14 bg-surface/95 backdrop-blur-md px-3 py-2 rounded-xl shadow-soft-md flex items-center border border-surface/50 z-20">
-                <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 bg-brand-cream rounded-full flex items-center justify-center text-brand-primary border border-brand-primary/20 shrink-0">
-                    <Icon name="lucide:award" class="w-3.5 h-3.5 text-brand-primary" />
+              <div class="absolute bottom-2 left-2 right-2 pr-12 bg-surface/95 backdrop-blur-md px-2.5 py-1.5 rounded-xl shadow-soft-md flex items-center border border-surface/50 z-20">
+                <div class="flex items-center gap-2">
+                  <div class="w-6 h-6 bg-brand-cream rounded-full flex items-center justify-center text-brand-primary border border-brand-primary/20 shrink-0">
+                    <Icon name="lucide:award" class="w-3 h-3 text-brand-primary" />
                   </div>
                   <div>
-                    <p class="text-[8px] font-bold text-brand-primary uppercase tracking-widest leading-none mb-0.5">Elaboración Diaria</p>
-                    <p class="text-xs font-black font-playfair text-brand-secondary leading-none">Calidad Artesanal 100%</p>
+                    <p class="text-[7.5px] font-bold text-brand-primary uppercase tracking-widest leading-none mb-0.5">Elaboración Diaria</p>
+                    <p class="text-[11px] font-black font-playfair text-brand-secondary leading-none">Calidad Artesanal 100%</p>
                   </div>
                 </div>
               </div>
             </div>
 
             <!-- Sello 'Hecho a Mano' en Móvil -->
-            <div class="absolute -bottom-2 -right-2 w-16 h-16 rounded-full bg-brand-secondary text-white flex items-center justify-center shadow-lg border-2 border-brand-accent/40 z-30 ring-3 ring-surface/90 select-none">
-              <div class="w-14 h-14 rounded-full border border-dashed border-brand-accent/50 flex flex-col items-center justify-center text-center p-0.5">
+            <div class="absolute -bottom-1.5 -right-1.5 w-14 h-14 rounded-full bg-brand-secondary text-white flex items-center justify-center shadow-lg border-2 border-brand-accent/40 z-30 ring-3 ring-surface/90 select-none">
+              <div class="w-12 h-12 rounded-full border border-dashed border-brand-accent/50 flex flex-col items-center justify-center text-center p-0.5">
                 <Icon name="lucide:sparkles" class="w-3 h-3 text-brand-accent mb-0.5 animate-pulse" />
-                <span class="text-[7px] font-black uppercase tracking-wider text-white leading-tight">Hecho</span>
-                <span class="text-[6px] font-bold uppercase tracking-widest text-brand-accent leading-none">a Mano</span>
+                <span class="text-[6.5px] font-black uppercase tracking-wider text-white leading-tight">Hecho</span>
+                <span class="text-[5.5px] font-bold uppercase tracking-widest text-brand-accent leading-none">a Mano</span>
               </div>
             </div>
           </div>
           
-          <p class="text-sm sm:text-base md:text-lg text-brand-secondary/80 font-medium max-w-xl leading-relaxed">
+          <!-- Descripción (Breve en móvil / Completa en desktop) -->
+          <p class="sm:hidden text-xs text-brand-secondary/80 font-medium leading-snug">
+            Repostería fina horneada a diario con frutas frescas y recetas familiares.
+          </p>
+          <p class="hidden sm:block text-sm sm:text-base md:text-lg text-brand-secondary/80 font-medium max-w-xl leading-relaxed">
             Repostería artesanal horneada con dedicación para cada celebración. Texturas suaves, frutas frescas del día y recetas familiares elaboradas para compartir momentos inolvidables.
           </p>
 
-          <!-- Selector de Ocasión Rápido -->
-          <div class="space-y-2.5 pt-1">
+          <!-- Selector de Ocasión Rápido (Oculto en móvil / Visible en Desktop) -->
+          <div class="hidden lg:block space-y-2.5 pt-1">
             <p class="text-[11px] font-bold text-brand-primary uppercase tracking-widest">
               ¿Para qué ocasión estás buscando?
             </p>
@@ -173,13 +177,13 @@ function goToMenuWithFilter(keyword: string) {
             </div>
           </div>
           
-          <!-- Botones de Acción -->
-          <div class="flex flex-wrap items-center gap-3 sm:gap-4 pt-2">
+          <!-- Botones de Acción (Inmediatamente visibles en la primera vista) -->
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-4 pt-1 sm:pt-2">
             <NuxtLink 
               to="/menu"
-              class="group relative inline-flex items-center justify-center px-7 sm:px-8 py-3.5 sm:py-4 text-xs sm:text-sm font-bold text-white bg-brand-primary hover:bg-brand-secondary rounded-full overflow-hidden transition-all duration-300 shadow-soft-md hover:shadow-soft-lg active:scale-95 cursor-pointer"
+              class="group relative inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 text-xs sm:text-sm font-bold text-white bg-brand-primary hover:bg-brand-secondary rounded-full overflow-hidden transition-all duration-300 shadow-soft-md hover:shadow-soft-lg active:scale-95 cursor-pointer"
             >
-              <span class="relative z-10 flex items-center gap-2 uppercase tracking-wider">
+              <span class="relative z-10 flex items-center justify-center gap-2 uppercase tracking-wider">
                 Explorar Nuestra Carta
                 <Icon name="lucide:arrow-right" class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
               </span>
@@ -187,7 +191,7 @@ function goToMenuWithFilter(keyword: string) {
             
             <a 
               href="#taller-artesanal"
-              class="inline-flex items-center justify-center px-6 sm:px-7 py-3.5 sm:py-4 text-xs sm:text-sm font-bold text-brand-secondary bg-surface hover:bg-brand-cream rounded-full transition-all duration-300 shadow-soft-sm hover:shadow-soft-md border border-brand-primary/20 uppercase tracking-wider cursor-pointer"
+              class="inline-flex items-center justify-center px-5 sm:px-7 py-2.5 sm:py-4 text-xs sm:text-sm font-bold text-brand-secondary bg-surface hover:bg-brand-cream rounded-full transition-all duration-300 shadow-soft-sm hover:shadow-soft-md border border-brand-primary/20 uppercase tracking-wider cursor-pointer"
             >
               Conoce el Taller
             </a>
