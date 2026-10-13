@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { toast } from 'vue-sonner'
 
 export interface CategoryItem {
@@ -74,6 +74,38 @@ function openEditModal(cat: CategoryItem) {
 function closeModal() {
   isModalOpen.value = false
 }
+
+// Bloqueo estricto del scroll del body cuando el modal está activo
+watch(isModalOpen, (open) => {
+  if (typeof document === 'undefined') return
+  if (open) {
+    document.body.classList.add('overflow-hidden', 'overscroll-none')
+  } else {
+    document.body.classList.remove('overflow-hidden', 'overscroll-none')
+  }
+})
+
+// Manejo accesible de tecla Escape
+function handleKeyDown(e: KeyboardEvent) {
+  if (e.key === 'Escape' && isModalOpen.value) {
+    closeModal()
+  }
+}
+
+onMounted(() => {
+  if (typeof window !== 'undefined') {
+    window.addEventListener('keydown', handleKeyDown)
+  }
+})
+
+onBeforeUnmount(() => {
+  if (typeof document !== 'undefined') {
+    document.body.classList.remove('overflow-hidden', 'overscroll-none')
+  }
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('keydown', handleKeyDown)
+  }
+})
 
 async function handleSaveCategory() {
   if (!categoryForm.value.name.trim()) {
@@ -255,106 +287,130 @@ async function toggleActive(cat: CategoryItem) {
       </div>
     </div>
 
-    <!-- Modal de Creación / Edición -->
-    <div
-      v-if="isModalOpen"
-      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brand-secondary/60 backdrop-blur-sm"
-      @click.self="closeModal"
-    >
-      <div class="bg-surface rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-brand-primary/20 space-y-6 animate-scale-up">
-        <div class="flex items-center justify-between border-b border-brand-primary/10 pb-4">
-          <h3 class="text-xl font-playfair font-bold text-brand-secondary">
-            {{ isEditing ? 'Editar Sección' : 'Nueva Sección de la Carta' }}
-          </h3>
-          <button @click="closeModal" type="button" class="text-brand-secondary/60 hover:text-brand-secondary">
-            <Icon name="lucide:x" class="w-5 h-5" />
-          </button>
-        </div>
+    <!-- Modal de Creación / Edición Blindado según Estándar Arquitectónico -->
+    <ClientOnly>
+      <Teleport to="#admin-modal-portal">
+        <div
+          v-if="isModalOpen"
+          class="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto custom-scrollbar pointer-events-auto"
+        >
+          <!-- Backdrop difuminado -->
+          <div
+            class="fixed inset-0 bg-[#2A321B]/50 backdrop-blur-sm transition-opacity"
+            @click="closeModal"
+          ></div>
 
-        <form @submit.prevent="handleSaveCategory" class="space-y-4">
-          <div>
-            <label class="block text-xs font-bold text-brand-primary uppercase tracking-wider mb-1">Nombre de la Sección</label>
-            <input
-              v-model="categoryForm.name"
-              type="text"
-              required
-              placeholder="Ej. Tortas de Cumpleaños"
-              class="w-full px-4 py-2.5 rounded-xl border border-brand-primary/20 bg-brand-cream/30 text-sm font-semibold text-brand-secondary focus:outline-none focus:border-brand-primary"
-            />
-          </div>
-
-          <div v-if="!isEditing">
-            <label class="block text-xs font-bold text-brand-primary uppercase tracking-wider mb-1">Identificador / Slug (opcional)</label>
-            <input
-              v-model="categoryForm.id"
-              type="text"
-              placeholder="tortas-cumpleanos (autogenerado si se deja vacío)"
-              class="w-full px-4 py-2.5 rounded-xl border border-brand-primary/20 bg-brand-cream/30 text-xs font-mono text-brand-secondary focus:outline-none focus:border-brand-primary"
-            />
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-brand-primary uppercase tracking-wider mb-1.5">Ícono Representativo</label>
-            <div class="flex flex-wrap gap-2 mb-2">
+          <!-- Diálogo Modal Accesible -->
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-category-title"
+            class="relative w-full max-w-lg bg-surface rounded-3xl p-6 sm:p-8 shadow-2xl border border-brand-primary/20 space-y-6 animate-scale-up max-h-[85vh] overflow-y-auto custom-scrollbar flex flex-col pointer-events-auto"
+          >
+            <div class="flex items-center justify-between border-b border-brand-primary/10 pb-4 shrink-0">
+              <h3 id="modal-category-title" class="text-xl font-playfair font-bold text-brand-secondary">
+                {{ isEditing ? 'Editar Sección' : 'Nueva Sección de la Carta' }}
+              </h3>
               <button
-                v-for="item in suggestedIcons"
-                :key="item.icon"
+                @click="closeModal"
                 type="button"
-                @click="categoryForm.icon = item.icon"
-                :class="categoryForm.icon === item.icon ? 'bg-brand-primary text-white border-brand-primary' : 'bg-surface text-brand-secondary border-brand-primary/20'"
-                class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all"
+                aria-label="Cerrar modal de sección"
+                class="w-8 h-8 flex items-center justify-center rounded-full bg-surface border border-brand-primary/20 text-brand-secondary hover:bg-brand-cream/50 hover:scale-105 active:scale-95 transition-all shadow-sm cursor-pointer"
               >
-                <Icon :name="item.icon" class="w-3.5 h-3.5" />
-                <span>{{ item.label }}</span>
+                <Icon name="lucide:x" class="w-4 h-4" />
               </button>
             </div>
-            <input
-              v-model="categoryForm.icon"
-              type="text"
-              placeholder="lucide:cake"
-              class="w-full px-4 py-2 rounded-xl border border-brand-primary/20 bg-brand-cream/30 text-xs font-mono text-brand-secondary"
-            />
-          </div>
 
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-bold text-brand-primary uppercase tracking-wider mb-1">Orden (#)</label>
-              <input
-                v-model.number="categoryForm.sort_order"
-                type="number"
-                min="0"
-                class="w-full px-4 py-2.5 rounded-xl border border-brand-primary/20 bg-brand-cream/30 text-sm font-bold text-brand-secondary"
-              />
-            </div>
-            <div class="flex items-center gap-2 pt-6">
-              <input
-                id="cat-active"
-                v-model="categoryForm.is_active"
-                type="checkbox"
-                class="w-4 h-4 rounded text-brand-primary focus:ring-brand-primary accent-brand-primary"
-              />
-              <label for="cat-active" class="text-xs font-bold text-brand-secondary select-none">Visible en la carta</label>
-            </div>
-          </div>
+            <form @submit.prevent="handleSaveCategory" class="space-y-4 flex-1">
+              <div>
+                <label for="cat-name" class="block text-xs font-bold text-brand-primary uppercase tracking-wider mb-1">Nombre de la Sección</label>
+                <input
+                  id="cat-name"
+                  v-model="categoryForm.name"
+                  type="text"
+                  required
+                  placeholder="Ej. Tortas de Cumpleaños"
+                  class="w-full px-4 py-2.5 rounded-xl border border-brand-primary/20 bg-brand-cream/30 text-sm font-semibold text-brand-secondary focus:outline-none focus:border-brand-primary focus-visible:ring-2 focus-visible:ring-brand-primary"
+                />
+              </div>
 
-          <div class="pt-4 flex items-center justify-end gap-3 border-t border-brand-primary/10">
-            <button
-              @click="closeModal"
-              type="button"
-              class="px-5 py-2.5 rounded-full border border-brand-primary/20 text-xs font-bold text-brand-secondary hover:bg-brand-cream transition-colors"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              :disabled="isSubmitting"
-              class="px-6 py-2.5 rounded-full bg-brand-primary hover:bg-brand-secondary text-white text-xs font-bold transition-all shadow-soft-sm disabled:opacity-50"
-            >
-              {{ isSubmitting ? 'Guardando...' : (isEditing ? 'Guardar Cambios' : 'Crear Sección') }}
-            </button>
+              <div v-if="!isEditing">
+                <label for="cat-slug" class="block text-xs font-bold text-brand-primary uppercase tracking-wider mb-1">Identificador / Slug (opcional)</label>
+                <input
+                  id="cat-slug"
+                  v-model="categoryForm.id"
+                  type="text"
+                  placeholder="tortas-cumpleanos (autogenerado si se deja vacío)"
+                  class="w-full px-4 py-2.5 rounded-xl border border-brand-primary/20 bg-brand-cream/30 text-xs font-mono text-brand-secondary focus:outline-none focus:border-brand-primary focus-visible:ring-2 focus-visible:ring-brand-primary"
+                />
+              </div>
+
+              <div>
+                <label for="cat-icon" class="block text-xs font-bold text-brand-primary uppercase tracking-wider mb-1.5">Ícono Representativo</label>
+                <div class="flex flex-wrap gap-2 mb-2">
+                  <button
+                    v-for="item in suggestedIcons"
+                    :key="item.icon"
+                    type="button"
+                    @click="categoryForm.icon = item.icon"
+                    :class="categoryForm.icon === item.icon ? 'bg-brand-primary text-white border-brand-primary' : 'bg-surface text-brand-secondary border-brand-primary/20'"
+                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all hover:border-brand-primary cursor-pointer"
+                  >
+                    <Icon :name="item.icon" class="w-3.5 h-3.5" />
+                    <span>{{ item.label }}</span>
+                  </button>
+                </div>
+                <input
+                  id="cat-icon"
+                  v-model="categoryForm.icon"
+                  type="text"
+                  placeholder="lucide:cake"
+                  class="w-full px-4 py-2 rounded-xl border border-brand-primary/20 bg-brand-cream/30 text-xs font-mono text-brand-secondary focus-visible:ring-2 focus-visible:ring-brand-primary"
+                />
+              </div>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label for="cat-order" class="block text-xs font-bold text-brand-primary uppercase tracking-wider mb-1">Orden (#)</label>
+                  <input
+                    id="cat-order"
+                    v-model.number="categoryForm.sort_order"
+                    type="number"
+                    min="0"
+                    class="w-full px-4 py-2.5 rounded-xl border border-brand-primary/20 bg-brand-cream/30 text-sm font-bold text-brand-secondary focus-visible:ring-2 focus-visible:ring-brand-primary"
+                  />
+                </div>
+                <div class="flex items-center gap-2 pt-6">
+                  <input
+                    id="cat-active"
+                    v-model="categoryForm.is_active"
+                    type="checkbox"
+                    class="w-4 h-4 rounded text-brand-primary focus:ring-brand-primary accent-brand-primary cursor-pointer"
+                  />
+                  <label for="cat-active" class="text-xs font-bold text-brand-secondary select-none cursor-pointer">Visible en la carta</label>
+                </div>
+              </div>
+
+              <div class="pt-4 flex items-center justify-end gap-3 border-t border-brand-primary/10">
+                <button
+                  @click="closeModal"
+                  type="button"
+                  class="px-5 py-2.5 rounded-full border border-brand-primary/20 text-xs font-bold text-brand-secondary hover:bg-brand-cream transition-colors cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  :disabled="isSubmitting"
+                  class="px-6 py-2.5 rounded-full bg-brand-primary hover:bg-brand-secondary text-white text-xs font-bold transition-all shadow-soft-sm disabled:opacity-50 cursor-pointer"
+                >
+                  {{ isSubmitting ? 'Guardando...' : (isEditing ? 'Guardar Cambios' : 'Crear Sección') }}
+                </button>
+              </div>
+            </form>
           </div>
-        </form>
-      </div>
-    </div>
+        </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>

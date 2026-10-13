@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, onMounted, onBeforeUnmount } from 'vue'
 import type { ProductRow, ProductUploadResponse, CatalogCategory } from '~/types/catalog'
 
 const props = defineProps<{
@@ -55,6 +55,38 @@ watch(() => props.show, (newVal) => {
     }
     errorMessage.value = ''
     selectedFile.value = null
+  }
+})
+
+// Bloqueo estricto del scroll del body cuando el modal está activo
+watch(() => props.show, (open) => {
+  if (typeof document === 'undefined') return
+  if (open) {
+    document.body.classList.add('overflow-hidden', 'overscroll-none')
+  } else {
+    document.body.classList.remove('overflow-hidden', 'overscroll-none')
+  }
+}, { immediate: true })
+
+// Manejo accesible de tecla Escape
+function handleKeyDown(e: KeyboardEvent) {
+  if (e.key === 'Escape' && props.show) {
+    closeModal()
+  }
+}
+
+onMounted(() => {
+  if (typeof window !== 'undefined') {
+    window.addEventListener('keydown', handleKeyDown)
+  }
+})
+
+onBeforeUnmount(() => {
+  if (typeof document !== 'undefined') {
+    document.body.classList.remove('overflow-hidden', 'overscroll-none')
+  }
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('keydown', handleKeyDown)
   }
 })
 
