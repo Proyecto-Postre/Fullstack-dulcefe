@@ -29,9 +29,9 @@ Este informe documenta la unificación definitiva de la experiencia de cliente d
   * Timbre artesanal circular verde y dorado: *"Hecho a Mano"* con microanimación de destello.
 * **Selector Rápido de Ocasión:**
   * Píldoras interactivas en el Hero (*"¿Para qué ocasión estás buscando?"*):
-    * `🎂 Tortas de Cumpleaños`
-    * `🍓 Tartaletas & Pies`
-    * `🎁 Boxes para Regalo`
+    * `lucide:cake` *Tortas de Cumpleaños*
+    * `lucide:sparkles` *Tartaletas & Pies*
+    * `lucide:gift` *Boxes para Regalo*
   * Cada botón navega a `/menu` aplicando de inmediato el filtro seleccionado.
 * **Cinta de 4 Pilares Gourmet:** Insumos Seleccionados, Horneado Fresco Diario, Diseños de Autor y Puntualidad en Lima.
 * **Vitrina de Joyas / Destacados:** Conectada a la base de datos priorizando postres con `is_featured === true` y stock disponible.

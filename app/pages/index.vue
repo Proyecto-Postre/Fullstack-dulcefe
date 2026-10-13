@@ -143,25 +143,25 @@ function goToMenuWithFilter(keyword: string) {
               <button
                 @click="goToMenuWithFilter('torta')"
                 type="button"
-                class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-surface hover:bg-brand-cream border border-brand-primary/20 text-xs font-bold text-brand-secondary shadow-soft-sm hover:border-brand-primary transition-all active:scale-95 cursor-pointer"
+                class="inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-surface hover:bg-brand-cream border border-brand-primary/20 text-xs font-bold text-brand-secondary shadow-soft-sm hover:border-brand-primary transition-all active:scale-95 cursor-pointer"
               >
-                <span>🎂</span>
+                <Icon name="lucide:cake" class="w-3.5 h-3.5 text-brand-primary" />
                 <span>Tortas de Cumpleaños</span>
               </button>
               <button
                 @click="goToMenuWithFilter('tarta')"
                 type="button"
-                class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-surface hover:bg-brand-cream border border-brand-primary/20 text-xs font-bold text-brand-secondary shadow-soft-sm hover:border-brand-primary transition-all active:scale-95 cursor-pointer"
+                class="inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-surface hover:bg-brand-cream border border-brand-primary/20 text-xs font-bold text-brand-secondary shadow-soft-sm hover:border-brand-primary transition-all active:scale-95 cursor-pointer"
               >
-                <span>🍓</span>
+                <Icon name="lucide:sparkles" class="w-3.5 h-3.5 text-brand-primary" />
                 <span>Tartaletas & Pies</span>
               </button>
               <button
                 @click="goToMenuWithFilter('box')"
                 type="button"
-                class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-surface hover:bg-brand-cream border border-brand-primary/20 text-xs font-bold text-brand-secondary shadow-soft-sm hover:border-brand-primary transition-all active:scale-95 cursor-pointer"
+                class="inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-surface hover:bg-brand-cream border border-brand-primary/20 text-xs font-bold text-brand-secondary shadow-soft-sm hover:border-brand-primary transition-all active:scale-95 cursor-pointer"
               >
-                <span>🎁</span>
+                <Icon name="lucide:gift" class="w-3.5 h-3.5 text-brand-primary" />
                 <span>Boxes para Regalo</span>
               </button>
             </div>
