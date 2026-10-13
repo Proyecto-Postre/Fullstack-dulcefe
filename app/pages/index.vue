@@ -422,26 +422,53 @@ function goToMenuWithFilter(keyword: string) {
     <!-- ========================================================================= -->
     <!-- 4. EL ARTE DEL TALLER: STORYTELLING & TRANSPARENCIA                       -->
     <!-- ========================================================================= -->
-    <section id="taller-artesanal" class="relative py-16 sm:py-24 bg-surface border-t border-brand-primary/10 z-10">
+    <section id="taller-artesanal" class="relative py-10 sm:py-24 bg-surface border-t border-brand-primary/10 z-10">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
           
-          <div class="space-y-6">
-            <div class="inline-flex items-center gap-2 text-xs font-bold text-brand-primary uppercase tracking-widest">
+          <div class="space-y-4 sm:space-y-6">
+            <div class="inline-flex items-center gap-2 text-[11px] sm:text-xs font-bold text-brand-primary uppercase tracking-widest">
               <Icon name="lucide:wheat" class="w-4 h-4" />
               <span>Nuestra Filosofía Gastronómica</span>
             </div>
 
-            <h2 class="text-3xl sm:text-4xl md:text-5xl font-playfair font-black text-brand-secondary leading-tight">
-              Dedicación, frescura y <br />
+            <h2 class="text-2xl sm:text-4xl md:text-5xl font-playfair font-black text-brand-secondary leading-tight">
+              Dedicación, frescura y <br class="hidden sm:inline" />
               <span class="italic font-medium text-brand-primary">pasión por cada detalle</span>
             </h2>
 
-            <p class="text-sm sm:text-base text-brand-secondary/80 leading-relaxed font-medium">
+            <!-- Párrafo Breve en Móvil -->
+            <p class="sm:hidden text-xs text-brand-secondary/80 leading-relaxed font-medium">
+              Cada postre cuenta una historia: combinamos recetas tradicionales de familia con una presentación impecable lista para tu mesa.
+            </p>
+
+            <!-- Párrafo Completo en Desktop -->
+            <p class="hidden sm:block text-sm sm:text-base text-brand-secondary/80 leading-relaxed font-medium">
               En Dulce Fe cada postre cuenta una historia especial. No trabajamos con producción masiva ni postres guardados: cada pedido se hornea exclusivamente para ti, cuidando la esponjosidad de los bizcochos, la suavidad de las cremas, la frescura de nuestras frutas y una presentación impecable lista para tu mesa.
             </p>
 
-            <div class="space-y-3 pt-2">
+            <!-- Claves en Móvil: Cuadrícula Compacta sin Redundancias -->
+            <div class="sm:hidden grid grid-cols-2 gap-2 pt-1 text-[11px] font-bold text-brand-secondary">
+              <div class="flex items-center gap-1.5 p-2.5 rounded-xl bg-brand-cream/50 border border-brand-primary/10">
+                <Icon name="lucide:heart" class="w-3.5 h-3.5 text-brand-primary shrink-0" />
+                <span>Receta familiar</span>
+              </div>
+              <div class="flex items-center gap-1.5 p-2.5 rounded-xl bg-brand-cream/50 border border-brand-primary/10">
+                <Icon name="lucide:shield-check" class="w-3.5 h-3.5 text-brand-primary shrink-0" />
+                <span>Sin preservantes</span>
+              </div>
+              <div class="flex items-center gap-1.5 p-2.5 rounded-xl bg-brand-cream/50 border border-brand-primary/10">
+                <Icon name="lucide:sparkles" class="w-3.5 h-3.5 text-brand-primary shrink-0" />
+                <span>Empaque de autor</span>
+              </div>
+              <div class="flex items-center gap-1.5 p-2.5 rounded-xl bg-brand-cream/50 border border-brand-primary/10">
+                <Icon name="lucide:smile" class="w-3.5 h-3.5 text-brand-primary shrink-0" />
+                <span>Trato cercano</span>
+              </div>
+            </div>
+
+            <!-- Lista Completa en Desktop -->
+            <div class="hidden sm:block space-y-3 pt-2">
               <div class="flex items-center gap-3 text-xs sm:text-sm font-bold text-brand-secondary">
                 <Icon name="lucide:check" class="w-4 h-4 text-brand-primary shrink-0" />
                 <span>Horneado bajo pedido: máxima frescura para el día y la hora de tu reunión.</span>
@@ -462,18 +489,18 @@ function goToMenuWithFilter(keyword: string) {
           </div>
 
           <!-- Tarjeta de Sello de Autor -->
-          <div class="relative bg-brand-cream/60 rounded-3xl p-8 sm:p-10 border border-brand-primary/15 shadow-soft-sm">
-            <div class="space-y-6">
-              <Icon name="lucide:quote" class="w-10 h-10 text-brand-primary/30" />
-              <p class="font-playfair italic text-lg sm:text-xl text-brand-secondary leading-relaxed">
+          <div class="relative bg-brand-cream/60 rounded-3xl p-5 sm:p-10 border border-brand-primary/15 shadow-soft-sm">
+            <div class="space-y-4 sm:space-y-6">
+              <Icon name="lucide:quote" class="w-8 h-8 sm:w-10 sm:h-10 text-brand-primary/30" />
+              <p class="font-playfair italic text-base sm:text-xl text-brand-secondary leading-relaxed">
                 "Cocinar con devoción es respetar cada insumo. Cuando una familia abre una caja de Dulce Fe, está recibiendo horas de dedicación artesanal pensadas para celebrar la vida."
               </p>
-              <div class="pt-4 border-t border-brand-primary/15 flex items-center justify-between">
+              <div class="pt-3 sm:pt-4 border-t border-brand-primary/15 flex items-center justify-between">
                 <div>
-                  <h4 class="font-bold text-sm text-brand-secondary">Taller Dulce Fe</h4>
-                  <p class="text-xs text-brand-primary/80 font-medium">Repostería Fina Artesanal</p>
+                  <h4 class="font-bold text-xs sm:text-sm text-brand-secondary">Taller Dulce Fe</h4>
+                  <p class="text-[11px] sm:text-xs text-brand-primary/80 font-medium">Repostería Fina Artesanal</p>
                 </div>
-                <div class="w-12 h-12 rounded-full bg-brand-primary text-white flex items-center justify-center font-playfair font-black text-xl shadow-soft-sm">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-brand-primary text-white flex items-center justify-center font-playfair font-black text-lg sm:text-xl shadow-soft-sm">
                   DF
                 </div>
               </div>
