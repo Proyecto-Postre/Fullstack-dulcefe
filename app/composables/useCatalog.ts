@@ -57,6 +57,9 @@ export function useCatalog(
     set(val: string) {
       if (!val || val === 'todos') {
         selectedCategories.value = ['todos']
+      } else if (val === 'multiple') {
+        // Blindaje: 'multiple' es solo un indicador de lectura, no un ID de categoría
+        return
       } else {
         selectedCategories.value = [val]
       }

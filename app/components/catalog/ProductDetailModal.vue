@@ -17,11 +17,101 @@ const emit = defineEmits<{
 const quantity = ref(1)
 const isCopied = ref(false)
 
+// Gesto de deslizamiento hacia abajo (Swipe down to dismiss) nativo en móvil
+const dragOffsetY = ref(0)
+const isDragging = ref(false)
+const isClosingByDrag = ref(false)
+let startY = 0
+
 // Reset cantidad y estado al abrir o cambiar de producto
 watch(() => [props.isOpen, props.product?.id], ([open]) => {
   if (open) {
     quantity.value = 1
     isCopied.value = false
+    dragOffsetY.value = 0
+    isDragging.value = false
+    isClosingByDrag.value = false
+  }
+})
+
+function onTouchStart(e: TouchEvent) {
+  if (e.touches.length !== 1) return
+  isDragging.value = true
+  startY = e.touches[0].clientY
+}
+
+function onTouchMove(e: TouchEvent) {
+  if (!isDragging.value || e.touches.length !== 1) return
+  const currentY = e.touches[0].clientY
+  const delta = currentY - startY
+  if (delta > 0) {
+    dragOffsetY.value = delta
+    if (e.cancelable) e.preventDefault()
+  } else {
+    dragOffsetY.value = delta * 0.15
+  }
+}
+
+function onTouchEnd() {
+  if (!isDragging.value) return
+  isDragging.value = false
+
+  const DISMISS_THRESHOLD = 85 // Píxeles necesarios para cerrar
+  if (dragOffsetY.value > DISMISS_THRESHOLD) {
+    isClosingByDrag.value = true
+    dragOffsetY.value = 450 // Anima hacia abajo fuera de pantalla
+    setTimeout(() => {
+      emit('close')
+      dragOffsetY.value = 0
+      isClosingByDrag.value = false
+    }, 220)
+  } else {
+    dragOffsetY.value = 0
+  }
+}
+
+// Soporte también para mouse (útil para pruebas en desktop/emulador móvil)
+function onMouseDown(e: MouseEvent) {
+  isDragging.value = true
+  startY = e.clientY
+
+  function onMouseMove(moveEvent: MouseEvent) {
+    if (!isDragging.value) return
+    const delta = moveEvent.clientY - startY
+    if (delta > 0) {
+      dragOffsetY.value = delta
+    } else {
+      dragOffsetY.value = delta * 0.15
+    }
+  }
+
+  function onMouseUp() {
+    window.removeEventListener('mousemove', onMouseMove)
+    window.removeEventListener('mouseup', onMouseUp)
+    onTouchEnd()
+  }
+
+  window.addEventListener('mousemove', onMouseMove)
+  window.addEventListener('mouseup', onMouseUp)
+}
+
+const modalSheetStyle = computed(() => {
+  if (dragOffsetY.value === 0 && !isClosingByDrag.value) {
+    return {}
+  }
+  return {
+    transform: `translateY(${Math.max(0, dragOffsetY.value)}px)`,
+    transition: isDragging.value ? 'none' : 'transform 0.24s cubic-bezier(0.2, 0.9, 0.3, 1)',
+    willChange: 'transform'
+  }
+})
+
+const backdropStyle = computed(() => {
+  if (dragOffsetY.value <= 0) return {}
+  const opacity = Math.max(0.1, 1 - (dragOffsetY.value / 350))
+  return {
+    opacity,
+    transition: isDragging.value ? 'none' : 'opacity 0.24s ease'
   }
 })
 
@@ -126,6 +216,7 @@ async function copyProductShareLink() {
         <!-- Backdrop con desenfoque suave -->
         <div 
           class="absolute inset-0 bg-brand-secondary/65 backdrop-blur-md transition-opacity"
+          :style="backdropStyle"
           @click="emit('close')"
           aria-hidden="true"
         ></div>
@@ -133,6 +224,7 @@ async function copyProductShareLink() {
         <!-- Panel del Modal (Adaptativo: Bottom Sheet en móvil, Diálogo en Desktop) -->
         <div 
           class="relative w-full max-w-3xl bg-surface rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl border border-brand-primary/15 overflow-hidden flex flex-col md:flex-row z-10 animate-modal-pop max-h-[92dvh] sm:max-h-[88vh]"
+          :style="modalSheetStyle"
           @click.stop
         >
           <!-- Acciones Superiores Flotantes: Compartir y Cerrar -->
@@ -157,9 +249,19 @@ async function copyProductShareLink() {
             </button>
           </div>
 
-          <!-- Tirador Táctil Móvil -->
-          <div class="sm:hidden w-full flex justify-center pt-3 pb-1 shrink-0 bg-brand-cream/50">
-            <div class="w-12 h-1.5 rounded-full bg-brand-primary/25"></div>
+          <!-- Tirador Táctil Móvil (Arrastrar hacia abajo para cerrar) -->
+          <div 
+            class="sm:hidden w-full flex flex-col items-center justify-center pt-3.5 pb-2 shrink-0 bg-brand-cream/60 cursor-grab active:cursor-grabbing select-none touch-none"
+            @touchstart="onTouchStart"
+            @touchmove="onTouchMove"
+            @touchend="onTouchEnd"
+            @mousedown="onMouseDown"
+            aria-label="Arrastrar hacia abajo para cerrar"
+          >
+            <div 
+              class="w-12 h-1.5 rounded-full transition-colors duration-150"
+              :class="isDragging ? 'bg-brand-primary' : 'bg-brand-primary/30'"
+            ></div>
           </div>
 
           <!-- Imagen del Producto -->

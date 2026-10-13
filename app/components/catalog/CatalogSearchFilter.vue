@@ -26,10 +26,12 @@ const realCategories = computed<CatalogCategory[]>(() => {
 
 // Categorías actualmente activas
 const activeCategoryIds = computed<string[]>(() => {
-  if (props.selectedCategories && props.selectedCategories.length > 0) {
-    return props.selectedCategories
+  const cats = props.selectedCategories
+  if (Array.isArray(cats) && cats.length > 0) {
+    const valid = cats.filter(c => c && c !== 'multiple')
+    if (valid.length > 0) return valid
   }
-  if (props.selectedCategory && props.selectedCategory !== 'todos') {
+  if (props.selectedCategory && props.selectedCategory !== 'todos' && props.selectedCategory !== 'multiple') {
     return [props.selectedCategory]
   }
   return ['todos']
@@ -78,9 +80,7 @@ function toggleCategory(catId: string) {
     return
   }
 
-  emit('toggleCategory', catId)
-
-  const current = activeCategoryIds.value.filter(id => id !== 'todos')
+  const current = activeCategoryIds.value.filter(id => id !== 'todos' && id !== 'multiple')
   const exists = current.includes(catId)
   let next: string[]
 
@@ -92,7 +92,7 @@ function toggleCategory(catId: string) {
   }
 
   emit('update:selectedCategories', next)
-  emit('update:selectedCategory', next.length === 1 ? next[0] : (next.length === 0 ? 'todos' : 'multiple'))
+  emit('update:selectedCategory', next.includes('todos') ? 'todos' : (next.length === 1 ? next[0] : 'multiple'))
 }
 
 function toggleDropdown() {
