@@ -17,13 +17,13 @@ const emit = defineEmits<{
 const quantity = ref(1)
 const isCopied = ref(false)
 
-// Gesto de deslizamiento hacia abajo (Swipe down to dismiss) nativo en móvil
+// Gesto táctil nativo tipo iOS/Android Bottom Sheet (1:1 en tiempo real)
 const dragOffsetY = ref(0)
 const isDragging = ref(false)
 const isClosingByDrag = ref(false)
 let startY = 0
 
-// Reset cantidad y estado al abrir o cambiar de producto
+// Reset de posición
 watch(() => [props.isOpen, props.product?.id], ([open]) => {
   if (open) {
     quantity.value = 1
@@ -34,13 +34,7 @@ watch(() => [props.isOpen, props.product?.id], ([open]) => {
   }
 })
 
-function onTouchStart(e: TouchEvent) {
-  if (e.touches.length !== 1) return
-  isDragging.value = true
-  startY = e.touches[0].clientY
-}
-
-function onTouchMove(e: TouchEvent) {
+function onTouchMoveWindow(e: TouchEvent) {
   if (!isDragging.value || e.touches.length !== 1) return
   const currentY = e.touches[0].clientY
   const delta = currentY - startY
@@ -48,70 +42,117 @@ function onTouchMove(e: TouchEvent) {
     dragOffsetY.value = delta
     if (e.cancelable) e.preventDefault()
   } else {
+    // Amortiguación elástica si intenta jalar hacia arriba
     dragOffsetY.value = delta * 0.15
   }
 }
 
-function onTouchEnd() {
+function onTouchEndWindow() {
   if (!isDragging.value) return
   isDragging.value = false
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('touchmove', onTouchMoveWindow)
+    window.removeEventListener('touchend', onTouchEndWindow)
+    window.removeEventListener('touchcancel', onTouchEndWindow)
+  }
 
-  const DISMISS_THRESHOLD = 85 // Píxeles necesarios para cerrar
+  const DISMISS_THRESHOLD = 95 // Umbral en px para confirmar el cierre al soltar
   if (dragOffsetY.value > DISMISS_THRESHOLD) {
     isClosingByDrag.value = true
-    dragOffsetY.value = 450 // Anima hacia abajo fuera de pantalla
+    dragOffsetY.value = 600 // Anima hacia abajo saliendo de la pantalla
     setTimeout(() => {
       emit('close')
       dragOffsetY.value = 0
       isClosingByDrag.value = false
-    }, 220)
+    }, 240)
+  } else {
+    // Si no superó el umbral, rebota suavemente a su posición original
+    dragOffsetY.value = 0
+  }
+}
+
+function onTouchStart(e: TouchEvent) {
+  if (e.touches.length !== 1) return
+  isDragging.value = true
+  startY = e.touches[0].clientY
+  if (typeof window !== 'undefined') {
+    window.addEventListener('touchmove', onTouchMoveWindow, { passive: false })
+    window.addEventListener('touchend', onTouchEndWindow)
+    window.addEventListener('touchcancel', onTouchEndWindow)
+  }
+}
+
+// Soporte también para mouse (escritorio y emulador de navegador)
+function onMouseMoveWindow(e: MouseEvent) {
+  if (!isDragging.value) return
+  const delta = e.clientY - startY
+  if (delta > 0) {
+    dragOffsetY.value = delta
+  } else {
+    dragOffsetY.value = delta * 0.15
+  }
+}
+
+function onMouseUpWindow() {
+  if (!isDragging.value) return
+  isDragging.value = false
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('mousemove', onMouseMoveWindow)
+    window.removeEventListener('mouseup', onMouseUpWindow)
+  }
+
+  const DISMISS_THRESHOLD = 95
+  if (dragOffsetY.value > DISMISS_THRESHOLD) {
+    isClosingByDrag.value = true
+    dragOffsetY.value = 600
+    setTimeout(() => {
+      emit('close')
+      dragOffsetY.value = 0
+      isClosingByDrag.value = false
+    }, 240)
   } else {
     dragOffsetY.value = 0
   }
 }
 
-// Soporte también para mouse (útil para pruebas en desktop/emulador móvil)
 function onMouseDown(e: MouseEvent) {
   isDragging.value = true
   startY = e.clientY
-
-  function onMouseMove(moveEvent: MouseEvent) {
-    if (!isDragging.value) return
-    const delta = moveEvent.clientY - startY
-    if (delta > 0) {
-      dragOffsetY.value = delta
-    } else {
-      dragOffsetY.value = delta * 0.15
-    }
+  if (typeof window !== 'undefined') {
+    window.addEventListener('mousemove', onMouseMoveWindow)
+    window.addEventListener('mouseup', onMouseUpWindow)
   }
-
-  function onMouseUp() {
-    window.removeEventListener('mousemove', onMouseMove)
-    window.removeEventListener('mouseup', onMouseUp)
-    onTouchEnd()
-  }
-
-  window.addEventListener('mousemove', onMouseMove)
-  window.addEventListener('mouseup', onMouseUp)
 }
 
+onBeforeUnmount(() => {
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('touchmove', onTouchMoveWindow)
+    window.removeEventListener('touchend', onTouchEndWindow)
+    window.removeEventListener('touchcancel', onTouchEndWindow)
+    window.removeEventListener('mousemove', onMouseMoveWindow)
+    window.removeEventListener('mouseup', onMouseUpWindow)
+  }
+})
+
 const modalSheetStyle = computed(() => {
-  if (dragOffsetY.value === 0 && !isClosingByDrag.value) {
+  const currentY = Math.max(0, dragOffsetY.value)
+  if (currentY === 0 && !isClosingByDrag.value && !isDragging.value) {
     return {}
   }
   return {
-    transform: `translateY(${Math.max(0, dragOffsetY.value)}px)`,
-    transition: isDragging.value ? 'none' : 'transform 0.24s cubic-bezier(0.2, 0.9, 0.3, 1)',
+    transform: `translate3d(0, ${currentY}px, 0)`,
+    // Cuando el usuario arrastra, NO hay transición: sigue el dedo 1:1 en tiempo real
+    transition: isDragging.value ? 'none' : 'transform 0.25s cubic-bezier(0.18, 0.89, 0.32, 1)',
     willChange: 'transform'
   }
 })
 
 const backdropStyle = computed(() => {
   if (dragOffsetY.value <= 0) return {}
-  const opacity = Math.max(0.1, 1 - (dragOffsetY.value / 350))
+  const opacity = Math.max(0.1, 1 - (dragOffsetY.value / 380))
   return {
     opacity,
-    transition: isDragging.value ? 'none' : 'opacity 0.24s ease'
+    transition: isDragging.value ? 'none' : 'opacity 0.25s ease'
   }
 })
 
@@ -223,7 +264,7 @@ async function copyProductShareLink() {
 
         <!-- Panel del Modal (Adaptativo: Bottom Sheet en móvil, Diálogo en Desktop) -->
         <div 
-          class="relative w-full max-w-3xl bg-surface rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl border border-brand-primary/15 overflow-hidden flex flex-col md:flex-row z-10 animate-modal-pop max-h-[92dvh] sm:max-h-[88vh]"
+          class="modal-sheet-panel relative w-full max-w-3xl bg-surface rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl border border-brand-primary/15 overflow-hidden flex flex-col md:flex-row z-10 max-h-[92dvh] sm:max-h-[88vh]"
           :style="modalSheetStyle"
           @click.stop
         >
@@ -249,12 +290,10 @@ async function copyProductShareLink() {
             </button>
           </div>
 
-          <!-- Tirador Táctil Móvil (Arrastrar hacia abajo para cerrar) -->
+          <!-- Tirador Táctil Móvil (Gesto nativo: arrastrar hacia abajo para cerrar) -->
           <div 
-            class="sm:hidden w-full flex flex-col items-center justify-center pt-3.5 pb-2 shrink-0 bg-brand-cream/60 cursor-grab active:cursor-grabbing select-none touch-none"
-            @touchstart="onTouchStart"
-            @touchmove="onTouchMove"
-            @touchend="onTouchEnd"
+            class="sm:hidden w-full flex flex-col items-center justify-center pt-3 pb-2 shrink-0 bg-brand-cream/60 cursor-grab active:cursor-grabbing select-none touch-none"
+            @touchstart.prevent="onTouchStart"
             @mousedown="onMouseDown"
             aria-label="Arrastrar hacia abajo para cerrar"
           >
@@ -385,12 +424,20 @@ async function copyProductShareLink() {
   opacity: 0;
 }
 
-@keyframes modalPop {
-  0% { transform: scale(0.96); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
+.modal-fade-enter-active .modal-sheet-panel,
+.modal-fade-leave-active .modal-sheet-panel {
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease-out;
 }
-
-.animate-modal-pop {
-  animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+.modal-fade-enter-from .modal-sheet-panel,
+.modal-fade-leave-to .modal-sheet-panel {
+  transform: translateY(100%);
+  opacity: 0;
+}
+@media (min-width: 640px) {
+  .modal-fade-enter-from .modal-sheet-panel,
+  .modal-fade-leave-to .modal-sheet-panel {
+    transform: scale(0.96);
+    opacity: 0;
+  }
 }
 </style>
