@@ -1,4 +1,4 @@
-﻿---
+---
 tipo: api-endpoint
 metodo: PUT
 ruta: /api/products/:id
@@ -23,7 +23,10 @@ Actualiza los datos comerciales (nombre, precio, stock, imagen) de un postre exi
   "name": "Torta Selva Negra Premium",
   "price": 90.00,
   "stock": 6,
-  "image_url": "https://.../selva-negra-v2.webp"
+  "image_url": "https://.../selva-negra-v2.webp",
+  "category_id": "tortas",
+  "description": "Bizcocho húmedo de cacao con capas de crema chantilly artesanal y cerezas maceradas.",
+  "is_featured": true
 }
 ```
 
@@ -36,6 +39,9 @@ Actualiza los datos comerciales (nombre, precio, stock, imagen) de un postre exi
   "price": 90.00,
   "stock": 6,
   "image_url": "https://.../selva-negra-v2.webp",
+  "category_id": "tortas",
+  "description": "Bizcocho húmedo de cacao con capas de crema chantilly artesanal y cerezas maceradas.",
+  "is_featured": true,
   "created_at": "2026-08-26T10:00:00.000Z"
 }
 ```

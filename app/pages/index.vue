@@ -45,12 +45,22 @@ const fallbackFeatured: CatalogProduct[] = [
   }
 ]
 
+// Prioriza creaciones marcadas como 'is_featured' por el administrador, ordenando por disponibilidad de stock
 const displayFeatured = computed<CatalogProduct[]>(() => {
   const serverItems = catalogResponse.value?.data || []
-  if (serverItems.length >= 3) {
-    return serverItems.slice(0, 3)
+  if (serverItems.length === 0) return fallbackFeatured
+
+  const featured = serverItems.filter(p => p.is_featured === true)
+  const others = serverItems.filter(p => p.is_featured !== true)
+
+  const sortedFeatured = [...featured].sort((a, b) => (Number(b.stock) > 0 ? 1 : 0) - (Number(a.stock) > 0 ? 1 : 0))
+  const sortedOthers = [...others].sort((a, b) => (Number(b.stock) > 0 ? 1 : 0) - (Number(a.stock) > 0 ? 1 : 0))
+
+  const candidateList = [...sortedFeatured, ...sortedOthers]
+  if (candidateList.length >= 3) {
+    return candidateList.slice(0, 3)
   }
-  return fallbackFeatured
+  return [...candidateList, ...fallbackFeatured].slice(0, 3)
 })
 
 // Estado del Modal de Detalle Rápido
@@ -534,5 +544,37 @@ function goToMenuWithFilter(keyword: string) {
       @close="closeDetail"
       @add-to-cart="handleAddToCart"
     />
+
+    <!-- Barra Flotante de Carrito en Móvil (Conversión E-commerce) -->
+    <div 
+      v-if="cartStore.cartItemCount > 0" 
+      class="sm:hidden fixed bottom-4 left-4 right-4 z-30 animate-pop"
+    >
+      <button
+        type="button"
+        @click="cartStore.openDrawer()"
+        class="w-full bg-[#2A321B]/95 hover:bg-[#4A5D23] text-white backdrop-blur-md px-4 py-3 rounded-full shadow-2xl flex items-center justify-between border border-[#F4F1E1]/20 active:scale-98 transition-all duration-300 cursor-pointer"
+        aria-label="Abrir carrito de compras"
+      >
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-full bg-[#4A5D23] flex items-center justify-center text-white shrink-0">
+            <Icon name="lucide:shopping-bag" class="w-4 h-4" />
+          </div>
+          <div class="text-left leading-tight">
+            <p class="text-[11px] font-bold text-[#F4F1E1]/90">
+              {{ cartStore.cartItemCount }} {{ cartStore.cartItemCount === 1 ? 'postre' : 'postres' }} en tu pedido
+            </p>
+            <p class="text-sm font-black font-inter text-white">
+              S/ {{ cartStore.cartTotal.toFixed(2) }}
+            </p>
+          </div>
+        </div>
+
+        <span class="inline-flex items-center gap-1.5 text-xs font-black bg-[#F4F1E1] text-[#2A321B] px-3.5 py-1.5 rounded-full shadow-sm">
+          <span>Ver Pedido</span>
+          <Icon name="lucide:arrow-right" class="w-3.5 h-3.5" />
+        </span>
+      </button>
+    </div>
   </div>
 </template>

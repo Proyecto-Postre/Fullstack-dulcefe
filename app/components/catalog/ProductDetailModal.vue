@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import type { CatalogProduct } from '~/types/catalog'
+import { toast } from 'vue-sonner'
 
 const props = defineProps<{
   product: CatalogProduct | null
@@ -14,13 +15,69 @@ const emit = defineEmits<{
 }>()
 
 const quantity = ref(1)
+const isCopied = ref(false)
+
+// Reset cantidad y estado al abrir o cambiar de producto
+watch(() => [props.isOpen, props.product?.id], ([open]) => {
+  if (open) {
+    quantity.value = 1
+    isCopied.value = false
+  }
+})
+
+// Bloqueo estricto del scroll del body cuando el modal está activo
+watch(() => props.isOpen, (open) => {
+  if (typeof document === 'undefined') return
+  if (open) {
+    document.body.classList.add('overflow-hidden', 'overscroll-none')
+  } else {
+    document.body.classList.remove('overflow-hidden', 'overscroll-none')
+  }
+}, { immediate: true })
+
+onBeforeUnmount(() => {
+  if (typeof document !== 'undefined') {
+    document.body.classList.remove('overflow-hidden', 'overscroll-none')
+  }
+})
+
+// Manejo accesible de tecla Escape
+function handleKeyDown(e: KeyboardEvent) {
+  if (e.key === 'Escape' && props.isOpen) {
+    emit('close')
+  }
+}
+
+onMounted(() => {
+  if (typeof window !== 'undefined') {
+    window.addEventListener('keydown', handleKeyDown)
+  }
+})
+
+onBeforeUnmount(() => {
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('keydown', handleKeyDown)
+  }
+})
+
+const maxStock = computed(() => {
+  if (!props.product) return 0
+  const stock = Number(props.product.stock)
+  return isNaN(stock) ? 99 : Math.max(0, stock)
+})
+
+const isAvailable = computed(() => {
+  return props.product && maxStock.value > 0 && Number(props.product.price) > 0
+})
 
 function increment() {
   if (!props.product) return
-  if (props.product.stock && quantity.value < props.product.stock) {
+  if (quantity.value < maxStock.value) {
     quantity.value++
-  } else if (!props.product.stock) {
-    quantity.value++
+  } else {
+    toast.info('Límite de disponibilidad', {
+      description: `Disponemos de ${maxStock.value} unidades para entrega inmediata.`
+    })
   }
 }
 
@@ -31,16 +88,29 @@ function decrement() {
 }
 
 function handleAdd() {
-  if (!props.product) return
+  if (!props.product || !isAvailable.value) return
   emit('addToCart', props.product, quantity.value)
   quantity.value = 1
   emit('close')
 }
 
-// Reset cantidad al abrir un nuevo producto
-watch(() => props.product, () => {
-  quantity.value = 1
-})
+async function copyProductShareLink() {
+  if (!props.product || typeof window === 'undefined') return
+  try {
+    const url = new URL(window.location.origin + '/menu')
+    url.searchParams.set('producto', String(props.product.id))
+    await navigator.clipboard.writeText(url.toString())
+    isCopied.value = true
+    toast.success('¡Enlace copiado al portapapeles!', {
+      description: `Listo para compartir ${props.product.name}`
+    })
+    setTimeout(() => {
+      isCopied.value = false
+    }, 2500)
+  } catch {
+    toast.error('No se pudo copiar el enlace')
+  }
+}
 </script>
 
 <template>
@@ -48,30 +118,49 @@ watch(() => props.product, () => {
     <Transition name="modal-fade">
       <div 
         v-if="isOpen && product" 
-        class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
+        class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6"
         role="dialog"
         aria-modal="true"
+        :aria-label="product.name"
       >
-        <!-- Backdrop -->
+        <!-- Backdrop con desenfoque suave -->
         <div 
-          class="absolute inset-0 bg-brand-secondary/60 backdrop-blur-md transition-opacity"
+          class="absolute inset-0 bg-brand-secondary/65 backdrop-blur-md transition-opacity"
           @click="emit('close')"
+          aria-hidden="true"
         ></div>
 
-        <!-- Panel del Modal -->
+        <!-- Panel del Modal (Adaptativo: Bottom Sheet en móvil, Diálogo en Desktop) -->
         <div 
-          class="relative w-full max-w-2xl bg-surface rounded-3xl sm:rounded-[2.5rem] shadow-2xl border border-brand-primary/15 overflow-hidden flex flex-col md:flex-row z-10 animate-modal-pop max-h-[90vh]"
+          class="relative w-full max-w-3xl bg-surface rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl border border-brand-primary/15 overflow-hidden flex flex-col md:flex-row z-10 animate-modal-pop max-h-[92dvh] sm:max-h-[88vh]"
           @click.stop
         >
-          <!-- Botón de Cerrar -->
-          <button 
-            @click="emit('close')"
-            type="button"
-            class="absolute top-4 right-4 z-20 w-9 h-9 rounded-full bg-surface/90 hover:bg-surface border border-brand-primary/20 flex items-center justify-center text-brand-secondary hover:text-brand-primary shadow-soft-sm transition-all active:scale-95 cursor-pointer"
-            aria-label="Cerrar detalle"
-          >
-            <Icon name="lucide:x" class="w-5 h-5" />
-          </button>
+          <!-- Acciones Superiores Flotantes: Compartir y Cerrar -->
+          <div class="absolute top-4 right-4 z-30 flex items-center gap-2">
+            <button
+              type="button"
+              @click="copyProductShareLink"
+              class="w-9 h-9 rounded-full bg-surface/90 hover:bg-brand-cream border border-brand-primary/20 flex items-center justify-center text-brand-secondary hover:text-brand-primary shadow-soft-sm transition-all active:scale-95 cursor-pointer"
+              title="Compartir enlace de este postre"
+              aria-label="Compartir postre"
+            >
+              <Icon :name="isCopied ? 'lucide:check' : 'lucide:share-2'" :class="['w-4 h-4', isCopied ? 'text-emerald-600' : 'text-brand-secondary']" />
+            </button>
+
+            <button 
+              @click="emit('close')"
+              type="button"
+              class="w-9 h-9 rounded-full bg-surface/90 hover:bg-brand-cream border border-brand-primary/20 flex items-center justify-center text-brand-secondary hover:text-brand-primary shadow-soft-sm transition-all active:scale-95 cursor-pointer"
+              aria-label="Cerrar detalle"
+            >
+              <Icon name="lucide:x" class="w-5 h-5" />
+            </button>
+          </div>
+
+          <!-- Tirador Táctil Móvil -->
+          <div class="sm:hidden w-full flex justify-center pt-3 pb-1 shrink-0 bg-brand-cream/50">
+            <div class="w-12 h-1.5 rounded-full bg-brand-primary/25"></div>
+          </div>
 
           <!-- Imagen del Producto -->
           <div class="w-full md:w-1/2 h-56 sm:h-72 md:h-auto relative bg-brand-cream/50 overflow-hidden shrink-0">
@@ -83,16 +172,23 @@ watch(() => props.product, () => {
             <div class="absolute inset-0 bg-gradient-to-t from-brand-secondary/40 via-transparent to-transparent md:hidden"></div>
 
             <div 
-              v-if="product.stock > 0" 
+              v-if="isAvailable" 
               class="absolute top-4 left-4 bg-surface/95 backdrop-blur-md text-brand-primary border border-brand-primary/20 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5 shadow-soft-sm"
             >
               <span class="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse"></span>
-              <span>Horneado Diario</span>
+              <span>Horneado Fresco</span>
+            </div>
+            <div 
+              v-else 
+              class="absolute top-4 left-4 bg-brand-secondary/95 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5 shadow-soft-sm"
+            >
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+              <span>Agotado por hoy</span>
             </div>
           </div>
 
           <!-- Contenido y Acciones -->
-          <div class="p-6 sm:p-8 flex-1 flex flex-col justify-between overflow-y-auto">
+          <div class="p-6 sm:p-8 flex-1 flex flex-col justify-between overflow-y-auto overscroll-contain">
             <div>
               <div class="flex items-center gap-2 text-brand-primary text-xs font-bold uppercase tracking-wider mb-2">
                 <Icon name="lucide:sparkles" class="w-3.5 h-3.5 text-brand-accent" />
@@ -103,11 +199,11 @@ watch(() => props.product, () => {
                 {{ product.name }}
               </h2>
 
-              <p class="text-sm text-brand-secondary/80 leading-relaxed font-medium mb-6">
+              <p class="text-sm text-brand-secondary/85 leading-relaxed font-medium mb-6">
                 {{ product.description || 'Elaborado con masa fresca e insumos seleccionados bajo rigurosos estándares de repostería fina. Ideal para celebraciones especiales y compartir momentos dulces.' }}
               </p>
 
-              <!-- Características Clave -->
+              <!-- Características Clave del Atelier -->
               <div class="grid grid-cols-2 gap-2.5 mb-6 text-xs font-semibold text-brand-secondary/85">
                 <div class="flex items-center gap-2 p-2.5 rounded-xl bg-brand-cream/60 border border-brand-primary/10">
                   <Icon name="lucide:clock" class="w-4 h-4 text-brand-primary" />
@@ -150,7 +246,8 @@ watch(() => props.product, () => {
                   <button 
                     @click="increment"
                     type="button"
-                    class="w-8 h-8 rounded-full flex items-center justify-center text-brand-secondary hover:bg-surface hover:shadow-xs transition-all active:scale-90 cursor-pointer"
+                    class="w-8 h-8 rounded-full flex items-center justify-center text-brand-secondary hover:bg-surface hover:shadow-xs transition-all active:scale-90 cursor-pointer disabled:opacity-40"
+                    :disabled="!isAvailable || quantity >= maxStock"
                     aria-label="Aumentar cantidad"
                   >
                     <Icon name="lucide:plus" class="w-3.5 h-3.5" />
@@ -161,11 +258,11 @@ watch(() => props.product, () => {
                 <button 
                   @click="handleAdd"
                   type="button"
-                  :disabled="product.stock === 0"
+                  :disabled="!isAvailable"
                   class="flex-1 py-3.5 px-6 rounded-full bg-brand-primary hover:bg-brand-secondary text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-soft-sm hover:shadow-soft-md transition-all active:scale-95 cursor-pointer disabled:bg-brand-cream/80 disabled:text-brand-primary/40 disabled:cursor-not-allowed"
                 >
                   <Icon name="lucide:shopping-bag" class="w-4 h-4" />
-                  <span>{{ product.stock > 0 ? `Agregar (S/ ${(Number(product.price) * quantity).toFixed(2)})` : 'Agotado' }}</span>
+                  <span>{{ isAvailable ? `Agregar (S/ ${(Number(product.price) * quantity).toFixed(2)})` : 'Agotado por hoy' }}</span>
                 </button>
               </div>
             </div>
@@ -187,7 +284,7 @@ watch(() => props.product, () => {
 }
 
 @keyframes modalPop {
-  0% { transform: scale(0.95); opacity: 0; }
+  0% { transform: scale(0.96); opacity: 0; }
   100% { transform: scale(1); opacity: 1; }
 }
 

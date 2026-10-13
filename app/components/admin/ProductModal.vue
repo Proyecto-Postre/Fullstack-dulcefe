@@ -25,7 +25,9 @@ const newProduct = ref<{
   stock: number | string
   image_url: string
   category_id: string
-}>({ id: '', name: '', price: '', stock: '', image_url: '', category_id: '' })
+  description: string
+  is_featured: boolean
+}>({ id: '', name: '', price: '', stock: '', image_url: '', category_id: '', description: '', is_featured: false })
 
 const isSubmitting = ref(false)
 const errorMessage = ref('')
@@ -42,11 +44,13 @@ watch(() => props.show, (newVal) => {
         price: props.productToEdit.price ?? '', 
         stock: props.productToEdit.stock ?? '',
         image_url: props.productToEdit.image_url || '',
-        category_id: (props.productToEdit as unknown as { category_id?: string }).category_id || ''
+        category_id: (props.productToEdit as unknown as { category_id?: string }).category_id || '',
+        description: (props.productToEdit as unknown as { description?: string | null }).description || '',
+        is_featured: Boolean((props.productToEdit as unknown as { is_featured?: boolean | null }).is_featured)
       }
       previewUrl.value = props.productToEdit.image_url || null
     } else {
-      newProduct.value = { id: '', name: '', price: '', stock: '', image_url: '', category_id: '' }
+      newProduct.value = { id: '', name: '', price: '', stock: '', image_url: '', category_id: '', description: '', is_featured: false }
       previewUrl.value = null
     }
     errorMessage.value = ''
@@ -101,7 +105,9 @@ async function saveProduct(): Promise<void> {
         price: Number(newProduct.value.price || 0),
         stock: Number(newProduct.value.stock || 0),
         image_url: uploadedImageUrl,
-        category_id: newProduct.value.category_id || null
+        category_id: newProduct.value.category_id || null,
+        description: newProduct.value.description?.trim() || null,
+        is_featured: Boolean(newProduct.value.is_featured)
       }
     })
     
@@ -113,8 +119,11 @@ async function saveProduct(): Promise<void> {
           price: Number(newProduct.value.price || 0),
           stock: Number(newProduct.value.stock || 0),
           image_url: uploadedImageUrl || null,
+          category_id: newProduct.value.category_id || null,
+          description: newProduct.value.description?.trim() || null,
+          is_featured: Boolean(newProduct.value.is_featured),
           created_at: new Date().toISOString()
-        }
+        } as unknown as ProductRow
 
     emit('saved', savedProduct, !props.productToEdit)
     closeModal()
@@ -201,6 +210,25 @@ async function saveProduct(): Promise<void> {
                 </p>
               </div>
 
+              <!-- Descripción / Notas de Autor -->
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest">
+                    Descripción / Notas de Autor
+                  </label>
+                  <span class="text-[10px] text-[#4A5D23]/60 font-medium">
+                    {{ (newProduct.description || '').length }}/400
+                  </span>
+                </div>
+                <textarea 
+                  v-model="newProduct.description" 
+                  rows="3" 
+                  maxlength="400" 
+                  placeholder="Ej. Bizcocho húmedo de cacao con ganache bitter al 70%, frambuesas frescas y frutos secos..." 
+                  class="w-full bg-[#F4F1E1]/30 border border-[#4A5D23]/20 rounded-xl px-4 py-2 text-xs font-medium text-[#2A321B] focus:outline-none focus:border-[#4A5D23] transition-colors resize-none"
+                ></textarea>
+              </div>
+
               <!-- Precio & Stock -->
               <div class="grid grid-cols-2 gap-4">
                 <div>
@@ -211,6 +239,23 @@ async function saveProduct(): Promise<void> {
                   <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest mb-1.5">Stock</label>
                   <input v-model="newProduct.stock" type="number" min="0" placeholder="0" class="w-full bg-[#F4F1E1]/30 border border-[#4A5D23]/20 rounded-xl px-4 py-2.5 text-sm font-bold text-[#2A321B] focus:outline-none focus:border-[#4A5D23] transition-colors" />
                 </div>
+              </div>
+
+              <!-- Destacar en Portada (Creaciones Favoritas) -->
+              <div class="bg-[#F4F1E1]/40 border border-[#4A5D23]/15 rounded-2xl p-3.5 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-8 h-8 rounded-xl bg-amber-100/80 border border-amber-300 text-amber-700 flex items-center justify-center shrink-0">
+                    <Icon name="lucide:star" class="w-4 h-4 fill-amber-500 text-amber-600" />
+                  </div>
+                  <div>
+                    <p class="text-xs font-bold text-[#2A321B]">Destacar en Portada</p>
+                    <p class="text-[10px] text-[#4A5D23]/70">Exhibir en "Creaciones Favoritas" del inicio</p>
+                  </div>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer select-none">
+                  <input type="checkbox" v-model="newProduct.is_featured" class="sr-only peer" />
+                  <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#4A5D23]"></div>
+                </label>
               </div>
 
               <div class="pt-4 flex justify-end gap-3 border-t border-[#4A5D23]/10">

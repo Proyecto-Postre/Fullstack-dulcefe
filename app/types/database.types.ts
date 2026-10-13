@@ -629,30 +629,47 @@ export type Database = {
       }
       products: {
         Row: {
+          category_id: string | null
           created_at: string | null
+          description: string | null
           id: number
           image_url: string | null
+          is_featured: boolean | null
           name: string
           price: number | null
           stock: number | null
         }
         Insert: {
+          category_id?: string | null
           created_at?: string | null
+          description?: string | null
           id?: number
           image_url?: string | null
+          is_featured?: boolean | null
           name: string
           price?: number | null
           stock?: number | null
         }
         Update: {
+          category_id?: string | null
           created_at?: string | null
+          description?: string | null
           id?: number
           image_url?: string | null
+          is_featured?: boolean | null
           name?: string
           price?: number | null
           stock?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "products_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       profiles: {
         Row: {

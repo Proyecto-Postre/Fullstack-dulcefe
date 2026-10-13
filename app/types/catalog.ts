@@ -9,6 +9,7 @@ export interface CatalogProduct {
   stock: number
   image_url: string | null
   description?: string | null
+  is_featured?: boolean | null
   category_id?: string | null
   created_at?: string
   updated_at?: string
@@ -34,6 +35,8 @@ export interface ProductFormData {
   price: number | string
   stock: number | string
   image_url: string
+  description?: string | null
+  is_featured?: boolean | null
   category_id?: string | null
 }
 

@@ -9,6 +9,8 @@ export interface CreateProductInput {
   price: number
   stock?: number
   image_url?: string | null
+  description?: string | null
+  is_featured?: boolean | null
   category_id?: string | null
 }
 
@@ -17,6 +19,8 @@ export interface UpdateProductInput {
   price?: number
   stock?: number
   image_url?: string | null
+  description?: string | null
+  is_featured?: boolean | null
   category_id?: string | null
 }
 
@@ -45,6 +49,12 @@ export class CatalogService {
       price: Number(dto.price),
       stock: Number(dto.stock ?? 0),
       image_url: dto.image_url || null
+    }
+    if (dto.description !== undefined) {
+      insertPayload.description = dto.description ? dto.description.trim() : null
+    }
+    if (dto.is_featured !== undefined) {
+      insertPayload.is_featured = Boolean(dto.is_featured)
     }
     if (dto.category_id !== undefined) {
       insertPayload.category_id = dto.category_id
@@ -91,6 +101,12 @@ export class CatalogService {
     if (dto.price !== undefined) updatePayload.price = Number(dto.price)
     if (dto.stock !== undefined) updatePayload.stock = Number(dto.stock)
     if (dto.image_url !== undefined) updatePayload.image_url = dto.image_url
+    if (dto.description !== undefined) {
+      updatePayload.description = dto.description ? dto.description.trim() : null
+    }
+    if (dto.is_featured !== undefined) {
+      updatePayload.is_featured = Boolean(dto.is_featured)
+    }
     if (dto.category_id !== undefined) updatePayload.category_id = dto.category_id
 
     const { data, error } = await supabase

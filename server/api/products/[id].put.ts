@@ -13,12 +13,12 @@ export default defineEventHandler(async (event) => {
   }
 
   const body = await readBody(event)
-  const { name, price, stock, image_url, category_id } = body || {}
+  const { name, price, stock, image_url, description, is_featured, category_id } = body || {}
 
   const data = await CatalogService.updateProduct(
     event,
     Number(id),
-    { name, price, stock, image_url, category_id },
+    { name, price, stock, image_url, description, is_featured, category_id },
     requestId
   )
 

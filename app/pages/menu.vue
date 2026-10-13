@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useAsyncData } from 'nuxt/app'
+import { ref, computed, watch } from 'vue'
+import { useAsyncData, useRoute, useRouter } from 'nuxt/app'
 import type { CatalogApiResponse, CatalogProduct, CatalogCategory } from '~/types/catalog'
 import { useCatalog } from '~/composables/useCatalog'
+import { useCartStore } from '~/stores/cart'
 import CatalogHeader from '~/components/catalog/CatalogHeader.vue'
 import CatalogSearchFilter from '~/components/catalog/CatalogSearchFilter.vue'
 import CatalogProductCard from '~/components/catalog/CatalogProductCard.vue'
@@ -10,6 +11,10 @@ import CatalogEmptyState from '~/components/catalog/CatalogEmptyState.vue'
 import CatalogLoadingSkeleton from '~/components/catalog/CatalogLoadingSkeleton.vue'
 import ProductDetailModal from '~/components/catalog/ProductDetailModal.vue'
 import AnimatedGrid from '~/components/ui/AnimatedGrid.vue'
+
+const cartStore = useCartStore()
+const route = useRoute()
+const router = useRouter()
 
 const { data: catalogResponse, pending, error, refresh } = await useAsyncData(
   'products-catalog',
@@ -46,7 +51,6 @@ const {
 } = useCatalog(rawProducts, rawCategories)
 
 // Sincronización con Query Params de la URL (para accesos directos desde el Home)
-const route = useRoute()
 if (route.query.q) {
   searchQuery.value = String(route.query.q)
 }
@@ -59,27 +63,45 @@ watch(() => route.query, (q) => {
   if (q.cat !== undefined) selectedCategory.value = String(q.cat || 'todos')
 })
 
-// Estado del Modal de Detalle
+// Estado del Modal de Detalle y sincronización de URL (?producto=ID)
 const selectedProductForDetail = ref<CatalogProduct | null>(null)
 const isDetailModalOpen = ref(false)
 
 function openProductDetail(product: CatalogProduct) {
   selectedProductForDetail.value = product
   isDetailModalOpen.value = true
+  router.replace({
+    query: { ...route.query, producto: String(product.id) }
+  })
 }
 
 function closeProductDetail() {
   isDetailModalOpen.value = false
   selectedProductForDetail.value = null
+  if (route.query.producto) {
+    const { producto: _, ...rest } = route.query
+    router.replace({ query: rest })
+  }
 }
+
+// Deep-linking inicial: si la URL contiene ?producto=ID, abrir automáticamente
+watch([rawProducts, () => route.query.producto], ([products, prodId]) => {
+  if (prodId && Array.isArray(products) && products.length > 0) {
+    const match = products.find(p => String(p.id) === String(prodId))
+    if (match) {
+      selectedProductForDetail.value = match
+      isDetailModalOpen.value = true
+    }
+  }
+}, { immediate: true })
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 pt-4 sm:pt-6 pb-12 w-full">
-    <!-- Encabezado de Vitrina -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 pt-4 sm:pt-6 pb-24 sm:pb-12 w-full relative">
+    <!-- Encabezado de Vitrina Editorial -->
     <CatalogHeader />
 
-    <!-- Barra de Búsqueda y Píldoras de Categoría -->
+    <!-- Barra de Búsqueda y Píldoras de Categoría Dinámica -->
     <CatalogSearchFilter
       :search-query="searchQuery"
       :selected-category="selectedCategory"
@@ -146,5 +168,37 @@ function closeProductDetail() {
       @close="closeProductDetail"
       @add-to-cart="handleAddToCart"
     />
+
+    <!-- Barra Flotante de Carrito en Móvil (Conversión E-commerce) -->
+    <div 
+      v-if="cartStore.cartItemCount > 0" 
+      class="sm:hidden fixed bottom-4 left-4 right-4 z-30 animate-pop"
+    >
+      <button
+        type="button"
+        @click="cartStore.openDrawer()"
+        class="w-full bg-[#2A321B]/95 hover:bg-[#4A5D23] text-white backdrop-blur-md px-4 py-3 rounded-full shadow-2xl flex items-center justify-between border border-[#F4F1E1]/20 active:scale-98 transition-all duration-300 cursor-pointer"
+        aria-label="Abrir carrito de compras"
+      >
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-full bg-[#4A5D23] flex items-center justify-center text-white shrink-0">
+            <Icon name="lucide:shopping-bag" class="w-4 h-4" />
+          </div>
+          <div class="text-left leading-tight">
+            <p class="text-[11px] font-bold text-[#F4F1E1]/90">
+              {{ cartStore.cartItemCount }} {{ cartStore.cartItemCount === 1 ? 'postre' : 'postres' }} en tu pedido
+            </p>
+            <p class="text-sm font-black font-inter text-white">
+              S/ {{ cartStore.cartTotal.toFixed(2) }}
+            </p>
+          </div>
+        </div>
+
+        <span class="inline-flex items-center gap-1.5 text-xs font-black bg-[#F4F1E1] text-[#2A321B] px-3.5 py-1.5 rounded-full shadow-sm">
+          <span>Ver Pedido</span>
+          <Icon name="lucide:arrow-right" class="w-3.5 h-3.5" />
+        </span>
+      </button>
+    </div>
   </div>
 </template>

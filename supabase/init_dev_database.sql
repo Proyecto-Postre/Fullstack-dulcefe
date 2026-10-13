@@ -22,6 +22,9 @@ CREATE TABLE IF NOT EXISTS public.products (
     price NUMERIC(10,2),
     stock INTEGER DEFAULT 0,
     image_url TEXT,
+    description TEXT,
+    is_featured BOOLEAN DEFAULT false NOT NULL,
+    category_id TEXT REFERENCES public.categories(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now())
 );
 

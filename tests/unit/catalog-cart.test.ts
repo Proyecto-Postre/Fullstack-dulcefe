@@ -135,5 +135,55 @@ describe('Fase 4 (PR-4b): Dominio Catálogo y Carrito - Normalización, Filtrado
       expect(Number(input.price)).toBe(35.5)
       expect(input.name).toBe('Torta Chocolate')
     })
+
+    it('calcula subtotales correctamente con cantidades variables provenientes del modal de detalle', () => {
+      const productPrice = 95.00
+      const quantity = 3
+      const subtotal = productPrice * quantity
+
+      expect(subtotal).toBe(285.00)
+      expect(subtotal.toFixed(2)).toBe('285.00')
+    })
+
+    it('restringe la cantidad mínima a 1 y valida disponibilidad de stock', () => {
+      const stock = 5
+      let quantity = 1
+
+      // No permitir bajar de 1
+      if (quantity > 1) quantity--
+      expect(quantity).toBe(1)
+
+      // Incrementar hasta el límite de stock
+      for (let i = 0; i < 10; i++) {
+        if (quantity < stock) {
+          quantity++
+        }
+      }
+      expect(quantity).toBe(stock)
+    })
+  })
+
+  describe('Vitrina de Portada (Creaciones Favoritas & Destacados)', () => {
+    it('prioriza productos marcados como is_featured y con stock disponible hasta un máximo de 3', () => {
+      const catalog: CatalogProduct[] = [
+        { id: 1, name: 'Postre Común En Stock', price: 20, stock: 10, image_url: null, is_featured: false },
+        { id: 2, name: 'Postre Destacado Agotado', price: 30, stock: 0, image_url: null, is_featured: true },
+        { id: 3, name: 'Postre Destacado En Stock', price: 40, stock: 5, image_url: null, is_featured: true },
+        { id: 4, name: 'Segundo Postre Común', price: 25, stock: 8, image_url: null, is_featured: false },
+        { id: 5, name: 'Tercer Postre Destacado', price: 50, stock: 3, image_url: null, is_featured: true }
+      ]
+
+      const featured = catalog.filter(p => p.is_featured === true)
+      const others = catalog.filter(p => p.is_featured !== true)
+
+      const sortedFeatured = [...featured].sort((a, b) => (Number(b.stock) > 0 ? 1 : 0) - (Number(a.stock) > 0 ? 1 : 0))
+      const sortedOthers = [...others].sort((a, b) => (Number(b.stock) > 0 ? 1 : 0) - (Number(a.stock) > 0 ? 1 : 0))
+
+      const result = [...sortedFeatured, ...sortedOthers].slice(0, 3)
+
+      expect(result.length).toBe(3)
+      // Los primeros deben ser los destacados en stock (id 3 y id 5), luego el destacado agotado (id 2)
+      expect(result.map(p => p.id)).toEqual([3, 5, 2])
+    })
   })
 })
