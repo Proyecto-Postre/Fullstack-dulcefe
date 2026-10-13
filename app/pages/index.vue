@@ -317,14 +317,11 @@ function goToMenuWithFilter(keyword: string) {
             </div>
 
             <!-- Contenido -->
-            <div class="p-6 flex-1 flex flex-col justify-between bg-surface">
+            <div class="p-5 sm:p-6 flex-1 flex flex-col justify-between bg-surface">
               <div @click="openDetail(product)" class="cursor-pointer">
-                <h3 class="text-lg sm:text-xl font-playfair font-bold text-brand-secondary mb-2 leading-snug group-hover:text-brand-primary transition-colors">
+                <h3 class="text-base sm:text-lg font-sans font-bold text-brand-secondary mb-2 leading-snug group-hover:text-brand-primary transition-colors">
                   {{ product.name }}
                 </h3>
-                <p class="text-xs text-brand-secondary/75 line-clamp-2 leading-relaxed mb-6 font-medium">
-                  {{ product.description || 'Elaborado artesanalmente bajo estrictos estándares de sabor y textura.' }}
-                </p>
               </div>
 
               <div class="flex items-center justify-between pt-4 border-t border-brand-primary/10 mt-auto">

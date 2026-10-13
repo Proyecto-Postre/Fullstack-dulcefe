@@ -60,7 +60,7 @@ const { data: materials, refresh: refreshMaterials, pending: pendingMaterials } 
 const activeProductForRecipe = ref<ProductItem | null>(null)
 
 function goToRecipeTab(product: ProductItem) {
-  activeProductForRecipe.value = product
+  activeProductForRecipe.value = { ...product }
   currentTab.value = 'recipes'
 }
 </script>

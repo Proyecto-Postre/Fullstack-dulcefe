@@ -52,12 +52,9 @@ defineEmits<{
         @click="$emit('viewDetail', product)"
         class="cursor-pointer"
       >
-        <h3 class="text-xs sm:text-base md:text-xl font-playfair font-bold text-brand-secondary mb-1 sm:mb-2 tracking-tight leading-snug line-clamp-2 group-hover:text-brand-primary transition-colors">
+        <h3 class="text-sm sm:text-base md:text-lg font-sans font-bold text-brand-secondary mb-2 tracking-tight leading-snug line-clamp-2 group-hover:text-brand-primary transition-colors">
           {{ product.name }}
         </h3>
-        <p class="hidden sm:block text-xs text-brand-primary/75 line-clamp-2 leading-relaxed mb-4 md:mb-6 font-medium">
-          {{ product.description || 'Elaborado artesanalmente con recetas tradicionales e insumos naturales seleccionados.' }}
-        </p>
       </div>
 
       <div class="flex items-center justify-between pt-2.5 sm:pt-4 border-t border-brand-primary/10 mt-auto gap-1">
