@@ -62,10 +62,14 @@ export class OrderService {
   ): Promise<CheckoutResult> {
     const supabase = await getAdminSupabaseClient(event)
 
-    // 1. Detección de sesión (opcional para checkout público)
+    // 1. Detección de sesión (opcional para checkout público con protección de timeout)
     let user = null
     try {
-      user = await serverSupabaseUser(event)
+      const userPromise = serverSupabaseUser(event)
+      const timeoutPromise = new Promise<null>((_, reject) =>
+        setTimeout(() => reject(new Error('Auth detection timeout')), 2500)
+      )
+      user = await Promise.race([userPromise, timeoutPromise])
     } catch {
       user = null
     }
