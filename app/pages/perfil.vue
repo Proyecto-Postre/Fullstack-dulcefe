@@ -203,7 +203,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="max-w-5xl mx-auto py-6 sm:py-10 px-3.5 sm:px-6 flex-1 w-full min-h-[calc(100vh-14rem)] flex flex-col justify-start">
+  <div class="max-w-7xl mx-auto py-6 sm:py-10 px-4 sm:px-6 lg:px-12 flex-1 w-full min-h-[calc(100vh-14rem)] flex flex-col justify-start">
     <!-- Encabezado -->
     <ProfileHeader @logout="logout" />
 

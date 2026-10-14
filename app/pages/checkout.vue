@@ -196,8 +196,8 @@ async function processCheckout(): Promise<void> {
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#F4F1E1]/30 py-8 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-5xl mx-auto space-y-8">
+  <div class="min-h-screen bg-[#F4F1E1]/30 py-8 px-4 sm:px-6 lg:px-12">
+    <div class="max-w-7xl mx-auto space-y-8">
       <!-- Breadcrumb y Título -->
       <div class="flex items-center justify-between">
         <div>
