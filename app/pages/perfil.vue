@@ -50,6 +50,9 @@ const activeTab = ref<ProfileTab>(initialTab)
 
 // Sincronizar cambios en activeTab con la URL sin recargar pantalla (SPA pushState)
 watch(activeTab, (newTab) => {
+  if (newTab === 'history') {
+    fetchOrders()
+  }
   const targetQuery = TAB_TO_QUERY[newTab]
   if (route.query.tab !== targetQuery) {
     if (newTab === 'personal') {

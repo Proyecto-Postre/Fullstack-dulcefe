@@ -1,5 +1,5 @@
 import type { H3Event } from 'h3'
-import { createError, getRequestIP, setResponseHeader } from 'h3'
+import { createError, getHeader, getRequestIP, setResponseHeader } from 'h3'
 import { serverSupabaseUser } from '#supabase/server'
 import { getAdminSupabaseClient } from '../utils/server-supabase'
 import crypto from 'node:crypto'
@@ -62,7 +62,7 @@ export class OrderService {
   ): Promise<CheckoutResult> {
     const supabase = await getAdminSupabaseClient(event)
 
-    // 1. Detección de sesión (opcional para checkout público con protección de timeout)
+    // 1. Detección de sesión y vinculación inteligente de perfil
     let user = null
     try {
       const userPromise = serverSupabaseUser(event)
@@ -74,7 +74,52 @@ export class OrderService {
       user = null
     }
 
-    const principalScope = user ? `user:${user.id}` : 'guest'
+    let resolvedUserId: string | null = null
+    if (user) {
+      resolvedUserId = (user as unknown as { id?: string; sub?: string }).id || (user as unknown as { sub?: string }).sub || null
+    }
+
+    // Fallback 1: cabecera Authorization (Bearer <token>) si el cliente envía token JWT
+    if (!resolvedUserId) {
+      try {
+        const authHeader = getHeader(event, 'authorization')
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+          const token = authHeader.slice(7).trim()
+          if (token) {
+            const { data: tokenData } = await supabase.auth.getUser(token)
+            if (tokenData?.user) {
+              user = tokenData.user
+              resolvedUserId = tokenData.user.id
+            }
+          }
+        }
+      } catch {
+        // Silencioso
+      }
+    }
+
+    // Fallback 2: vinculación inteligente por teléfono si el usuario compra como invitado en móvil/web
+    if (!resolvedUserId && dto.customer_phone) {
+      try {
+        const cleanDigits = dto.customer_phone.replace(/\D/g, '')
+        const phone9 = (cleanDigits.startsWith('51') && cleanDigits.length === 11) ? cleanDigits.slice(2) : cleanDigits
+        if (phone9 && phone9.length === 9) {
+          const { data: matchedProfile } = await supabase
+            .from('profiles')
+            .select('id')
+            .or(`phone.eq.${phone9},phone.eq.+51${phone9}`)
+            .maybeSingle()
+
+          if (matchedProfile?.id) {
+            resolvedUserId = matchedProfile.id
+          }
+        }
+      } catch {
+        // Silencioso
+      }
+    }
+
+    const principalScope = resolvedUserId ? `user:${resolvedUserId}` : 'guest'
 
     // 2. Rate Limit por IP (10 peticiones / 15 min)
     const clientIp = getRequestIP(event, { xForwardedFor: true }) || '0.0.0.0'
@@ -296,7 +341,7 @@ export class OrderService {
       const { data: createdOrder, error: orderInsertError } = await supabase
         .from('orders')
         .insert({
-          profile_id: user ? user.id : null,
+          profile_id: resolvedUserId,
           customer_name: dto.customer_name,
           customer_phone: dto.customer_phone || null,
           address: dto.address || null,
@@ -335,13 +380,17 @@ export class OrderService {
         throw itemsInsertError
       }
 
-      // Si el cliente autenticado envió teléfono y su perfil no lo tenía, actualizarlo
-      if (user && dto.customer_phone) {
-        await supabase
-          .from('profiles')
-          .update({ phone: dto.customer_phone })
-          .eq('id', user.id)
-          .is('phone', null)
+      // Si el cliente tiene un perfil resuelto y envió teléfono, actualizar el perfil si no tenía teléfono
+      if (resolvedUserId && dto.customer_phone) {
+        const cleanDigits = dto.customer_phone.replace(/\D/g, '')
+        const phone9 = (cleanDigits.startsWith('51') && cleanDigits.length === 11) ? cleanDigits.slice(2) : cleanDigits
+        if (phone9 && phone9.length === 9) {
+          await supabase
+            .from('profiles')
+            .update({ phone: phone9 })
+            .eq('id', resolvedUserId)
+            .is('phone', null)
+        }
       }
 
       const responseOrder: CheckoutResponseOrder = {
