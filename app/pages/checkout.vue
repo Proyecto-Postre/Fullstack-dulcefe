@@ -123,13 +123,42 @@ async function processCheckout(): Promise<void> {
     return 12
   }
 
+  function formatDeliveryDate(raw?: string): string | undefined {
+    if (!raw) return undefined
+    const trimmed = raw.trim()
+    if (!trimmed) return undefined
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed
+    const parts = trimmed.split(/[/ -]/)
+    if (parts.length === 3 && (parts[0]?.length || 0) <= 2 && (parts[1]?.length || 0) <= 2 && (parts[2]?.length || 0) === 4) {
+      return `${parts[2]}-${parts[1]!.padStart(2, '0')}-${parts[0]!.padStart(2, '0')}`
+    }
+    return trimmed
+  }
+
+  function formatDeliveryTime(raw?: string): string | undefined {
+    if (!raw) return undefined
+    const trimmed = raw.trim()
+    if (!trimmed) return undefined
+    if (/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(trimmed)) return trimmed
+    const match = trimmed.match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/i)
+    if (match) {
+      let hours = parseInt(match[1]!, 10)
+      const minutes = match[2]!
+      const period = match[3]!.toUpperCase()
+      if (period === 'PM' && hours < 12) hours += 12
+      else if (period === 'AM' && hours === 12) hours = 0
+      return `${String(hours).padStart(2, '0')}:${minutes}`
+    }
+    return trimmed
+  }
+
   const payload: CheckoutPayload = {
     channel: checkoutMode.value === 'direct' ? 'direct' : 'whatsapp_chat',
     customer_name: formData.value.name.trim(),
     customer_phone: cleanPhone || undefined,
     address: checkoutMode.value === 'direct' ? formData.value.address.trim() : undefined,
-    delivery_date: formData.value.deliveryDate || undefined,
-    delivery_time: formData.value.deliveryTime || undefined,
+    delivery_date: formatDeliveryDate(formData.value.deliveryDate),
+    delivery_time: formatDeliveryTime(formData.value.deliveryTime),
     notes: formData.value.notes.trim() || undefined,
     payment_method: formData.value.paymentMethod || 'cash',
     payment_reference: formData.value.paymentReference?.trim() || undefined,
@@ -142,7 +171,8 @@ async function processCheckout(): Promise<void> {
 
   const result = await submitCheckout(payload)
   if (!result) {
-    const msg = errorMessage.value || 'Ocurrió un problema al procesar tu pedido. Por favor intenta nuevamente.'
+    const firstDetail = errorDetails.value?.[0]?.message
+    const msg = firstDetail || errorMessage.value || 'Ocurrió un problema al procesar tu pedido. Por favor intenta nuevamente.'
     toast.error(msg)
     if (import.meta.client) {
       window.scrollTo({ top: 0, behavior: 'smooth' })

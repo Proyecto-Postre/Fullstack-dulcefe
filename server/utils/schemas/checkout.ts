@@ -8,6 +8,59 @@ export const CURRENCY_STRING_REGEX = /^\d+\.\d{2}$/
 
 const emptyToNull = (val: unknown) => (typeof val === 'string' && val.trim() === '' ? null : val)
 
+export function normalizeDeliveryDate(val: unknown): string | null {
+  if (!val || typeof val !== 'string') return null
+  const trimmed = val.trim()
+  if (!trimmed) return null
+
+  // Si ya es YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    return trimmed
+  }
+
+  // Si viene en DD/MM/YYYY o DD-MM-YYYY
+  const parts = trimmed.split(/[/ -]/)
+  if (parts.length === 3) {
+    if ((parts[0]?.length || 0) <= 2 && (parts[1]?.length || 0) <= 2 && (parts[2]?.length || 0) === 4) {
+      const day = parts[0]!.padStart(2, '0')
+      const month = parts[1]!.padStart(2, '0')
+      const year = parts[2]!
+      return `${year}-${month}-${day}`
+    }
+  }
+
+  return trimmed
+}
+
+export function normalizeDeliveryTime(val: unknown): string | null {
+  if (!val || typeof val !== 'string') return null
+  const trimmed = val.trim()
+  if (!trimmed) return null
+
+  // Si ya es HH:mm de 24 horas
+  if (/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(trimmed)) {
+    return trimmed
+  }
+
+  // Si contiene AM o PM (ej: "03:00 PM", "3:30 pm", "12:15 AM")
+  const match = trimmed.match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/i)
+  if (match) {
+    let hours = parseInt(match[1]!, 10)
+    const minutes = match[2]!
+    const period = match[3]!.toUpperCase()
+
+    if (period === 'PM' && hours < 12) {
+      hours += 12
+    } else if (period === 'AM' && hours === 12) {
+      hours = 0
+    }
+
+    return `${String(hours).padStart(2, '0')}:${minutes}`
+  }
+
+  return trimmed
+}
+
 export const CheckoutItemSchema = z.object({
   product_id: z.coerce.number().int().positive({ message: 'product_id debe ser un entero positivo' }),
   quantity: z.coerce.number().int().min(1, 'La cantidad mínima es 1').max(50, 'La cantidad máxima es 50')
@@ -20,8 +73,8 @@ export const CheckoutBodySchema = z.object({
   customer_name: z.string().trim().min(2, 'El nombre debe tener al menos 2 caracteres').max(80, 'El nombre no puede exceder 80 caracteres'),
   customer_phone: z.preprocess(emptyToNull, z.string().trim().regex(PERU_PHONE_REGEX, 'El teléfono debe ser válido en Perú (ej. 987654321)').optional().nullable()),
   address: z.preprocess(emptyToNull, z.string().trim().min(5, 'La dirección debe tener al menos 5 caracteres').max(200).optional().nullable()),
-  delivery_date: z.preprocess(emptyToNull, z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha inválido (YYYY-MM-DD)').optional().nullable()),
-  delivery_time: z.preprocess(emptyToNull, z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/, 'Formato de hora inválido (HH:mm)').optional().nullable()),
+  delivery_date: z.preprocess((val) => normalizeDeliveryDate(emptyToNull(val)), z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha inválido (YYYY-MM-DD)').optional().nullable()),
+  delivery_time: z.preprocess((val) => normalizeDeliveryTime(emptyToNull(val)), z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/, 'Formato de hora inválido (HH:mm)').optional().nullable()),
   notes: z.preprocess(emptyToNull, z.string().trim().max(500, 'Las notas no pueden exceder 500 caracteres').optional().nullable()),
   payment_method: z.preprocess(emptyToNull, z.enum(['cash', 'yape', 'plin', 'card']).optional().default('cash')),
   payment_reference: z.preprocess(emptyToNull, z.string().trim().max(100, 'La referencia no puede exceder 100 caracteres').optional().nullable()),
