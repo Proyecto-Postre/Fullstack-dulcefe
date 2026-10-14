@@ -206,89 +206,89 @@ export class OrderService {
       })
     }
 
-    // 5. Resolver productos oficiales desde la base de datos
-    const productIds = dto.items.map(item => item.product_id)
-    const { data: dbProducts, error: prodError } = await supabase
-      .from('products')
-      .select('id, name, price')
-      .in('id', productIds)
+    // 5. Resolver productos oficiales desde la base de datos (protegido para liberar la llave de idempotencia ante cualquier error)
+    try {
+      const productIds = dto.items.map(item => item.product_id)
+      const { data: dbProducts, error: prodError } = await supabase
+        .from('products')
+        .select('id, name, price')
+        .in('id', productIds)
 
-    if (prodError || !dbProducts || dbProducts.length === 0) {
-      throw createError({
-        statusCode: 422,
-        statusMessage: 'PRODUCT_NOT_FOUND',
-        data: {
-          error: {
-            code: 'PRODUCT_NOT_FOUND',
-            message: 'Uno o más productos no fueron encontrados.',
-            request_id: requestId
-          }
-        }
-      })
-    }
-
-    const productMap = new Map<number, { id: number; name: string; price: number }>()
-    for (const p of dbProducts) {
-      if (p.price === null) {
-        throw createError({
-          statusCode: 422,
-          statusMessage: 'PRODUCT_UNAVAILABLE',
-          data: {
-            error: {
-              code: 'PRODUCT_UNAVAILABLE',
-              message: `El producto ${p.name} no tiene precio asignado.`,
-              request_id: requestId
-            }
-          }
-        })
-      }
-      productMap.set(p.id, { id: p.id, name: p.name, price: p.price })
-    }
-
-    // 6. Aritmética monetaria exacta en céntimos (cero flotantes)
-    let orderTotalCents = 0
-    const orderItemsToInsert: {
-      product_id: number
-      quantity: number
-      price_at_time: number
-      name: string
-      priceString: string
-    }[] = []
-
-    for (const item of dto.items) {
-      const dbProduct = productMap.get(item.product_id)
-      if (!dbProduct) {
+      if (prodError || !dbProducts || dbProducts.length === 0) {
         throw createError({
           statusCode: 422,
           statusMessage: 'PRODUCT_NOT_FOUND',
           data: {
             error: {
               code: 'PRODUCT_NOT_FOUND',
-              message: `El producto con ID ${item.product_id} no existe.`,
+              message: 'Uno o más productos no fueron encontrados.',
               request_id: requestId
             }
           }
         })
       }
 
-      const unitPriceCents = solesToCents(dbProduct.price)
-      const lineTotalCents = unitPriceCents * item.quantity
-      orderTotalCents += lineTotalCents
+      const productMap = new Map<number, { id: number; name: string; price: number }>()
+      for (const p of dbProducts) {
+        if (p.price === null) {
+          throw createError({
+            statusCode: 422,
+            statusMessage: 'PRODUCT_UNAVAILABLE',
+            data: {
+              error: {
+                code: 'PRODUCT_UNAVAILABLE',
+                message: `El producto ${p.name} no tiene precio asignado.`,
+                request_id: requestId
+              }
+            }
+          })
+        }
+        productMap.set(p.id, { id: p.id, name: p.name, price: p.price })
+      }
 
-      orderItemsToInsert.push({
-        product_id: dbProduct.id,
-        quantity: item.quantity,
-        price_at_time: parseFloat(centsToSoles(unitPriceCents)),
-        name: dbProduct.name,
-        priceString: centsToSoles(unitPriceCents)
-      })
-    }
+      // 6. Aritmética monetaria exacta en céntimos (cero flotantes)
+      let orderTotalCents = 0
+      const orderItemsToInsert: {
+        product_id: number
+        quantity: number
+        price_at_time: number
+        name: string
+        priceString: string
+      }[] = []
 
-    const totalAmountString = centsToSoles(orderTotalCents)
-    const trackingToken = generateOrderTrackingToken(crypto.randomUUID(), now.toISOString())
+      for (const item of dto.items) {
+        const dbProduct = productMap.get(item.product_id)
+        if (!dbProduct) {
+          throw createError({
+            statusCode: 422,
+            statusMessage: 'PRODUCT_NOT_FOUND',
+            data: {
+              error: {
+                code: 'PRODUCT_NOT_FOUND',
+                message: `El producto con ID ${item.product_id} no existe.`,
+                request_id: requestId
+              }
+            }
+          })
+        }
 
-    // 7. Inserción de orden y detalle
-    try {
+        const unitPriceCents = solesToCents(dbProduct.price)
+        const lineTotalCents = unitPriceCents * item.quantity
+        orderTotalCents += lineTotalCents
+
+        orderItemsToInsert.push({
+          product_id: dbProduct.id,
+          quantity: item.quantity,
+          price_at_time: parseFloat(centsToSoles(unitPriceCents)),
+          name: dbProduct.name,
+          priceString: centsToSoles(unitPriceCents)
+        })
+      }
+
+      const totalAmountString = centsToSoles(orderTotalCents)
+      const trackingToken = generateOrderTrackingToken(crypto.randomUUID(), now.toISOString())
+
+      // 7. Inserción de orden y detalle
       const { data: createdOrder, error: orderInsertError } = await supabase
         .from('orders')
         .insert({
@@ -417,6 +417,11 @@ export class OrderService {
         .eq('principal_scope', principalScope)
         .eq('key', idempotencyKey)
         .eq('lifecycle', 'processing')
+
+      // Si es un error HTTP tipado (ej. 422 PRODUCT_NOT_FOUND), relanzarlo directamente
+      if (dbErr && typeof dbErr === 'object' && 'statusCode' in dbErr) {
+        throw dbErr
+      }
 
       const msg = dbErr instanceof Error
         ? dbErr.message

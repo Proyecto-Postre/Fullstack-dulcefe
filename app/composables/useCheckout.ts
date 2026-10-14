@@ -57,6 +57,7 @@ export function useCheckout() {
     try {
       const response = await $fetch<CheckoutResult>('/api/checkout', {
         method: 'POST',
+        retry: 0,
         headers: {
           'Idempotency-Key': idempotencyKey
         },
@@ -67,6 +68,9 @@ export function useCheckout() {
       clearIdempotencyKey()
       return response
     } catch (err: unknown) {
+      // Limpiar la clave local ante cualquier error para que el siguiente intento no quede bloqueado
+      clearIdempotencyKey()
+
       const fetchError = err as {
         statusCode?: number
         data?: {

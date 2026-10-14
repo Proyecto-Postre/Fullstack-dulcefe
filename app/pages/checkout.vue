@@ -5,7 +5,6 @@ import { useCartStore } from '~/stores/cart'
 import { useAuthStore } from '~/stores/auth'
 import { useCheckout } from '~/composables/useCheckout'
 import type { CheckoutMode, CheckoutFormData, CheckoutPayload } from '~/types/checkout'
-import { buildWhatsAppOrderMessage, buildWhatsAppUrl } from '~/utils/whatsapp'
 import CheckoutModeSelector from '~/components/checkout/CheckoutModeSelector.vue'
 import CheckoutCustomerForm from '~/components/checkout/CheckoutCustomerForm.vue'
 import CheckoutPaymentSection from '~/components/checkout/CheckoutPaymentSection.vue'
@@ -21,6 +20,7 @@ const config = useRuntimeConfig()
 const { isSubmitting, errorMessage, errorDetails, submitCheckout } = useCheckout()
 
 const checkoutMode = ref<CheckoutMode>('direct')
+const isUploadingReceipt = ref<boolean>(false)
 
 const formData = ref<CheckoutFormData>({
   name: '',
@@ -152,41 +152,15 @@ async function processCheckout(): Promise<void> {
 
   const { order } = result
 
-  // Construir mensaje de WhatsApp con los datos oficiales devueltos por el servidor
-  const message = buildWhatsAppOrderMessage({
-    orderId: order.id,
-    customerName: order.customer_name,
-    customerPhone: order.customer_phone,
-    mode: checkoutMode.value,
-    address: order.address,
-    deliveryDate: order.delivery_date,
-    deliveryTime: order.delivery_time,
-    notes: order.notes,
-    items: order.items,
-    totalAmount: order.total_amount,
-    paymentMethod: formData.value.paymentMethod || order.payment_method || 'cash',
-    paymentReference: formData.value.paymentReference || order.payment_reference || undefined,
-    paymentReceiptUrl: formData.value.paymentReceiptUrl || order.payment_receipt_url || undefined
-  })
-
-  const whatsappNumber = String(config.public.whatsappNumber || '51998265700')
-  const whatsappUrl = buildWhatsAppUrl(whatsappNumber, message)
-
   isOrderCompleted.value = true
   cartStore.clearCart()
 
-  if (typeof window !== 'undefined') {
-    const isMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent)
-    if (isMobile) {
-      window.location.href = whatsappUrl
-    } else {
-      const newTab = window.open(whatsappUrl, '_blank')
-      if (!newTab || newTab.closed || typeof newTab.closed === 'undefined') {
-        window.location.href = whatsappUrl
-      } else if (order.tracking_token) {
-        await navigateTo(`/pedido/${order.tracking_token}`)
-      }
-    }
+  toast.success('¡Pedido registrado con éxito!')
+
+  if (order.tracking_token) {
+    await navigateTo(`/pedido/${order.tracking_token}`)
+  } else {
+    await navigateTo('/menu')
   }
 }
 </script>
@@ -227,6 +201,7 @@ async function processCheckout(): Promise<void> {
             @update:payment-method="formData.paymentMethod = $event"
             @update:payment-reference="formData.paymentReference = $event"
             @update:payment-receipt-url="formData.paymentReceiptUrl = $event"
+            @update:is-uploading="isUploadingReceipt = $event"
           />
           <CheckoutItemsList />
         </div>
@@ -237,6 +212,8 @@ async function processCheckout(): Promise<void> {
             :mode="checkoutMode"
             :is-valid="isFormValid"
             :is-submitting="isSubmitting"
+            :is-uploading="isUploadingReceipt"
+            :payment-method="formData.paymentMethod || 'cash'"
             @submit="processCheckout"
           />
         </div>
