@@ -22,6 +22,18 @@ Toda variable debe gestionarse a través del panel de configuración de Vercel y
 | `CLOUDINARY_API_KEY` | Llave de API para upload de fotos | Privado / Server | Token local | Token staging | Token producción |
 | `CLOUDINARY_API_SECRET` | Secreto de API Cloudinary | **Estrictamente Privado** | Token local | Token staging | Token producción |
 
+### 1.1 Secretos de CI/CD para Migraciones Automáticas (GitHub Actions)
+
+Para que el pipeline de GitHub Actions (`.github/workflows/database-migrations.yml`) aplique automáticamente las migraciones SQL al hacer merge en `dev` o `main`, se deben configurar los siguientes **Repository Secrets** en GitHub (**Settings -> Secrets and variables -> Actions**):
+
+| Secreto en GitHub | Descripción | Formato URI | Entorno Destino |
+|---|---|---|---|
+| `SUPABASE_DB_URL_DEV` | Cadena de conexión directa a PostgreSQL de desarrollo | `postgresql://postgres:[PASSWORD]@db.vsqmstoiexuqndunorio.supabase.co:5432/postgres` | Rama `dev` (`dulcefe-dev`) |
+| `SUPABASE_DB_URL_PROD` | Cadena de conexión directa a PostgreSQL de producción | `postgresql://postgres:[PASSWORD]@db.rklxfrwzuwjvnfcdhmei.supabase.co:5432/postgres` | Rama `main` (`dulcefe-prod`) |
+
+> [!TIP]
+> Si la contraseña de la base de datos contiene caracteres especiales (`#`, `@`, `%`, etc.), deben estar codificados en formato URL percent-encoding (ej. `%23`, `%40`). La URI se copia directamente desde el Dashboard de Supabase en: **Project Settings -> Database -> Connection string -> URI (Modo Direct/Session, puerto 5432)**.
+
 > [!IMPORTANT]
 > **Seguridad y Cero Fallbacks:** En `nuxt.config.ts` se han erradicado los fallbacks quemados con credenciales de producción para evitar filtraciones y conexiones accidentales a bases de datos de clientes reales. Toda variable debe provenir de las *Environment Variables* de Vercel en la nube o del `.env` local en desarrollo. Para inicializar una base de datos de desarrollo o staging idéntica a producción, ejecute el script consolidado [`supabase/init_dev_database.sql`](file:///c:/Users/PRUEBA/Documents/Visual%20Proyects/Fullstack-dulcefe/supabase/init_dev_database.sql).
 

@@ -1,18 +1,39 @@
 <script setup lang="ts">
-// Componente declarativo del encabezado de la vitrina comercial
+// Encabezado editorial clásico con ornamento de repostería fina
 </script>
 
 <template>
-  <div class="text-center mb-5 sm:mb-8">
-    <div class="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-brand-primary/10 text-brand-primary text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-2 sm:mb-3 border border-brand-primary/20">
-      <Icon name="lucide:sparkles" class="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-      <span>Vitrina Comercial</span>
+  <div class="text-center mb-6 sm:mb-8 max-w-5xl mx-auto px-2">
+    <!-- Píldora Superior de Marca -->
+    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-primary/10 text-brand-primary text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-3 border border-brand-primary/20 shadow-soft-sm">
+      <Icon name="lucide:sparkles" class="w-3.5 h-3.5 text-brand-accent" />
+      <span>Colección Dulce Fe · Taller Artesanal</span>
     </div>
-    <h2 class="text-2xl sm:text-4xl md:text-5xl font-playfair font-black text-brand-secondary mb-2 sm:mb-3 tracking-tight">
-      Nuestra Colección Artesanal
-    </h2>
-    <p class="text-xs sm:text-sm text-brand-primary/80 font-medium max-w-lg mx-auto leading-relaxed px-2">
-      Descubre nuestra selección de postres de autor elaborados diariamente con insumos naturales de primera calidad.
+
+    <!-- Título Principal Editorial en una sola línea continua -->
+    <h1 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-playfair font-black text-brand-secondary mb-2 tracking-tight whitespace-nowrap">
+      Nuestra Carta & Especialidades
+    </h1>
+
+    <!-- Filete Ornamental Clásico de Repostería Francesa -->
+    <div class="flex items-center justify-center gap-3 my-3">
+      <!-- Línea izquierda degradada -->
+      <div class="h-px w-16 sm:w-28 bg-gradient-to-r from-transparent via-brand-primary/30 to-brand-primary/60"></div>
+      
+      <!-- Ornamento central artesanal -->
+      <div class="flex items-center gap-1.5 text-brand-primary">
+        <span class="w-1.5 h-1.5 rotate-45 bg-brand-accent/80 rounded-[1px]"></span>
+        <Icon name="lucide:sparkles" class="w-4 h-4 text-brand-primary" />
+        <span class="w-1.5 h-1.5 rotate-45 bg-brand-accent/80 rounded-[1px]"></span>
+      </div>
+
+      <!-- Línea derecha degradada -->
+      <div class="h-px w-16 sm:w-28 bg-gradient-to-l from-transparent via-brand-primary/30 to-brand-primary/60"></div>
+    </div>
+
+    <!-- Subtítulo en Serif Itálica Clásica (Sin cajas de texto) -->
+    <p class="font-playfair italic text-xs sm:text-sm text-brand-secondary/75 tracking-wide">
+      Recetas de autor horneadas al día bajo pedido para celebrar momentos inolvidables
     </p>
   </div>
 </template>

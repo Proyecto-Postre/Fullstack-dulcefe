@@ -349,7 +349,16 @@ function getProductIcon(name: string): string {
                   <Icon v-else :name="getProductIcon(item.name)" class="w-6 h-6 text-[#4A5D23]/60" />
                 </div>
                 <div class="min-w-0">
-                  <h4 class="font-bold text-sm text-[#2A321B] truncate leading-snug">{{ item.name }}</h4>
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <h4 class="font-bold text-sm text-[#2A321B] truncate leading-snug">{{ item.name }}</h4>
+                    <span 
+                      v-if="item.is_featured" 
+                      class="inline-flex items-center gap-1 text-[9px] font-bold text-amber-800 bg-amber-50 border border-amber-300/80 px-1.5 py-0.2 rounded-md shrink-0 shadow-2xs"
+                    >
+                      <Icon name="lucide:star" class="w-2.5 h-2.5 fill-amber-500 text-amber-600" />
+                      Destacado
+                    </span>
+                  </div>
                   <p class="text-[11px] text-[#4A5D23]/60 font-mono mt-0.5">ID: #{{ item.id }}</p>
                 </div>
               </div>
@@ -447,7 +456,16 @@ function getProductIcon(name: string): string {
                         <Icon v-else :name="getProductIcon(item.name)" class="w-5 h-5 text-[#4A5D23]/60" />
                       </div>
                       <div>
-                        <h4 class="font-bold text-sm text-[#2A321B]">{{ item.name }}</h4>
+                        <div class="flex items-center gap-2">
+                          <h4 class="font-bold text-sm text-[#2A321B]">{{ item.name }}</h4>
+                          <span 
+                            v-if="item.is_featured" 
+                            class="inline-flex items-center gap-1 text-[10px] font-bold text-amber-800 bg-amber-50 border border-amber-300/80 px-1.5 py-0.5 rounded-md shrink-0 shadow-2xs"
+                          >
+                            <Icon name="lucide:star" class="w-3 h-3 fill-amber-500 text-amber-600" />
+                            Destacado
+                          </span>
+                        </div>
                         <p class="text-[11px] text-[#4A5D23]/60">ID: #{{ item.id }}</p>
                       </div>
                     </div>

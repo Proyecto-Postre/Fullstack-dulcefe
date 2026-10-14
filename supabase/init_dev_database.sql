@@ -22,8 +22,17 @@ CREATE TABLE IF NOT EXISTS public.products (
     price NUMERIC(10,2),
     stock INTEGER DEFAULT 0,
     image_url TEXT,
+    description TEXT,
+    is_featured BOOLEAN DEFAULT false NOT NULL,
+    category_id TEXT REFERENCES public.categories(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now())
 );
+
+-- Asegurar columnas si la tabla ya existía previamente
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS description TEXT;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS is_featured BOOLEAN DEFAULT false NOT NULL;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS category_id TEXT REFERENCES public.categories(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_products_category_id ON public.products(category_id);
 
 -- Materias Primas / Insumos de Almacén
 CREATE TABLE IF NOT EXISTS public.raw_materials (

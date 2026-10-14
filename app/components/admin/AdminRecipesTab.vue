@@ -87,6 +87,7 @@ watch(
   () => props.modelValue,
   async (newVal) => {
     if (newVal?.id) {
+      activeSubTab.value = 'products'
       fetchRecipe()
       publishData.value.price = Number(newVal.price) || 0
       publishData.value.stock = Number(newVal.stock) || 0

@@ -22,7 +22,10 @@ Crea y publica un nuevo postre en el catálogo general.
   "name": "Cheesecake de Frutos Rojos",
   "price": 75.00,
   "stock": 8,
-  "image_url": "https://[project].supabase.co/storage/v1/object/public/products/cheesecake.webp"
+  "image_url": "https://[project].supabase.co/storage/v1/object/public/products/cheesecake.webp",
+  "category_id": "cheesecakes",
+  "description": "Cremoso horneado a baño maría con coulis artesanal de frutos del bosque.",
+  "is_featured": true
 }
 ```
 
@@ -35,6 +38,9 @@ Crea y publica un nuevo postre en el catálogo general.
   "price": 75.00,
   "stock": 8,
   "image_url": "https://[project].supabase.co/storage/v1/object/public/products/cheesecake.webp",
+  "category_id": "cheesecakes",
+  "description": "Cremoso horneado a baño maría con coulis artesanal de frutos del bosque.",
+  "is_featured": true,
   "created_at": "2026-08-26T14:30:00.000Z"
 }
 ```
