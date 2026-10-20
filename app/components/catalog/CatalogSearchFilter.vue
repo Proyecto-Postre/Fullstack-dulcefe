@@ -66,7 +66,7 @@ const activeFilterLabel = computed<string>(() => {
 
 const activeFilterIcon = computed<string>(() => {
   if (isAllSelected.value) {
-    return 'lucide:sparkles'
+    return 'lucide:layout-grid'
   }
   if (activeCategoryIds.value.length === 1) {
     const singleCat = realCategories.value.find(c => c.id === activeCategoryIds.value[0])
@@ -205,34 +205,41 @@ function resetAllFilters() {
           @click.stop="toggleDropdown"
           type="button"
           :class="[
-            'w-full h-11 sm:h-12 inline-flex items-center justify-between gap-2 px-3.5 sm:px-4 rounded-2xl text-xs sm:text-sm font-bold transition-all duration-300 border cursor-pointer select-none active:scale-98 shadow-soft-sm relative',
+            'w-full h-11 sm:h-12 flex items-center justify-between text-left gap-1.5 pl-3 pr-3 rounded-2xl text-xs font-bold transition-all duration-300 border cursor-pointer select-none active:scale-98 shadow-soft-sm relative',
             !isAllSelected
               ? 'bg-brand-primary text-white border-brand-primary shadow-soft-md'
-              : 'bg-surface text-brand-secondary border-brand-primary/20 hover:bg-brand-cream hover:border-brand-primary/35'
+              : 'bg-surface text-brand-secondary border-brand-primary/20 hover:border-brand-primary/40'
           ]"
           :aria-expanded="isDropdownOpen"
           aria-label="Filtrar por sección de la carta"
         >
-          <div class="flex items-center gap-2 min-w-0 flex-1">
-            <Icon :name="activeFilterIcon" class="w-4 h-4 text-brand-accent shrink-0" />
-            <span class="whitespace-nowrap font-bold truncate">
+          <div class="flex items-center gap-1.5 min-w-0 flex-1 mr-1.5 text-left">
+            <Icon 
+              :name="activeFilterIcon" 
+              :class="['w-3.5 h-3.5 shrink-0', !isAllSelected ? 'text-white' : 'text-brand-primary']" 
+            />
+            <span :class="['flex-1 min-w-0 font-bold leading-tight truncate whitespace-nowrap text-left', !isAllSelected ? 'text-white' : 'text-brand-secondary']">
               {{ activeFilterLabel }}
             </span>
           </div>
-          <div class="flex items-center gap-1.5 shrink-0">
+          <div class="flex items-center gap-1 shrink-0">
             <button
               v-if="!isAllSelected"
               @click.stop="selectAll"
               type="button"
-              class="w-5 h-5 rounded-full bg-white/20 hover:bg-white/35 text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
+              class="w-4 h-4 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
               title="Restablecer a toda la carta"
               aria-label="Restablecer a toda la carta"
             >
-              <Icon name="lucide:x" class="w-3 h-3" />
+              <Icon name="lucide:x" class="w-2.5 h-2.5" />
             </button>
             <Icon 
               name="lucide:chevron-down" 
-              :class="['w-4 h-4 transition-transform duration-200 shrink-0 opacity-80', isDropdownOpen ? 'rotate-180' : '']" 
+              :class="[
+                'w-3.5 h-3.5 transition-transform duration-300 pointer-events-none shrink-0',
+                !isAllSelected ? 'text-white' : 'text-brand-primary',
+                isDropdownOpen ? 'rotate-180' : ''
+              ]" 
             />
           </div>
         </button>
@@ -274,7 +281,10 @@ function resetAllFilters() {
                   >
                     <div v-if="isAllSelected" class="w-2 h-2 rounded-full bg-brand-accent"></div>
                   </div>
-                  <Icon name="lucide:sparkles" class="w-4 h-4 shrink-0 text-brand-accent" />
+                  <Icon 
+                    name="lucide:layout-grid" 
+                    :class="['w-4 h-4 shrink-0', isAllSelected ? 'text-white' : 'text-brand-primary']" 
+                  />
                   <span class="truncate">Toda la Carta</span>
                 </div>
                 <span v-if="isAllSelected" class="text-[10px] uppercase font-bold tracking-wider opacity-90">

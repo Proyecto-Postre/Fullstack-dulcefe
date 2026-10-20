@@ -317,14 +317,7 @@ async function copyProductShareLink() {
             <div class="absolute inset-0 bg-gradient-to-t from-brand-secondary/40 via-transparent to-transparent md:hidden"></div>
 
             <div 
-              v-if="isAvailable" 
-              class="absolute top-4 left-4 bg-surface/95 backdrop-blur-md text-brand-primary border border-brand-primary/20 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5 shadow-soft-sm"
-            >
-              <span class="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse"></span>
-              <span>Horneado Fresco</span>
-            </div>
-            <div 
-              v-else 
+              v-if="!isAvailable" 
               class="absolute top-4 left-4 bg-brand-secondary/95 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5 shadow-soft-sm"
             >
               <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
