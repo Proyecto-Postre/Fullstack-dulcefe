@@ -121,10 +121,19 @@ function isSelected(val: unknown) {
           :name="icon" 
           :class="['shrink-0', size === 'sm' ? 'w-3.5 h-3.5' : 'w-4 h-4', iconClass || 'text-brand-primary']" 
         />
-        <span v-if="selectedLabel" class="flex-1 min-w-0 font-bold break-words leading-tight" :class="selectedLabelClass || 'text-brand-secondary'">
+        <span 
+          v-if="selectedLabel" 
+          :class="[
+            'flex-1 min-w-0 font-bold leading-tight truncate whitespace-nowrap',
+            selectedLabelClass || 'text-brand-secondary'
+          ]"
+        >
           {{ selectedLabel }}
         </span>
-        <span v-else class="flex-1 min-w-0 font-medium text-brand-primary/50 break-words leading-tight">
+        <span 
+          v-else 
+          class="flex-1 min-w-0 font-medium text-brand-primary/50 leading-tight truncate whitespace-nowrap"
+        >
           {{ placeholder }}
         </span>
       </div>
