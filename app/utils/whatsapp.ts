@@ -14,9 +14,16 @@ export function buildWhatsAppOrderMessage(params: WhatsAppMessageParams): string
   }
 
   if (params.mode === 'direct') {
-    message += `*Tipo de Entrega:* Envío a Domicilio\n`
-    if (params.address) {
-      message += `*Dirección:* ${params.address}\n`
+    if (params.deliveryMode === 'meeting_point') {
+      message += `*Tipo de Entrega:* Punto de Encuentro Acordado (Sin costo de delivery)\n`
+      if (params.meetingPointDetails || params.address) {
+        message += `*Punto de Encuentro:* ${params.meetingPointDetails || params.address}\n`
+      }
+    } else {
+      message += `*Tipo de Entrega:* Envío a Domicilio\n`
+      if (params.address) {
+        message += `*Dirección:* ${params.address}\n`
+      }
     }
     if (params.deliveryDate) {
       message += `*Fecha:* ${params.deliveryDate}\n`

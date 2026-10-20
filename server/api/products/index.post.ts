@@ -5,7 +5,7 @@ export default defineEventHandler(async (event) => {
   const requestId = getOrCreateRequestId(event)
 
   const body = await readBody(event)
-  const { name, price, stock, image_url, description, is_featured, category_id, shelf_life } = body || {}
+  const { name, price, stock, image_url, description, is_featured, category_id, shelf_life, portions } = body || {}
 
   if (!name || price === undefined || price === null) {
     throw createError({
@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
 
   const data = await CatalogService.createProduct(
     event,
-    { name, price, stock, image_url, description, is_featured, category_id, shelf_life },
+    { name, price, stock, image_url, description, is_featured, category_id, shelf_life, portions },
     requestId
   )
 

@@ -317,14 +317,7 @@ async function copyProductShareLink() {
             <div class="absolute inset-0 bg-gradient-to-t from-brand-secondary/40 via-transparent to-transparent md:hidden"></div>
 
             <div 
-              v-if="isAvailable" 
-              class="absolute top-4 left-4 bg-surface/95 backdrop-blur-md text-brand-primary border border-brand-primary/20 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5 shadow-soft-sm"
-            >
-              <span class="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse"></span>
-              <span>Horneado Fresco</span>
-            </div>
-            <div 
-              v-else 
+              v-if="!isAvailable" 
               class="absolute top-4 left-4 bg-brand-secondary/95 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5 shadow-soft-sm"
             >
               <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
@@ -349,14 +342,18 @@ async function copyProductShareLink() {
               </p>
 
               <!-- Características Clave del Atelier -->
-              <div class="grid grid-cols-2 gap-2.5 mb-6 text-xs font-semibold text-brand-secondary/85">
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 mb-6 text-xs font-semibold text-brand-secondary/85">
                 <div class="flex items-center gap-2 p-2.5 rounded-xl bg-brand-cream/60 border border-brand-primary/10">
-                  <Icon name="lucide:clock" class="w-4 h-4 text-brand-primary" />
-                  <span>Consumo: {{ product.shelf_life || '3-4 días' }}</span>
+                  <Icon name="lucide:clock" class="w-4 h-4 text-brand-primary shrink-0" />
+                  <span class="truncate">Consumo: {{ product.shelf_life || '3-4 días' }}</span>
                 </div>
-                <div class="flex items-center gap-2 p-2.5 rounded-xl bg-brand-cream/60 border border-brand-primary/10">
-                  <Icon name="lucide:shield-check" class="w-4 h-4 text-brand-primary" />
-                  <span>100% Artesanal</span>
+                <div v-if="product.portions" class="flex items-center gap-2 p-2.5 rounded-xl bg-brand-cream/60 border border-brand-primary/10">
+                  <Icon name="lucide:users" class="w-4 h-4 text-brand-primary shrink-0" />
+                  <span class="truncate">{{ product.portions }} {{ product.portions === 1 ? 'porción aprox.' : 'porciones aprox.' }}</span>
+                </div>
+                <div class="flex items-center gap-2 p-2.5 rounded-xl bg-brand-cream/60 border border-brand-primary/10" :class="{ 'col-span-2 sm:col-span-1': !product.portions }">
+                  <Icon name="lucide:shield-check" class="w-4 h-4 text-brand-primary shrink-0" />
+                  <span class="truncate">100% Artesanal</span>
                 </div>
               </div>
             </div>

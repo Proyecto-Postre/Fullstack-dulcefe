@@ -45,6 +45,8 @@ const {
   selectedCategory,
   selectedCategories,
   categories,
+  portionFilter,
+  priceRangeFilter,
   filteredProducts,
   groupedSections,
   isAllSelected,
@@ -112,10 +114,15 @@ watch([rawProducts, () => route.query.producto], ([products, prodId]) => {
       :selected-category="selectedCategory"
       :selected-categories="selectedCategories"
       :categories="categories"
+      :portion-filter="portionFilter"
+      :price-range-filter="priceRangeFilter"
       @update:search-query="searchQuery = $event"
       @update:selected-category="selectedCategory = $event"
       @update:selected-categories="selectedCategories = $event"
+      @update:portion-filter="portionFilter = $event"
+      @update:price-range-filter="priceRangeFilter = $event"
       @toggle-category="toggleCategory"
+      @reset-all="resetFilters"
     />
 
     <!-- Estado: Cargando -->
@@ -218,15 +225,16 @@ watch([rawProducts, () => route.query.producto], ([products, prodId]) => {
               </span>
             </div>
 
-            <!-- Botón de acceso directo a la sección: flecha circular minimalista que nunca aprieta el título -->
+            <!-- Botón de acceso directo a la sección: "Ver todas" en desktop y botón circular compacto en mobile -->
             <button
               v-if="section.id !== 'otras'"
               @click="setOnlyCategory(section.id)"
               type="button"
-              class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-brand-cream/80 hover:bg-brand-primary hover:text-white text-brand-primary border border-brand-primary/15 flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-90 group shadow-soft-sm"
-              :aria-label="`Ver solo ${section.name}`"
-              :title="`Ver solo ${section.name}`"
+              class="w-7 h-7 sm:w-auto sm:px-3 sm:py-1.5 rounded-full bg-brand-cream/80 hover:bg-brand-primary hover:text-white text-brand-primary border border-brand-primary/15 flex items-center justify-center gap-1.5 transition-all cursor-pointer shrink-0 active:scale-95 group shadow-soft-sm"
+              :aria-label="`Ver todas en ${section.name}`"
+              :title="`Ver todas en ${section.name}`"
             >
+              <span class="hidden sm:inline text-xs font-bold">Ver todas</span>
               <Icon name="lucide:arrow-right" class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
             </button>
           </div>

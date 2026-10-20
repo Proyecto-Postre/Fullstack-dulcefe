@@ -9,6 +9,12 @@ defineProps<{
   buttonClass?: string
   disabled?: boolean
   size?: 'sm' | 'md'
+  placement?: 'auto' | 'top' | 'bottom'
+  icon?: string
+  iconClass?: string
+  selectedLabelClass?: string
+  chevronClass?: string
+  clearable?: boolean
 }>()
 
 defineEmits<{
@@ -26,6 +32,12 @@ defineEmits<{
     :buttonClass="buttonClass"
     :disabled="disabled"
     :size="size"
+    :placement="placement"
+    :icon="icon"
+    :iconClass="iconClass"
+    :selectedLabelClass="selectedLabelClass"
+    :chevronClass="chevronClass"
+    :clearable="clearable"
     @update:model-value="$emit('update:modelValue', $event)"
     @change="$emit('change', $event)"
   />

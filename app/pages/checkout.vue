@@ -25,8 +25,12 @@ const formData = ref<CheckoutFormData>({
   name: '',
   phone: '',
   address: '',
+  deliveryMode: 'delivery',
+  meetingPointDetails: '',
   deliveryDate: '',
-  deliveryTime: '',
+  deliverySlot: 'morning',
+  deliveryTime: '08:00 - 10:00',
+  isCustomSchedule: false,
   notes: '',
   paymentMethod: 'cash',
   paymentReference: '',
@@ -93,6 +97,12 @@ const isFormValid = computed<boolean>(() => {
   const rawP = formData.value.phone.replace(/\D/g, '')
   const cleanP = (rawP.startsWith('51') && rawP.length === 11) ? rawP.slice(2) : rawP
   const hasPhone = cleanP.length === 9 && cleanP.startsWith('9')
+
+  if (formData.value.deliveryMode === 'meeting_point') {
+    const hasMeetingPoint = (formData.value.meetingPointDetails?.trim().length || 0) >= 3 || formData.value.address.trim().length >= 3
+    return hasName && hasPhone && hasMeetingPoint
+  }
+
   const hasAddress = formData.value.address.trim().length >= 5
   return hasName && hasPhone && hasAddress
 })
@@ -151,13 +161,34 @@ async function processCheckout(): Promise<void> {
     return trimmed
   }
 
+  const resolvedAddress = checkoutMode.value === 'direct'
+    ? (formData.value.deliveryMode === 'meeting_point'
+        ? (formData.value.meetingPointDetails?.trim() ? `Punto de encuentro: ${formData.value.meetingPointDetails.trim()}` : (formData.value.address.trim() || 'Punto de encuentro acordado'))
+        : formData.value.address.trim())
+    : undefined
+
+  let resolvedDeliveryTime: string | undefined = undefined
+  if (formData.value.isCustomSchedule && formData.value.deliveryTime?.trim()) {
+    resolvedDeliveryTime = formatDeliveryTime(formData.value.deliveryTime) || formData.value.deliveryTime.trim()
+  } else if (formData.value.deliverySlot) {
+    if (formData.value.deliverySlot === 'morning') resolvedDeliveryTime = '08:00 - 10:00'
+    else if (formData.value.deliverySlot === 'night') resolvedDeliveryTime = '19:00 - 22:00'
+    else if (formData.value.deliverySlot === 'special') resolvedDeliveryTime = 'Por coordinar'
+  } else if (formData.value.deliveryTime) {
+    resolvedDeliveryTime = formatDeliveryTime(formData.value.deliveryTime) || formData.value.deliveryTime.trim()
+  }
+
   const payload: CheckoutPayload = {
     channel: checkoutMode.value === 'direct' ? 'direct' : 'whatsapp_chat',
     customer_name: formData.value.name.trim(),
     customer_phone: cleanPhone || undefined,
-    address: checkoutMode.value === 'direct' ? formData.value.address.trim() : undefined,
+    delivery_mode: formData.value.deliveryMode,
+    meeting_point_details: formData.value.meetingPointDetails?.trim() || undefined,
+    address: resolvedAddress,
     delivery_date: formatDeliveryDate(formData.value.deliveryDate),
-    delivery_time: formatDeliveryTime(formData.value.deliveryTime),
+    delivery_time: resolvedDeliveryTime,
+    delivery_slot: formData.value.deliverySlot,
+    is_custom_schedule: formData.value.isCustomSchedule,
     notes: formData.value.notes.trim() || undefined,
     payment_method: formData.value.paymentMethod || 'cash',
     payment_reference: formData.value.paymentReference?.trim() || undefined,

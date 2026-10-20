@@ -173,8 +173,13 @@ flowchart TD
 * [[ADR-005-automatizacion-event-driven-n8n]] — Automatizaciones con n8n Open-Source vs Zapier/Make.
 * [[ADR-006-carrito-cliente-pinia-cookies]] — Carrito en cliente con Pinia + Cookies vs tablas en BD.
 * [[ADR-007-tiempo-real-server-sent-events]] — Streaming de estado de pedidos con Server-Sent Events (SSE).
-* [[ADR-008-modelo-tandas-maestras-rendimientos-porcionamiento]] — Modelo dual de tandas maestras, rendimientos proporcionales, empaques desacoplados y descargo rápido de mermas (Fase 7).
-
+### 06 - Manuales de Usuario (Guías Prácticas de Operación)
+* [[06 - Manuales de Usuario/README|Índice de Manuales de Usuario]] — Centro de guías prácticas del equipo.
+* [[manual-01-gestion-pedidos-y-estados]] — Manual 01: Gestión de pedidos, ciclo de vida y control de estados.
+* [[manual-02-aprobacion-pagos-yape-plin]] — Manual 02: Aprobación de pagos Yape/Plin y validación de vouchers en 1-clic.
+* [[manual-03-tandas-rendimientos-y-recetas]] — Manual 03: Tandas maestras, rendimientos y empaques desacoplados.
+* [[manual-04-pantalla-cocina-kds]] — Manual 04: Pantalla táctil de cocina (KDS) y horneado en lotes.
+* [[manual-05-almacen-insumos-y-mermas]] — Manual 05: Almacén de materias primas, alertas y descargo de mermas.
 
 ---
 

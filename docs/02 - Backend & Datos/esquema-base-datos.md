@@ -184,6 +184,8 @@ Permite categorizar la vitrina desde base de datos según [[refinamiento-ui-auth
 * **`stock`** (`INT`, DEFAULT 0): Stock físico disponible para entrega inmediata.
 * **`image_url`** (`TEXT`): Enlace público de la imagen alojada en el bucket `products` de Supabase Storage.
 * **`description`** (`TEXT`, NULLABLE): Notas de autor, descripción sensorial e insumos seleccionados (máx 400 caracteres recomendados).
+* **`shelf_life`** (`TEXT DEFAULT '3-4 días'`): Recomendación de consumo óptimo visible para el cliente (ej. *3-4 días, 1-2 días en frío*).
+* **`portions`** (`INT`, NULLABLE): Cantidad aproximada de porciones sugeridas que rinde el postre (ej. 1, 6, 8, 10, 12, 16).
 * **`is_featured`** (`BOOLEAN DEFAULT false`, NOT NULL): Flag para exhibición prioritaria en la sección de Vitrina Destacada de la portada.
 * **`created_at`** (`TIMESTAMPTZ`, DEFAULT now())
 
@@ -242,8 +244,11 @@ Soporta tanto **Guest Checkout (Clientes Invitados)** como **Clientes Registrado
 * **`cancellation_reason`** (`TEXT`): Motivo registrado en cancelaciones.
 * **`inventory_processed`** (`BOOLEAN DEFAULT false`): Marca si los insumos fueron descontados en cocina.
 * **`points_awarded`** (`BOOLEAN DEFAULT false`): Marca si los puntos de fidelidad fueron acreditados.
+* **`delivery_mode`** (`VARCHAR(30) DEFAULT 'delivery'`): Modalidad de entrega: `delivery` (a domicilio) o `meeting_point` (punto de encuentro acordado).
+* **`delivery_slot`** (`VARCHAR(30)`): Franja horaria seleccionada: `morning` (8:00 - 10:00 AM), `night` (7:00 - 10:00 PM), `special` (en el día / previa coordinación).
+* **`meeting_point_details`** (`TEXT`): Lugar o parroquia acordada con el cliente para entregas sin costo de delivery.
 * **`delivery_date`** (`DATE`): Fecha programada de entrega.
-* **`delivery_time`** (`VARCHAR(50)`): Rango horario (ej. *15:00 - 18:00*).
+* **`delivery_time`** (`VARCHAR(50)`): Rango horario o descripción amigable (ej. *08:00 - 10:00*, *19:00 - 22:00*, *Por coordinar*).
 * **`notes`** (`TEXT`): Dedicatoria o instrucciones especiales.
 * **`created_at`** (`TIMESTAMPTZ DEFAULT now()`)
 

@@ -62,12 +62,23 @@ defineEmits<{
         >
           <Icon name="lucide:shopping-bag" class="w-4 h-4 sm:w-5 sm:h-5 text-brand-primary group-hover:scale-110 transition-transform" />
           <span class="font-bold text-xs hidden sm:inline">Carrito</span>
-          <span 
-            v-if="cartStore.cartItemCount > 0" 
-            class="w-5 h-5 bg-brand-primary text-white text-[10px] font-black rounded-full flex items-center justify-center animate-pop group-hover:scale-105 transition-transform"
-          >
-            {{ cartStore.cartItemCount }}
-          </span>
+          <ClientOnly>
+            <span 
+              :class="[
+                'min-w-5 h-5 px-1.5 rounded-full flex items-center justify-center text-[10px] font-black transition-all',
+                cartStore.cartItemCount > 0 
+                  ? 'bg-brand-primary text-white animate-pop group-hover:scale-105' 
+                  : 'bg-brand-primary/10 text-brand-primary/70 font-semibold'
+              ]"
+            >
+              {{ cartStore.cartItemCount }}
+            </span>
+            <template #fallback>
+              <span class="min-w-5 h-5 px-1.5 rounded-full flex items-center justify-center text-[10px] bg-brand-primary/10 text-brand-primary/60 font-semibold">
+                0
+              </span>
+            </template>
+          </ClientOnly>
         </button>
 
         <!-- Acciones de Usuario (Solo Desktop >= md) -->

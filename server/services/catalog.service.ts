@@ -13,6 +13,7 @@ export interface CreateProductInput {
   is_featured?: boolean | null
   category_id?: string | null
   shelf_life?: string | null
+  portions?: number | null
 }
 
 export interface UpdateProductInput {
@@ -24,6 +25,7 @@ export interface UpdateProductInput {
   is_featured?: boolean | null
   category_id?: string | null
   shelf_life?: string | null
+  portions?: number | null
 }
 
 export interface CreateCategoryInput {
@@ -63,6 +65,9 @@ export class CatalogService {
     }
     if (dto.shelf_life !== undefined) {
       insertPayload.shelf_life = dto.shelf_life ? dto.shelf_life.trim() : null
+    }
+    if (dto.portions !== undefined) {
+      insertPayload.portions = dto.portions !== null && !isNaN(Number(dto.portions)) ? Number(dto.portions) : null
     }
 
     const { data, error } = await supabase
@@ -115,6 +120,9 @@ export class CatalogService {
     if (dto.category_id !== undefined) updatePayload.category_id = dto.category_id
     if (dto.shelf_life !== undefined) {
       updatePayload.shelf_life = dto.shelf_life ? dto.shelf_life.trim() : null
+    }
+    if (dto.portions !== undefined) {
+      updatePayload.portions = dto.portions !== null && !isNaN(Number(dto.portions)) ? Number(dto.portions) : null
     }
 
     const { data, error } = await supabase
