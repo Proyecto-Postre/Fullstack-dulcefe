@@ -16,7 +16,6 @@ import { toast } from 'vue-sonner'
 
 const cartStore = useCartStore()
 const authStore = useAuthStore()
-const config = useRuntimeConfig()
 const { isSubmitting, errorMessage, errorDetails, submitCheckout } = useCheckout()
 
 const checkoutMode = ref<CheckoutMode>('direct')

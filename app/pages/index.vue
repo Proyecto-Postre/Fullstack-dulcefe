@@ -9,7 +9,7 @@ import ProductDetailModal from '~/components/catalog/ProductDetailModal.vue'
 const cartStore = useCartStore()
 
 // 1. Consulta dinámica de productos desde el backend con fallback elegante
-const { data: catalogResponse, pending } = await useAsyncData(
+const { data: catalogResponse } = await useAsyncData(
   'featured-catalog',
   () => $fetch<CatalogApiResponse>('/api/products'),
   {

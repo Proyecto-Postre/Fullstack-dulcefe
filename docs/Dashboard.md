@@ -2,12 +2,12 @@
 tipo: dashboard
 proyecto: Dulce Fe Fullstack
 stack: Nuxt 4, Vue 3.5, TypeScript, Tailwind CSS, Supabase, ExcelJS, n8n, Vitest, Playwright
-ultima_actualizacion: 2026-09-23
+ultima_actualizacion: 2026-10-20
 ---
 
 # 🍰 Dulce Fe — Centro de Comando
 
-> **Estado:** 🟢 Fases 0–7 Completadas | 🟢 Tandas Maestras & Porcionamiento Sellados | 🌟 **Certificación Integral 10/10 Enterprise**
+> **Estado:** 🟢 Fases 0–8 Completadas | 🟢 259/259 Tests Pasando (100% Green) | 🌟 **Certificación Integral 10/10 Enterprise**
 > **Vista Gráfica:** Presiona `Ctrl + G` en Obsidian para el mapa global.
 
 ---
@@ -138,6 +138,7 @@ flowchart TD
 * [[fase-7-adenda-custom-select-responsive-informe]] — **Adenda de Estandarización Universal de CustomSelect, Single-Screen Fit y Refinamiento Estético**.
 * [[seguimiento-pedidos-responsivo-informe]] — **Informe de Rediseño y Responsividad Móvil del Seguimiento de Pedidos**.
 * [[rediseño-experiencia-cliente-atelier-editorial-y-categorias-informe]] — **Informe de Rediseño Atelier Editorial de Cliente, Gestión de Categorías y Blindaje de Catálogo**.
+* [[fase-8-hardening-checkout-mobile-y-asociacion-pedidos-informe]] — **Informe de Hardening de Checkout Mobile, Asociación de Pedidos y Optimización Administrativa (259 Tests Passing)**.
 
 ### 📁 05 - Operaciones & Resiliencia
 * [[playbook-operaciones]] — Variables por entorno, rotación de claves, runbook de restore V44, Vercel Git-Ops y telemetría de alertas.

@@ -1,8 +1,8 @@
 # 📄 PLAN MAESTRO DULCE FE (MASTER BLUEPRINT)
 
 > **Ecosistema Digital de Repostería Artesanal: E-Commerce & ERP Financiero-Operativo**  
-> **Versión:** 1.2.0 (Enterprise)  
-> **Estado:** 🟢 Fases 0 a 6 Completadas | 🟢 Hardening & Estabilidad Sellados | 📱 Refinamiento UI Mobile & Animación Insumos (201/201 Tests Pasando)  
+> **Versión:** 1.3.0 (Enterprise)  
+> **Estado:** 🟢 Fases 0 a 8 Completadas | 🟢 Hardening, Tandas & Rediseño Atelier Sellados | 📱 Checkout Mobile & Validación 1-Click (259/259 Tests Pasando 100% Green)  
 > **Stack Principal:** Nuxt 4 (Vue 3, TypeScript), Tailwind CSS, Supabase (PostgreSQL, Auth, Storage), ExcelJS, `@nuxt/icon` (Lucide Icons), n8n (Automatización Open-Source).
 
 ---
@@ -302,6 +302,9 @@ gantt
 | **Fase 6 — Expansión** | Guest Tracking HMAC, KDS Taller, Vouchers Yape, n8n webhooks | 172 | ✅ Completada |
 | **Hardening & Estabilidad** | Portales de modales z-[9999], RLS Service Role, purga zombi | 185 | ✅ Completada |
 | **Refinamiento Mobile & Insumos** | Carrusel métricas sin saltos, tabs segmentados, animación FLIP | 201 | ✅ Completada |
+| **Fase 7 — Tandas Maestras** | Rendimientos, porcionamiento, empaques y descargo rápido | 228 | ✅ Completada |
+| **Rediseño Atelier & Categorías** | Identidad boutique, gestión de categorías dinámicas y stock | 256 | ✅ Completada |
+| **Fase 8 — Hardening Checkout** | Checkout mobile, asociación por teléfono y fix PGRST201 | 259 | ✅ Completada |
 
 ---
 
