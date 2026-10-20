@@ -42,6 +42,16 @@ export function normalizeDeliveryTime(val: unknown): string | null {
     return trimmed
   }
 
+  // Si es un rango de horas (ej: "08:00 - 10:00" o "19:00 - 22:00")
+  if (/^(?:[01]\d|2[0-3]):[0-5]\d\s*-\s*(?:[01]\d|2[0-3]):[0-5]\d$/.test(trimmed)) {
+    return trimmed
+  }
+
+  // Si es texto de coordinacion
+  if (/^por coordinar/i.test(trimmed)) {
+    return 'Por coordinar'
+  }
+
   // Si contiene AM o PM (ej: "03:00 PM", "3:30 pm", "12:15 AM")
   const match = trimmed.match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/i)
   if (match) {
@@ -72,9 +82,13 @@ export const CheckoutBodySchema = z.object({
   }),
   customer_name: z.string().trim().min(2, 'El nombre debe tener al menos 2 caracteres').max(80, 'El nombre no puede exceder 80 caracteres'),
   customer_phone: z.preprocess(emptyToNull, z.string().trim().regex(PERU_PHONE_REGEX, 'El teléfono debe ser válido en Perú (ej. 987654321)').optional().nullable()),
-  address: z.preprocess(emptyToNull, z.string().trim().min(5, 'La dirección debe tener al menos 5 caracteres').max(200).optional().nullable()),
+  delivery_mode: z.enum(['delivery', 'meeting_point']).optional().default('delivery'),
+  meeting_point_details: z.preprocess(emptyToNull, z.string().trim().max(200).optional().nullable()),
+  address: z.preprocess(emptyToNull, z.string().trim().min(3, 'La dirección debe tener al menos 3 caracteres').max(200).optional().nullable()),
   delivery_date: z.preprocess((val) => normalizeDeliveryDate(emptyToNull(val)), z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha inválido (YYYY-MM-DD)').optional().nullable()),
-  delivery_time: z.preprocess((val) => normalizeDeliveryTime(emptyToNull(val)), z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/, 'Formato de hora inválido (HH:mm)').optional().nullable()),
+  delivery_slot: z.preprocess(emptyToNull, z.enum(['morning', 'night', 'special']).optional().nullable()),
+  delivery_time: z.preprocess((val) => normalizeDeliveryTime(emptyToNull(val)), z.string().max(60, 'El horario no puede exceder 60 caracteres').optional().nullable()),
+  is_custom_schedule: z.boolean().optional().default(false),
   notes: z.preprocess(emptyToNull, z.string().trim().max(500, 'Las notas no pueden exceder 500 caracteres').optional().nullable()),
   payment_method: z.preprocess(emptyToNull, z.enum(['cash', 'yape', 'plin', 'card']).optional().default('cash')),
   payment_reference: z.preprocess(emptyToNull, z.string().trim().max(100, 'La referencia no puede exceder 100 caracteres').optional().nullable()),
@@ -86,15 +100,27 @@ export const CheckoutBodySchema = z.object({
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['customer_phone'],
-        message: 'El teléfono es obligatorio para compras directas con delivery'
+        message: 'El teléfono es obligatorio para compras directas'
       })
     }
-    if (!data.address || data.address.trim() === '') {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['address'],
-        message: 'La dirección es obligatoria para compras directas'
-      })
+    if (data.delivery_mode === 'meeting_point') {
+      const hasMeetingDetails = data.meeting_point_details && data.meeting_point_details.trim().length >= 3
+      const hasAddress = data.address && data.address.trim().length >= 3
+      if (!hasMeetingDetails && !hasAddress) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['meeting_point_details'],
+          message: 'Debes indicar el punto de encuentro acordado'
+        })
+      }
+    } else {
+      if (!data.address || data.address.trim().length < 5) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['address'],
+          message: 'La dirección es obligatoria para compras directas con delivery a domicilio'
+        })
+      }
     }
   }
 })

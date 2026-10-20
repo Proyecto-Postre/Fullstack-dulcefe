@@ -337,6 +337,20 @@ export class OrderService {
       const totalAmountString = centsToSoles(orderTotalCents)
       const trackingToken = generateOrderTrackingToken(crypto.randomUUID(), now.toISOString())
 
+      // Resolver direccion efectiva en caso de punto de encuentro
+      const isMeetingPoint = dto.delivery_mode === 'meeting_point'
+      const effectiveAddress = isMeetingPoint
+        ? (dto.meeting_point_details ? `Punto de encuentro: ${dto.meeting_point_details}` : (dto.address || 'Punto de encuentro acordado'))
+        : (dto.address || null)
+
+      // Resolver horario efectivo: si viene delivery_slot y delivery_time vacio, asignar descripcion amigable
+      let effectiveDeliveryTime = dto.delivery_time || null
+      if (!effectiveDeliveryTime && dto.delivery_slot) {
+        if (dto.delivery_slot === 'morning') effectiveDeliveryTime = '08:00 - 10:00'
+        else if (dto.delivery_slot === 'night') effectiveDeliveryTime = '19:00 - 22:00'
+        else if (dto.delivery_slot === 'special') effectiveDeliveryTime = 'Por coordinar'
+      }
+
       // 7. Inserción de orden y detalle
       const { data: createdOrder, error: orderInsertError } = await supabase
         .from('orders')
@@ -344,11 +358,14 @@ export class OrderService {
           profile_id: resolvedUserId,
           customer_name: dto.customer_name,
           customer_phone: dto.customer_phone || null,
-          address: dto.address || null,
+          delivery_mode: dto.delivery_mode || 'delivery',
+          meeting_point_details: dto.meeting_point_details || null,
+          delivery_slot: dto.delivery_slot || null,
+          address: effectiveAddress,
           total_amount: parseFloat(totalAmountString),
           status: 'pending',
           delivery_date: dto.delivery_date || null,
-          delivery_time: dto.delivery_time || null,
+          delivery_time: effectiveDeliveryTime,
           notes: dto.notes || null,
           tracking_token: trackingToken,
           payment_method: dto.payment_method || 'cash',

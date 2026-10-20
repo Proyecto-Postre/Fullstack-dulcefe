@@ -5,6 +5,25 @@ import { useCartStore } from '~/stores/cart'
 import { toast } from 'vue-sonner'
 import type { CatalogApiResponse, CatalogProduct } from '~/types/catalog'
 import ProductDetailModal from '~/components/catalog/ProductDetailModal.vue'
+import FaqAccordion, { type FaqItem } from '~/components/ui/FaqAccordion.vue'
+
+const homeFaqList: FaqItem[] = [
+  {
+    id: 'anticipacion',
+    question: '¿Con cuánta anticipación debo hacer mi pedido?',
+    answer: 'Recomendamos 36 a 48 horas para asegurar horneado fresco y decoración artesanal. Si requieres un pedido con menor tiempo (por ejemplo, queques caseros tradicionales para el día siguiente o primera hora), contáctanos directamente por WhatsApp para coordinar disponibilidad.'
+  },
+  {
+    id: 'envios',
+    question: '¿Cómo funciona el envío o la entrega?',
+    answer: 'Ofrecemos dos modalidades: (1) Delivery a domicilio, con costo de envío a coordinar por WhatsApp según distrito y tamaño; o (2) Punto de encuentro acordado (ej. parroquia o lugar pactado) sin costo adicional para postres transportables.'
+  },
+  {
+    id: 'conservacion',
+    question: '¿Cómo debo conservar mi postre o torta?',
+    answer: 'Los queques y alfajores se conservan frescos a temperatura ambiente en lugar seco y fresco hasta por 4 días. Las tortas con crema, tres leches o cheesecakes deben mantenerse refrigeradas (4°C a 8°C) y retirarse 15 minutos antes de degustar.'
+  }
+]
 
 const cartStore = useCartStore()
 
@@ -736,6 +755,38 @@ onBeforeUnmount(() => {
           </div>
         </div>
 
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- PREGUNTAS FRECUENTES (FAQ) ATELIER                                        -->
+    <!-- ========================================================================= -->
+    <section class="relative py-12 sm:py-20 bg-brand-cream/30 border-t border-brand-primary/10 z-10">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        <div class="text-center space-y-2">
+          <div class="inline-flex items-center gap-2 text-[11px] sm:text-xs font-bold text-brand-primary uppercase tracking-widest">
+            <Icon name="lucide:help-circle" class="w-4 h-4" />
+            <span>Resolviendo tus Dudas</span>
+          </div>
+          <h2 class="text-2xl sm:text-4xl font-playfair font-black text-brand-secondary">
+            Preguntas Frecuentes
+          </h2>
+          <p class="text-xs sm:text-sm text-brand-secondary/70 max-w-lg mx-auto font-medium">
+            Detalles claros sobre nuestra elaboración artesanal, pedidos y opciones de entrega.
+          </p>
+        </div>
+
+        <FaqAccordion :items="homeFaqList" />
+
+        <div class="text-center pt-2">
+          <NuxtLink
+            to="/faq"
+            class="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-brand-primary hover:text-brand-secondary transition-colors underline underline-offset-4"
+          >
+            <span>Ver todas las preguntas y respuestas</span>
+            <Icon name="lucide:arrow-right" class="w-4 h-4" />
+          </NuxtLink>
+        </div>
       </div>
     </section>
 

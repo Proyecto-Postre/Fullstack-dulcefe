@@ -52,9 +52,13 @@ defineEmits<{
         @click="$emit('viewDetail', product)"
         class="cursor-pointer"
       >
-        <h3 class="text-xs sm:text-base md:text-lg font-sans font-bold text-brand-secondary mb-1.5 sm:mb-2 tracking-tight leading-snug line-clamp-2 group-hover:text-brand-primary transition-colors min-h-[2rem] sm:min-h-0">
+        <h3 class="text-xs sm:text-base md:text-lg font-sans font-bold text-brand-secondary mb-1 tracking-tight leading-snug line-clamp-2 group-hover:text-brand-primary transition-colors min-h-[2rem] sm:min-h-0">
           {{ product.name }}
         </h3>
+        <p v-if="product.portions" class="inline-flex items-center gap-1 text-[10px] sm:text-xs font-semibold text-brand-primary/75 mb-1.5">
+          <Icon name="lucide:users" class="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+          <span>{{ product.portions }} {{ product.portions === 1 ? 'porción aprox.' : 'porciones aprox.' }}</span>
+        </p>
       </div>
 
       <div class="flex items-center justify-between pt-2 sm:pt-4 border-t border-brand-primary/10 mt-auto gap-1">

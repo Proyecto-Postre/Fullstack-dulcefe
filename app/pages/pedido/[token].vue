@@ -635,9 +635,9 @@ const progressPercentage = computed(() => {
               <!-- Resumen y Total Financiero (anclado abajo) -->
               <div class="pt-4 border-t border-[#4A5D23]/15 space-y-2 mt-2">
                 <div class="flex items-center justify-between text-stone-600 text-xs sm:text-sm">
-                  <span class="flex items-center gap-1.5">
-                    <Icon name="lucide:map-pin" class="w-4 h-4 text-[#4A5D23]" />
-                    <span>Entrega:</span>
+                  <span class="flex items-center gap-1.5 shrink-0">
+                    <Icon :name="order.address?.startsWith('Punto de encuentro') ? 'lucide:map-pin' : 'lucide:truck'" class="w-4 h-4 text-[#4A5D23]" />
+                    <span>{{ order.address?.startsWith('Punto de encuentro') ? 'Punto de Encuentro:' : 'Entrega:' }}</span>
                   </span>
                   <span class="font-medium text-[#2A321B] text-right truncate max-w-[190px] sm:max-w-[250px]">
                     {{ order.address || (order.channel === 'whatsapp_chat' ? 'Por coordinar por WhatsApp' : 'Recojo / Entrega pactada') }}

@@ -42,6 +42,8 @@ export function useCatalog(
   const cartStore = useCartStore()
   const searchQuery = ref<string>('')
   const selectedCategories = ref<string[]>(['todos'])
+  const portionFilter = ref<string>('all')
+  const priceRangeFilter = ref<string>('all')
 
   // Getter/Setter retrocompatible con selectedCategory (string)
   const selectedCategory = computed<string>({
@@ -132,9 +134,36 @@ export function useCatalog(
       }
 
       // 2. Filtro por categorías seleccionadas dinámicamente
-      if (isAllSelected.value) return true
+      if (!isAllSelected.value) {
+        const matchesCat = selectedCategories.value.some(catId => matchProductCategory(product, catId))
+        if (!matchesCat) return false
+      }
 
-      return selectedCategories.value.some(catId => matchProductCategory(product, catId))
+      // 3. Filtro por porciones
+      if (portionFilter.value !== 'all') {
+        const p = product.portions ?? null
+        if (portionFilter.value === '1-4') {
+          if (p === null || p < 1 || p > 4) return false
+        } else if (portionFilter.value === '6-10') {
+          if (p === null || p < 5 || p > 10) return false
+        } else if (portionFilter.value === '12+') {
+          if (p === null || p < 11) return false
+        }
+      }
+
+      // 4. Filtro por presupuesto / precio
+      if (priceRangeFilter.value !== 'all') {
+        const price = Number(product.price)
+        if (priceRangeFilter.value === 'under-30') {
+          if (price > 30) return false
+        } else if (priceRangeFilter.value === '30-60') {
+          if (price < 30 || price > 60) return false
+        } else if (priceRangeFilter.value === 'above-60') {
+          if (price <= 60) return false
+        }
+      }
+
+      return true
     })
   })
 
@@ -225,6 +254,8 @@ export function useCatalog(
   function resetFilters(): void {
     searchQuery.value = ''
     selectedCategories.value = ['todos']
+    portionFilter.value = 'all'
+    priceRangeFilter.value = 'all'
   }
 
   return {
@@ -232,6 +263,8 @@ export function useCatalog(
     selectedCategory,
     selectedCategories,
     categories,
+    portionFilter,
+    priceRangeFilter,
     filteredProducts,
     groupedSections,
     isAllSelected,

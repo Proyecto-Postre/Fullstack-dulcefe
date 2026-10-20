@@ -45,6 +45,8 @@ const {
   selectedCategory,
   selectedCategories,
   categories,
+  portionFilter,
+  priceRangeFilter,
   filteredProducts,
   groupedSections,
   isAllSelected,
@@ -112,10 +114,15 @@ watch([rawProducts, () => route.query.producto], ([products, prodId]) => {
       :selected-category="selectedCategory"
       :selected-categories="selectedCategories"
       :categories="categories"
+      :portion-filter="portionFilter"
+      :price-range-filter="priceRangeFilter"
       @update:search-query="searchQuery = $event"
       @update:selected-category="selectedCategory = $event"
       @update:selected-categories="selectedCategories = $event"
+      @update:portion-filter="portionFilter = $event"
+      @update:price-range-filter="priceRangeFilter = $event"
       @toggle-category="toggleCategory"
+      @reset-all="resetFilters"
     />
 
     <!-- Estado: Cargando -->

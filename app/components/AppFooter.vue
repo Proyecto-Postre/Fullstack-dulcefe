@@ -40,20 +40,29 @@ const whatsappCleanUrl = computed(() => {
         </div>
       </div>
 
-      <!-- Botón WhatsApp Estilo Integrado (Armonía Tonal con el Footer) -->
-      <a 
-        :href="whatsappCleanUrl" 
-        target="_blank" 
-        rel="noopener noreferrer"
-        class="group inline-flex items-center gap-2 px-3 sm:px-3.5 py-1.5 rounded-full bg-brand-cream/10 hover:bg-brand-cream/20 text-brand-cream border border-brand-cream/15 hover:border-brand-cream/30 backdrop-blur-sm shadow-soft-sm transition-all duration-200 active:scale-95 shrink-0 select-none cursor-pointer"
-        aria-label="Atención por WhatsApp"
-      >
-        <Icon name="lucide:message-circle" class="w-4 h-4 text-emerald-400 group-hover:text-emerald-300 transition-colors shrink-0" />
-        <span class="text-xs font-medium tracking-tight text-brand-cream/90 group-hover:text-white transition-colors">
-          <span class="hidden sm:inline">WhatsApp: {{ formattedWhatsApp }}</span>
-          <span class="sm:hidden">WhatsApp</span>
-        </span>
-      </a>
+      <!-- Enlaces y Botón WhatsApp Estilo Integrado -->
+      <div class="flex items-center gap-3 sm:gap-4 shrink-0">
+        <NuxtLink
+          to="/faq"
+          class="text-xs font-medium text-brand-cream/80 hover:text-white transition-colors"
+        >
+          Preguntas Frecuentes
+        </NuxtLink>
+
+        <a 
+          :href="whatsappCleanUrl" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          class="group inline-flex items-center gap-2 px-3 sm:px-3.5 py-1.5 rounded-full bg-brand-cream/10 hover:bg-brand-cream/20 text-brand-cream border border-brand-cream/15 hover:border-brand-cream/30 backdrop-blur-sm shadow-soft-sm transition-all duration-200 active:scale-95 shrink-0 select-none cursor-pointer"
+          aria-label="Atención por WhatsApp"
+        >
+          <Icon name="lucide:message-circle" class="w-4 h-4 text-emerald-400 group-hover:text-emerald-300 transition-colors shrink-0" />
+          <span class="text-xs font-medium tracking-tight text-brand-cream/90 group-hover:text-white transition-colors">
+            <span class="hidden sm:inline">WhatsApp: {{ formattedWhatsApp }}</span>
+            <span class="sm:hidden">WhatsApp</span>
+          </span>
+        </a>
+      </div>
     </div>
   </footer>
 </template>

@@ -12,6 +12,7 @@ export interface CatalogProduct {
   is_featured?: boolean | null
   category_id?: string | null
   shelf_life?: string | null
+  portions?: number | null
   created_at?: string
   updated_at?: string
 }
@@ -40,6 +41,7 @@ export interface ProductFormData {
   is_featured?: boolean | null
   category_id?: string | null
   shelf_life?: string | null
+  portions?: number | string | null
 }
 
 export interface ProductUploadResponse {

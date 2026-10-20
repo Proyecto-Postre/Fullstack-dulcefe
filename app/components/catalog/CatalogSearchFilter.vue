@@ -7,13 +7,18 @@ const props = defineProps<{
   selectedCategory?: string
   selectedCategories?: string[]
   categories: CatalogCategory[]
+  portionFilter?: string
+  priceRangeFilter?: string
 }>()
 
 const emit = defineEmits<{
   (e: 'update:searchQuery', val: string): void
   (e: 'update:selectedCategory', val: string): void
   (e: 'update:selectedCategories', val: string[]): void
+  (e: 'update:portionFilter', val: string): void
+  (e: 'update:priceRangeFilter', val: string): void
   (e: 'toggleCategory', catId: string): void
+  (e: 'resetAll'): void
 }>()
 
 const isDropdownOpen = ref(false)
@@ -230,7 +235,7 @@ onBeforeUnmount(() => {
                   <div v-if="isAllSelected" class="w-2 h-2 rounded-full bg-brand-accent"></div>
                 </div>
                 <Icon name="lucide:sparkles" class="w-4 h-4 shrink-0 text-brand-accent" />
-                <span class="truncate">✨ Toda la Carta (Todos los postres)</span>
+                <span class="truncate">Toda la Carta (Todos los postres)</span>
               </div>
               <span v-if="isAllSelected" class="text-[10px] uppercase font-bold tracking-wider opacity-90">
                 Activo
@@ -296,6 +301,75 @@ onBeforeUnmount(() => {
           </div>
         </div>
       </Transition>
+    </div>
+
+    <!-- Filtros Secundarios: Porciones y Rango de Precio -->
+    <div class="flex flex-wrap items-center justify-center gap-2.5 pt-1">
+      <!-- Selector de Porciones -->
+      <div class="relative inline-flex items-center">
+        <label for="catalog-portion-filter" class="sr-only">Filtrar por porciones</label>
+        <div class="absolute left-3 pointer-events-none text-brand-primary">
+          <Icon name="lucide:users" class="w-3.5 h-3.5" />
+        </div>
+        <select
+          id="catalog-portion-filter"
+          :value="portionFilter || 'all'"
+          @change="$emit('update:portionFilter', ($event.target as HTMLSelectElement).value)"
+          :class="[
+            'pl-8 pr-7 py-1.5 text-xs font-bold rounded-full border transition-all cursor-pointer appearance-none shadow-soft-xs',
+            portionFilter && portionFilter !== 'all'
+              ? 'bg-brand-primary text-white border-brand-primary'
+              : 'bg-surface text-brand-secondary border-brand-primary/20 hover:border-brand-primary/40'
+          ]"
+        >
+          <option value="all">Todas las porciones</option>
+          <option value="1-4">1 a 4 porciones (Individual / Pareja)</option>
+          <option value="6-10">6 a 10 porciones (Familiar)</option>
+          <option value="12+">12+ porciones (Celebración)</option>
+        </select>
+        <div class="absolute right-2.5 pointer-events-none" :class="portionFilter && portionFilter !== 'all' ? 'text-white/80' : 'text-brand-secondary/60'">
+          <Icon name="lucide:chevron-down" class="w-3 h-3" />
+        </div>
+      </div>
+
+      <!-- Selector de Presupuesto / Precio -->
+      <div class="relative inline-flex items-center">
+        <label for="catalog-price-filter" class="sr-only">Filtrar por presupuesto</label>
+        <div class="absolute left-3 pointer-events-none text-brand-primary">
+          <Icon name="lucide:tag" class="w-3.5 h-3.5" />
+        </div>
+        <select
+          id="catalog-price-filter"
+          :value="priceRangeFilter || 'all'"
+          @change="$emit('update:priceRangeFilter', ($event.target as HTMLSelectElement).value)"
+          :class="[
+            'pl-8 pr-7 py-1.5 text-xs font-bold rounded-full border transition-all cursor-pointer appearance-none shadow-soft-xs',
+            priceRangeFilter && priceRangeFilter !== 'all'
+              ? 'bg-brand-primary text-white border-brand-primary'
+              : 'bg-surface text-brand-secondary border-brand-primary/20 hover:border-brand-primary/40'
+          ]"
+        >
+          <option value="all">Todos los precios</option>
+          <option value="under-30">Hasta S/ 30</option>
+          <option value="30-60">S/ 30 a S/ 60</option>
+          <option value="above-60">Más de S/ 60</option>
+        </select>
+        <div class="absolute right-2.5 pointer-events-none" :class="priceRangeFilter && priceRangeFilter !== 'all' ? 'text-white/80' : 'text-brand-secondary/60'">
+          <Icon name="lucide:chevron-down" class="w-3 h-3" />
+        </div>
+      </div>
+
+      <!-- Boton para limpiar filtros secundarios si alguno esta activo -->
+      <button
+        v-if="(portionFilter && portionFilter !== 'all') || (priceRangeFilter && priceRangeFilter !== 'all')"
+        @click="$emit('resetAll')"
+        type="button"
+        class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-bold text-brand-secondary/70 hover:text-status-danger bg-brand-cream/80 hover:bg-brand-cream border border-brand-primary/15 transition-all cursor-pointer"
+        title="Restablecer filtros de porciones y precio"
+      >
+        <Icon name="lucide:x" class="w-3 h-3" />
+        <span>Limpiar filtros</span>
+      </button>
     </div>
   </div>
 </template>

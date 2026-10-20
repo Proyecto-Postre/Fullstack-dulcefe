@@ -27,8 +27,9 @@ const newProduct = ref<{
   category_id: string
   description: string
   shelf_life: string
+  portions: number | string
   is_featured: boolean
-}>({ id: '', name: '', price: '', stock: '', image_url: '', category_id: '', description: '', shelf_life: '', is_featured: false })
+}>({ id: '', name: '', price: '', stock: '', image_url: '', category_id: '', description: '', shelf_life: '', portions: '', is_featured: false })
 
 const isSubmitting = ref(false)
 const errorMessage = ref('')
@@ -48,11 +49,12 @@ watch(() => props.show, (newVal) => {
         category_id: (props.productToEdit as unknown as { category_id?: string }).category_id || '',
         description: (props.productToEdit as unknown as { description?: string | null }).description || '',
         shelf_life: (props.productToEdit as unknown as { shelf_life?: string | null }).shelf_life || '',
+        portions: (props.productToEdit as unknown as { portions?: number | null }).portions ?? '',
         is_featured: Boolean((props.productToEdit as unknown as { is_featured?: boolean | null }).is_featured)
       }
       previewUrl.value = props.productToEdit.image_url || null
     } else {
-      newProduct.value = { id: '', name: '', price: '', stock: '', image_url: '', category_id: '', description: '', shelf_life: '', is_featured: false }
+      newProduct.value = { id: '', name: '', price: '', stock: '', image_url: '', category_id: '', description: '', shelf_life: '', portions: '', is_featured: false }
       previewUrl.value = null
     }
     errorMessage.value = ''
@@ -142,6 +144,7 @@ async function saveProduct(): Promise<void> {
         category_id: newProduct.value.category_id || null,
         description: newProduct.value.description?.trim() || null,
         shelf_life: newProduct.value.shelf_life?.trim() || null,
+        portions: newProduct.value.portions !== '' && !isNaN(Number(newProduct.value.portions)) ? Number(newProduct.value.portions) : null,
         is_featured: Boolean(newProduct.value.is_featured)
       }
     })
@@ -157,6 +160,7 @@ async function saveProduct(): Promise<void> {
           category_id: newProduct.value.category_id || null,
           description: newProduct.value.description?.trim() || null,
           shelf_life: newProduct.value.shelf_life?.trim() || null,
+          portions: newProduct.value.portions !== '' && !isNaN(Number(newProduct.value.portions)) ? Number(newProduct.value.portions) : null,
           is_featured: Boolean(newProduct.value.is_featured),
           created_at: new Date().toISOString()
         } as unknown as ProductRow
@@ -278,6 +282,24 @@ async function saveProduct(): Promise<void> {
                 />
                 <p class="text-[10px] text-[#4A5D23]/70 font-medium mt-1">
                   Recomendación visible en la vitrina para el cliente (por defecto: 3-4 días).
+                </p>
+              </div>
+
+              <!-- Porciones Sugeridas -->
+              <div>
+                <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest mb-1.5">
+                  Porciones Sugeridas (Opcional)
+                </label>
+                <input 
+                  v-model="newProduct.portions" 
+                  type="number" 
+                  min="1" 
+                  step="1"
+                  placeholder="Ej. 10 (rinde 10 porciones aprox.)" 
+                  class="w-full bg-[#F4F1E1]/30 border border-[#4A5D23]/20 rounded-xl px-4 py-2.5 text-xs font-bold text-[#2A321B] focus:outline-none focus:border-[#4A5D23] transition-colors" 
+                />
+                <p class="text-[10px] text-[#4A5D23]/70 font-medium mt-1">
+                  Cantidad aproximada de porciones sugeridas (permite a los clientes filtrar por tamaño o porciones en el menú).
                 </p>
               </div>
 

@@ -349,14 +349,18 @@ async function copyProductShareLink() {
               </p>
 
               <!-- Características Clave del Atelier -->
-              <div class="grid grid-cols-2 gap-2.5 mb-6 text-xs font-semibold text-brand-secondary/85">
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 mb-6 text-xs font-semibold text-brand-secondary/85">
                 <div class="flex items-center gap-2 p-2.5 rounded-xl bg-brand-cream/60 border border-brand-primary/10">
-                  <Icon name="lucide:clock" class="w-4 h-4 text-brand-primary" />
-                  <span>Consumo: {{ product.shelf_life || '3-4 días' }}</span>
+                  <Icon name="lucide:clock" class="w-4 h-4 text-brand-primary shrink-0" />
+                  <span class="truncate">Consumo: {{ product.shelf_life || '3-4 días' }}</span>
                 </div>
-                <div class="flex items-center gap-2 p-2.5 rounded-xl bg-brand-cream/60 border border-brand-primary/10">
-                  <Icon name="lucide:shield-check" class="w-4 h-4 text-brand-primary" />
-                  <span>100% Artesanal</span>
+                <div v-if="product.portions" class="flex items-center gap-2 p-2.5 rounded-xl bg-brand-cream/60 border border-brand-primary/10">
+                  <Icon name="lucide:users" class="w-4 h-4 text-brand-primary shrink-0" />
+                  <span class="truncate">{{ product.portions }} {{ product.portions === 1 ? 'porción aprox.' : 'porciones aprox.' }}</span>
+                </div>
+                <div class="flex items-center gap-2 p-2.5 rounded-xl bg-brand-cream/60 border border-brand-primary/10" :class="{ 'col-span-2 sm:col-span-1': !product.portions }">
+                  <Icon name="lucide:shield-check" class="w-4 h-4 text-brand-primary shrink-0" />
+                  <span class="truncate">100% Artesanal</span>
                 </div>
               </div>
             </div>

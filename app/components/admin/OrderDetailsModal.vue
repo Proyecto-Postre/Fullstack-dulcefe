@@ -326,11 +326,17 @@ const openWhatsApp = (): void => {
               <div
                 class="p-4 rounded-xl border border-[#4A5D23]/10 bg-white shadow-xs"
               >
-                <p
-                  class="text-[10px] font-bold uppercase tracking-wider text-[#4A5D23]/60 mb-1"
-                >
-                  Dirección
-                </p>
+                <div class="flex items-center justify-between mb-1">
+                  <p class="text-[10px] font-bold uppercase tracking-wider text-[#4A5D23]/60">
+                    {{ order.address?.startsWith('Punto de encuentro') ? 'Punto de Encuentro' : 'Dirección de Entrega' }}
+                  </p>
+                  <span
+                    v-if="order.address?.startsWith('Punto de encuentro')"
+                    class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200"
+                  >
+                    Sin costo delivery
+                  </span>
+                </div>
                 <p v-if="order.address" class="text-xs font-bold text-[#2A321B]">
                   {{ order.address }}
                 </p>
