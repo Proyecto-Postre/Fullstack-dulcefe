@@ -169,10 +169,10 @@ function resetAllFilters() {
 
 <template>
   <div class="mb-6 sm:mb-9 w-full space-y-2.5">
-    <!-- Fila Unificada con Grid Proporcional Deliberado: Buscador 1.6fr y 3 Filtros de 1fr cada uno -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr_1fr] gap-3 sm:gap-3.5 w-full items-center">
-      <!-- 1. Buscador (1.6fr en desktop, ancho completo en mobile) -->
-      <div class="relative w-full sm:col-span-2 lg:col-span-1">
+    <!-- Fila Unificada Proporcional: Buscador más largo (2fr) y 3 Filtros de tamaño estrictamente idéntico (1fr cada uno) -->
+    <div class="catalog-search-row w-full items-center">
+      <!-- 1. Buscador (la barra más larga en desktop, ancho completo en mobile) -->
+      <div class="search-input-col relative w-full">
         <Icon 
           name="lucide:search" 
           class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-brand-primary/60 pointer-events-none" 
@@ -195,11 +195,11 @@ function resetAllFilters() {
         </button>
       </div>
 
-      <!-- 2. Filtro de Especialidades / Secciones (1fr) -->
+      <!-- 2. Filtro de Especialidades / Secciones (1fr, exactamente igual a Porciones y Precios) -->
       <div 
         v-if="realCategories.length > 0" 
         ref="dropdownRef" 
-        class="relative w-full sm:col-span-1"
+        class="filter-col relative w-full min-w-0"
       >
         <button
           @click.stop="toggleDropdown"
@@ -354,7 +354,7 @@ function resetAllFilters() {
       </div>
 
       <!-- 3. Filtro de Porciones (1fr) -->
-      <div class="relative w-full sm:col-span-1">
+      <div class="filter-col relative w-full min-w-0">
         <UiCustomSelect
           :options="portionOptions"
           :modelValue="portionFilter || 'all'"
@@ -374,7 +374,7 @@ function resetAllFilters() {
       </div>
 
       <!-- 4. Filtro de Precios (1fr) -->
-      <div class="relative w-full sm:col-span-1">
+      <div class="filter-col relative w-full min-w-0">
         <UiCustomSelect
           :options="priceRangeOptions"
           :modelValue="priceRangeFilter || 'all'"
@@ -415,6 +415,33 @@ function resetAllFilters() {
 </template>
 
 <style scoped>
+.catalog-search-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .catalog-search-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.875rem;
+  }
+  .catalog-search-row > .search-input-col {
+    grid-column: span 3;
+  }
+}
+
+@media (min-width: 1024px) {
+  .catalog-search-row {
+    grid-template-columns: 2fr repeat(3, minmax(0, 1fr));
+    gap: 0.875rem;
+  }
+  .catalog-search-row > .search-input-col {
+    grid-column: span 1;
+  }
+}
+
 .dropdown-fade-enter-active,
 .dropdown-fade-leave-active {
   transition: opacity 0.2s ease, transform 0.2s ease;
