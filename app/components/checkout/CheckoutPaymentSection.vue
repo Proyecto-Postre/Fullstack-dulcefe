@@ -11,6 +11,7 @@ const emit = defineEmits<{
   (e: 'update:paymentMethod', value: 'cash' | 'yape' | 'plin' | 'card'): void
   (e: 'update:paymentReference', value: string): void
   (e: 'update:paymentReceiptUrl', value: string): void
+  (e: 'update:isUploading', value: boolean): void
 }>()
 
 const isUploading = ref(false)
@@ -65,6 +66,7 @@ async function handleFileUpload(event: Event) {
   }
 
   isUploading.value = true
+  emit('update:isUploading', true)
   try {
     const formData = new FormData()
     formData.append('file', file)
@@ -82,6 +84,7 @@ async function handleFileUpload(event: Event) {
     uploadError.value = fetchErr.data?.error?.message || fetchErr.message || 'Error al subir el comprobante.'
   } finally {
     isUploading.value = false
+    emit('update:isUploading', false)
     target.value = ''
   }
 }

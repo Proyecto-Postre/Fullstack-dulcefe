@@ -15,8 +15,9 @@ graph TD
     C3["📁 03 - Arquitectura & UI"]
     C4["📁 04 - Informes de Ejecucion"]
     C5["📁 05 - Operaciones"]
-    C6["📁 decisions/ (ADRs Enterprise)"]
-    C7["📁 _system/ (Plantillas)"]
+    C6["📁 06 - Manuales de Usuario"]
+    C7["📁 decisions/ (ADRs Enterprise)"]
+    C8["📁 _system/ (Plantillas)"]
     
     Root --> C1
     Root --> C2
@@ -25,10 +26,12 @@ graph TD
     Root --> C5
     Root --> C6
     Root --> C7
+    Root --> C8
 
     C3 --> ArchPlan["architecture-refactor-plan.md<br/><b>(Plan Maestro SSOT)</b>"]
     C5 --> Playbook["playbook-operaciones.md<br/><b>(Operaciones & Resiliencia)</b>"]
-    C6 --> ADRs["ADR-001 a ADR-008<br/><b>(Gobernanza de Deuda D1-D8)</b>"]
+    C6 --> Manuales["manual-01 al 05<br/><b>(Manuales Operativos de Usuario)</b>"]
+    C7 --> ADRs["ADR-001 a ADR-008<br/><b>(Gobernanza de Deuda D1-D8)</b>"]
 ```
 
 ---
@@ -83,6 +86,9 @@ Registro cronológico inmutable de auditorías y entregas por fase:
   * [`fase-7-subfase-7.4-dashboard-vitrina-informe.md`](./04%20-%20Informes%20de%20Ejecucion/fase-7-subfase-7.4-dashboard-vitrina-informe.md) — **Dashboard Preventivo de Productos en Riesgo y Vitrina Comercial Artesanal (Subfase 7.4)**.
   * [`fase-7-subfase-7.5-pruebas-e2e-cierre-informe.md`](./04%20-%20Informes%20de%20Ejecucion/fase-7-subfase-7.5-pruebas-e2e-cierre-informe.md) — **Pruebas de Integración de Ciclo Completo, E2E y Cierre de Producción (Subfase 7.5)**.
 
+* **Fase 8 (Hardening, Experiencia de Cliente & Manuales):**
+  * [`informe-manuales-faq-checkout-porciones.md`](./04%20-%20Informes%20de%20Ejecucion/fase-8-hardening-y-cliente/informe-manuales-faq-checkout-porciones.md) — **Informe de Manuales de Operación, FAQ Atelier, Modalidades de Entrega, Horarios Flexibles y Porciones de Productos**.
+
 ### 5. 🛡️ [05 - Operaciones](./05%20-%20Operaciones/)
 * [`playbook-operaciones.md`](./05%20-%20Operaciones/playbook-operaciones.md) — **Manual Operativo de Misión Crítica**:
   * Matriz de variables por entorno (Dev, Staging, Prod).
@@ -93,7 +99,16 @@ Registro cronológico inmutable de auditorías y entregas por fase:
   * Incident Response Playbook (IRP) con matriz RACI.
 * [`runbook-despliegue-vercel-troubleshooting.md`](./05%20-%20Operaciones/runbook-despliegue-vercel-troubleshooting.md) — **Runbook de Troubleshooting Vercel SSR**: Diagnóstico, blindaje y prevención del Error 500 en la cadena de inicialización de Supabase y Pinia.
 
-### 6. 🏛️ [decisions/ (Architecture Decision Records)](./decisions/)
+### 6. [06 - Manuales de Usuario](./06%20-%20Manuales%20de%20Usuario/)
+Guías operativas paso a paso para el personal de taller, cocina y administración:
+* [`README.md`](./06%20-%20Manuales%20de%20Usuario/README.md) — Índice maestro y mapa de roles operativos.
+* [`manual-01-gestion-pedidos-y-estados.md`](./06%20-%20Manuales%20de%20Usuario/manual-01-gestion-pedidos-y-estados.md) — Manual 01: Ciclo de vida y transición de pedidos.
+* [`manual-02-aprobacion-pagos-yape-plin.md`](./06%20-%20Manuales%20de%20Usuario/manual-02-aprobacion-pagos-yape-plin.md) — Manual 02: Verificación de vouchers Yape y Plin.
+* [`manual-03-tandas-rendimientos-y-recetas.md`](./06%20-%20Manuales%20de%20Usuario/manual-03-tandas-rendimientos-y-recetas.md) — Manual 03: Producción en masa, tandas maestras y escandallos.
+* [`manual-04-pantalla-cocina-kds.md`](./06%20-%20Manuales%20de%20Usuario/manual-04-pantalla-cocina-kds.md) — Manual 04: Pantalla interactiva de cocina (KDS).
+* [`manual-05-almacen-insumos-y-mermas.md`](./06%20-%20Manuales%20de%20Usuario/manual-05-almacen-insumos-y-mermas.md) — Manual 05: Control de stock físico y registro de mermas.
+
+### 7. 🏛️ [decisions/ (Architecture Decision Records)](./decisions/)
 Registro de decisiones de arquitectura bajo formato estándar MADR 3.0.0 que documenta la gestión de la deuda técnica explícita (§20.5 D1–D8):
 * [`ADR-001`](./decisions/ADR-001-cancellation-stock-reversal.md) — Reversión atómica de stock ante cancelaciones.
 * [`ADR-002`](./decisions/ADR-002-guest-order-tracking.md) — Tracking seguro de invitados vía token criptográfico HMAC SHA-256.
@@ -104,7 +119,7 @@ Registro de decisiones de arquitectura bajo formato estándar MADR 3.0.0 que doc
 * [`ADR-007`](./decisions/ADR-007-completed-order-immutability.md) — Inmutabilidad contractual de pedidos completados.
 * [`ADR-008`](./decisions/ADR-008-recipe-versioning.md) — Versionado histórico de recetas y escandallos en ventas pasadas.
 
-### 7. 🛠️ [_system/ (Plantillas y Herramientas)](./_system/)
+### 8. 🛠️ [_system/ (Plantillas y Herramientas)](./_system/)
 * [`_system/templates/TPL-Feature-Review.md`](./_system/templates/TPL-Feature-Review.md) — Plantilla para lista de control por feature (Definition of Done).
 * [`_system/templates/TPL-ADR.md`](./_system/templates/TPL-ADR.md) — Plantilla para redactar nuevas Decisiones de Arquitectura.
 * [`_system/templates/TPL-Endpoint.md`](./_system/templates/TPL-Endpoint.md) — Plantilla estándar para fichas técnicas de API.

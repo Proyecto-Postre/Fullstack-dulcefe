@@ -1,5 +1,5 @@
 import type { H3Event } from 'h3'
-import { createError, getRequestIP, setResponseHeader } from 'h3'
+import { createError, getHeader, getRequestIP, setResponseHeader } from 'h3'
 import { serverSupabaseUser } from '#supabase/server'
 import { getAdminSupabaseClient } from '../utils/server-supabase'
 import crypto from 'node:crypto'
@@ -62,15 +62,64 @@ export class OrderService {
   ): Promise<CheckoutResult> {
     const supabase = await getAdminSupabaseClient(event)
 
-    // 1. Detección de sesión (opcional para checkout público)
+    // 1. Detección de sesión y vinculación inteligente de perfil
     let user = null
     try {
-      user = await serverSupabaseUser(event)
+      const userPromise = serverSupabaseUser(event)
+      const timeoutPromise = new Promise<null>((_, reject) =>
+        setTimeout(() => reject(new Error('Auth detection timeout')), 2500)
+      )
+      user = await Promise.race([userPromise, timeoutPromise])
     } catch {
       user = null
     }
 
-    const principalScope = user ? `user:${user.id}` : 'guest'
+    let resolvedUserId: string | null = null
+    if (user) {
+      resolvedUserId = (user as unknown as { id?: string; sub?: string }).id || (user as unknown as { sub?: string }).sub || null
+    }
+
+    // Fallback 1: cabecera Authorization (Bearer <token>) si el cliente envía token JWT
+    if (!resolvedUserId) {
+      try {
+        const authHeader = getHeader(event, 'authorization')
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+          const token = authHeader.slice(7).trim()
+          if (token) {
+            const { data: tokenData } = await supabase.auth.getUser(token)
+            if (tokenData?.user) {
+              user = tokenData.user
+              resolvedUserId = tokenData.user.id
+            }
+          }
+        }
+      } catch {
+        // Silencioso
+      }
+    }
+
+    // Fallback 2: vinculación inteligente por teléfono si el usuario compra como invitado en móvil/web
+    if (!resolvedUserId && dto.customer_phone) {
+      try {
+        const cleanDigits = dto.customer_phone.replace(/\D/g, '')
+        const phone9 = (cleanDigits.startsWith('51') && cleanDigits.length === 11) ? cleanDigits.slice(2) : cleanDigits
+        if (phone9 && phone9.length === 9) {
+          const { data: matchedProfile } = await supabase
+            .from('profiles')
+            .select('id')
+            .or(`phone.eq.${phone9},phone.eq.+51${phone9}`)
+            .maybeSingle()
+
+          if (matchedProfile?.id) {
+            resolvedUserId = matchedProfile.id
+          }
+        }
+      } catch {
+        // Silencioso
+      }
+    }
+
+    const principalScope = resolvedUserId ? `user:${resolvedUserId}` : 'guest'
 
     // 2. Rate Limit por IP (10 peticiones / 15 min)
     const clientIp = getRequestIP(event, { xForwardedFor: true }) || '0.0.0.0'
@@ -206,100 +255,117 @@ export class OrderService {
       })
     }
 
-    // 5. Resolver productos oficiales desde la base de datos
-    const productIds = dto.items.map(item => item.product_id)
-    const { data: dbProducts, error: prodError } = await supabase
-      .from('products')
-      .select('id, name, price')
-      .in('id', productIds)
+    // 5. Resolver productos oficiales desde la base de datos (protegido para liberar la llave de idempotencia ante cualquier error)
+    try {
+      const productIds = dto.items.map(item => item.product_id)
+      const { data: dbProducts, error: prodError } = await supabase
+        .from('products')
+        .select('id, name, price')
+        .in('id', productIds)
 
-    if (prodError || !dbProducts || dbProducts.length === 0) {
-      throw createError({
-        statusCode: 422,
-        statusMessage: 'PRODUCT_NOT_FOUND',
-        data: {
-          error: {
-            code: 'PRODUCT_NOT_FOUND',
-            message: 'Uno o más productos no fueron encontrados.',
-            request_id: requestId
-          }
-        }
-      })
-    }
-
-    const productMap = new Map<number, { id: number; name: string; price: number }>()
-    for (const p of dbProducts) {
-      if (p.price === null) {
-        throw createError({
-          statusCode: 422,
-          statusMessage: 'PRODUCT_UNAVAILABLE',
-          data: {
-            error: {
-              code: 'PRODUCT_UNAVAILABLE',
-              message: `El producto ${p.name} no tiene precio asignado.`,
-              request_id: requestId
-            }
-          }
-        })
-      }
-      productMap.set(p.id, { id: p.id, name: p.name, price: p.price })
-    }
-
-    // 6. Aritmética monetaria exacta en céntimos (cero flotantes)
-    let orderTotalCents = 0
-    const orderItemsToInsert: {
-      product_id: number
-      quantity: number
-      price_at_time: number
-      name: string
-      priceString: string
-    }[] = []
-
-    for (const item of dto.items) {
-      const dbProduct = productMap.get(item.product_id)
-      if (!dbProduct) {
+      if (prodError || !dbProducts || dbProducts.length === 0) {
         throw createError({
           statusCode: 422,
           statusMessage: 'PRODUCT_NOT_FOUND',
           data: {
             error: {
               code: 'PRODUCT_NOT_FOUND',
-              message: `El producto con ID ${item.product_id} no existe.`,
+              message: 'Uno o más productos no fueron encontrados.',
               request_id: requestId
             }
           }
         })
       }
 
-      const unitPriceCents = solesToCents(dbProduct.price)
-      const lineTotalCents = unitPriceCents * item.quantity
-      orderTotalCents += lineTotalCents
+      const productMap = new Map<number, { id: number; name: string; price: number }>()
+      for (const p of dbProducts) {
+        if (p.price === null) {
+          throw createError({
+            statusCode: 422,
+            statusMessage: 'PRODUCT_UNAVAILABLE',
+            data: {
+              error: {
+                code: 'PRODUCT_UNAVAILABLE',
+                message: `El producto ${p.name} no tiene precio asignado.`,
+                request_id: requestId
+              }
+            }
+          })
+        }
+        productMap.set(p.id, { id: p.id, name: p.name, price: p.price })
+      }
 
-      orderItemsToInsert.push({
-        product_id: dbProduct.id,
-        quantity: item.quantity,
-        price_at_time: parseFloat(centsToSoles(unitPriceCents)),
-        name: dbProduct.name,
-        priceString: centsToSoles(unitPriceCents)
-      })
-    }
+      // 6. Aritmética monetaria exacta en céntimos (cero flotantes)
+      let orderTotalCents = 0
+      const orderItemsToInsert: {
+        product_id: number
+        quantity: number
+        price_at_time: number
+        name: string
+        priceString: string
+      }[] = []
 
-    const totalAmountString = centsToSoles(orderTotalCents)
-    const trackingToken = generateOrderTrackingToken(crypto.randomUUID(), now.toISOString())
+      for (const item of dto.items) {
+        const dbProduct = productMap.get(item.product_id)
+        if (!dbProduct) {
+          throw createError({
+            statusCode: 422,
+            statusMessage: 'PRODUCT_NOT_FOUND',
+            data: {
+              error: {
+                code: 'PRODUCT_NOT_FOUND',
+                message: `El producto con ID ${item.product_id} no existe.`,
+                request_id: requestId
+              }
+            }
+          })
+        }
 
-    // 7. Inserción de orden y detalle
-    try {
+        const unitPriceCents = solesToCents(dbProduct.price)
+        const lineTotalCents = unitPriceCents * item.quantity
+        orderTotalCents += lineTotalCents
+
+        orderItemsToInsert.push({
+          product_id: dbProduct.id,
+          quantity: item.quantity,
+          price_at_time: parseFloat(centsToSoles(unitPriceCents)),
+          name: dbProduct.name,
+          priceString: centsToSoles(unitPriceCents)
+        })
+      }
+
+      const totalAmountString = centsToSoles(orderTotalCents)
+      const trackingToken = generateOrderTrackingToken(crypto.randomUUID(), now.toISOString())
+
+      // Resolver direccion efectiva en caso de punto de encuentro
+      const isMeetingPoint = dto.delivery_mode === 'meeting_point'
+      const effectiveAddress = isMeetingPoint
+        ? (dto.meeting_point_details ? `Punto de encuentro: ${dto.meeting_point_details}` : (dto.address || 'Punto de encuentro acordado'))
+        : (dto.address || null)
+
+      // Resolver horario efectivo: si viene delivery_slot y delivery_time vacio, asignar descripcion amigable
+      let effectiveDeliveryTime = dto.delivery_time || null
+      if (!effectiveDeliveryTime && dto.delivery_slot) {
+        if (dto.delivery_slot === 'morning') effectiveDeliveryTime = '08:00 - 10:00'
+        else if (dto.delivery_slot === 'night') effectiveDeliveryTime = '19:00 - 22:00'
+        else if (dto.delivery_slot === 'special') effectiveDeliveryTime = 'Por coordinar'
+      }
+
+      // 7. Inserción de orden y detalle
       const { data: createdOrder, error: orderInsertError } = await supabase
         .from('orders')
         .insert({
-          profile_id: user ? user.id : null,
+          profile_id: resolvedUserId,
           customer_name: dto.customer_name,
           customer_phone: dto.customer_phone || null,
-          address: dto.address || null,
+          delivery_mode: dto.delivery_mode || 'delivery',
+          meeting_point_details: dto.meeting_point_details || null,
+          delivery_slot: dto.delivery_slot || null,
+          address: effectiveAddress,
           total_amount: parseFloat(totalAmountString),
           status: 'pending',
           delivery_date: dto.delivery_date || null,
-          delivery_time: dto.delivery_time || null,
+          delivery_time: effectiveDeliveryTime,
           notes: dto.notes || null,
           tracking_token: trackingToken,
           payment_method: dto.payment_method || 'cash',
@@ -331,13 +397,17 @@ export class OrderService {
         throw itemsInsertError
       }
 
-      // Si el cliente autenticado envió teléfono y su perfil no lo tenía, actualizarlo
-      if (user && dto.customer_phone) {
-        await supabase
-          .from('profiles')
-          .update({ phone: dto.customer_phone })
-          .eq('id', user.id)
-          .is('phone', null)
+      // Si el cliente tiene un perfil resuelto y envió teléfono, actualizar el perfil si no tenía teléfono
+      if (resolvedUserId && dto.customer_phone) {
+        const cleanDigits = dto.customer_phone.replace(/\D/g, '')
+        const phone9 = (cleanDigits.startsWith('51') && cleanDigits.length === 11) ? cleanDigits.slice(2) : cleanDigits
+        if (phone9 && phone9.length === 9) {
+          await supabase
+            .from('profiles')
+            .update({ phone: phone9 })
+            .eq('id', resolvedUserId)
+            .is('phone', null)
+        }
       }
 
       const responseOrder: CheckoutResponseOrder = {
@@ -417,6 +487,11 @@ export class OrderService {
         .eq('principal_scope', principalScope)
         .eq('key', idempotencyKey)
         .eq('lifecycle', 'processing')
+
+      // Si es un error HTTP tipado (ej. 422 PRODUCT_NOT_FOUND), relanzarlo directamente
+      if (dbErr && typeof dbErr === 'object' && 'statusCode' in dbErr) {
+        throw dbErr
+      }
 
       const msg = dbErr instanceof Error
         ? dbErr.message

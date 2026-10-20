@@ -21,16 +21,9 @@ defineEmits<{
       @click="$emit('viewDetail', product)"
       class="aspect-[4/3] sm:aspect-auto sm:h-56 md:h-64 w-full relative overflow-hidden bg-brand-cream/60 shrink-0 cursor-pointer"
     >
-      <!-- Badge Artesanal: Horneado Fresco / A Pedido o Agotado por hoy -->
+      <!-- Badge de Estado: Solo visible cuando el producto está agotado -->
       <div 
-        v-if="product.stock > 0" 
-        class="absolute top-1.5 right-1.5 sm:top-3.5 sm:right-3.5 z-20 bg-surface/90 backdrop-blur-md text-brand-primary border border-brand-primary/20 text-[8px] sm:text-[10px] font-bold px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-full uppercase tracking-normal sm:tracking-wider flex items-center gap-1 sm:gap-1.5 shadow-soft-sm"
-      >
-        <span class="w-1.5 h-1.5 rounded-full bg-brand-primary"></span>
-        <span>Horneado Fresco</span>
-      </div>
-      <div 
-        v-else 
+        v-if="product.stock <= 0" 
         class="absolute top-1.5 right-1.5 sm:top-3.5 sm:right-3.5 z-20 bg-brand-secondary/90 backdrop-blur-sm text-white text-[8px] sm:text-[10px] font-bold px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-full uppercase tracking-normal sm:tracking-wider flex items-center gap-1 sm:gap-1.5 shadow-soft-sm"
       >
         <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
@@ -52,9 +45,13 @@ defineEmits<{
         @click="$emit('viewDetail', product)"
         class="cursor-pointer"
       >
-        <h3 class="text-xs sm:text-base md:text-lg font-sans font-bold text-brand-secondary mb-1.5 sm:mb-2 tracking-tight leading-snug line-clamp-2 group-hover:text-brand-primary transition-colors min-h-[2rem] sm:min-h-0">
+        <h3 class="text-xs sm:text-base md:text-lg font-playfair font-bold text-brand-secondary mb-1 tracking-tight leading-snug line-clamp-2 group-hover:text-brand-primary transition-colors min-h-[2rem] sm:min-h-0">
           {{ product.name }}
         </h3>
+        <p v-if="product.portions" class="inline-flex items-center gap-1 text-[10px] sm:text-xs font-semibold text-brand-primary/75 mb-1.5">
+          <Icon name="lucide:users" class="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+          <span>{{ product.portions }} {{ product.portions === 1 ? 'porción aprox.' : 'porciones aprox.' }}</span>
+        </p>
       </div>
 
       <div class="flex items-center justify-between pt-2 sm:pt-4 border-t border-brand-primary/10 mt-auto gap-1">

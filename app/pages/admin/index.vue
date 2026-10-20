@@ -52,9 +52,9 @@ watch(() => route.query.tab, (newQueryTab) => {
   }
 })
 
-// Consultas globales a la API (Productos e Insumos)
-const { data: catalog, refresh: refreshCatalog, pending: pendingCatalog } = await useFetch<{ success: boolean, data: ProductItem[] }>('/api/products')
-const { data: materials, refresh: refreshMaterials, pending: pendingMaterials } = await useFetch<{ success: boolean, data: MaterialItem[] }>('/api/raw-materials')
+// Consultas globales a la API (Productos e Insumos) con lazy: true para navegación instantánea
+const { data: catalog, refresh: refreshCatalog, pending: pendingCatalog } = useFetch<{ success: boolean, data: ProductItem[] }>('/api/products', { lazy: true })
+const { data: materials, refresh: refreshMaterials, pending: pendingMaterials } = useFetch<{ success: boolean, data: MaterialItem[] }>('/api/raw-materials', { lazy: true })
 
 // Estado compartido para la pestaña de Recetas
 const activeProductForRecipe = ref<ProductItem | null>(null)

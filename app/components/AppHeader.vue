@@ -13,7 +13,7 @@ defineEmits<{
 <template>
   <!-- Header Sticky Unificado (Boutique Dulce Fe - Reutilizable y Alineado) -->
   <header class="z-40 sticky top-0 w-full bg-brand-cream/95 backdrop-blur-md border-b border-brand-primary/10 transition-all duration-300 shadow-soft-sm">
-    <div class="max-w-5xl xl:max-w-6xl 2xl:max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4 flex justify-between items-center">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-3.5 sm:py-4 flex justify-between items-center">
       <!-- Logo -->
       <NuxtLink to="/" class="flex items-center gap-3 sm:gap-3.5 group cursor-pointer">
         <div class="w-10 h-10 sm:w-11 sm:h-11 border border-brand-primary/20 bg-surface rounded-full flex items-center justify-center text-brand-primary shadow-soft-sm group-hover:scale-105 transition-transform shrink-0">
@@ -62,12 +62,23 @@ defineEmits<{
         >
           <Icon name="lucide:shopping-bag" class="w-4 h-4 sm:w-5 sm:h-5 text-brand-primary group-hover:scale-110 transition-transform" />
           <span class="font-bold text-xs hidden sm:inline">Carrito</span>
-          <span 
-            v-if="cartStore.cartItemCount > 0" 
-            class="w-5 h-5 bg-brand-primary text-white text-[10px] font-black rounded-full flex items-center justify-center animate-pop group-hover:scale-105 transition-transform"
-          >
-            {{ cartStore.cartItemCount }}
-          </span>
+          <ClientOnly>
+            <span 
+              :class="[
+                'min-w-5 h-5 px-1.5 rounded-full flex items-center justify-center text-[10px] font-black transition-all',
+                cartStore.cartItemCount > 0 
+                  ? 'bg-brand-primary text-white animate-pop group-hover:scale-105' 
+                  : 'bg-brand-primary/10 text-brand-primary/70 font-semibold'
+              ]"
+            >
+              {{ cartStore.cartItemCount }}
+            </span>
+            <template #fallback>
+              <span class="min-w-5 h-5 px-1.5 rounded-full flex items-center justify-center text-[10px] bg-brand-primary/10 text-brand-primary/60 font-semibold">
+                0
+              </span>
+            </template>
+          </ClientOnly>
         </button>
 
         <!-- Acciones de Usuario (Solo Desktop >= md) -->

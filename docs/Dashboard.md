@@ -2,12 +2,12 @@
 tipo: dashboard
 proyecto: Dulce Fe Fullstack
 stack: Nuxt 4, Vue 3.5, TypeScript, Tailwind CSS, Supabase, ExcelJS, n8n, Vitest, Playwright
-ultima_actualizacion: 2026-09-23
+ultima_actualizacion: 2026-10-20
 ---
 
 # 🍰 Dulce Fe — Centro de Comando
 
-> **Estado:** 🟢 Fases 0–7 Completadas | 🟢 Tandas Maestras & Porcionamiento Sellados | 🌟 **Certificación Integral 10/10 Enterprise**
+> **Estado:** 🟢 Fases 0–8 Completadas | 🟢 259/259 Tests Pasando (100% Green) | 🌟 **Certificación Integral 10/10 Enterprise**
 > **Vista Gráfica:** Presiona `Ctrl + G` en Obsidian para el mapa global.
 
 ---
@@ -95,49 +95,60 @@ flowchart TD
 * [[design-system-tokens]] — Paleta de colores Dulce Fe, tipografía y bordes.
 * [[herramientas-ui]] — Utilidades y librerías de UI (Lucide Icons, Toast, Modal).
 
-### 📁 04 - Informes de Ejecucion
-* [[fase-0-informe-ejecucion]] — Auditoría inicial de dependencias y variables de entorno.
-* [[fase-1-pr-1a-informe-ejecucion]] — Cierre de vulnerabilidad S1 y desactivación 410 de carrito.
-* [[fase-1-pr-1b-informe-ejecucion]] — Guards de servidor `require-user` y `require-admin` en 12 endpoints.
-* [[fase-1-pr-1c-informe-ejecucion]] — Blindaje de `isAdmin` en Pinia y migración SQL de RLS en Supabase.
-* [[fase-1-pr-1d-informe-ejecucion]] — Upload seguro con Magic Bytes, script `db:types` y suite de tests Vitest.
-* [[fase-2-informe-ejecucion]] — Shell Visual, Design System, Layouts `default`/`admin` y Componentes Atómicos UI.
-* [[fase-3-pr-3a-informe-ejecucion]] — Checkout Seguro, Idempotencia Concurrente, Dinero en Céntimos y Tablas de Apoyo.
-* [[fase-3-pr-3b-informe-ejecucion]] — Frontend Seguro de Checkout, Composable `useCheckout` y Enlace Inviolable de WhatsApp.
-* [[fase-3-pr-3c-informe-ejecucion]] — Transiciones de Estado, Pedidos de Administración y Quiebre de Inventario.
-* [[fase-3-pr-3d-informe-ejecucion]] — Corte de Seguridad S9 en PostgreSQL y Revocación de RPCs.
-* [[fase-3-pr-3e-informe-ejecucion]] — Servicios de Dominio de Catálogo, Insumos y Recetas con Auditoría.
-* [[fase-4-pr-4a-informe-ejecucion]] — Desacoplamiento de Perfil de Usuario y Direcciones.
-* [[fase-4-pr-4b-informe-ejecucion]] — Desacoplamiento de Catálogo y Carrito de Compras.
-* [[fase-4-pr-4c-informe-ejecucion]] — Desacoplamiento de Materias Primas e Inventario.
-* [[fase-4-pr-4d-informe-ejecucion]] — Desacoplamiento de Recetas y Costeo de Escandallo.
-* [[fase-4-pr-4e-informe-ejecucion]] — Desacoplamiento de Pedidos Administrativos (Kanban y Modales).
-* [[fase-4-pr-4f-checkout-y-refinamiento-10-10]] — Refinamiento Integral de Checkout UI y Certificación 10/10.
-* [[fase-5-subfase-5.1-eslint-informe]] — ESLint 10 Flat Config y Erradicación Total de `any`.
-* [[fase-5-subfase-5.2-limites-arquitectura-informe]] — Linter de Límites Arquitectónicos (§6.2).
-* [[fase-5-subfase-5.3-ci-type-drift-informe]] — Pipeline CI/CD en GitHub Actions y Type Drift Gate.
-* [[fase-5-subfase-5.4-adrs-informe]] — Formalización MADR 3.0.0 de Deudas Técnicas D1–D8.
-* [[fase-5-subfase-5.5-operaciones-informe]] — Playbook de Operaciones, Resiliencia y Telemetría.
-* [[fase-5-subfase-5.6-a11y-informe]] — Accesibilidad WCAG 2.1 AA en Formularios y Modales.
-* [[fase-5-disciplina-informe-ejecucion]] — **Informe Maestro Consolidado de Fase 5**.
-* [[fase-6-subfase-6.1-tracking-invitados-informe]] — Guest Tracking sin cuenta, Tokens HMAC-SHA256 y Ley 29733 (ADR-002 / D2).
-* [[fase-6-subfase-6.2-reversion-stock-mermas-informe]] — Reversión Atómica de Stock y Declaración de Mermas (ADR-001 / D1).
-* [[fase-6-subfase-6.3-kds-cocina-informe]] — Kitchen Display System (KDS), Semáforos de Urgencia y Agregador de Lotes (Módulo C).
-* [[fase-6-subfase-6.4-pagos-comprobantes-informe]] — Pasarela Yape/Plin, Carga de Vouchers con Magic Bytes y Validación 1-Click (ADR-005 / D5).
-* [[fase-6-subfase-6.5-snapshot-escandallo-informe]] — Snapshot Inmutable de Escandallo y Freeze de COGS (ADR-008 / D8).
-* [[fase-6-subfase-6.6-webhooks-n8n-informe]] — Ecosistema de Webhooks Asíncronos Firmados con HMAC-SHA256 para n8n (ADR-006 / D6).
-* [[fase-6-producto-kds-informe-ejecucion]] — **Informe Maestro Consolidado de Fase 6**.
-* [[hardening-estabilidad-informe-ejecucion]] — **Informe de Hardening & Estabilidad del Sistema (Fix Modales, RLS Service Role & Sesiones Zombi)**.
-* [[elevacion-certificacion-10-10-informe-ejecucion]] — **Informe de Elevación Integral a Calificación 10/10 Enterprise y Cierre Arquitectónico**.
-* [[refinamiento-ui-auth-checkout-kds-informe]] — **Informe de Refinamiento UI, Autenticación Dedicada, Checkout Perú (Yape/Plin), Navegación Móvil (Drawer/Carrusel/Tabs) y KDS**.
-* [[fase-7-subfase-7.1-migracion-tandas-informe]] — **Capa de Datos & Migración SQL de Tandas (Batch Recipes), Rendimientos y Descargo Rápido (Subfase 7.1)**.
-* [[fase-7-subfase-7.2-backend-nitro-tandas-informe]] — **Backend Nitro & Servicios de Dominio de Tandas, Deducción en Pedidos y Descargo Rápido (Subfase 7.2)**.
-* [[fase-7-subfase-7.3-ui-admin-tandas-informe]] — **Interfaz de Usuario Administrativa (UI/UX) de Tandas Maestras, Rendimientos y Descargo Rápido (Subfase 7.3)**.
-* [[fase-7-subfase-7.4-dashboard-vitrina-informe]] — **Dashboard Preventivo de Productos en Riesgo y Vitrina Comercial Artesanal (Subfase 7.4)**.
-* [[fase-7-subfase-7.5-pruebas-e2e-cierre-informe]] — **Pruebas de Integración de Ciclo Completo, E2E y Cierre de Producción (Subfase 7.5)**.
-* [[fase-7-adenda-custom-select-responsive-informe]] — **Adenda de Estandarización Universal de CustomSelect, Single-Screen Fit y Refinamiento Estético**.
-* [[seguimiento-pedidos-responsivo-informe]] — **Informe de Rediseño y Responsividad Móvil del Seguimiento de Pedidos**.
-* [[rediseño-experiencia-cliente-atelier-editorial-y-categorias-informe]] — **Informe de Rediseño Atelier Editorial de Cliente, Gestión de Categorías y Blindaje de Catálogo**.
+### 📁 04 - Informes de Ejecucion (Estructurado por Fases)
+* **Fase 0 — Base & Baseline:**
+  * [[fase-0-informe-ejecucion]] — Auditoría inicial de dependencias y variables de entorno.
+* **Fase 1 — Seguridad & RLS:**
+  * [[fase-1-pr-1a-informe-ejecucion]] — Cierre de vulnerabilidad S1 y desactivación 410 de carrito.
+  * [[fase-1-pr-1b-informe-ejecucion]] — Guards de servidor `require-user` y `require-admin` en 12 endpoints.
+  * [[fase-1-pr-1c-informe-ejecucion]] — Blindaje de `isAdmin` en Pinia y migración SQL de RLS en Supabase.
+  * [[fase-1-pr-1d-informe-ejecucion]] — Upload seguro con Magic Bytes, script `db:types` y suite de tests Vitest.
+* **Fase 2 — UI Shell & Design System:**
+  * [[fase-2-informe-ejecucion]] — Shell Visual, Design System, Layouts `default`/`admin` y Componentes Atómicos UI.
+* **Fase 3 — Transaccional & Checkout:**
+  * [[fase-3-pr-3a-informe-ejecucion]] — Checkout Seguro, Idempotencia Concurrente, Dinero en Céntimos y Tablas de Apoyo.
+  * [[fase-3-pr-3b-informe-ejecucion]] — Frontend Seguro de Checkout, Composable `useCheckout` y Enlace Inviolable de WhatsApp.
+  * [[fase-3-pr-3c-informe-ejecucion]] — Transiciones de Estado, Pedidos de Administración y Quiebre de Inventario.
+  * [[fase-3-pr-3d-informe-ejecucion]] — Corte de Seguridad S9 en PostgreSQL y Revocación de RPCs.
+  * [[fase-3-pr-3e-informe-ejecucion]] — Servicios de Dominio de Catálogo, Insumos y Recetas con Auditoría.
+* **Fase 4 — Desacoplamiento Modular:**
+  * [[fase-4-pr-4a-informe-ejecucion]] — Desacoplamiento de Perfil de Usuario y Direcciones.
+  * [[fase-4-pr-4b-informe-ejecucion]] — Desacoplamiento de Catálogo y Carrito de Compras.
+  * [[fase-4-pr-4c-informe-ejecucion]] — Desacoplamiento de Materias Primas e Inventario.
+  * [[fase-4-pr-4d-informe-ejecucion]] — Desacoplamiento de Recetas y Costeo de Escandallo.
+  * [[fase-4-pr-4e-informe-ejecucion]] — Desacoplamiento de Pedidos Administrativos (Kanban y Modales).
+  * [[fase-4-pr-4f-checkout-y-refinamiento-10-10]] — Refinamiento Integral de Checkout UI y Certificación 10/10.
+* **Fase 5 — Calidad, Disciplina & CI:**
+  * [[fase-5-disciplina-informe-ejecucion]] — **Informe Maestro Consolidado de Fase 5**.
+  * [[fase-5-subfase-5.1-eslint-informe]] — ESLint 10 Flat Config y Erradicación Total de `any`.
+  * [[fase-5-subfase-5.2-limites-arquitectura-informe]] — Linter de Límites Arquitectónicos (§6.2).
+  * [[fase-5-subfase-5.3-ci-type-drift-informe]] — Pipeline CI/CD en GitHub Actions y Type Drift Gate.
+  * [[fase-5-subfase-5.4-adrs-informe]] — Formalización MADR 3.0.0 de Deudas Técnicas D1–D8.
+  * [[fase-5-subfase-5.5-operaciones-informe]] — Playbook de Operaciones, Resiliencia y Telemetría.
+  * [[fase-5-subfase-5.6-a11y-informe]] — Accesibilidad WCAG 2.1 AA en Formularios y Modales.
+* **Fase 6 — KDS, Vouchers & Automatización:**
+  * [[fase-6-producto-kds-informe-ejecucion]] — **Informe Maestro Consolidado de Fase 6**.
+  * [[fase-6-subfase-6.1-tracking-invitados-informe]] — Guest Tracking sin cuenta, Tokens HMAC-SHA256 y Ley 29733 (ADR-002 / D2).
+  * [[fase-6-subfase-6.2-reversion-stock-mermas-informe]] — Reversión Atómica de Stock y Declaración de Mermas (ADR-001 / D1).
+  * [[fase-6-subfase-6.3-kds-cocina-informe]] — Kitchen Display System (KDS), Semáforos de Urgencia y Agregador de Lotes (Módulo C).
+  * [[fase-6-subfase-6.4-pagos-comprobantes-informe]] — Pasarela Yape/Plin, Carga de Vouchers con Magic Bytes y Validación 1-Click (ADR-005 / D5).
+  * [[fase-6-subfase-6.5-snapshot-escandallo-informe]] — Snapshot Inmutable de Escandallo y Freeze de COGS (ADR-008 / D8).
+  * [[fase-6-subfase-6.6-webhooks-n8n-informe]] — Ecosistema de Webhooks Asíncronos Firmados con HMAC-SHA256 para n8n (ADR-006 / D6).
+* **Fase 7 — Tandas Maestras & Rendimientos:**
+  * [[fase-7-subfase-7.1-migracion-tandas-informe]] — Capa de Datos & Migración SQL de Tandas (Batch Recipes), Rendimientos y Descargo Rápido.
+  * [[fase-7-subfase-7.2-backend-nitro-tandas-informe]] — Backend Nitro & Servicios de Dominio de Tandas, Deducción en Pedidos y Descargo Rápido.
+  * [[fase-7-subfase-7.3-ui-admin-tandas-informe]] — Interfaz Administrativa de Tandas Maestras, Rendimientos y Descargo Rápido.
+  * [[fase-7-subfase-7.4-dashboard-vitrina-informe]] — Dashboard Preventivo de Productos en Riesgo y Vitrina Comercial Artesanal.
+  * [[fase-7-subfase-7.5-pruebas-e2e-cierre-informe]] — Pruebas de Integración de Ciclo Completo, E2E y Cierre de Producción.
+  * [[fase-7-adenda-custom-select-responsive-informe]] — Adenda de Estandarización Universal de CustomSelect, Single-Screen Fit y Refinamiento Estético.
+* **Fase 8 — Hardening, Atelier & Experiencia Cliente:**
+  * [[fase-8-hardening-checkout-mobile-y-asociacion-pedidos-informe]] — Hardening de Checkout Mobile, Asociación de Pedidos y Optimización Administrativa (259 Tests Passing).
+  * [[rediseño-experiencia-cliente-atelier-editorial-y-categorias-informe]] — Rediseño Atelier Editorial de Cliente, Gestión de Categorías y Blindaje de Catálogo.
+  * [[seguimiento-pedidos-responsivo-informe]] — Rediseño y Responsividad Móvil del Seguimiento de Pedidos.
+  * [[refinamiento-ui-auth-checkout-kds-informe]] — Refinamiento UI, Autenticación Dedicada, Checkout Perú (Yape/Plin), Navegación Móvil y KDS.
+  * [[hardening-estabilidad-informe-ejecucion]] — Hardening & Estabilidad del Sistema (Fix Modales, RLS Service Role & Sesiones Zombi).
+  * [[elevacion-certificacion-10-10-informe-ejecucion]] — Elevación Integral a Calificación 10/10 Enterprise y Cierre Arquitectónico.
+  * [[aislamiento-entornos-dev-prod-y-seguridad-credenciales-informe]] — Aislamiento de Entornos Dev/Prod y Seguridad de Credenciales.
 
 ### 📁 05 - Operaciones & Resiliencia
 * [[playbook-operaciones]] — Variables por entorno, rotación de claves, runbook de restore V44, Vercel Git-Ops y telemetría de alertas.
@@ -162,8 +173,13 @@ flowchart TD
 * [[ADR-005-automatizacion-event-driven-n8n]] — Automatizaciones con n8n Open-Source vs Zapier/Make.
 * [[ADR-006-carrito-cliente-pinia-cookies]] — Carrito en cliente con Pinia + Cookies vs tablas en BD.
 * [[ADR-007-tiempo-real-server-sent-events]] — Streaming de estado de pedidos con Server-Sent Events (SSE).
-* [[ADR-008-modelo-tandas-maestras-rendimientos-porcionamiento]] — Modelo dual de tandas maestras, rendimientos proporcionales, empaques desacoplados y descargo rápido de mermas (Fase 7).
-
+### 06 - Manuales de Usuario (Guías Prácticas de Operación)
+* [[06 - Manuales de Usuario/README|Índice de Manuales de Usuario]] — Centro de guías prácticas del equipo.
+* [[manual-01-gestion-pedidos-y-estados]] — Manual 01: Gestión de pedidos, ciclo de vida y control de estados.
+* [[manual-02-aprobacion-pagos-yape-plin]] — Manual 02: Aprobación de pagos Yape/Plin y validación de vouchers en 1-clic.
+* [[manual-03-tandas-rendimientos-y-recetas]] — Manual 03: Tandas maestras, rendimientos y empaques desacoplados.
+* [[manual-04-pantalla-cocina-kds]] — Manual 04: Pantalla táctil de cocina (KDS) y horneado en lotes.
+* [[manual-05-almacen-insumos-y-mermas]] — Manual 05: Almacén de materias primas, alertas y descargo de mermas.
 
 ---
 

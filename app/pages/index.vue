@@ -5,11 +5,30 @@ import { useCartStore } from '~/stores/cart'
 import { toast } from 'vue-sonner'
 import type { CatalogApiResponse, CatalogProduct } from '~/types/catalog'
 import ProductDetailModal from '~/components/catalog/ProductDetailModal.vue'
+import FaqAccordion, { type FaqItem } from '~/components/ui/FaqAccordion.vue'
+
+const homeFaqList: FaqItem[] = [
+  {
+    id: 'anticipacion',
+    question: '¿Con cuánta anticipación debo hacer mi pedido?',
+    answer: 'Recomendamos 36 a 48 horas para asegurar horneado fresco y decoración artesanal. Si requieres un pedido con menor tiempo (por ejemplo, queques caseros tradicionales para el día siguiente o primera hora), contáctanos directamente por WhatsApp para coordinar disponibilidad.'
+  },
+  {
+    id: 'envios',
+    question: '¿Cómo funciona el envío o la entrega?',
+    answer: 'Ofrecemos dos modalidades: (1) Delivery a domicilio, con costo de envío a coordinar por WhatsApp según distrito y tamaño; o (2) Punto de encuentro acordado (ej. parroquia o lugar pactado) sin costo adicional para postres transportables.'
+  },
+  {
+    id: 'conservacion',
+    question: '¿Cómo debo conservar mi postre o torta?',
+    answer: 'Los queques y alfajores se conservan frescos a temperatura ambiente en lugar seco y fresco hasta por 4 días. Las tortas con crema, tres leches o cheesecakes deben mantenerse refrigeradas (4°C a 8°C) y retirarse 15 minutos antes de degustar.'
+  }
+]
 
 const cartStore = useCartStore()
 
 // 1. Consulta dinámica de productos desde el backend con fallback elegante
-const { data: catalogResponse, pending } = await useAsyncData(
+const { data: catalogResponse } = await useAsyncData(
   'featured-catalog',
   () => $fetch<CatalogApiResponse>('/api/products'),
   {
@@ -32,7 +51,7 @@ const displayFeatured = computed<CatalogProduct[]>(() => {
   const sortedFeatured = [...featured].sort((a, b) => (Number(b.stock) > 0 ? 1 : 0) - (Number(a.stock) > 0 ? 1 : 0))
   const sortedOthers = [...others].sort((a, b) => (Number(b.stock) > 0 ? 1 : 0) - (Number(a.stock) > 0 ? 1 : 0))
 
-  return [...sortedFeatured, ...sortedOthers].slice(0, 6)
+  return [...sortedFeatured, ...sortedOthers].slice(0, 3)
 })
 
 // Estado del Modal de Detalle Rápido
@@ -149,7 +168,11 @@ function resumeAutoplay() {
 function startAutoplay() {
   stopAutoplay()
   autoplayTimer = setInterval(() => {
-    // Solo avanzamos si el carrusel ESTÁ EN PANTALLA y el usuario no está tocándolo
+    // En pantallas grandes (>= 1024px) donde caben las 3 creaciones a la vista, no forzamos autoplay
+    if (typeof window !== 'undefined' && window.innerWidth >= 1024 && displayFeatured.value.length <= 3) {
+      return
+    }
+    // Solo avanzamos si el carrusel ESTÁ EN PANTALLA y el usuario no está interactuando
     if (!isUserInteracting.value && isVisibleOnScreen.value && displayFeatured.value.length > 1) {
       scrollNext()
     }
@@ -443,22 +466,22 @@ onBeforeUnmount(() => {
           </NuxtLink>
         </div>
 
-        <!-- Carrusel Protegido de Productos Destacados (Sin saltos de pantalla) -->
+        <!-- Carrusel Protegido de Productos Destacados (Sin saltos de pantalla ni scrollbars visibles) -->
         <div v-if="displayFeatured.length > 0" class="relative group/carousel">
-          <!-- Contenedor scrollable horizontal -->
+          <!-- Contenedor scrollable horizontal en móviles y centrado estático en desktop -->
           <div 
             ref="carouselContainer"
             @mouseenter="pauseAutoplay"
             @mouseleave="resumeAutoplay"
             @touchstart.passive="pauseAutoplay"
             @touchend.passive="resumeAutoplay"
-            class="flex gap-4 sm:gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory py-2 px-1 no-scrollbar touch-pan-x"
+            class="flex gap-4 sm:gap-6 lg:gap-8 overflow-x-auto lg:overflow-x-visible scroll-smooth snap-x snap-mandatory py-2 px-1 no-scrollbar hide-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden sm:justify-start lg:justify-center touch-pan-x"
           >
             <article
               v-for="(product, idx) in displayFeatured"
               :key="product.id"
               :data-index="idx"
-              class="w-[82vw] sm:w-[320px] md:w-[360px] shrink-0 snap-center bg-surface rounded-3xl overflow-hidden shadow-soft-sm hover:shadow-soft-lg transition-all duration-300 flex flex-col border border-brand-primary/10 hover:-translate-y-1.5"
+              class="w-[82vw] sm:w-[320px] md:w-[340px] lg:w-[360px] shrink-0 snap-center bg-surface rounded-3xl overflow-hidden shadow-soft-sm hover:shadow-soft-lg transition-all duration-300 flex flex-col border border-brand-primary/10 hover:-translate-y-1.5"
             >
               <!-- Imagen con click para ver detalle -->
               <div 
@@ -521,28 +544,30 @@ onBeforeUnmount(() => {
             </article>
           </div>
 
-          <!-- Flechas flotantes (Desktop) -->
+          <!-- Flechas flotantes (visibles en tablets intermedias md, ocultas en lg desktop) -->
           <button 
+            v-if="displayFeatured.length > 1"
             @click="scrollPrev"
             type="button"
             aria-label="Anterior joya dulce"
-            class="hidden md:flex absolute -left-5 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-surface/95 border border-brand-primary/20 text-brand-secondary hover:text-brand-primary hover:scale-110 active:scale-95 shadow-soft-md items-center justify-center transition-all z-20 cursor-pointer"
+            class="hidden md:flex lg:hidden absolute -left-5 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-surface/95 border border-brand-primary/20 text-brand-secondary hover:text-brand-primary hover:scale-110 active:scale-95 shadow-soft-md items-center justify-center transition-all z-20 cursor-pointer"
           >
             <Icon name="lucide:chevron-left" class="w-5 h-5" />
           </button>
           <button 
+            v-if="displayFeatured.length > 1"
             @click="scrollNext"
             type="button"
             aria-label="Siguiente joya dulce"
-            class="hidden md:flex absolute -right-5 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-surface/95 border border-brand-primary/20 text-brand-secondary hover:text-brand-primary hover:scale-110 active:scale-95 shadow-soft-md items-center justify-center transition-all z-20 cursor-pointer"
+            class="hidden md:flex lg:hidden absolute -right-5 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-surface/95 border border-brand-primary/20 text-brand-secondary hover:text-brand-primary hover:scale-110 active:scale-95 shadow-soft-md items-center justify-center transition-all z-20 cursor-pointer"
           >
             <Icon name="lucide:chevron-right" class="w-5 h-5" />
           </button>
 
           <!-- Paginación de Dots y Botón Mobile al pie -->
           <div class="flex flex-col items-center gap-4 mt-6 sm:mt-8">
-            <!-- Indicadores (Dots) -->
-            <div class="flex items-center gap-2">
+            <!-- Indicadores (Dots) visibles solo en mobile/tablet cuando hay navegación deslizable -->
+            <div v-if="displayFeatured.length > 1" class="flex lg:hidden items-center gap-2">
               <button
                 v-for="(_, i) in displayFeatured"
                 :key="i"
@@ -734,6 +759,38 @@ onBeforeUnmount(() => {
     </section>
 
     <!-- ========================================================================= -->
+    <!-- PREGUNTAS FRECUENTES (FAQ) ATELIER                                        -->
+    <!-- ========================================================================= -->
+    <section class="relative py-12 sm:py-20 bg-brand-cream/30 border-t border-brand-primary/10 z-10">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        <div class="text-center space-y-2">
+          <div class="inline-flex items-center gap-2 text-[11px] sm:text-xs font-bold text-brand-primary uppercase tracking-widest">
+            <Icon name="lucide:help-circle" class="w-4 h-4" />
+            <span>Resolviendo tus Dudas</span>
+          </div>
+          <h2 class="text-2xl sm:text-4xl font-playfair font-black text-brand-secondary">
+            Preguntas Frecuentes
+          </h2>
+          <p class="text-xs sm:text-sm text-brand-secondary/70 max-w-lg mx-auto font-medium">
+            Detalles claros sobre nuestra elaboración artesanal, pedidos y opciones de entrega.
+          </p>
+        </div>
+
+        <FaqAccordion :items="homeFaqList" />
+
+        <div class="text-center pt-2">
+          <NuxtLink
+            to="/faq"
+            class="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-brand-primary hover:text-brand-secondary transition-colors underline underline-offset-4"
+          >
+            <span>Ver todas las preguntas y respuestas</span>
+            <Icon name="lucide:arrow-right" class="w-4 h-4" />
+          </NuxtLink>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
     <!-- 6. LLAMADO FINAL INMERSIVO: BOUTIQUE BANNER                               -->
     <!-- ========================================================================= -->
     <section class="relative py-16 sm:py-20 bg-brand-secondary text-white z-10">
@@ -807,3 +864,18 @@ onBeforeUnmount(() => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.no-scrollbar::-webkit-scrollbar,
+.hide-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.no-scrollbar,
+.hide-scrollbar {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+</style>

@@ -32,11 +32,12 @@ const emit = defineEmits<{
   (e: "view-recipe", product: ProductRow): void;
 }>();
 
-// Consulta reactiva a productos en riesgo de producción
-const { data: atRiskData, refresh: refreshAtRisk } = await useFetch<{
+// Consulta reactiva a productos en riesgo de producción con lazy: true para navegación fluida
+const { data: atRiskData, refresh: refreshAtRisk } = useFetch<{
   success: boolean;
   data: AtRiskProductItem[];
 }>('/api/admin/dashboard/at-risk-products', {
+  lazy: true,
   default: () => ({ success: true, data: [] })
 });
 
@@ -190,104 +191,18 @@ function onModalSaved(): void {
   refreshAtRisk();
 }
 
-// Control de Carrusel de Métricas en Mobile (< sm)
-const activeMetricIndex = ref<number>(0);
-const metricsCarouselRef = ref<HTMLElement | null>(null);
-const isCarouselPaused = ref<boolean>(false);
-let carouselInterval: ReturnType<typeof setInterval> | null = null;
-
-function isElementInViewport(el: HTMLElement): boolean {
-  if (typeof window === "undefined") return false;
-  const rect = el.getBoundingClientRect();
-  const windowHeight = window.innerHeight || document.documentElement.clientHeight;
-  return rect.bottom > 0 && rect.top < windowHeight;
-}
-
-function scrollToMetric(index: number): void {
-  activeMetricIndex.value = index;
-  if (metricsCarouselRef.value) {
-    const container = metricsCarouselRef.value;
-    const cards = container.children;
-    if (cards && cards[index]) {
-      const firstCard = cards[0] as HTMLElement;
-      const targetCard = cards[index] as HTMLElement;
-      const baseOffset = firstCard ? firstCard.offsetLeft : 0;
-      const targetLeft = targetCard.offsetLeft - baseOffset;
-      container.scrollTo({
-        left: targetLeft,
-        behavior: "smooth",
-      });
-    }
-  }
-}
-
-function onCarouselScroll(): void {
-  if (!metricsCarouselRef.value) return;
-  const container = metricsCarouselRef.value;
-  const scrollLeft = container.scrollLeft;
-  const cards = container.children;
-  if (!cards || cards.length === 0) return;
-
-  const firstCard = cards[0] as HTMLElement;
-  const baseOffset = firstCard ? firstCard.offsetLeft : 0;
-
-  let closestIndex = 0;
-  let minDiff = Infinity;
-  for (let i = 0; i < Math.min(cards.length, 4); i++) {
-    const card = cards[i] as HTMLElement;
-    const cardRelativeLeft = card.offsetLeft - baseOffset;
-    const diff = Math.abs(cardRelativeLeft - scrollLeft);
-    if (diff < minDiff) {
-      minDiff = diff;
-      closestIndex = i;
-    }
-  }
-  if (closestIndex !== activeMetricIndex.value) {
-    activeMetricIndex.value = closestIndex;
-  }
-}
-
-function pauseCarousel(): void {
-  isCarouselPaused.value = true;
-}
-
-function resumeCarousel(): void {
-  isCarouselPaused.value = false;
-}
-
-function startCarousel(): void {
-  stopCarousel();
-  carouselInterval = setInterval(() => {
-    if (!isCarouselPaused.value && metricsCarouselRef.value) {
-      if (isElementInViewport(metricsCarouselRef.value)) {
-        const nextIndex = (activeMetricIndex.value + 1) % 4;
-        scrollToMetric(nextIndex);
-      }
-    }
-  }, 4000);
-}
-
-function stopCarousel(): void {
-  if (carouselInterval) {
-    clearInterval(carouselInterval);
-    carouselInterval = null;
-  }
-}
-
 // Control de Pestañas de Alertas en Mobile (< lg)
 const activeAlertTab = ref<"products" | "materials">("products");
 
 onMounted(() => {
   updateItemsPerPage();
   window.addEventListener("resize", updateItemsPerPage);
-  startCarousel();
 });
 
 onUnmounted(() => {
   if (typeof window !== "undefined") {
     window.removeEventListener("resize", updateItemsPerPage);
   }
-  stopCarousel();
 });
 </script>
 
@@ -297,7 +212,7 @@ onUnmounted(() => {
     <div
       class="bg-white rounded-2xl sm:rounded-[1.75rem] border border-[#4A5D23]/10 shadow-soft-sm p-3.5 sm:p-4 lg:p-4.5 flex flex-col md:flex-row md:items-center justify-between gap-3.5"
     >
-      <div>
+      <div class="min-w-0">
         <h2 class="text-xl sm:text-2xl font-playfair font-bold text-[#2A321B]">
           ¡Hola, {{ authStore.profile?.full_name?.split(" ")[0] || "Administrador" }}!
         </h2>
@@ -322,27 +237,23 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <!-- Carrusel / Grid de Métricas Principales (KPIs) -->
+    <!-- Grid de Métricas Principales (KPIs) 2x2 en móvil / 4 columnas en desktop -->
     <div>
       <div
-        ref="metricsCarouselRef"
-        @scroll.passive="onCarouselScroll"
-        @touchstart.passive="pauseCarousel"
-        @touchend.passive="resumeCarousel"
-        class="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-3.5 overflow-x-auto sm:overflow-visible snap-x snap-mandatory sm:snap-none hide-scrollbar -mx-4 sm:mx-0 px-4 sm:px-0 py-0.5"
+        class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5 w-full py-0.5"
       >
         <!-- KPI 1: Total Productos -->
         <div
-          class="snap-start shrink-0 w-full sm:w-auto sm:shrink sm:grow min-w-[200px] bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-[#4A5D23]/10 shadow-soft-sm flex items-center gap-3.5 transition-all hover:border-[#4A5D23]/25"
+          class="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-[#4A5D23]/10 shadow-soft-sm flex items-center gap-2.5 sm:gap-3.5 transition-all hover:border-[#4A5D23]/25 min-w-0"
         >
-          <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#F4F1E1] text-[#4A5D23] flex items-center justify-center shrink-0 shadow-soft-sm">
-            <Icon name="lucide:cake" class="w-5 h-5 sm:w-5.5 sm:h-5.5" />
+          <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-[#F4F1E1] text-[#4A5D23] flex items-center justify-center shrink-0 shadow-soft-sm">
+            <Icon name="lucide:cake" class="w-4 h-4 sm:w-5.5 sm:h-5.5" />
           </div>
-          <div>
-            <p class="text-[10px] sm:text-xs font-bold text-[#4A5D23]/70 uppercase tracking-wider">
+          <div class="min-w-0 flex-1">
+            <p class="text-[9px] sm:text-[10px] md:text-xs font-bold text-[#4A5D23]/70 uppercase tracking-wider truncate">
               Productos en Vitrina
             </p>
-            <p class="text-lg sm:text-xl font-bold text-[#2A321B] font-inter leading-tight mt-0.5">
+            <p class="text-base sm:text-lg md:text-xl font-bold text-[#2A321B] font-inter leading-tight mt-0.5">
               {{ totalProducts }}
             </p>
           </div>
@@ -350,25 +261,25 @@ onUnmounted(() => {
 
         <!-- KPI 2: Productos en Riesgo por Falta de Insumos (PREVENTIVO) -->
         <div
-          class="snap-start shrink-0 w-full sm:w-auto sm:shrink sm:grow min-w-[200px] bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-[#4A5D23]/10 shadow-soft-sm flex items-center gap-3.5 transition-all hover:border-[#4A5D23]/25"
+          class="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-[#4A5D23]/10 shadow-soft-sm flex items-center gap-2.5 sm:gap-3.5 transition-all hover:border-[#4A5D23]/25 min-w-0"
         >
           <div
             :class="[
-              'w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shrink-0 shadow-soft-sm',
+              'w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shrink-0 shadow-soft-sm',
               atRiskProducts.length > 0
                 ? 'bg-red-500/10 text-red-700'
                 : 'bg-lime-500/10 text-lime-700',
             ]"
           >
-            <Icon :name="atRiskProducts.length > 0 ? 'lucide:alert-circle' : 'lucide:shield-check'" class="w-5 h-5 sm:w-5.5 sm:h-5.5" />
+            <Icon :name="atRiskProducts.length > 0 ? 'lucide:alert-circle' : 'lucide:shield-check'" class="w-4 h-4 sm:w-5.5 sm:h-5.5" />
           </div>
-          <div>
-            <p class="text-[10px] sm:text-xs font-bold text-[#4A5D23]/70 uppercase tracking-wider">
+          <div class="min-w-0 flex-1">
+            <p class="text-[9px] sm:text-[10px] md:text-xs font-bold text-[#4A5D23]/70 uppercase tracking-wider truncate">
               Productos en Riesgo
             </p>
             <p
               :class="[
-                'text-lg sm:text-xl font-black font-inter leading-tight mt-0.5',
+                'text-base sm:text-lg md:text-xl font-black font-inter leading-tight mt-0.5',
                 atRiskProducts.length > 0 ? 'text-red-700' : 'text-lime-700',
               ]"
             >
@@ -379,16 +290,16 @@ onUnmounted(() => {
 
         <!-- KPI 3: Total Insumos en Almacén -->
         <div
-          class="snap-start shrink-0 w-full sm:w-auto sm:shrink sm:grow min-w-[200px] bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-[#4A5D23]/10 shadow-soft-sm flex items-center gap-3.5 transition-all hover:border-[#4A5D23]/25"
+          class="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-[#4A5D23]/10 shadow-soft-sm flex items-center gap-2.5 sm:gap-3.5 transition-all hover:border-[#4A5D23]/25 min-w-0"
         >
-          <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#F4F1E1] text-[#4A5D23] flex items-center justify-center shrink-0 shadow-soft-sm">
-            <Icon name="lucide:boxes" class="w-5 h-5 sm:w-5.5 sm:h-5.5" />
+          <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-[#F4F1E1] text-[#4A5D23] flex items-center justify-center shrink-0 shadow-soft-sm">
+            <Icon name="lucide:boxes" class="w-4 h-4 sm:w-5.5 sm:h-5.5" />
           </div>
-          <div>
-            <p class="text-[10px] sm:text-xs font-bold text-[#4A5D23]/70 uppercase tracking-wider">
+          <div class="min-w-0 flex-1">
+            <p class="text-[9px] sm:text-[10px] md:text-xs font-bold text-[#4A5D23]/70 uppercase tracking-wider truncate">
               Insumos Registrados
             </p>
-            <p class="text-lg sm:text-xl font-bold text-[#2A321B] font-inter leading-tight mt-0.5">
+            <p class="text-base sm:text-lg md:text-xl font-bold text-[#2A321B] font-inter leading-tight mt-0.5">
               {{ totalMaterials }}
             </p>
           </div>
@@ -396,25 +307,25 @@ onUnmounted(() => {
 
         <!-- KPI 4: Insumos con Stock Bajo -->
         <div
-          class="snap-start shrink-0 w-full sm:w-auto sm:shrink sm:grow min-w-[200px] bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-[#4A5D23]/10 shadow-soft-sm flex items-center gap-3.5 transition-all hover:border-[#4A5D23]/25"
+          class="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-[#4A5D23]/10 shadow-soft-sm flex items-center gap-2.5 sm:gap-3.5 transition-all hover:border-[#4A5D23]/25 min-w-0"
         >
           <div
             :class="[
-              'w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shrink-0 shadow-soft-sm',
+              'w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shrink-0 shadow-soft-sm',
               lowStockMaterials.length > 0
                 ? 'bg-red-500/10 text-red-700'
                 : 'bg-[#F4F1E1] text-[#4A5D23]',
             ]"
           >
-            <Icon name="lucide:scale" class="w-5 h-5 sm:w-5.5 sm:h-5.5" />
+            <Icon name="lucide:scale" class="w-4 h-4 sm:w-5.5 sm:h-5.5" />
           </div>
-          <div>
-            <p class="text-[10px] sm:text-xs font-bold text-[#4A5D23]/70 uppercase tracking-wider">
+          <div class="min-w-0 flex-1">
+            <p class="text-[9px] sm:text-[10px] md:text-xs font-bold text-[#4A5D23]/70 uppercase tracking-wider truncate">
               Insumos Stock Bajo
             </p>
             <p
               :class="[
-                'text-lg sm:text-xl font-bold font-inter leading-tight mt-0.5',
+                'text-base sm:text-lg md:text-xl font-bold font-inter leading-tight mt-0.5',
                 lowStockMaterials.length > 0 ? 'text-red-700' : 'text-[#2A321B]',
               ]"
             >
@@ -422,23 +333,6 @@ onUnmounted(() => {
             </p>
           </div>
         </div>
-      </div>
-
-      <!-- Indicadores de Dots (Solo Mobile < sm) -->
-      <div class="flex sm:hidden items-center justify-center gap-1.5 mt-2.5">
-        <button
-          v-for="i in 4"
-          :key="i"
-          type="button"
-          @click="scrollToMetric(i - 1)"
-          :class="[
-            'h-1.5 rounded-full transition-all duration-300 cursor-pointer',
-            activeMetricIndex === i - 1
-              ? 'w-5 bg-brand-primary'
-              : 'w-1.5 bg-brand-primary/25 hover:bg-brand-primary/40',
-          ]"
-          :aria-label="`Ir a métrica ${i}`"
-        />
       </div>
     </div>
 

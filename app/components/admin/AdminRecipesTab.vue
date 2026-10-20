@@ -149,7 +149,7 @@ function openQuickDeduction(batchId?: number) {
 async function handleDeleteBatch(batch: BaseRecipeDetail) {
   const confirmed = window.confirm(
     `¿Estás seguro de eliminar la tanda maestra "${batch.name}"?\n\n` +
-      `🛡️ GARANTÍA DE ALMACÉN: Los insumos del almacén NO se eliminarán ni modificarán.`
+      `GARANTÍA DE ALMACÉN: Los insumos del almacén NO se eliminarán ni modificarán.`
   )
   if (!confirmed) return
 

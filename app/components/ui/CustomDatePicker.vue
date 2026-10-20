@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 
-defineProps<{
+const props = defineProps<{
   modelValue: string
   placeholder?: string
   bgClass?: string
+  minDate?: Date
 }>()
 
 const emit = defineEmits<{
@@ -85,10 +86,10 @@ const prevMonth = () => {
 }
 
 const isPastDate = (day: number) => {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
+  const threshold = props.minDate ? new Date(props.minDate) : new Date()
+  threshold.setHours(0, 0, 0, 0)
   const dateToCheck = new Date(currentYear.value, currentMonth.value, day)
-  return dateToCheck < today
+  return dateToCheck < threshold
 }
 
 const selectDate = (day: number) => {

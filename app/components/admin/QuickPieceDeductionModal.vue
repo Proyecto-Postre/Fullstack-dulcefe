@@ -435,8 +435,9 @@ async function handleConfirmDeduction() {
                 </div>
               </div>
 
-              <p class="text-[10px] text-amber-800/90 font-medium pt-1">
-                🛡️ <strong>Garantía de Almacén:</strong> Solo se deducen las materias primas mostradas arriba. Las recetas y otros productos permanecen intactos.
+              <p class="text-[10px] text-amber-800/90 font-medium pt-1 flex items-center gap-1.5">
+                <Icon name="lucide:shield-check" class="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                <span><strong>Garantía de Almacén:</strong> Solo se deducen las materias primas mostradas arriba. Las recetas y otros productos permanecen intactos.</span>
               </p>
             </div>
           </div>

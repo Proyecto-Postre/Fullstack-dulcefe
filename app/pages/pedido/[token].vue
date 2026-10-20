@@ -266,7 +266,7 @@ const progressPercentage = computed(() => {
 </script>
 
 <template>
-  <div class="flex-1 w-full bg-gradient-to-b from-[#F4F1E1]/60 via-[#F4F1E1]/40 to-[#F4F1E1]/80 py-4 sm:py-6 md:py-8 lg:py-10 px-4 sm:px-6 lg:px-8 flex flex-col justify-start md:justify-center relative overflow-hidden">
+  <div class="flex-1 w-full bg-gradient-to-b from-[#F4F1E1]/60 via-[#F4F1E1]/40 to-[#F4F1E1]/80 py-4 sm:py-6 md:py-8 lg:py-10 px-4 sm:px-6 lg:px-12 flex flex-col justify-start md:justify-center relative overflow-hidden">
     
     <!-- Luces Ambientales Cálidas & Elementos Botánicos para Pantallas Medianas y Grandes -->
     <div class="absolute inset-0 pointer-events-none overflow-hidden z-0 hidden sm:block">
@@ -276,7 +276,7 @@ const progressPercentage = computed(() => {
       <Icon name="lucide:wheat" class="absolute bottom-[8%] right-[2%] w-64 h-64 text-brand-primary/[0.03] rotate-45 pointer-events-none" />
     </div>
 
-    <div class="relative z-10 w-full max-w-5xl xl:max-w-6xl 2xl:max-w-7xl mx-auto my-auto space-y-4 sm:space-y-5 lg:space-y-6 transition-all duration-300">
+    <div class="relative z-10 w-full max-w-7xl mx-auto my-auto space-y-4 sm:space-y-5 lg:space-y-6 transition-all duration-300">
 
       <!-- ==================== BARRA SUPERIOR DE NAVEGACIÓN Y ACCIONES ==================== -->
       <div class="flex items-center justify-between gap-2">
@@ -635,9 +635,9 @@ const progressPercentage = computed(() => {
               <!-- Resumen y Total Financiero (anclado abajo) -->
               <div class="pt-4 border-t border-[#4A5D23]/15 space-y-2 mt-2">
                 <div class="flex items-center justify-between text-stone-600 text-xs sm:text-sm">
-                  <span class="flex items-center gap-1.5">
-                    <Icon name="lucide:map-pin" class="w-4 h-4 text-[#4A5D23]" />
-                    <span>Entrega:</span>
+                  <span class="flex items-center gap-1.5 shrink-0">
+                    <Icon :name="order.address?.startsWith('Punto de encuentro') ? 'lucide:map-pin' : 'lucide:truck'" class="w-4 h-4 text-[#4A5D23]" />
+                    <span>{{ order.address?.startsWith('Punto de encuentro') ? 'Punto de Encuentro:' : 'Entrega:' }}</span>
                   </span>
                   <span class="font-medium text-[#2A321B] text-right truncate max-w-[190px] sm:max-w-[250px]">
                     {{ order.address || (order.channel === 'whatsapp_chat' ? 'Por coordinar por WhatsApp' : 'Recojo / Entrega pactada') }}
