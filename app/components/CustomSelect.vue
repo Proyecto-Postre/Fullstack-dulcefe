@@ -14,6 +14,7 @@ defineProps<{
   iconClass?: string
   selectedLabelClass?: string
   chevronClass?: string
+  clearable?: boolean
 }>()
 
 defineEmits<{
@@ -36,6 +37,7 @@ defineEmits<{
     :iconClass="iconClass"
     :selectedLabelClass="selectedLabelClass"
     :chevronClass="chevronClass"
+    :clearable="clearable"
     @update:model-value="$emit('update:modelValue', $event)"
     @change="$emit('change', $event)"
   />

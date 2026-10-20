@@ -134,7 +134,7 @@ onBeforeUnmount(() => {
 
 // Opciones de selector enriquecido CustomSelect para Porciones
 const portionOptions: SelectOption[] = [
-  { label: 'Todas las porciones', value: 'all', sublabel: 'Cualquier tamaño' },
+  { label: 'Porciones', value: 'all', sublabel: 'Cualquier tamaño' },
   { label: '1 a 4 porciones', value: '1-4', sublabel: 'Individual / Pareja' },
   { label: '6 a 10 porciones', value: '6-10', sublabel: 'Familiar' },
   { label: '12+ porciones', value: '12+', sublabel: 'Celebración' }
@@ -142,7 +142,7 @@ const portionOptions: SelectOption[] = [
 
 // Opciones de selector enriquecido CustomSelect para Presupuesto / Precio
 const priceRangeOptions: SelectOption[] = [
-  { label: 'Todos los precios', value: 'all', sublabel: 'Cualquier presupuesto' },
+  { label: 'Precios', value: 'all', sublabel: 'Cualquier presupuesto' },
   { label: 'Hasta S/ 30', value: 'under-30', sublabel: 'Antojos y porciones' },
   { label: 'S/ 30 a S/ 60', value: '30-60', sublabel: 'Postres medianos' },
   { label: 'Más de S/ 60', value: 'above-60', sublabel: 'Tortas y celebraciones' }
@@ -151,14 +151,28 @@ const priceRangeOptions: SelectOption[] = [
 const hasActiveSecondaryFilters = computed(() => {
   return (props.portionFilter && props.portionFilter !== 'all') || (props.priceRangeFilter && props.priceRangeFilter !== 'all')
 })
+
+const hasAnyActiveFilter = computed(() => {
+  return (
+    (props.searchQuery && props.searchQuery.trim().length > 0) ||
+    !isAllSelected.value ||
+    hasActiveSecondaryFilters.value
+  )
+})
+
+function resetAllFilters() {
+  emit('update:searchQuery', '')
+  selectAll()
+  emit('resetAll')
+}
 </script>
 
 <template>
-  <div class="mb-6 sm:mb-9 w-full">
-    <!-- Barra Unificada de Exploración: Buscador a la izquierda y Filtros a la derecha en una sola fila continua -->
-    <div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2.5 sm:gap-3 w-full">
-      <!-- Izquierda: Buscador (Ocupa todo el espacio dinámico disponible en desktop) -->
-      <div class="relative flex-1 min-w-0">
+  <div class="mb-6 sm:mb-9 w-full space-y-2.5">
+    <!-- Fila Unificada con Grid Proporcional Deliberado: Buscador 1.6fr y 3 Filtros de 1fr cada uno -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr_1fr] gap-3 sm:gap-3.5 w-full items-center">
+      <!-- 1. Buscador (1.6fr en desktop, ancho completo en mobile) -->
+      <div class="relative w-full sm:col-span-2 lg:col-span-1">
         <Icon 
           name="lucide:search" 
           class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-brand-primary/60 pointer-events-none" 
@@ -167,7 +181,7 @@ const hasActiveSecondaryFilters = computed(() => {
           :value="searchQuery" 
           @input="$emit('update:searchQuery', ($event.target as HTMLInputElement).value)"
           type="text" 
-          placeholder="Buscar por nombre o sabor (chocolate, fresa, torta, brownie)..." 
+          placeholder="Buscar por nombre o sabor..." 
           class="w-full h-11 sm:h-12 pl-12 pr-10 bg-surface rounded-2xl border border-brand-primary/20 text-xs sm:text-sm font-semibold text-brand-secondary placeholder:text-brand-primary/40 focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 transition-all shadow-soft-sm"
         />
         <button 
@@ -181,209 +195,211 @@ const hasActiveSecondaryFilters = computed(() => {
         </button>
       </div>
 
-      <!-- Derecha: Cluster de Filtros (Secciones + Porciones + Precios) -->
+      <!-- 2. Filtro de Especialidades / Secciones (1fr) -->
       <div 
         v-if="realCategories.length > 0" 
         ref="dropdownRef" 
-        class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 shrink-0"
+        class="relative w-full sm:col-span-1"
       >
-        <!-- 1. Filtro Principal de Especialidades / Secciones -->
-        <div class="relative w-full sm:w-auto lg:w-60 xl:w-72 shrink-0">
-          <button
-            @click.stop="toggleDropdown"
-            type="button"
-            :class="[
-              'w-full h-11 sm:h-12 inline-flex items-center justify-between gap-2 px-3.5 sm:px-4 rounded-2xl text-xs sm:text-sm font-bold transition-all duration-300 border cursor-pointer select-none active:scale-98 shadow-soft-sm relative',
-              !isAllSelected
-                ? 'bg-brand-primary text-white border-brand-primary shadow-soft-md'
-                : 'bg-surface text-brand-secondary border-brand-primary/20 hover:bg-brand-cream hover:border-brand-primary/35'
-            ]"
-            :aria-expanded="isDropdownOpen"
-            aria-label="Filtrar por sección de la carta"
+        <button
+          @click.stop="toggleDropdown"
+          type="button"
+          :class="[
+            'w-full h-11 sm:h-12 inline-flex items-center justify-between gap-2 px-3.5 sm:px-4 rounded-2xl text-xs sm:text-sm font-bold transition-all duration-300 border cursor-pointer select-none active:scale-98 shadow-soft-sm relative',
+            !isAllSelected
+              ? 'bg-brand-primary text-white border-brand-primary shadow-soft-md'
+              : 'bg-surface text-brand-secondary border-brand-primary/20 hover:bg-brand-cream hover:border-brand-primary/35'
+          ]"
+          :aria-expanded="isDropdownOpen"
+          aria-label="Filtrar por sección de la carta"
+        >
+          <div class="flex items-center gap-2 min-w-0 flex-1">
+            <Icon :name="activeFilterIcon" class="w-4 h-4 text-brand-accent shrink-0" />
+            <span class="whitespace-nowrap font-bold truncate">
+              {{ activeFilterLabel }}
+            </span>
+          </div>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <button
+              v-if="!isAllSelected"
+              @click.stop="selectAll"
+              type="button"
+              class="w-5 h-5 rounded-full bg-white/20 hover:bg-white/35 text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
+              title="Restablecer a toda la carta"
+              aria-label="Restablecer a toda la carta"
+            >
+              <Icon name="lucide:x" class="w-3 h-3" />
+            </button>
+            <Icon 
+              name="lucide:chevron-down" 
+              :class="['w-4 h-4 transition-transform duration-200 shrink-0 opacity-80', isDropdownOpen ? 'rotate-180' : '']" 
+            />
+          </div>
+        </button>
+
+        <!-- Menú Desplegable Flotante Elegante con Selección Múltiple -->
+        <Transition name="dropdown-fade">
+          <div
+            v-if="isDropdownOpen"
+            class="absolute left-0 sm:left-auto sm:right-0 lg:left-0 top-full mt-2 w-full sm:w-80 bg-white rounded-2xl border border-brand-primary/20 shadow-2xl p-3 z-50"
           >
-            <div class="flex items-center gap-2 min-w-0 flex-1">
-              <Icon :name="activeFilterIcon" class="w-4 h-4 text-brand-accent shrink-0" />
-              <span class="whitespace-nowrap font-bold truncate">
-                {{ activeFilterLabel }}
+            <!-- Encabezado del Popover -->
+            <div class="px-2 py-1.5 border-b border-brand-primary/10 mb-2 flex items-center justify-between">
+              <span class="text-[10px] font-bold text-brand-primary uppercase tracking-widest">
+                Filtrar por Especialidad
+              </span>
+              <span class="text-[10px] text-brand-secondary/60 font-semibold">
+                Selección múltiple
               </span>
             </div>
-            <div class="flex items-center gap-1.5 shrink-0">
+
+            <div class="space-y-1.5 max-h-72 overflow-y-auto custom-scrollbar p-0.5">
+              <!-- Opción: Toda la Carta (Todos los Postres) -->
               <button
-                v-if="!isAllSelected"
-                @click.stop="selectAll"
+                @click="selectAll"
                 type="button"
-                class="w-5 h-5 rounded-full bg-white/20 hover:bg-white/35 text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
-                title="Restablecer a toda la carta"
-                aria-label="Restablecer a toda la carta"
+                :class="[
+                  'w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all text-left cursor-pointer border',
+                  isAllSelected
+                    ? 'bg-brand-primary text-white border-brand-primary shadow-soft-sm'
+                    : 'text-brand-secondary hover:bg-brand-cream border-transparent'
+                ]"
               >
-                <Icon name="lucide:x" class="w-3 h-3" />
-              </button>
-              <Icon 
-                name="lucide:chevron-down" 
-                :class="['w-4 h-4 transition-transform duration-200 shrink-0 opacity-80', isDropdownOpen ? 'rotate-180' : '']" 
-              />
-            </div>
-          </button>
-
-          <!-- Menú Desplegable Flotante Elegante con Selección Múltiple -->
-          <Transition name="dropdown-fade">
-            <div
-              v-if="isDropdownOpen"
-              class="absolute left-0 sm:left-auto sm:right-0 lg:left-0 top-full mt-2 w-full sm:w-80 bg-white rounded-2xl border border-brand-primary/20 shadow-2xl p-3 z-50"
-            >
-              <!-- Encabezado del Popover -->
-              <div class="px-2 py-1.5 border-b border-brand-primary/10 mb-2 flex items-center justify-between">
-                <span class="text-[10px] font-bold text-brand-primary uppercase tracking-widest">
-                  Filtrar por Especialidad
-                </span>
-                <span class="text-[10px] text-brand-secondary/60 font-semibold">
-                  Selección múltiple
-                </span>
-              </div>
-
-              <div class="space-y-1.5 max-h-72 overflow-y-auto custom-scrollbar p-0.5">
-                <!-- Opción: Toda la Carta (Todos los Postres) -->
-                <button
-                  @click="selectAll"
-                  type="button"
-                  :class="[
-                    'w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all text-left cursor-pointer border',
-                    isAllSelected
-                      ? 'bg-brand-primary text-white border-brand-primary shadow-soft-sm'
-                      : 'text-brand-secondary hover:bg-brand-cream border-transparent'
-                  ]"
-                >
-                  <div class="flex items-center gap-2.5 min-w-0">
-                    <div 
-                      :class="[
-                        'w-4 h-4 rounded-full flex items-center justify-center border transition-colors shrink-0',
-                        isAllSelected ? 'border-white bg-white/20' : 'border-brand-primary/30'
-                      ]"
-                    >
-                      <div v-if="isAllSelected" class="w-2 h-2 rounded-full bg-brand-accent"></div>
-                    </div>
-                    <Icon name="lucide:sparkles" class="w-4 h-4 shrink-0 text-brand-accent" />
-                    <span class="truncate">Toda la Carta</span>
-                  </div>
-                  <span v-if="isAllSelected" class="text-[10px] uppercase font-bold tracking-wider opacity-90">
-                    Activo
-                  </span>
-                </button>
-
-                <!-- Separador -->
-                <div class="border-t border-brand-primary/10 my-1"></div>
-
-                <!-- Opciones Individuales de Categoría con Checkbox Múltiple -->
-                <button
-                  v-for="cat in realCategories"
-                  :key="cat.id"
-                  @click="toggleCategory(cat.id)"
-                  type="button"
-                  :class="[
-                    'w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all text-left cursor-pointer border',
-                    isCatActive(cat.id)
-                      ? 'bg-brand-cream text-brand-secondary border-brand-primary/30 shadow-soft-xs'
-                      : 'text-brand-secondary hover:bg-brand-cream/60 border-transparent'
-                  ]"
-                >
-                  <div class="flex items-center gap-2.5 min-w-0">
-                    <!-- Checkbox Artesanal -->
-                    <div 
-                      :class="[
-                        'w-4 h-4 rounded-md flex items-center justify-center border transition-colors shrink-0',
-                        isCatActive(cat.id)
-                          ? 'bg-brand-primary border-brand-primary text-white'
-                          : 'border-brand-primary/30 bg-surface'
-                      ]"
-                    >
-                      <Icon v-if="isCatActive(cat.id)" name="lucide:check" class="w-3 h-3 text-white" />
-                    </div>
-                    <Icon :name="cat.icon" class="w-4 h-4 shrink-0 text-brand-primary" />
-                    <span class="truncate">{{ cat.name }}</span>
-                  </div>
-                  <span 
-                    v-if="isCatActive(cat.id)" 
-                    class="text-[10px] font-bold text-brand-primary bg-brand-primary/10 px-1.5 py-0.5 rounded-md"
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <div 
+                    :class="[
+                      'w-4 h-4 rounded-full flex items-center justify-center border transition-colors shrink-0',
+                      isAllSelected ? 'border-white bg-white/20' : 'border-brand-primary/30'
+                    ]"
                   >
-                    Visible
-                  </span>
-                </button>
-              </div>
+                    <div v-if="isAllSelected" class="w-2 h-2 rounded-full bg-brand-accent"></div>
+                  </div>
+                  <Icon name="lucide:sparkles" class="w-4 h-4 shrink-0 text-brand-accent" />
+                  <span class="truncate">Toda la Carta</span>
+                </div>
+                <span v-if="isAllSelected" class="text-[10px] uppercase font-bold tracking-wider opacity-90">
+                  Activo
+                </span>
+              </button>
 
-              <!-- Pie del Popover con Botón Listo / Aplicar -->
-              <div class="border-t border-brand-primary/10 pt-2 mt-2 flex items-center justify-between">
-                <button
-                  @click="selectAll"
-                  type="button"
-                  class="text-[11px] font-bold text-brand-primary hover:text-brand-secondary transition-colors cursor-pointer"
+              <!-- Separador -->
+              <div class="border-t border-brand-primary/10 my-1"></div>
+
+              <!-- Opciones Individuales de Categoría con Checkbox Múltiple -->
+              <button
+                v-for="cat in realCategories"
+                :key="cat.id"
+                @click="toggleCategory(cat.id)"
+                type="button"
+                :class="[
+                  'w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all text-left cursor-pointer border',
+                  isCatActive(cat.id)
+                    ? 'bg-brand-cream text-brand-secondary border-brand-primary/30 shadow-soft-xs'
+                    : 'text-brand-secondary hover:bg-brand-cream/60 border-transparent'
+                ]"
+              >
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <!-- Checkbox Artesanal -->
+                  <div 
+                    :class="[
+                      'w-4 h-4 rounded-md flex items-center justify-center border transition-colors shrink-0',
+                      isCatActive(cat.id)
+                        ? 'bg-brand-primary border-brand-primary text-white'
+                        : 'border-brand-primary/30 bg-surface'
+                    ]"
+                  >
+                    <Icon v-if="isCatActive(cat.id)" name="lucide:check" class="w-3 h-3 text-white" />
+                  </div>
+                  <Icon :name="cat.icon" class="w-4 h-4 shrink-0 text-brand-primary" />
+                  <span class="truncate">{{ cat.name }}</span>
+                </div>
+                <span 
+                  v-if="isCatActive(cat.id)" 
+                  class="text-[10px] font-bold text-brand-primary bg-brand-primary/10 px-1.5 py-0.5 rounded-md"
                 >
-                  Restablecer todo
-                </button>
-                <button
-                  @click="isDropdownOpen = false"
-                  type="button"
-                  class="px-3.5 py-1.5 rounded-full bg-brand-primary text-white text-xs font-bold shadow-soft-sm hover:bg-brand-secondary transition-all cursor-pointer active:scale-95"
-                >
-                  Listo
-                </button>
-              </div>
+                  Visible
+                </span>
+              </button>
             </div>
-          </Transition>
-        </div>
 
-        <!-- 2. Sub-cluster: Porciones y Precios con CustomSelect -->
-        <div class="flex items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
-          <!-- Selector de Porciones con CustomSelect -->
-          <div class="w-1/2 sm:w-44 lg:w-44 xl:w-48 shrink-0">
-            <UiCustomSelect
-              :options="portionOptions"
-              :modelValue="portionFilter || 'all'"
-              size="sm"
-              icon="lucide:users"
-              placeholder="Porciones"
-              :buttonClass="[
-                '!h-11 sm:!h-12 !rounded-2xl',
-                portionFilter && portionFilter !== 'all' ? 'bg-brand-primary !border-brand-primary shadow-soft-sm' : 'bg-surface border-brand-primary/20 hover:border-brand-primary/40'
-              ].join(' ')"
-              :selectedLabelClass="portionFilter && portionFilter !== 'all' ? '!text-white' : 'text-brand-secondary'"
-              :iconClass="portionFilter && portionFilter !== 'all' ? '!text-white' : 'text-brand-primary'"
-              :chevronClass="portionFilter && portionFilter !== 'all' ? '!text-white' : 'text-brand-primary'"
-              @update:model-value="$emit('update:portionFilter', String($event))"
-            />
+            <!-- Pie del Popover con Botón Listo / Aplicar -->
+            <div class="border-t border-brand-primary/10 pt-2 mt-2 flex items-center justify-between">
+              <button
+                @click="selectAll"
+                type="button"
+                class="text-[11px] font-bold text-brand-primary hover:text-brand-secondary transition-colors cursor-pointer"
+              >
+                Restablecer todo
+              </button>
+              <button
+                @click="isDropdownOpen = false"
+                type="button"
+                class="px-3.5 py-1.5 rounded-full bg-brand-primary text-white text-xs font-bold shadow-soft-sm hover:bg-brand-secondary transition-all cursor-pointer active:scale-95"
+              >
+                Listo
+              </button>
+            </div>
           </div>
-
-          <!-- Selector de Presupuesto con CustomSelect -->
-          <div class="w-1/2 sm:w-40 lg:w-40 xl:w-44 shrink-0">
-            <UiCustomSelect
-              :options="priceRangeOptions"
-              :modelValue="priceRangeFilter || 'all'"
-              size="sm"
-              icon="lucide:tag"
-              placeholder="Precio"
-              :buttonClass="[
-                '!h-11 sm:!h-12 !rounded-2xl',
-                priceRangeFilter && priceRangeFilter !== 'all' ? 'bg-brand-primary !border-brand-primary shadow-soft-sm' : 'bg-surface border-brand-primary/20 hover:border-brand-primary/40'
-              ].join(' ')"
-              :selectedLabelClass="priceRangeFilter && priceRangeFilter !== 'all' ? '!text-white' : 'text-brand-secondary'"
-              :iconClass="priceRangeFilter && priceRangeFilter !== 'all' ? '!text-white' : 'text-brand-primary'"
-              :chevronClass="priceRangeFilter && priceRangeFilter !== 'all' ? '!text-white' : 'text-brand-primary'"
-              @update:model-value="$emit('update:priceRangeFilter', String($event))"
-            />
-          </div>
-
-          <!-- Botón Limpiar Todo si alguno está activo -->
-          <button
-            v-if="hasActiveSecondaryFilters"
-            @click="$emit('resetAll')"
-            type="button"
-            class="shrink-0 inline-flex items-center justify-center h-11 sm:h-12 w-11 sm:w-12 rounded-2xl text-xs font-bold text-brand-secondary/70 hover:text-status-danger bg-brand-cream/80 hover:bg-brand-cream border border-brand-primary/15 transition-all cursor-pointer shadow-soft-xs active:scale-95"
-            title="Limpiar filtros de porciones y precios"
-            aria-label="Limpiar filtros secundarios"
-          >
-            <Icon name="lucide:rotate-ccw" class="w-4 h-4" />
-          </button>
-        </div>
+        </Transition>
       </div>
+
+      <!-- 3. Filtro de Porciones (1fr) -->
+      <div class="relative w-full sm:col-span-1">
+        <UiCustomSelect
+          :options="portionOptions"
+          :modelValue="portionFilter || 'all'"
+          clearable
+          size="sm"
+          icon="lucide:users"
+          placeholder="Porciones"
+          :buttonClass="[
+            '!h-11 sm:!h-12 !rounded-2xl',
+            portionFilter && portionFilter !== 'all' ? 'bg-brand-primary !border-brand-primary shadow-soft-sm' : 'bg-surface border-brand-primary/20 hover:border-brand-primary/40'
+          ].join(' ')"
+          :selectedLabelClass="portionFilter && portionFilter !== 'all' ? '!text-white' : 'text-brand-secondary'"
+          :iconClass="portionFilter && portionFilter !== 'all' ? '!text-white' : 'text-brand-primary'"
+          :chevronClass="portionFilter && portionFilter !== 'all' ? '!text-white' : 'text-brand-primary'"
+          @update:model-value="$emit('update:portionFilter', String($event))"
+        />
+      </div>
+
+      <!-- 4. Filtro de Precios (1fr) -->
+      <div class="relative w-full sm:col-span-1">
+        <UiCustomSelect
+          :options="priceRangeOptions"
+          :modelValue="priceRangeFilter || 'all'"
+          clearable
+          size="sm"
+          icon="lucide:tag"
+          placeholder="Precios"
+          :buttonClass="[
+            '!h-11 sm:!h-12 !rounded-2xl',
+            priceRangeFilter && priceRangeFilter !== 'all' ? 'bg-brand-primary !border-brand-primary shadow-soft-sm' : 'bg-surface border-brand-primary/20 hover:border-brand-primary/40'
+          ].join(' ')"
+          :selectedLabelClass="priceRangeFilter && priceRangeFilter !== 'all' ? '!text-white' : 'text-brand-secondary'"
+          :iconClass="priceRangeFilter && priceRangeFilter !== 'all' ? '!text-white' : 'text-brand-primary'"
+          :chevronClass="priceRangeFilter && priceRangeFilter !== 'all' ? '!text-white' : 'text-brand-primary'"
+          @update:model-value="$emit('update:priceRangeFilter', String($event))"
+        />
+      </div>
+    </div>
+
+    <!-- Barra auxiliar de filtros activos con botón 'Limpiar filtros' si hay alguno activo -->
+    <div 
+      v-if="hasAnyActiveFilter" 
+      class="flex items-center justify-between text-xs px-1 pt-0.5 text-brand-secondary/70 animate-fade-in"
+    >
+      <span class="font-medium text-[11px] sm:text-xs">
+        Filtros aplicados en la carta
+      </span>
+      <button
+        @click="resetAllFilters"
+        type="button"
+        class="inline-flex items-center gap-1.5 font-bold text-[11px] sm:text-xs text-brand-primary hover:text-status-danger transition-colors cursor-pointer select-none"
+      >
+        <Icon name="lucide:rotate-ccw" class="w-3.5 h-3.5" />
+        <span>Limpiar filtros</span>
+      </button>
     </div>
   </div>
 </template>

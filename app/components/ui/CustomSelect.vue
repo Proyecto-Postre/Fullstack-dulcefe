@@ -22,12 +22,14 @@ const props = withDefaults(
     iconClass?: string
     selectedLabelClass?: string
     chevronClass?: string
+    clearable?: boolean
   }>(),
   {
     placeholder: 'Seleccionar...',
     disabled: false,
     size: 'md',
-    placement: 'auto'
+    placement: 'auto',
+    clearable: false
   }
 )
 
@@ -107,7 +109,7 @@ function isSelected(val: unknown) {
       @click="toggleOpen" 
       :class="[
         'w-full border transition-all flex items-center justify-between text-left focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 shadow-soft-sm relative',
-        size === 'sm' ? 'pl-3 pr-8 py-2 rounded-xl text-xs' : 'pl-3.5 sm:pl-4 pr-9 sm:pr-10 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm',
+        size === 'sm' ? 'pl-3 pr-3 py-2 rounded-xl text-xs' : 'pl-3.5 sm:pl-4 pr-3.5 sm:pr-4 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm',
         bgClass || 'bg-surface',
         disabled 
           ? 'opacity-50 cursor-not-allowed border-brand-primary/10' 
@@ -115,7 +117,7 @@ function isSelected(val: unknown) {
         buttonClass
       ]"
     >
-      <div class="flex items-center gap-1.5 min-w-0 flex-1 mr-2">
+      <div class="flex items-center gap-1.5 min-w-0 flex-1 mr-1.5">
         <Icon 
           v-if="icon" 
           :name="icon" 
@@ -138,15 +140,27 @@ function isSelected(val: unknown) {
         </span>
       </div>
       
-      <Icon 
-        name="lucide:chevron-down" 
-        :class="[
-          'absolute top-1/2 -translate-y-1/2 transition-transform duration-300 pointer-events-none shrink-0',
-          size === 'sm' ? 'right-2.5 w-3.5 h-3.5' : 'right-3 sm:right-4 w-4 h-4',
-          chevronClass || 'text-brand-primary',
-          { 'rotate-180': isOpen }
-        ]" 
-      />
+      <div class="flex items-center gap-1 shrink-0">
+        <button
+          v-if="clearable && modelValue && modelValue !== 'all' && !disabled"
+          type="button"
+          @click.stop="selectOption('all')"
+          class="w-4 h-4 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
+          title="Restablecer"
+          aria-label="Restablecer opción"
+        >
+          <Icon name="lucide:x" class="w-2.5 h-2.5" />
+        </button>
+        <Icon 
+          name="lucide:chevron-down" 
+          :class="[
+            'transition-transform duration-300 pointer-events-none shrink-0',
+            size === 'sm' ? 'w-3.5 h-3.5' : 'w-4 h-4',
+            chevronClass || 'text-brand-primary',
+            { 'rotate-180': isOpen }
+          ]" 
+        />
+      </div>
     </button>
 
     <!-- Menú Desplegable Popover -->
