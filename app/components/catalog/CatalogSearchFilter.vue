@@ -434,7 +434,7 @@ function resetAllFilters() {
 
 @media (min-width: 1024px) {
   .catalog-search-row {
-    grid-template-columns: 2fr repeat(3, minmax(0, 1fr));
+    grid-template-columns: 2.8fr repeat(3, minmax(0, 1fr));
     gap: 0.875rem;
   }
   .catalog-search-row > .search-input-col {
