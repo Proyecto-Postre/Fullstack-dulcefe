@@ -154,25 +154,6 @@ watch([rawProducts, () => route.query.producto], ([products, prodId]) => {
 
     <!-- Estado: Catálogo Activo (Organizado por Secciones Dinámicas) -->
     <div v-else class="space-y-8 sm:space-y-12">
-      <!-- Indicador de Coincidencias de Búsqueda -->
-      <div 
-        v-if="searchQuery.trim().length > 0"
-        class="bg-surface px-4 py-3 sm:px-5 sm:py-3.5 rounded-2xl border border-brand-primary/15 shadow-soft-sm flex items-center justify-between"
-      >
-        <div class="flex items-center gap-2">
-          <Icon name="lucide:sparkles" class="w-4 h-4 text-brand-accent shrink-0" />
-          <span class="text-xs font-bold text-brand-secondary">
-            {{ filteredProducts.length }} {{ filteredProducts.length === 1 ? 'postre encontrado' : 'postres encontrados' }} en {{ groupedSections.length }} {{ groupedSections.length === 1 ? 'sección' : 'secciones' }}
-          </span>
-        </div>
-        <button
-          @click="searchQuery = ''"
-          type="button"
-          class="text-xs font-bold text-brand-primary hover:text-brand-secondary transition-colors cursor-pointer"
-        >
-          Limpiar filtro
-        </button>
-      </div>
 
       <!-- CASO A: Categoría Específica Única Seleccionada (Vista Directa en Cuadrícula) -->
       <div v-if="!isAllSelected && selectedCategories.length === 1" class="space-y-4 sm:space-y-6">

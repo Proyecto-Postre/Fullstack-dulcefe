@@ -68,20 +68,20 @@ async function handleLogout() {
           </NuxtLink>
 
           <!-- Información de Administrador (Solo Desktop lg) -->
-          <div class="hidden lg:flex items-center space-x-3 border-l border-brand-primary/10 pl-5">
-            <div class="w-8 h-8 rounded-full bg-brand-primary text-white flex items-center justify-center font-bold text-xs shadow-soft-sm">
+          <div class="hidden lg:flex items-center space-x-2.5 xl:space-x-3 border-l border-brand-primary/10 pl-3.5 xl:pl-5 shrink-0">
+            <div class="w-8 h-8 rounded-full bg-brand-primary text-white flex items-center justify-center font-bold text-xs shadow-soft-sm shrink-0">
               <Icon name="lucide:shield" class="w-4 h-4" />
             </div>
-            <div class="text-left">
-              <p class="text-xs font-bold text-brand-secondary leading-tight truncate max-w-[160px]">
+            <div class="text-left min-w-0 max-w-[110px] sm:max-w-[140px] xl:max-w-[180px]">
+              <p class="text-xs font-bold text-brand-secondary leading-tight truncate" :title="authStore.user?.email || 'Administrador'">
                 {{ authStore.user?.email || 'Administrador' }}
               </p>
-              <p class="text-[10px] text-brand-primary font-semibold">Acceso Total</p>
+              <p class="text-[10px] text-brand-primary font-semibold truncate">Acceso Total</p>
             </div>
             <button 
               @click="handleLogout" 
               type="button"
-              class="text-brand-secondary/60 hover:text-white bg-transparent hover:bg-red-500 border border-transparent hover:border-red-500 transition-all duration-200 p-2 rounded-xl hover:shadow-md hover:scale-105 active:scale-95 cursor-pointer"
+              class="shrink-0 text-brand-secondary/60 hover:text-white bg-transparent hover:bg-red-500 border border-transparent hover:border-red-500 transition-all duration-200 p-2 rounded-xl hover:shadow-md hover:scale-105 active:scale-95 cursor-pointer"
               aria-label="Cerrar sesión"
             >
               <Icon name="lucide:log-out" class="w-4 h-4" />

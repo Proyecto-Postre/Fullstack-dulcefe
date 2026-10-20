@@ -184,8 +184,8 @@ describe('Fase 6 - Subfase 6.1: Tracking Criptográfico de Invitados (ADR-002 / 
     })
   })
 
-  describe('Diseño Responsivo y Equilibrio Óptico en Pantallas Grandes (app/pages/pedido/[token].vue)', () => {
-    it('debe definir contenedor fluido con centrado vertical y expansión en pantallas de 24"+ (xl:max-w-6xl)', async () => {
+  describe('Diseño Responsivo y Equilibrio Óptico Unificado con el Home (app/pages/pedido/[token].vue)', () => {
+    it('debe definir contenedor unificado con el home (max-w-7xl) y centrado vertical', async () => {
       const fs = await import('node:fs')
       const path = await import('node:path')
       const trackingPagePath = path.resolve(__dirname, '../../app/pages/pedido/[token].vue')
@@ -194,8 +194,7 @@ describe('Fase 6 - Subfase 6.1: Tracking Criptográfico de Invitados (ADR-002 / 
       const content = fs.readFileSync(trackingPagePath, 'utf-8')
 
       // Verificación de contenedor fluido y balance vertical
-      expect(content).toContain('max-w-5xl')
-      expect(content).toContain('xl:max-w-6xl')
+      expect(content).toContain('max-w-7xl')
       expect(content).toContain('my-auto')
       expect(content).toContain('items-stretch')
 

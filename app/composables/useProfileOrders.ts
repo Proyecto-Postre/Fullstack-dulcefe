@@ -22,6 +22,18 @@ export function useProfileOrders() {
     error.value = null
 
     try {
+      // 1. Intentar consultar vía endpoint seguro de servidor (con auto-vinculación de pedidos por teléfono)
+      try {
+        const response = await $fetch<{ success: boolean; data: ProfileOrder[] }>('/api/profile/orders')
+        if (response?.data) {
+          orders.value = response.data
+          return
+        }
+      } catch {
+        // Fallback a cliente Supabase
+      }
+
+      // 2. Fallback directo a Supabase cliente
       const supabase = useSupabaseClient<Database>()
       const { data, error: dbError } = await supabase
         .from('orders')

@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
     .from('orders')
     .select(`
       *,
-      profiles ( full_name, phone ),
+      profiles:profiles!orders_profile_id_fkey ( full_name, phone ),
       order_items (
         id,
         quantity,

@@ -5,7 +5,6 @@ import { useCartStore } from '~/stores/cart'
 import { useAuthStore } from '~/stores/auth'
 import { useCheckout } from '~/composables/useCheckout'
 import type { CheckoutMode, CheckoutFormData, CheckoutPayload } from '~/types/checkout'
-import { buildWhatsAppOrderMessage, buildWhatsAppUrl } from '~/utils/whatsapp'
 import CheckoutModeSelector from '~/components/checkout/CheckoutModeSelector.vue'
 import CheckoutCustomerForm from '~/components/checkout/CheckoutCustomerForm.vue'
 import CheckoutPaymentSection from '~/components/checkout/CheckoutPaymentSection.vue'
@@ -17,10 +16,10 @@ import { toast } from 'vue-sonner'
 
 const cartStore = useCartStore()
 const authStore = useAuthStore()
-const config = useRuntimeConfig()
 const { isSubmitting, errorMessage, errorDetails, submitCheckout } = useCheckout()
 
 const checkoutMode = ref<CheckoutMode>('direct')
+const isUploadingReceipt = ref<boolean>(false)
 
 const formData = ref<CheckoutFormData>({
   name: '',
@@ -123,13 +122,42 @@ async function processCheckout(): Promise<void> {
     return 12
   }
 
+  function formatDeliveryDate(raw?: string): string | undefined {
+    if (!raw) return undefined
+    const trimmed = raw.trim()
+    if (!trimmed) return undefined
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed
+    const parts = trimmed.split(/[/ -]/)
+    if (parts.length === 3 && (parts[0]?.length || 0) <= 2 && (parts[1]?.length || 0) <= 2 && (parts[2]?.length || 0) === 4) {
+      return `${parts[2]}-${parts[1]!.padStart(2, '0')}-${parts[0]!.padStart(2, '0')}`
+    }
+    return trimmed
+  }
+
+  function formatDeliveryTime(raw?: string): string | undefined {
+    if (!raw) return undefined
+    const trimmed = raw.trim()
+    if (!trimmed) return undefined
+    if (/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(trimmed)) return trimmed
+    const match = trimmed.match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/i)
+    if (match) {
+      let hours = parseInt(match[1]!, 10)
+      const minutes = match[2]!
+      const period = match[3]!.toUpperCase()
+      if (period === 'PM' && hours < 12) hours += 12
+      else if (period === 'AM' && hours === 12) hours = 0
+      return `${String(hours).padStart(2, '0')}:${minutes}`
+    }
+    return trimmed
+  }
+
   const payload: CheckoutPayload = {
     channel: checkoutMode.value === 'direct' ? 'direct' : 'whatsapp_chat',
     customer_name: formData.value.name.trim(),
     customer_phone: cleanPhone || undefined,
     address: checkoutMode.value === 'direct' ? formData.value.address.trim() : undefined,
-    delivery_date: formData.value.deliveryDate || undefined,
-    delivery_time: formData.value.deliveryTime || undefined,
+    delivery_date: formatDeliveryDate(formData.value.deliveryDate),
+    delivery_time: formatDeliveryTime(formData.value.deliveryTime),
     notes: formData.value.notes.trim() || undefined,
     payment_method: formData.value.paymentMethod || 'cash',
     payment_reference: formData.value.paymentReference?.trim() || undefined,
@@ -142,7 +170,8 @@ async function processCheckout(): Promise<void> {
 
   const result = await submitCheckout(payload)
   if (!result) {
-    const msg = errorMessage.value || 'Ocurrió un problema al procesar tu pedido. Por favor intenta nuevamente.'
+    const firstDetail = errorDetails.value?.[0]?.message
+    const msg = firstDetail || errorMessage.value || 'Ocurrió un problema al procesar tu pedido. Por favor intenta nuevamente.'
     toast.error(msg)
     if (import.meta.client) {
       window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -152,48 +181,22 @@ async function processCheckout(): Promise<void> {
 
   const { order } = result
 
-  // Construir mensaje de WhatsApp con los datos oficiales devueltos por el servidor
-  const message = buildWhatsAppOrderMessage({
-    orderId: order.id,
-    customerName: order.customer_name,
-    customerPhone: order.customer_phone,
-    mode: checkoutMode.value,
-    address: order.address,
-    deliveryDate: order.delivery_date,
-    deliveryTime: order.delivery_time,
-    notes: order.notes,
-    items: order.items,
-    totalAmount: order.total_amount,
-    paymentMethod: formData.value.paymentMethod || order.payment_method || 'cash',
-    paymentReference: formData.value.paymentReference || order.payment_reference || undefined,
-    paymentReceiptUrl: formData.value.paymentReceiptUrl || order.payment_receipt_url || undefined
-  })
-
-  const whatsappNumber = String(config.public.whatsappNumber || '51998265700')
-  const whatsappUrl = buildWhatsAppUrl(whatsappNumber, message)
-
   isOrderCompleted.value = true
   cartStore.clearCart()
 
-  if (typeof window !== 'undefined') {
-    const isMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent)
-    if (isMobile) {
-      window.location.href = whatsappUrl
-    } else {
-      const newTab = window.open(whatsappUrl, '_blank')
-      if (!newTab || newTab.closed || typeof newTab.closed === 'undefined') {
-        window.location.href = whatsappUrl
-      } else if (order.tracking_token) {
-        await navigateTo(`/pedido/${order.tracking_token}`)
-      }
-    }
+  toast.success('¡Pedido registrado con éxito!')
+
+  if (order.tracking_token) {
+    await navigateTo(`/pedido/${order.tracking_token}`)
+  } else {
+    await navigateTo('/menu')
   }
 }
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#F4F1E1]/30 py-8 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-5xl mx-auto space-y-8">
+  <div class="min-h-screen bg-[#F4F1E1]/30 py-8 px-4 sm:px-6 lg:px-12">
+    <div class="max-w-7xl mx-auto space-y-8">
       <!-- Breadcrumb y Título -->
       <div class="flex items-center justify-between">
         <div>
@@ -227,6 +230,7 @@ async function processCheckout(): Promise<void> {
             @update:payment-method="formData.paymentMethod = $event"
             @update:payment-reference="formData.paymentReference = $event"
             @update:payment-receipt-url="formData.paymentReceiptUrl = $event"
+            @update:is-uploading="isUploadingReceipt = $event"
           />
           <CheckoutItemsList />
         </div>
@@ -237,6 +241,8 @@ async function processCheckout(): Promise<void> {
             :mode="checkoutMode"
             :is-valid="isFormValid"
             :is-submitting="isSubmitting"
+            :is-uploading="isUploadingReceipt"
+            :payment-method="formData.paymentMethod || 'cash'"
             @submit="processCheckout"
           />
         </div>

@@ -211,9 +211,9 @@ function getProductIcon(name: string): string {
 <template>
   <div class="space-y-3.5 sm:space-y-4">
     <!-- Header Section -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 bg-white p-4 sm:p-5 rounded-2xl sm:rounded-[1.75rem] border border-[#4A5D23]/10 shadow-soft-sm">
-      <div>
-        <div class="flex items-center gap-3">
+    <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-3.5 sm:gap-4 bg-white p-4 sm:p-5 rounded-2xl sm:rounded-[1.75rem] border border-[#4A5D23]/10 shadow-soft-sm">
+      <div class="min-w-0">
+        <div class="flex items-center gap-3 flex-wrap">
           <h2 class="text-xl sm:text-2xl font-black font-playfair text-[#2A321B]">Vitrina Comercial</h2>
           <span v-if="publishedProducts.length" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#4A5D23]/10 text-[#4A5D23] border border-[#4A5D23]/15">
             {{ searchQuery ? `${filteredProducts.length} de ${publishedProducts.length} ${publishedProducts.length === 1 ? 'producto' : 'productos'}` : `${publishedProducts.length} ${publishedProducts.length === 1 ? 'producto' : 'productos'}` }}
@@ -223,9 +223,9 @@ function getProductIcon(name: string): string {
       </div>
 
       <!-- Barra de herramientas compacta: Búsqueda focalizada + Botón Nuevo Producto -->
-      <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+      <div class="flex items-center gap-2.5 sm:gap-3 w-full xl:w-auto">
         <!-- Search Bar with Suggestions -->
-        <div class="relative w-full sm:w-64 md:w-72 lg:w-80">
+        <div class="relative flex-1 sm:w-64 md:w-72 xl:w-80 min-w-0">
           <div class="relative">
             <Icon name="lucide:search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#4A5D23]/40" />
             <input 
@@ -272,7 +272,7 @@ function getProductIcon(name: string): string {
         <button
           @click="openNewProductModal"
           type="button"
-          class="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl bg-[#4A5D23] text-white text-xs font-bold hover:bg-[#3C4A1C] transition-all shadow-sm active:scale-95 cursor-pointer shrink-0"
+          class="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl bg-[#4A5D23] text-white text-xs font-bold hover:bg-[#3C4A1C] transition-all shadow-sm active:scale-95 cursor-pointer shrink-0 whitespace-nowrap"
         >
           <Icon name="lucide:plus" class="w-4 h-4" />
           <span>Nuevo Producto</span>

@@ -50,6 +50,9 @@ const activeTab = ref<ProfileTab>(initialTab)
 
 // Sincronizar cambios en activeTab con la URL sin recargar pantalla (SPA pushState)
 watch(activeTab, (newTab) => {
+  if (newTab === 'history') {
+    fetchOrders()
+  }
   const targetQuery = TAB_TO_QUERY[newTab]
   if (route.query.tab !== targetQuery) {
     if (newTab === 'personal') {
@@ -200,7 +203,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="max-w-5xl mx-auto py-6 sm:py-10 px-3.5 sm:px-6 flex-1 w-full min-h-[calc(100vh-14rem)] flex flex-col justify-start">
+  <div class="max-w-7xl mx-auto py-6 sm:py-10 px-4 sm:px-6 lg:px-12 flex-1 w-full min-h-[calc(100vh-14rem)] flex flex-col justify-start">
     <!-- Encabezado -->
     <ProfileHeader @logout="logout" />
 

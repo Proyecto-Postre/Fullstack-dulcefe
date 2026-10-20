@@ -1,11 +1,14 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useCartStore } from '~/stores/cart'
 import type { CheckoutMode } from '~/types/checkout'
 
-defineProps<{
+const props = defineProps<{
   mode: CheckoutMode
   isValid: boolean
   isSubmitting: boolean
+  isUploading?: boolean
+  paymentMethod?: 'cash' | 'yape' | 'plin' | 'card'
 }>()
 
 const emit = defineEmits<{
@@ -13,6 +16,16 @@ const emit = defineEmits<{
 }>()
 
 const cartStore = useCartStore()
+
+const submitButtonText = computed(() => {
+  if (props.isSubmitting) return 'Procesando Pedido...'
+  if (props.isUploading) return 'Subiendo comprobante...'
+  if (props.mode === 'chat') return 'Confirmar y Coordinar por WhatsApp'
+  if (props.paymentMethod === 'yape') return 'Confirmar Pedido con Yape'
+  if (props.paymentMethod === 'plin') return 'Confirmar Pedido con Plin'
+  if (props.paymentMethod === 'cash') return 'Confirmar Pedido Contra Entrega'
+  return 'Confirmar Pedido'
+})
 </script>
 
 <template>
@@ -50,12 +63,14 @@ const cartStore = useCartStore()
     <button
       type="button"
       @click="emit('submit')"
-      :disabled="!isValid || isSubmitting"
+      :disabled="!isValid || isSubmitting || isUploading"
       class="w-full py-3.5 px-6 rounded-2xl bg-[#4A5D23] text-white font-bold text-sm hover:bg-[#3C4A1C] transition-all shadow-md active:translate-y-0.5 active:shadow-none flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
     >
-      <Icon v-if="isSubmitting" name="lucide:loader-2" class="w-5 h-5 animate-spin" />
-      <Icon v-else name="lucide:message-circle" class="w-5 h-5" />
-      <span>{{ isSubmitting ? 'Procesando Pedido...' : 'Confirmar y Enviar por WhatsApp' }}</span>
+      <Icon v-if="isSubmitting || isUploading" name="lucide:loader-2" class="w-5 h-5 animate-spin" />
+      <Icon v-else-if="mode === 'chat'" name="lucide:message-circle" class="w-5 h-5" />
+      <Icon v-else-if="paymentMethod === 'cash'" name="lucide:banknote" class="w-5 h-5" />
+      <Icon v-else name="lucide:shield-check" class="w-5 h-5" />
+      <span>{{ submitButtonText }}</span>
     </button>
 
     <div class="flex items-start gap-2 bg-[#F4F1E1]/40 p-3 rounded-xl border border-[#4A5D23]/10 text-xs text-[#4A5D23]/80">

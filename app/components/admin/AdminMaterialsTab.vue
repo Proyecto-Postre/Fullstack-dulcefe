@@ -166,8 +166,8 @@ function openEditMaterial(item: RawMaterialRow): void {
 <template>
   <div class="space-y-3.5 sm:space-y-4">
     <!-- Header Section con Búsqueda y Acción integradas -->
-    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-5 sm:p-6 rounded-[2rem] border border-[#4A5D23]/10 shadow-soft-sm">
-      <div class="shrink-0 space-y-2">
+    <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-white p-5 sm:p-6 rounded-[2rem] border border-[#4A5D23]/10 shadow-soft-sm">
+      <div class="min-w-0 space-y-2">
         <div class="flex items-center gap-3 flex-wrap">
           <h2 class="text-2xl font-black font-playfair text-[#2A321B]">Almacén y Stock</h2>
           
@@ -220,9 +220,9 @@ function openEditMaterial(item: RawMaterialRow): void {
       </div>
 
       <!-- Barra de herramientas compacta: Búsqueda focalizada + Botón Nuevo Insumo / Empaque -->
-      <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+      <div class="flex items-center gap-2.5 sm:gap-3 w-full xl:w-auto">
         <!-- Search Bar with Suggestions -->
-        <div class="relative w-full sm:w-64 md:w-72 lg:w-80">
+        <div class="relative flex-1 sm:w-64 md:w-72 xl:w-80 min-w-0">
           <div class="relative">
             <Icon name="lucide:search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#4A5D23]/40" />
             <input 
@@ -270,7 +270,7 @@ function openEditMaterial(item: RawMaterialRow): void {
         <button
           @click="openNewMaterialModal"
           type="button"
-          class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#4A5D23] text-white text-xs font-bold hover:bg-[#3C4A1C] transition-all shadow-sm active:scale-95 cursor-pointer shrink-0"
+          class="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl bg-[#4A5D23] text-white text-xs font-bold hover:bg-[#3C4A1C] transition-all shadow-sm active:scale-95 cursor-pointer shrink-0 whitespace-nowrap"
         >
           <Icon name="lucide:plus" class="w-4 h-4" />
           <span>{{ activeSubtab === 'packaging' ? 'Nuevo Empaque' : 'Nuevo Insumo' }}</span>

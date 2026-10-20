@@ -22,8 +22,8 @@ const whatsappCleanUrl = computed(() => {
 
 <template>
   <!-- Footer de la Tienda (Boutique Dulce Fe - Elegante, Armónico y Reutilizable) -->
-  <footer class="z-20 bg-brand-secondary text-brand-cream py-3.5 px-4 sm:px-6 lg:px-8 border-t border-brand-primary/20 mt-auto shrink-0 pb-[max(0.85rem,env(safe-area-inset-bottom))]">
-    <div class="max-w-5xl xl:max-w-6xl 2xl:max-w-7xl mx-auto flex items-center justify-between gap-3">
+  <footer class="z-20 bg-brand-secondary text-brand-cream py-3.5 px-4 sm:px-6 lg:px-12 border-t border-brand-primary/20 mt-auto shrink-0 pb-[max(0.85rem,env(safe-area-inset-bottom))]">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
       <!-- Marca e Identidad -->
       <div class="flex items-center gap-2.5 min-w-0">
         <div class="w-8 h-8 rounded-full bg-brand-cream/10 border border-brand-cream/15 flex items-center justify-center text-brand-accent shrink-0 shadow-soft-sm">

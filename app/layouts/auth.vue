@@ -19,8 +19,8 @@
       <Icon name="lucide:wheat" class="absolute top-[22%] right-[6%] w-72 h-72 text-brand-primary/[0.025] -rotate-45 pointer-events-none" />
     </div>
 
-    <!-- Header mínimo con botón Volver y Logo de Autor alineado al ancho porcentual de la tarjeta -->
-    <header class="relative z-20 w-[92%] sm:w-[90%] lg:w-[88%] xl:w-[85%] max-w-5xl 2xl:max-w-6xl mx-auto px-1 sm:px-2 py-2 sm:py-2.5 flex items-center justify-between transition-all shrink-0">
+    <!-- Header mínimo con botón Volver y Logo de Autor alineado al ancho estándar -->
+    <header class="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-3 sm:py-4 flex items-center justify-between transition-all shrink-0">
       <NuxtLink 
         to="/" 
         class="inline-flex items-center gap-2 text-xs font-bold text-brand-secondary hover:text-brand-primary bg-surface/90 hover:bg-surface border border-brand-primary/15 px-3 py-1.5 rounded-full transition-all shadow-soft-sm cursor-pointer hover:-translate-x-0.5"
