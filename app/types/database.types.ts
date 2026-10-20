@@ -417,10 +417,13 @@ export type Database = {
           customer_name: string | null
           customer_phone: string | null
           delivery_date: string | null
+          delivery_mode: string | null
+          delivery_slot: string | null
           delivery_time: string | null
           gross_margin_cents: number | null
           id: string
           inventory_processed: boolean
+          meeting_point_details: string | null
           notes: string | null
           payment_method: string | null
           payment_receipt_url: string | null
@@ -443,10 +446,13 @@ export type Database = {
           customer_name?: string | null
           customer_phone?: string | null
           delivery_date?: string | null
+          delivery_mode?: string | null
+          delivery_slot?: string | null
           delivery_time?: string | null
           gross_margin_cents?: number | null
           id?: string
           inventory_processed?: boolean
+          meeting_point_details?: string | null
           notes?: string | null
           payment_method?: string | null
           payment_receipt_url?: string | null
@@ -469,10 +475,13 @@ export type Database = {
           customer_name?: string | null
           customer_phone?: string | null
           delivery_date?: string | null
+          delivery_mode?: string | null
+          delivery_slot?: string | null
           delivery_time?: string | null
           gross_margin_cents?: number | null
           id?: string
           inventory_processed?: boolean
+          meeting_point_details?: string | null
           notes?: string | null
           payment_method?: string | null
           payment_receipt_url?: string | null
@@ -636,6 +645,7 @@ export type Database = {
           image_url: string | null
           is_featured: boolean | null
           name: string
+          portions: number | null
           price: number | null
           shelf_life: string | null
           stock: number | null
@@ -648,6 +658,7 @@ export type Database = {
           image_url?: string | null
           is_featured?: boolean | null
           name: string
+          portions?: number | null
           price?: number | null
           shelf_life?: string | null
           stock?: number | null
@@ -660,6 +671,7 @@ export type Database = {
           image_url?: string | null
           is_featured?: boolean | null
           name?: string
+          portions?: number | null
           price?: number | null
           shelf_life?: string | null
           stock?: number | null

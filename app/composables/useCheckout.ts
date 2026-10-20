@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import type { CheckoutBodyDTO } from '~~/server/utils/schemas/checkout'
+import type { CheckoutPayload } from '~/types/checkout'
 import type { CheckoutResult } from '~~/server/services/order.service'
 
 export interface CheckoutErrorDetails {
@@ -91,7 +92,7 @@ export function useCheckout() {
   /**
    * Envía la orden al servidor Nitro mediante POST /api/checkout.
    */
-  const submitCheckout = async (payload: CheckoutBodyDTO): Promise<CheckoutResult | null> => {
+  const submitCheckout = async (payload: CheckoutBodyDTO | CheckoutPayload): Promise<CheckoutResult | null> => {
     isSubmitting.value = true
     errorMessage.value = null
     errorDetails.value = []
