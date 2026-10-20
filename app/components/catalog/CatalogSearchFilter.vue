@@ -55,7 +55,7 @@ function isCatActive(id: string): boolean {
 // Etiqueta e ícono dinámico para el botón desplegable principal
 const activeFilterLabel = computed<string>(() => {
   if (isAllSelected.value) {
-    return 'Todas las secciones (Toda la carta)'
+    return 'Toda la Carta'
   }
   if (activeCategoryIds.value.length === 1) {
     const singleCat = realCategories.value.find(c => c.id === activeCategoryIds.value[0])
@@ -204,8 +204,7 @@ const hasActiveSecondaryFilters = computed(() => {
             <div class="flex items-center gap-2 min-w-0 flex-1">
               <Icon :name="activeFilterIcon" class="w-4 h-4 text-brand-accent shrink-0" />
               <span class="whitespace-nowrap font-bold truncate">
-                <span class="sm:hidden">{{ isAllSelected ? 'Todas las secciones' : activeFilterLabel }}</span>
-                <span class="hidden sm:inline">{{ activeFilterLabel }}</span>
+                {{ activeFilterLabel }}
               </span>
             </div>
             <div class="flex items-center gap-1.5 shrink-0">
@@ -264,7 +263,7 @@ const hasActiveSecondaryFilters = computed(() => {
                       <div v-if="isAllSelected" class="w-2 h-2 rounded-full bg-brand-accent"></div>
                     </div>
                     <Icon name="lucide:sparkles" class="w-4 h-4 shrink-0 text-brand-accent" />
-                    <span class="truncate">Toda la Carta (Todos los postres)</span>
+                    <span class="truncate">Toda la Carta</span>
                   </div>
                   <span v-if="isAllSelected" class="text-[10px] uppercase font-bold tracking-wider opacity-90">
                     Activo
