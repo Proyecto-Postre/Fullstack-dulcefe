@@ -205,7 +205,7 @@ function resetAllFilters() {
           @click.stop="toggleDropdown"
           type="button"
           :class="[
-            'w-full h-11 sm:h-12 flex items-center justify-between text-left gap-1.5 pl-3 pr-3 rounded-2xl text-xs font-bold transition-all duration-300 border cursor-pointer select-none active:scale-98 shadow-soft-sm relative',
+            'w-full h-11 sm:h-12 flex items-center justify-between text-left gap-1 px-2 sm:px-3 rounded-2xl text-[11px] sm:text-xs font-bold transition-all duration-300 border cursor-pointer select-none active:scale-98 shadow-soft-sm relative',
             !isAllSelected
               ? 'bg-brand-primary text-white border-brand-primary shadow-soft-md'
               : 'bg-surface text-brand-secondary border-brand-primary/20 hover:border-brand-primary/40'
@@ -213,16 +213,16 @@ function resetAllFilters() {
           :aria-expanded="isDropdownOpen"
           aria-label="Filtrar por sección de la carta"
         >
-          <div class="flex items-center gap-1.5 min-w-0 flex-1 mr-1.5 text-left">
+          <div class="flex items-center gap-1 sm:gap-1.5 min-w-0 flex-1 mr-1 text-left">
             <Icon 
               :name="activeFilterIcon" 
               :class="['w-3.5 h-3.5 shrink-0', !isAllSelected ? 'text-white' : 'text-brand-primary']" 
             />
-            <span :class="['flex-1 min-w-0 font-bold leading-tight truncate whitespace-nowrap text-left', !isAllSelected ? 'text-white' : 'text-brand-secondary']">
+            <span :class="['flex-1 min-w-0 font-bold leading-tight truncate whitespace-nowrap text-left text-[11px] sm:text-xs', !isAllSelected ? 'text-white' : 'text-brand-secondary']">
               {{ activeFilterLabel }}
             </span>
           </div>
-          <div class="flex items-center gap-1 shrink-0">
+          <div class="flex items-center gap-0.5 sm:gap-1 shrink-0">
             <button
               v-if="!isAllSelected"
               @click.stop="selectAll"
@@ -236,7 +236,7 @@ function resetAllFilters() {
             <Icon 
               name="lucide:chevron-down" 
               :class="[
-                'w-3.5 h-3.5 transition-transform duration-300 pointer-events-none shrink-0',
+                'w-3 h-3 sm:w-3.5 sm:h-3.5 transition-transform duration-300 pointer-events-none shrink-0',
                 !isAllSelected ? 'text-white' : 'text-brand-primary',
                 isDropdownOpen ? 'rotate-180' : ''
               ]" 
@@ -248,7 +248,7 @@ function resetAllFilters() {
         <Transition name="dropdown-fade">
           <div
             v-if="isDropdownOpen"
-            class="absolute left-0 sm:left-auto sm:right-0 lg:left-0 top-full mt-2 w-full sm:w-80 bg-white rounded-2xl border border-brand-primary/20 shadow-2xl p-3 z-50"
+            class="absolute left-0 top-full mt-2 w-[calc(100vw-2rem)] max-w-xs sm:w-80 bg-white rounded-2xl border border-brand-primary/20 shadow-2xl p-3 z-50"
           >
             <!-- Encabezado del Popover -->
             <div class="px-2 py-1.5 border-b border-brand-primary/10 mb-2 flex items-center justify-between">
@@ -360,6 +360,7 @@ function resetAllFilters() {
           :modelValue="portionFilter || 'all'"
           clearable
           size="sm"
+          align="center"
           icon="lucide:users"
           placeholder="Porciones"
           :buttonClass="[
@@ -380,6 +381,7 @@ function resetAllFilters() {
           :modelValue="priceRangeFilter || 'all'"
           clearable
           size="sm"
+          align="right"
           icon="lucide:tag"
           placeholder="Precios"
           :buttonClass="[
@@ -417,18 +419,18 @@ function resetAllFilters() {
 <style scoped>
 .catalog-search-row {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.75rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
   width: 100%;
+}
+
+.catalog-search-row > .search-input-col {
+  grid-column: span 3;
 }
 
 @media (min-width: 640px) and (max-width: 1023px) {
   .catalog-search-row {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.875rem;
-  }
-  .catalog-search-row > .search-input-col {
-    grid-column: span 3;
+    gap: 0.75rem;
   }
 }
 

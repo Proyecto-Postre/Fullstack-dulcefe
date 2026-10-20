@@ -18,6 +18,7 @@ const props = withDefaults(
     disabled?: boolean
     size?: 'sm' | 'md'
     placement?: 'auto' | 'top' | 'bottom'
+    align?: 'left' | 'center' | 'right'
     icon?: string
     iconClass?: string
     selectedLabelClass?: string
@@ -29,6 +30,7 @@ const props = withDefaults(
     disabled: false,
     size: 'md',
     placement: 'auto',
+    align: 'left',
     clearable: false
   }
 )
@@ -109,7 +111,7 @@ function isSelected(val: unknown) {
       @click="toggleOpen" 
       :class="[
         'w-full border transition-all flex items-center justify-between text-left focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 shadow-soft-sm relative',
-        size === 'sm' ? 'pl-3 pr-3 py-2 rounded-xl text-xs' : 'pl-3.5 sm:pl-4 pr-3.5 sm:pr-4 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm',
+        size === 'sm' ? 'px-2 sm:px-3 py-2 rounded-xl text-[11px] sm:text-xs' : 'pl-3.5 sm:pl-4 pr-3.5 sm:pr-4 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm',
         bgClass || 'bg-surface',
         disabled 
           ? 'opacity-50 cursor-not-allowed border-brand-primary/10' 
@@ -117,7 +119,7 @@ function isSelected(val: unknown) {
         buttonClass
       ]"
     >
-      <div class="flex items-center gap-1.5 min-w-0 flex-1 mr-1.5">
+      <div class="flex items-center gap-1 sm:gap-1.5 min-w-0 flex-1 mr-1">
         <Icon 
           v-if="icon" 
           :name="icon" 
@@ -140,7 +142,7 @@ function isSelected(val: unknown) {
         </span>
       </div>
       
-      <div class="flex items-center gap-1 shrink-0">
+      <div class="flex items-center gap-0.5 sm:gap-1 shrink-0">
         <button
           v-if="clearable && modelValue && modelValue !== 'all' && !disabled"
           type="button"
@@ -155,7 +157,7 @@ function isSelected(val: unknown) {
           name="lucide:chevron-down" 
           :class="[
             'transition-transform duration-300 pointer-events-none shrink-0',
-            size === 'sm' ? 'w-3.5 h-3.5' : 'w-4 h-4',
+            size === 'sm' ? 'w-3 h-3 sm:w-3.5 sm:h-3.5' : 'w-4 h-4',
             chevronClass || 'text-brand-primary',
             { 'rotate-180': isOpen }
           ]" 
@@ -175,8 +177,11 @@ function isSelected(val: unknown) {
       <div 
         v-if="isOpen && !disabled" 
         :class="[
-          'absolute z-50 w-full bg-white border border-brand-primary/20 rounded-xl shadow-2xl max-h-56 overflow-y-auto custom-scrollbar overflow-x-hidden py-1',
-          openUpward ? 'bottom-full mb-1.5 origin-bottom' : 'top-full mt-1.5 origin-top'
+          'absolute z-50 bg-white border border-brand-primary/20 rounded-xl shadow-2xl max-h-56 overflow-y-auto custom-scrollbar overflow-x-hidden py-1',
+          openUpward ? 'bottom-full mb-1.5 origin-bottom' : 'top-full mt-1.5 origin-top',
+          align === 'right' 
+            ? 'right-0 w-52 sm:w-full' 
+            : (align === 'center' ? 'left-1/2 -translate-x-1/2 sm:translate-x-0 sm:left-0 w-52 sm:w-full' : 'left-0 w-52 sm:w-full')
         ]"
       >
         <div v-if="options.length === 0" class="px-3.5 py-2.5 text-xs text-brand-primary/60 italic font-medium">
