@@ -39,7 +39,14 @@ jobs:
           fi
 
           if [ -z "$DB_URL" ]; then
-            echo "::error::No se encontro el secreto con la URL de conexion a la base de datos (SUPABASE_DB_URL_PROD / SUPABASE_DB_URL_DEV)."
+            echo "::error title=Secret Missing::No se encontro el secreto con la URL de conexion a la base de datos (SUPABASE_DB_URL_DEV para dev o SUPABASE_DB_URL_PROD para main)."
+            echo "====================================================================================="
+            echo "INSTRUCCION DE CONFIGURACION EN GITHUB:"
+            echo "1. Ve a GitHub -> Settings -> Secrets and variables -> Actions"
+            echo "2. Crea el secreto 'SUPABASE_DB_URL_DEV' (para dev) o 'SUPABASE_DB_URL_PROD' (para main)"
+            echo "3. Pega la URI de conexion directa de PostgreSQL (Session Mode, puerto 5432)"
+            echo "   Ejemplo: postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres"
+            echo "====================================================================================="
             exit 1
           fi
 
@@ -49,4 +56,5 @@ jobs:
       - name: Run Migrations (supabase db push)
         shell: bash
         run: |
-          supabase db push --db-url "${{ steps.db_env.outputs.db_url }}"
+          supabase db push --include-all --db-url "${{ steps.db_env.outputs.db_url }}"
+
