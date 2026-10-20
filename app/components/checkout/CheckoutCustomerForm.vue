@@ -3,6 +3,13 @@ import { computed, watch } from 'vue'
 import type { CheckoutMode, CheckoutFormData, DeliveryMode, DeliverySlot } from '~/types/checkout'
 import CustomDatePicker from '~/components/ui/CustomDatePicker.vue'
 import CustomTimePicker from '~/components/ui/CustomTimePicker.vue'
+import UiCustomSelect, { type SelectOption } from '~/components/ui/CustomSelect.vue'
+
+const slotOptions: SelectOption[] = [
+  { label: 'Mañana: 08:00 AM - 10:00 AM', value: 'morning', sublabel: 'Antes de oficina / entrega matutina' },
+  { label: 'Noche: 07:00 PM - 10:00 PM', value: 'night', sublabel: 'Retorno a casa / motorizado nocturno' },
+  { label: 'En el día: Previa coordinación por WhatsApp', value: 'special', sublabel: 'Entrega en ruta o despacho desde taller' }
+]
 
 const props = defineProps<{
   mode: CheckoutMode
@@ -239,16 +246,16 @@ watch(() => props.formData.deliverySlot, (slot) => {
             <label class="block text-xs font-bold text-[#4A5D23] uppercase tracking-wider mb-1.5">
               Franja Horaria Preferida
             </label>
-            <select
+            <UiCustomSelect
               v-if="!formData.isCustomSchedule"
-              :value="formData.deliverySlot || 'morning'"
-              @change="setDeliverySlot(($event.target as HTMLSelectElement).value as DeliverySlot)"
-              class="w-full px-4 py-3 bg-[#F4F1E1]/40 border border-[#4A5D23]/20 rounded-xl text-sm font-bold text-[#2A321B] focus:outline-none focus:border-[#4A5D23] focus-visible:ring-2 focus-visible:ring-[#4A5D23] focus:bg-white transition-all shadow-xs cursor-pointer"
-            >
-              <option value="morning">Manana: 08:00 AM - 10:00 AM (Antes del trabajo / oficina)</option>
-              <option value="night">Noche: 07:00 PM - 10:00 PM (Retorno a casa / nocturno)</option>
-              <option value="special">En el dia: Previa coordinacion por WhatsApp</option>
-            </select>
+              :options="slotOptions"
+              :modelValue="formData.deliverySlot || 'morning'"
+              size="md"
+              icon="lucide:clock"
+              bgClass="bg-[#F4F1E1]/40"
+              buttonClass="!py-2.5 sm:!py-3"
+              @update:model-value="setDeliverySlot(String($event) as DeliverySlot)"
+            />
             <CustomTimePicker
               v-else
               id="checkout-delivery-time"

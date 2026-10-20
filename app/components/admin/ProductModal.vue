@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, computed, onMounted, onBeforeUnmount } from 'vue'
 import type { ProductRow, ProductUploadResponse, CatalogCategory } from '~/types/catalog'
+import UiCustomSelect, { type SelectOption } from '~/components/ui/CustomSelect.vue'
 
 const props = defineProps<{
   show: boolean
@@ -17,6 +18,14 @@ const { data: categoriesResponse } = await useFetch<{ success: boolean; data: Ca
   default: () => ({ success: true, data: [] })
 })
 const availableCategories = computed<CatalogCategory[]>(() => categoriesResponse.value?.data || [])
+
+const categoryOptions = computed<SelectOption[]>(() => [
+  { label: '(Sin categoría asignada)', value: '' },
+  ...availableCategories.value.map(cat => ({
+    label: cat.name,
+    value: cat.id
+  }))
+])
 
 const newProduct = ref<{
   id: number | string
@@ -236,15 +245,15 @@ async function saveProduct(): Promise<void> {
               <!-- Categoría / Sección del Menú -->
               <div>
                 <label class="block text-[10px] font-bold text-[#4A5D23] uppercase tracking-widest mb-1.5">Sección / Categoría del Menú</label>
-                <select
-                  v-model="newProduct.category_id"
-                  class="w-full bg-[#F4F1E1]/30 border border-[#4A5D23]/20 rounded-xl px-4 py-2.5 text-sm font-bold text-[#2A321B] focus:outline-none focus:border-[#4A5D23] transition-colors cursor-pointer"
-                >
-                  <option value="">(Sin categoría asignada)</option>
-                  <option v-for="cat in availableCategories" :key="cat.id" :value="cat.id">
-                    {{ cat.name }}
-                  </option>
-                </select>
+                <UiCustomSelect
+                  :options="categoryOptions"
+                  :modelValue="newProduct.category_id || ''"
+                  size="md"
+                  placeholder="Selecciona una categoría..."
+                  bgClass="bg-[#F4F1E1]/30"
+                  buttonClass="!py-2.5"
+                  @update:model-value="newProduct.category_id = String($event || '')"
+                />
                 <p class="text-[10px] text-[#4A5D23]/70 font-medium mt-1">
                   Permite a los clientes filtrar este postre en la carta principal.
                 </p>

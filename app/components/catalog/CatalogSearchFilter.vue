@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import type { CatalogCategory } from '~/types/catalog'
+import UiCustomSelect, { type SelectOption } from '~/components/ui/CustomSelect.vue'
 
 const props = defineProps<{
   searchQuery: string
@@ -130,6 +131,26 @@ onBeforeUnmount(() => {
     window.removeEventListener('keydown', handleKeyDown)
   }
 })
+
+// Opciones de selector enriquecido CustomSelect para Porciones
+const portionOptions: SelectOption[] = [
+  { label: 'Todas las porciones', value: 'all', sublabel: 'Cualquier tamaño' },
+  { label: '1 a 4 porciones', value: '1-4', sublabel: 'Individual / Pareja' },
+  { label: '6 a 10 porciones', value: '6-10', sublabel: 'Familiar' },
+  { label: '12+ porciones', value: '12+', sublabel: 'Celebración' }
+]
+
+// Opciones de selector enriquecido CustomSelect para Presupuesto / Precio
+const priceRangeOptions: SelectOption[] = [
+  { label: 'Todos los precios', value: 'all', sublabel: 'Cualquier presupuesto' },
+  { label: 'Hasta S/ 30', value: 'under-30', sublabel: 'Antojos y porciones' },
+  { label: 'S/ 30 a S/ 60', value: '30-60', sublabel: 'Postres medianos' },
+  { label: 'Más de S/ 60', value: 'above-60', sublabel: 'Tortas y celebraciones' }
+]
+
+const hasActiveSecondaryFilters = computed(() => {
+  return (props.portionFilter && props.portionFilter !== 'all') || (props.priceRangeFilter && props.priceRangeFilter !== 'all')
+})
 </script>
 
 <template>
@@ -156,223 +177,209 @@ onBeforeUnmount(() => {
       >
         <Icon name="lucide:x" class="w-4 h-4" />
       </button>
-    </div>
-
-    <!-- Único Control Desplegable Compacto de Filtros (Optimizado para Mobile y Desktop) -->
-    <div 
-      v-if="realCategories.length > 0" 
-      ref="dropdownRef" 
-      class="relative w-full max-w-2xl mx-auto flex items-center justify-center gap-2"
-    >
-      <!-- Botón Disparador del Desplegable -->
-      <button
-        @click.stop="toggleDropdown"
-        type="button"
-        :class="[
-          'inline-flex items-center gap-2 px-4 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold transition-all duration-300 border cursor-pointer select-none active:scale-98 shadow-soft-sm',
-          !isAllSelected
-            ? 'bg-brand-primary text-white border-brand-primary shadow-soft-md'
-            : 'bg-surface text-brand-secondary border-brand-primary/20 hover:bg-brand-cream hover:border-brand-primary/35'
-        ]"
-        :aria-expanded="isDropdownOpen"
-        aria-label="Filtrar por sección de la carta"
+      <!-- Barra Unificada de Filtros: Secciones (Grande) a la izquierda y Porciones/Precios a la derecha -->
+      <div 
+        v-if="realCategories.length > 0" 
+        ref="dropdownRef" 
+        class="relative w-full max-w-3xl mx-auto"
       >
-        <Icon :name="activeFilterIcon" class="w-4 h-4 text-brand-accent shrink-0" />
-        <span class="truncate max-w-[210px] sm:max-w-xs">{{ activeFilterLabel }}</span>
-        <Icon 
-          name="lucide:chevron-down" 
-          :class="['w-4 h-4 transition-transform duration-200 shrink-0 opacity-80', isDropdownOpen ? 'rotate-180' : '']" 
-        />
-      </button>
-
-      <!-- Botón Rápido para Reestablecer a 'Toda la carta' si hay filtro activo -->
-      <button
-        v-if="!isAllSelected"
-        @click="selectAll"
-        type="button"
-        class="inline-flex items-center gap-1 px-3 py-2 sm:py-2.5 rounded-full text-xs font-bold text-brand-secondary/80 bg-brand-cream/80 hover:bg-brand-cream border border-brand-primary/15 transition-all cursor-pointer active:scale-95 shadow-soft-sm"
-        title="Mostrar todas las secciones"
-      >
-        <Icon name="lucide:x" class="w-3.5 h-3.5 text-brand-primary" />
-        <span class="hidden sm:inline">Ver todo</span>
-      </button>
-
-      <!-- Menú Desplegable Flotante Elegante con Selección Múltiple -->
-      <Transition name="dropdown-fade">
-        <div
-          v-if="isDropdownOpen"
-          class="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-[calc(100vw-2rem)] max-w-sm bg-surface rounded-2xl border border-brand-primary/20 shadow-soft-xl p-3 z-50 backdrop-blur-md"
-        >
-          <!-- Encabezado del Popover -->
-          <div class="px-2 py-1.5 border-b border-brand-primary/10 mb-2 flex items-center justify-between">
-            <span class="text-[10px] font-bold text-brand-primary uppercase tracking-widest">
-              Filtrar por Especialidad
-            </span>
-            <span class="text-[10px] text-brand-secondary/60 font-semibold">
-              Selección múltiple
-            </span>
-          </div>
-
-          <div class="space-y-1.5 max-h-72 overflow-y-auto custom-scrollbar p-0.5">
-            <!-- Opción: Toda la Carta (Todos los Postres) -->
-            <button
-              @click="selectAll"
-              type="button"
-              :class="[
-                'w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all text-left cursor-pointer border',
-                isAllSelected
-                  ? 'bg-brand-primary text-white border-brand-primary shadow-soft-sm'
-                  : 'text-brand-secondary hover:bg-brand-cream border-transparent'
-              ]"
-            >
-              <div class="flex items-center gap-2.5 min-w-0">
-                <div 
-                  :class="[
-                    'w-4 h-4 rounded-full flex items-center justify-center border transition-colors shrink-0',
-                    isAllSelected ? 'border-white bg-white/20' : 'border-brand-primary/30'
-                  ]"
-                >
-                  <div v-if="isAllSelected" class="w-2 h-2 rounded-full bg-brand-accent"></div>
-                </div>
-                <Icon name="lucide:sparkles" class="w-4 h-4 shrink-0 text-brand-accent" />
-                <span class="truncate">Toda la Carta (Todos los postres)</span>
-              </div>
-              <span v-if="isAllSelected" class="text-[10px] uppercase font-bold tracking-wider opacity-90">
-                Activo
-              </span>
-            </button>
-
-            <!-- Separador -->
-            <div class="border-t border-brand-primary/10 my-1"></div>
-
-            <!-- Opciones Individuales de Categoría con Checkbox Múltiple -->
-            <button
-              v-for="cat in realCategories"
-              :key="cat.id"
-              @click="toggleCategory(cat.id)"
-              type="button"
-              :class="[
-                'w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all text-left cursor-pointer border',
-                isCatActive(cat.id)
-                  ? 'bg-brand-cream text-brand-secondary border-brand-primary/30 shadow-soft-xs'
-                  : 'text-brand-secondary hover:bg-brand-cream/60 border-transparent'
-              ]"
-            >
-              <div class="flex items-center gap-2.5 min-w-0">
-                <!-- Checkbox Artesanal -->
-                <div 
-                  :class="[
-                    'w-4 h-4 rounded-md flex items-center justify-center border transition-colors shrink-0',
-                    isCatActive(cat.id)
-                      ? 'bg-brand-primary border-brand-primary text-white'
-                      : 'border-brand-primary/30 bg-surface'
-                  ]"
-                >
-                  <Icon v-if="isCatActive(cat.id)" name="lucide:check" class="w-3 h-3 text-white" />
-                </div>
-                <Icon :name="cat.icon" class="w-4 h-4 shrink-0 text-brand-primary" />
-                <span class="truncate">{{ cat.name }}</span>
-              </div>
-              <span 
-                v-if="isCatActive(cat.id)" 
-                class="text-[10px] font-bold text-brand-primary bg-brand-primary/10 px-1.5 py-0.5 rounded-md"
+        <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5">
+          <!-- Izquierda: Filtro Principal de Especialidades / Secciones ("El grande") -->
+          <div class="relative flex-1 min-w-0">
+            <div class="flex items-center gap-1.5">
+              <!-- Botón Disparador del Desplegable -->
+              <button
+                @click.stop="toggleDropdown"
+                type="button"
+                :class="[
+                  'w-full inline-flex items-center justify-between gap-2 px-3.5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 border cursor-pointer select-none active:scale-98 shadow-soft-sm relative',
+                  !isAllSelected
+                    ? 'bg-brand-primary text-white border-brand-primary shadow-soft-md'
+                    : 'bg-surface text-brand-secondary border-brand-primary/20 hover:bg-brand-cream hover:border-brand-primary/35'
+                ]"
+                :aria-expanded="isDropdownOpen"
+                aria-label="Filtrar por sección de la carta"
               >
-                Visible
-              </span>
+                <div class="flex items-center gap-2 min-w-0 truncate">
+                  <Icon :name="activeFilterIcon" class="w-4 h-4 text-brand-accent shrink-0" />
+                  <span class="truncate">{{ activeFilterLabel }}</span>
+                </div>
+                <Icon 
+                  name="lucide:chevron-down" 
+                  :class="['w-4 h-4 transition-transform duration-200 shrink-0 opacity-80', isDropdownOpen ? 'rotate-180' : '']" 
+                />
+              </button>
+
+              <!-- Botón Rápido para Restablecer a 'Toda la carta' si hay filtro de categoría activo -->
+              <button
+                v-if="!isAllSelected"
+                @click="selectAll"
+                type="button"
+                class="shrink-0 inline-flex items-center gap-1 px-2.5 py-2 sm:py-2.5 rounded-xl text-xs font-bold text-brand-secondary/80 bg-brand-cream/80 hover:bg-brand-cream border border-brand-primary/15 transition-all cursor-pointer active:scale-95 shadow-soft-sm"
+                title="Mostrar todas las secciones"
+              >
+                <Icon name="lucide:x" class="w-3.5 h-3.5 text-brand-primary" />
+                <span class="hidden sm:inline">Ver todo</span>
+              </button>
+            </div>
+
+            <!-- Menú Desplegable Flotante Elegante con Selección Múltiple -->
+            <Transition name="dropdown-fade">
+              <div
+                v-if="isDropdownOpen"
+                class="absolute left-0 top-full mt-2 w-full sm:w-80 bg-white rounded-2xl border border-brand-primary/20 shadow-2xl p-3 z-50"
+              >
+                <!-- Encabezado del Popover -->
+                <div class="px-2 py-1.5 border-b border-brand-primary/10 mb-2 flex items-center justify-between">
+                  <span class="text-[10px] font-bold text-brand-primary uppercase tracking-widest">
+                    Filtrar por Especialidad
+                  </span>
+                  <span class="text-[10px] text-brand-secondary/60 font-semibold">
+                    Selección múltiple
+                  </span>
+                </div>
+
+                <div class="space-y-1.5 max-h-72 overflow-y-auto custom-scrollbar p-0.5">
+                  <!-- Opción: Toda la Carta (Todos los Postres) -->
+                  <button
+                    @click="selectAll"
+                    type="button"
+                    :class="[
+                      'w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all text-left cursor-pointer border',
+                      isAllSelected
+                        ? 'bg-brand-primary text-white border-brand-primary shadow-soft-sm'
+                        : 'text-brand-secondary hover:bg-brand-cream border-transparent'
+                    ]"
+                  >
+                    <div class="flex items-center gap-2.5 min-w-0">
+                      <div 
+                        :class="[
+                          'w-4 h-4 rounded-full flex items-center justify-center border transition-colors shrink-0',
+                          isAllSelected ? 'border-white bg-white/20' : 'border-brand-primary/30'
+                        ]"
+                      >
+                        <div v-if="isAllSelected" class="w-2 h-2 rounded-full bg-brand-accent"></div>
+                      </div>
+                      <Icon name="lucide:sparkles" class="w-4 h-4 shrink-0 text-brand-accent" />
+                      <span class="truncate">Toda la Carta (Todos los postres)</span>
+                    </div>
+                    <span v-if="isAllSelected" class="text-[10px] uppercase font-bold tracking-wider opacity-90">
+                      Activo
+                    </span>
+                  </button>
+
+                  <!-- Separador -->
+                  <div class="border-t border-brand-primary/10 my-1"></div>
+
+                  <!-- Opciones Individuales de Categoría con Checkbox Múltiple -->
+                  <button
+                    v-for="cat in realCategories"
+                    :key="cat.id"
+                    @click="toggleCategory(cat.id)"
+                    type="button"
+                    :class="[
+                      'w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all text-left cursor-pointer border',
+                      isCatActive(cat.id)
+                        ? 'bg-brand-cream text-brand-secondary border-brand-primary/30 shadow-soft-xs'
+                        : 'text-brand-secondary hover:bg-brand-cream/60 border-transparent'
+                    ]"
+                  >
+                    <div class="flex items-center gap-2.5 min-w-0">
+                      <!-- Checkbox Artesanal -->
+                      <div 
+                        :class="[
+                          'w-4 h-4 rounded-md flex items-center justify-center border transition-colors shrink-0',
+                          isCatActive(cat.id)
+                            ? 'bg-brand-primary border-brand-primary text-white'
+                            : 'border-brand-primary/30 bg-surface'
+                        ]"
+                      >
+                        <Icon v-if="isCatActive(cat.id)" name="lucide:check" class="w-3 h-3 text-white" />
+                      </div>
+                      <Icon :name="cat.icon" class="w-4 h-4 shrink-0 text-brand-primary" />
+                      <span class="truncate">{{ cat.name }}</span>
+                    </div>
+                    <span 
+                      v-if="isCatActive(cat.id)" 
+                      class="text-[10px] font-bold text-brand-primary bg-brand-primary/10 px-1.5 py-0.5 rounded-md"
+                    >
+                      Visible
+                    </span>
+                  </button>
+                </div>
+
+                <!-- Pie del Popover con Botón Listo / Aplicar -->
+                <div class="border-t border-brand-primary/10 pt-2 mt-2 flex items-center justify-between">
+                  <button
+                    @click="selectAll"
+                    type="button"
+                    class="text-[11px] font-bold text-brand-primary hover:text-brand-secondary transition-colors cursor-pointer"
+                  >
+                    Restablecer todo
+                  </button>
+                  <button
+                    @click="isDropdownOpen = false"
+                    type="button"
+                    class="px-3.5 py-1.5 rounded-full bg-brand-primary text-white text-xs font-bold shadow-soft-sm hover:bg-brand-secondary transition-all cursor-pointer active:scale-95"
+                  >
+                    Listo
+                  </button>
+                </div>
+              </div>
+            </Transition>
+          </div>
+
+          <!-- Derecha: Selectores de Porciones y Precios con CustomSelect -->
+          <div class="flex items-center gap-2 sm:gap-2.5 shrink-0">
+            <!-- Selector de Porciones con CustomSelect -->
+            <div class="w-1/2 sm:w-44 md:w-48">
+              <UiCustomSelect
+                :options="portionOptions"
+                :modelValue="portionFilter || 'all'"
+                size="sm"
+                icon="lucide:users"
+                placeholder="Porciones"
+                :buttonClass="portionFilter && portionFilter !== 'all' ? 'bg-brand-primary !border-brand-primary shadow-soft-sm' : 'bg-surface border-brand-primary/20 hover:border-brand-primary/40'"
+                :selectedLabelClass="portionFilter && portionFilter !== 'all' ? '!text-white' : 'text-brand-secondary'"
+                :iconClass="portionFilter && portionFilter !== 'all' ? '!text-white' : 'text-brand-primary'"
+                :chevronClass="portionFilter && portionFilter !== 'all' ? '!text-white' : 'text-brand-primary'"
+                @update:model-value="$emit('update:portionFilter', String($event))"
+              />
+            </div>
+
+            <!-- Selector de Presupuesto con CustomSelect -->
+            <div class="w-1/2 sm:w-40 md:w-44">
+              <UiCustomSelect
+                :options="priceRangeOptions"
+                :modelValue="priceRangeFilter || 'all'"
+                size="sm"
+                icon="lucide:tag"
+                placeholder="Precio"
+                :buttonClass="priceRangeFilter && priceRangeFilter !== 'all' ? 'bg-brand-primary !border-brand-primary shadow-soft-sm' : 'bg-surface border-brand-primary/20 hover:border-brand-primary/40'"
+                :selectedLabelClass="priceRangeFilter && priceRangeFilter !== 'all' ? '!text-white' : 'text-brand-secondary'"
+                :iconClass="priceRangeFilter && priceRangeFilter !== 'all' ? '!text-white' : 'text-brand-primary'"
+                :chevronClass="priceRangeFilter && priceRangeFilter !== 'all' ? '!text-white' : 'text-brand-primary'"
+                @update:model-value="$emit('update:priceRangeFilter', String($event))"
+              />
+            </div>
+
+            <!-- Botón Limpiar Todo si alguno está activo -->
+            <button
+              v-if="hasActiveSecondaryFilters"
+              @click="$emit('resetAll')"
+              type="button"
+              class="shrink-0 inline-flex items-center justify-center p-2 rounded-xl text-xs font-bold text-brand-secondary/70 hover:text-status-danger bg-brand-cream/80 hover:bg-brand-cream border border-brand-primary/15 transition-all cursor-pointer shadow-soft-xs"
+              title="Limpiar filtros de porciones y precios"
+              aria-label="Limpiar filtros secundarios"
+            >
+              <Icon name="lucide:x" class="w-3.5 h-3.5" />
             </button>
           </div>
 
-          <!-- Pie del Popover con Botón Listo / Aplicar -->
-          <div class="border-t border-brand-primary/10 pt-2 mt-2 flex items-center justify-between">
-            <button
-              @click="selectAll"
-              type="button"
-              class="text-[11px] font-bold text-brand-primary hover:text-brand-secondary transition-colors cursor-pointer"
-            >
-              Restablecer todo
-            </button>
-            <button
-              @click="isDropdownOpen = false"
-              type="button"
-              class="px-3.5 py-1.5 rounded-full bg-brand-primary text-white text-xs font-bold shadow-soft-sm hover:bg-brand-secondary transition-all cursor-pointer active:scale-95"
-            >
-              Listo
-            </button>
-          </div>
-        </div>
-      </Transition>
-    </div>
-
-    <!-- Filtros Secundarios: Porciones y Rango de Precio -->
-    <div class="flex flex-wrap items-center justify-center gap-2.5 pt-1">
-      <!-- Selector de Porciones -->
-      <div class="relative inline-flex items-center">
-        <label for="catalog-portion-filter" class="sr-only">Filtrar por porciones</label>
-        <div class="absolute left-3 pointer-events-none text-brand-primary">
-          <Icon name="lucide:users" class="w-3.5 h-3.5" />
-        </div>
-        <select
-          id="catalog-portion-filter"
-          :value="portionFilter || 'all'"
-          @change="$emit('update:portionFilter', ($event.target as HTMLSelectElement).value)"
-          :class="[
-            'pl-8 pr-7 py-1.5 text-xs font-bold rounded-full border transition-all cursor-pointer appearance-none shadow-soft-xs',
-            portionFilter && portionFilter !== 'all'
-              ? 'bg-brand-primary text-white border-brand-primary'
-              : 'bg-surface text-brand-secondary border-brand-primary/20 hover:border-brand-primary/40'
-          ]"
-        >
-          <option value="all">Todas las porciones</option>
-          <option value="1-4">1 a 4 porciones (Individual / Pareja)</option>
-          <option value="6-10">6 a 10 porciones (Familiar)</option>
-          <option value="12+">12+ porciones (Celebración)</option>
-        </select>
-        <div class="absolute right-2.5 pointer-events-none" :class="portionFilter && portionFilter !== 'all' ? 'text-white/80' : 'text-brand-secondary/60'">
-          <Icon name="lucide:chevron-down" class="w-3 h-3" />
         </div>
       </div>
-
-      <!-- Selector de Presupuesto / Precio -->
-      <div class="relative inline-flex items-center">
-        <label for="catalog-price-filter" class="sr-only">Filtrar por presupuesto</label>
-        <div class="absolute left-3 pointer-events-none text-brand-primary">
-          <Icon name="lucide:tag" class="w-3.5 h-3.5" />
-        </div>
-        <select
-          id="catalog-price-filter"
-          :value="priceRangeFilter || 'all'"
-          @change="$emit('update:priceRangeFilter', ($event.target as HTMLSelectElement).value)"
-          :class="[
-            'pl-8 pr-7 py-1.5 text-xs font-bold rounded-full border transition-all cursor-pointer appearance-none shadow-soft-xs',
-            priceRangeFilter && priceRangeFilter !== 'all'
-              ? 'bg-brand-primary text-white border-brand-primary'
-              : 'bg-surface text-brand-secondary border-brand-primary/20 hover:border-brand-primary/40'
-          ]"
-        >
-          <option value="all">Todos los precios</option>
-          <option value="under-30">Hasta S/ 30</option>
-          <option value="30-60">S/ 30 a S/ 60</option>
-          <option value="above-60">Más de S/ 60</option>
-        </select>
-        <div class="absolute right-2.5 pointer-events-none" :class="priceRangeFilter && priceRangeFilter !== 'all' ? 'text-white/80' : 'text-brand-secondary/60'">
-          <Icon name="lucide:chevron-down" class="w-3 h-3" />
-        </div>
-      </div>
-
-      <!-- Boton para limpiar filtros secundarios si alguno esta activo -->
-      <button
-        v-if="(portionFilter && portionFilter !== 'all') || (priceRangeFilter && priceRangeFilter !== 'all')"
-        @click="$emit('resetAll')"
-        type="button"
-        class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-bold text-brand-secondary/70 hover:text-status-danger bg-brand-cream/80 hover:bg-brand-cream border border-brand-primary/15 transition-all cursor-pointer"
-        title="Restablecer filtros de porciones y precio"
-      >
-        <Icon name="lucide:x" class="w-3 h-3" />
-        <span>Limpiar filtros</span>
-      </button>
     </div>
-  </div>
-</template>
+  </div></template>
 
 <style scoped>
 .dropdown-fade-enter-active,
@@ -383,7 +390,7 @@ onBeforeUnmount(() => {
 .dropdown-fade-enter-from,
 .dropdown-fade-leave-to {
   opacity: 0;
-  transform: translate(-50%, -6px) scale(0.97);
+  transform: translateY(-6px) scale(0.97);
 }
 
 .custom-scrollbar::-webkit-scrollbar {

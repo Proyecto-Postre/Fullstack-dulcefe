@@ -18,6 +18,10 @@ const props = withDefaults(
     disabled?: boolean
     size?: 'sm' | 'md'
     placement?: 'auto' | 'top' | 'bottom'
+    icon?: string
+    iconClass?: string
+    selectedLabelClass?: string
+    chevronClass?: string
   }>(),
   {
     placeholder: 'Seleccionar...',
@@ -111,18 +115,26 @@ function isSelected(val: unknown) {
         buttonClass
       ]"
     >
-      <span v-if="selectedLabel" class="flex-1 min-w-0 font-bold text-brand-secondary break-words leading-tight">
-        {{ selectedLabel }}
-      </span>
-      <span v-else class="flex-1 min-w-0 font-medium text-brand-primary/50 break-words leading-tight">
-        {{ placeholder }}
-      </span>
+      <div class="flex items-center gap-1.5 min-w-0 flex-1 mr-2">
+        <Icon 
+          v-if="icon" 
+          :name="icon" 
+          :class="['shrink-0', size === 'sm' ? 'w-3.5 h-3.5' : 'w-4 h-4', iconClass || 'text-brand-primary']" 
+        />
+        <span v-if="selectedLabel" class="flex-1 min-w-0 font-bold break-words leading-tight" :class="selectedLabelClass || 'text-brand-secondary'">
+          {{ selectedLabel }}
+        </span>
+        <span v-else class="flex-1 min-w-0 font-medium text-brand-primary/50 break-words leading-tight">
+          {{ placeholder }}
+        </span>
+      </div>
       
       <Icon 
         name="lucide:chevron-down" 
         :class="[
-          'absolute top-1/2 -translate-y-1/2 text-brand-primary transition-transform duration-300 pointer-events-none shrink-0',
+          'absolute top-1/2 -translate-y-1/2 transition-transform duration-300 pointer-events-none shrink-0',
           size === 'sm' ? 'right-2.5 w-3.5 h-3.5' : 'right-3 sm:right-4 w-4 h-4',
+          chevronClass || 'text-brand-primary',
           { 'rotate-180': isOpen }
         ]" 
       />
