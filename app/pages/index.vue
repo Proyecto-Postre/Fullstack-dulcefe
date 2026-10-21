@@ -404,8 +404,8 @@ onBeforeUnmount(() => {
               <Icon name="lucide:flame" class="w-3.5 h-3.5 sm:w-5 sm:h-5" />
             </div>
             <div>
-              <h4 class="text-[11px] sm:text-xs md:text-sm font-bold text-brand-secondary font-playfair leading-tight mb-0.5">Horneado Diario</h4>
-              <p class="text-[10px] sm:text-[11px] text-brand-secondary/80 leading-snug">Horneado el día de tu entrega.</p>
+              <h4 class="text-[11px] sm:text-xs md:text-sm font-bold text-brand-secondary font-playfair leading-tight mb-0.5">Horneado Fresco</h4>
+              <p class="text-[10px] sm:text-[11px] text-brand-secondary/80 leading-snug">Preparado bajo pedido para tu fecha.</p>
             </div>
           </div>
 
