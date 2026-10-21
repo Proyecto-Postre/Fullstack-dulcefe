@@ -235,15 +235,15 @@ onBeforeUnmount(() => {
           </div>
           
           <!-- Titular Editorial -->
-          <h1 class="text-3xl sm:text-6xl md:text-7xl font-playfair font-black text-brand-secondary leading-[1.12] tracking-tight text-balance pb-2 sm:pb-0">
+          <h1 class="text-3xl sm:text-6xl md:text-7xl font-playfair font-black text-brand-secondary leading-[1.08] tracking-tight text-balance">
             El arte de crear <br />
-            <span class="inline-block italic font-medium text-brand-primary underline decoration-brand-accent/40 decoration-wavy decoration-2 pb-1">
+            <span class="italic font-medium text-brand-primary underline decoration-brand-accent/40 decoration-wavy decoration-2">
               momentos dulces
             </span>
           </h1>
 
           <!-- Fotografía Protagonista del Postre en Móvil (Visible de inmediato en < lg) -->
-          <div class="lg:hidden relative w-full max-w-[350px] sm:max-w-md mx-auto !mt-7 mb-4 animate-fade-in">
+          <div class="lg:hidden relative w-full max-w-[350px] sm:max-w-md mx-auto !mt-5 mb-3.5 sm:my-4 animate-fade-in">
             <div class="relative rounded-[2rem] overflow-hidden aspect-[4/3] shadow-soft-xl border-3 border-surface bg-brand-cream">
               <img 
                 src="/images/desserts/torta-chocolate-frutos.jpg" 
