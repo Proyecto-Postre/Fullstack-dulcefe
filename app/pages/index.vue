@@ -243,7 +243,7 @@ onBeforeUnmount(() => {
           </h1>
 
           <!-- Fotografía Protagonista del Postre en Móvil (Visible de inmediato en < lg) -->
-          <div class="lg:hidden relative w-full max-w-[350px] sm:max-w-md mx-auto my-2 animate-fade-in">
+          <div class="lg:hidden relative w-full max-w-[350px] sm:max-w-md mx-auto mt-5 mb-3 sm:mt-6 sm:mb-4 animate-fade-in">
             <div class="relative rounded-[2rem] overflow-hidden aspect-[4/3] shadow-soft-xl border-3 border-surface bg-brand-cream">
               <img 
                 src="/images/desserts/torta-chocolate-frutos.jpg" 
