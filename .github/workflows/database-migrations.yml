@@ -8,6 +8,16 @@ on:
     paths:
       - 'supabase/migrations/**'
   workflow_dispatch:
+    inputs:
+      target_env:
+        description: 'Target database environment'
+        required: true
+        default: 'auto'
+        type: choice
+        options:
+          - auto
+          - production
+          - development
 
 concurrency:
   group: supabase-migrations-${{ github.ref }}
@@ -30,7 +40,8 @@ jobs:
         id: db_env
         shell: bash
         run: |
-          if [ "${{ github.ref_name }}" = "main" ]; then
+          TARGET="${{ inputs.target_env }}"
+          if [ "$TARGET" = "production" ] || ([ "$TARGET" != "development" ] && [ "${{ github.ref_name }}" = "main" ]); then
             echo "Target environment: PRODUCTION"
             DB_URL="${{ secrets.SUPABASE_DB_URL_PROD || secrets.SUPABASE_DB_URL }}"
           else
