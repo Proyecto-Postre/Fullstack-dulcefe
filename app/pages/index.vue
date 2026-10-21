@@ -235,15 +235,15 @@ onBeforeUnmount(() => {
           </div>
           
           <!-- Titular Editorial -->
-          <h1 class="text-3xl sm:text-6xl md:text-7xl font-playfair font-black text-brand-secondary leading-[1.08] tracking-tight text-balance">
+          <h1 class="text-3xl sm:text-6xl md:text-7xl font-playfair font-black text-brand-secondary leading-[1.12] tracking-tight text-balance pb-2 sm:pb-0">
             El arte de crear <br />
-            <span class="italic font-medium text-brand-primary underline decoration-brand-accent/40 decoration-wavy decoration-2">
+            <span class="inline-block italic font-medium text-brand-primary underline decoration-brand-accent/40 decoration-wavy decoration-2 pb-1">
               momentos dulces
             </span>
           </h1>
 
           <!-- Fotografía Protagonista del Postre en Móvil (Visible de inmediato en < lg) -->
-          <div class="lg:hidden relative w-full max-w-[350px] sm:max-w-md mx-auto mt-5 mb-3 sm:mt-6 sm:mb-4 animate-fade-in">
+          <div class="lg:hidden relative w-full max-w-[350px] sm:max-w-md mx-auto !mt-7 mb-4 animate-fade-in">
             <div class="relative rounded-[2rem] overflow-hidden aspect-[4/3] shadow-soft-xl border-3 border-surface bg-brand-cream">
               <img 
                 src="/images/desserts/torta-chocolate-frutos.jpg" 
@@ -257,14 +257,14 @@ onBeforeUnmount(() => {
                 <Icon name="lucide:award" class="w-3.5 h-3.5 text-brand-primary shrink-0" />
                 <span class="text-[10px] sm:text-[11px] font-bold font-playfair text-brand-secondary leading-none">Calidad Artesanal 100%</span>
               </div>
-            </div>
 
-            <!-- Sello 'Hecho a Mano' en Móvil (Esquina superior derecha tipo timbre de autor) -->
-            <div class="absolute -top-2.5 -right-2 w-11 h-11 rounded-full bg-brand-secondary text-white flex items-center justify-center shadow-md border border-brand-accent/40 z-30 ring-2 ring-surface select-none">
-              <div class="w-9 h-9 rounded-full border border-dashed border-brand-accent/50 flex flex-col items-center justify-center text-center p-0.5">
-                <Icon name="lucide:sparkles" class="w-2.5 h-2.5 text-brand-accent mb-0.5" />
-                <span class="text-[5.5px] font-black uppercase tracking-wider text-white leading-tight">Hecho</span>
-                <span class="text-[4.5px] font-bold uppercase tracking-widest text-brand-accent leading-none">a Mano</span>
+              <!-- Sello 'Hecho a Mano' en Móvil (Esquina superior derecha integrado elegantemente) -->
+              <div class="absolute top-2.5 right-2.5 w-11 h-11 rounded-full bg-brand-secondary text-white flex items-center justify-center shadow-md border border-brand-accent/40 z-30 ring-2 ring-surface select-none">
+                <div class="w-9 h-9 rounded-full border border-dashed border-brand-accent/50 flex flex-col items-center justify-center text-center p-0.5">
+                  <Icon name="lucide:sparkles" class="w-2.5 h-2.5 text-brand-accent mb-0.5" />
+                  <span class="text-[5.5px] font-black uppercase tracking-wider text-white leading-tight">Hecho</span>
+                  <span class="text-[4.5px] font-bold uppercase tracking-widest text-brand-accent leading-none">a Mano</span>
+                </div>
               </div>
             </div>
           </div>
