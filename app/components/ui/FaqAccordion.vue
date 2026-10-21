@@ -35,7 +35,7 @@ function toggleItem(id: string) {
         type="button"
         @click="toggleItem(item.id)"
         :class="[
-          'w-full text-left px-5 sm:px-6 flex items-center justify-between gap-4 cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-primary/30 select-none transition-all duration-300',
+          'w-full text-left px-5 sm:px-6 flex items-center justify-between gap-4 cursor-pointer select-none bg-transparent border-0 outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 transition-all duration-300',
           openItemId === item.id ? 'pt-4 sm:pt-5 pb-2.5 sm:pb-3' : 'py-4 sm:py-5'
         ]"
         :aria-expanded="openItemId === item.id"
@@ -74,6 +74,21 @@ function toggleItem(id: string) {
 </template>
 
 <style scoped>
+/* Elimina por completo cualquier linea, ring o sombra de foco que los navegadores proyectan sobre el boton */
+button {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus,
+button:focus-visible,
+button:active {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
 .faq-collapse {
   display: grid;
   grid-template-rows: 0fr;
