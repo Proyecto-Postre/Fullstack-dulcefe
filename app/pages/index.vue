@@ -223,11 +223,11 @@ onBeforeUnmount(() => {
     <!-- ========================================================================= -->
     <!-- 1. HERO SECTION: MOSAICO EDITORIAL ATELIER                                -->
     <!-- ========================================================================= -->
-    <section class="relative pt-6 sm:pt-10 pb-16 lg:pt-16 lg:pb-24 px-4 sm:px-6 lg:px-12 z-10">
-      <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+    <section class="relative pt-4 sm:pt-10 pb-5 sm:pb-8 lg:pt-16 lg:pb-24 px-4 sm:px-6 lg:px-12 z-10">
+      <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
         
         <!-- Columna Izquierda: Mensaje Editorial & Acciones -->
-        <div class="lg:col-span-7 space-y-3.5 sm:space-y-8 animate-fade-in-up">
+        <div class="lg:col-span-7 space-y-3 sm:space-y-8 animate-fade-in-up">
           <!-- Badge de Taller en Vivo (Oculto en móvil) -->
           <div class="hidden sm:inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-primary/10 text-brand-primary text-xs font-bold uppercase tracking-widest border border-brand-primary/20 shadow-soft-sm">
             <span class="w-2 h-2 rounded-full bg-brand-primary animate-pulse"></span>
@@ -243,35 +243,28 @@ onBeforeUnmount(() => {
           </h1>
 
           <!-- Fotografía Protagonista del Postre en Móvil (Visible de inmediato en < lg) -->
-          <div class="lg:hidden relative w-full max-w-[290px] sm:max-w-sm mx-auto my-1 pt-0.5 animate-fade-in">
-            <div class="relative rounded-[1.75rem] overflow-hidden aspect-[16/11] shadow-xl border-3 border-surface bg-brand-cream">
+          <div class="lg:hidden relative w-full max-w-[350px] sm:max-w-md mx-auto my-2 animate-fade-in">
+            <div class="relative rounded-[2rem] overflow-hidden aspect-[4/3] shadow-soft-xl border-3 border-surface bg-brand-cream">
               <img 
                 src="/images/desserts/torta-chocolate-frutos.jpg" 
                 alt="Torta Artesanal de Chocolate Dulce Fe" 
                 class="w-full h-full object-cover" 
               />
-              <div class="absolute inset-0 bg-gradient-to-t from-brand-secondary/60 via-transparent to-transparent pointer-events-none"></div>
+              <div class="absolute inset-0 bg-gradient-to-t from-brand-secondary/40 via-transparent to-transparent pointer-events-none"></div>
 
-              <!-- Badge de Elaboración Diaria en Móvil -->
-              <div class="absolute bottom-2 left-2 right-2 pr-12 bg-surface/95 backdrop-blur-md px-2.5 py-1.5 rounded-xl shadow-soft-md flex items-center border border-surface/50 z-20">
-                <div class="flex items-center gap-2">
-                  <div class="w-6 h-6 bg-brand-cream rounded-full flex items-center justify-center text-brand-primary border border-brand-primary/20 shrink-0">
-                    <Icon name="lucide:award" class="w-3 h-3 text-brand-primary" />
-                  </div>
-                  <div>
-                    <p class="text-[7.5px] font-bold text-brand-primary uppercase tracking-widest leading-none mb-0.5">Elaboración Diaria</p>
-                    <p class="text-[11px] font-black font-playfair text-brand-secondary leading-none">Calidad Artesanal 100%</p>
-                  </div>
-                </div>
+              <!-- Pastilla Compacta de Calidad Artesanal (Esquina inferior izquierda sin tapar la torta) -->
+              <div class="absolute bottom-2.5 left-2.5 bg-surface/95 backdrop-blur-md px-3 py-1.5 rounded-full shadow-soft-md flex items-center gap-1.5 border border-brand-primary/15 z-20">
+                <Icon name="lucide:award" class="w-3.5 h-3.5 text-brand-primary shrink-0" />
+                <span class="text-[10px] sm:text-[11px] font-bold font-playfair text-brand-secondary leading-none">Calidad Artesanal 100%</span>
               </div>
             </div>
 
-            <!-- Sello 'Hecho a Mano' en Móvil -->
-            <div class="absolute -bottom-1.5 -right-1.5 w-14 h-14 rounded-full bg-brand-secondary text-white flex items-center justify-center shadow-lg border-2 border-brand-accent/40 z-30 ring-3 ring-surface/90 select-none">
-              <div class="w-12 h-12 rounded-full border border-dashed border-brand-accent/50 flex flex-col items-center justify-center text-center p-0.5">
-                <Icon name="lucide:sparkles" class="w-3 h-3 text-brand-accent mb-0.5 animate-pulse" />
-                <span class="text-[6.5px] font-black uppercase tracking-wider text-white leading-tight">Hecho</span>
-                <span class="text-[5.5px] font-bold uppercase tracking-widest text-brand-accent leading-none">a Mano</span>
+            <!-- Sello 'Hecho a Mano' en Móvil (Esquina superior derecha tipo timbre de autor) -->
+            <div class="absolute -top-2.5 -right-2 w-11 h-11 rounded-full bg-brand-secondary text-white flex items-center justify-center shadow-md border border-brand-accent/40 z-30 ring-2 ring-surface select-none">
+              <div class="w-9 h-9 rounded-full border border-dashed border-brand-accent/50 flex flex-col items-center justify-center text-center p-0.5">
+                <Icon name="lucide:sparkles" class="w-2.5 h-2.5 text-brand-accent mb-0.5" />
+                <span class="text-[5.5px] font-black uppercase tracking-wider text-white leading-tight">Hecho</span>
+                <span class="text-[4.5px] font-bold uppercase tracking-widest text-brand-accent leading-none">a Mano</span>
               </div>
             </div>
           </div>
@@ -392,47 +385,47 @@ onBeforeUnmount(() => {
     <!-- ========================================================================= -->
     <!-- 2. CINTA DE CONFIANZA ARTESANAL: 4 PILARES GOURMET                         -->
     <!-- ========================================================================= -->
-    <section class="relative py-4 sm:py-8 lg:py-10 bg-surface border-y border-brand-primary/10 z-10">
+    <section class="relative py-3.5 sm:py-8 lg:py-10 bg-surface border-y border-brand-primary/10 z-10">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-6 lg:gap-8">
           
-          <div class="flex items-center sm:items-start gap-2.5 sm:gap-3.5 p-2.5 sm:p-4 rounded-xl sm:rounded-2xl bg-brand-cream/40 border border-brand-primary/10">
-            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
-              <Icon name="lucide:leaf" class="w-4 h-4 sm:w-5 sm:h-5" />
+          <div class="flex items-center sm:items-start gap-2 sm:gap-3.5 p-2.5 sm:p-4 rounded-xl sm:rounded-2xl bg-brand-cream/40 border border-brand-primary/10">
+            <div class="w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
+              <Icon name="lucide:leaf" class="w-3.5 h-3.5 sm:w-5 sm:h-5" />
             </div>
             <div>
               <h4 class="text-[11px] sm:text-xs md:text-sm font-bold text-brand-secondary font-playfair leading-tight mb-0.5">Insumos Seleccionados</h4>
-              <p class="text-[9.5px] sm:text-[11px] text-brand-secondary/75 leading-tight line-clamp-2 sm:line-clamp-none">Frutas frescas del día y recetas 100% artesanales.</p>
+              <p class="text-[10px] sm:text-[11px] text-brand-secondary/80 leading-snug">Frutas frescas y 100% artesanal.</p>
             </div>
           </div>
 
-          <div class="flex items-center sm:items-start gap-2.5 sm:gap-3.5 p-2.5 sm:p-4 rounded-xl sm:rounded-2xl bg-brand-cream/40 border border-brand-primary/10">
-            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
-              <Icon name="lucide:flame" class="w-4 h-4 sm:w-5 sm:h-5" />
+          <div class="flex items-center sm:items-start gap-2 sm:gap-3.5 p-2.5 sm:p-4 rounded-xl sm:rounded-2xl bg-brand-cream/40 border border-brand-primary/10">
+            <div class="w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
+              <Icon name="lucide:flame" class="w-3.5 h-3.5 sm:w-5 sm:h-5" />
             </div>
             <div>
               <h4 class="text-[11px] sm:text-xs md:text-sm font-bold text-brand-secondary font-playfair leading-tight mb-0.5">Horneado Diario</h4>
-              <p class="text-[9.5px] sm:text-[11px] text-brand-secondary/75 leading-tight line-clamp-2 sm:line-clamp-none">Masa fresca bajo pedido para garantizar textura viva.</p>
+              <p class="text-[10px] sm:text-[11px] text-brand-secondary/80 leading-snug">Horneado el día de tu entrega.</p>
             </div>
           </div>
 
-          <div class="flex items-center sm:items-start gap-2.5 sm:gap-3.5 p-2.5 sm:p-4 rounded-xl sm:rounded-2xl bg-brand-cream/40 border border-brand-primary/10">
-            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
-              <Icon name="lucide:heart-handshake" class="w-4 h-4 sm:w-5 sm:h-5" />
+          <div class="flex items-center sm:items-start gap-2 sm:gap-3.5 p-2.5 sm:p-4 rounded-xl sm:rounded-2xl bg-brand-cream/40 border border-brand-primary/10">
+            <div class="w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
+              <Icon name="lucide:heart-handshake" class="w-3.5 h-3.5 sm:w-5 sm:h-5" />
             </div>
             <div>
               <h4 class="text-[11px] sm:text-xs md:text-sm font-bold text-brand-secondary font-playfair leading-tight mb-0.5">Dedicatoria Gratis</h4>
-              <p class="text-[9.5px] sm:text-[11px] text-brand-secondary/75 leading-tight line-clamp-2 sm:line-clamp-none">Mensaje personalizado escrito a mano o en placa.</p>
+              <p class="text-[10px] sm:text-[11px] text-brand-secondary/80 leading-snug">Tarjeta personalizada de regalo.</p>
             </div>
           </div>
 
-          <div class="flex items-center sm:items-start gap-2.5 sm:gap-3.5 p-2.5 sm:p-4 rounded-xl sm:rounded-2xl bg-brand-cream/40 border border-brand-primary/10">
-            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
-              <Icon name="lucide:truck" class="w-4 h-4 sm:w-5 sm:h-5" />
+          <div class="flex items-center sm:items-start gap-2 sm:gap-3.5 p-2.5 sm:p-4 rounded-xl sm:rounded-2xl bg-brand-cream/40 border border-brand-primary/10">
+            <div class="w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
+              <Icon name="lucide:truck" class="w-3.5 h-3.5 sm:w-5 sm:h-5" />
             </div>
             <div>
               <h4 class="text-[11px] sm:text-xs md:text-sm font-bold text-brand-secondary font-playfair leading-tight mb-0.5">Envío Refrigerado</h4>
-              <p class="text-[9.5px] sm:text-[11px] text-brand-secondary/75 leading-tight line-clamp-2 sm:line-clamp-none">Empaque protector para que llegue intacto a tu hogar.</p>
+              <p class="text-[10px] sm:text-[11px] text-brand-secondary/80 leading-snug">Empaque especial para su cuidado.</p>
             </div>
           </div>
 
