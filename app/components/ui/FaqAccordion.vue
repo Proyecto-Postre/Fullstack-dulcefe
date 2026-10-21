@@ -24,12 +24,17 @@ function toggleItem(id: string) {
     <div
       v-for="item in items"
       :key="item.id"
-      class="bg-surface rounded-2xl border border-brand-primary/15 transition-all duration-300 shadow-soft-sm overflow-hidden"
+      :class="[
+        'bg-surface rounded-2xl border transition-all duration-300 shadow-soft-sm overflow-hidden',
+        openItemId === item.id
+          ? 'border-brand-primary/30 shadow-soft-md ring-1 ring-brand-primary/10'
+          : 'border-brand-primary/15 hover:border-brand-primary/30'
+      ]"
     >
       <button
         type="button"
         @click="toggleItem(item.id)"
-        class="w-full text-left px-5 sm:px-6 py-4 sm:py-5 flex items-center justify-between gap-4 cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
+        class="w-full text-left px-5 sm:px-6 py-4 sm:py-5 flex items-center justify-between gap-4 cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-primary/30 select-none"
         :aria-expanded="openItemId === item.id"
         :aria-controls="`faq-answer-${item.id}`"
       >
@@ -37,21 +42,26 @@ function toggleItem(id: string) {
           {{ item.question }}
         </span>
         <div
-          class="w-8 h-8 rounded-full bg-brand-cream/70 flex items-center justify-center shrink-0 text-brand-primary transition-transform duration-300"
-          :class="openItemId === item.id ? 'rotate-180 bg-brand-primary text-white' : ''"
+          class="w-8 h-8 rounded-full bg-brand-cream/70 flex items-center justify-center shrink-0 text-brand-primary transition-all duration-300 shadow-soft-xs"
+          :class="openItemId === item.id ? 'rotate-180 bg-brand-primary text-white shadow-soft-sm' : 'hover:bg-brand-cream'"
         >
-          <Icon name="lucide:chevron-down" class="w-4 h-4" />
+          <Icon name="lucide:chevron-down" class="w-4 h-4 transition-transform duration-300" />
         </div>
       </button>
 
+      <!-- Contenedor con transicion fluida de altura y opacidad sin corte brusco ni linea divisoria -->
       <div
-        v-show="openItemId === item.id"
         :id="`faq-answer-${item.id}`"
-        class="px-5 sm:px-6 pb-5 pt-1 text-xs sm:text-sm text-brand-secondary/80 leading-relaxed border-t border-brand-primary/10 font-sans"
+        class="grid transition-all duration-300 ease-in-out"
+        :class="openItemId === item.id ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0 pointer-events-none'"
       >
-        <p class="whitespace-pre-line">
-          {{ item.answer }}
-        </p>
+        <div class="overflow-hidden">
+          <div class="px-5 sm:px-6 pb-5 pt-0 text-xs sm:text-sm text-brand-secondary/80 leading-relaxed font-sans">
+            <p class="whitespace-pre-line leading-relaxed">
+              {{ item.answer }}
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
