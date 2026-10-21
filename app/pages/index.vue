@@ -219,7 +219,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="overflow-x-hidden">
+  <div class="overflow-x-clip">
     <!-- ========================================================================= -->
     <!-- 1. HERO SECTION: MOSAICO EDITORIAL ATELIER                                -->
     <!-- ========================================================================= -->
