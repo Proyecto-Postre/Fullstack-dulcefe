@@ -223,7 +223,7 @@ onBeforeUnmount(() => {
     <!-- ========================================================================= -->
     <!-- 1. HERO SECTION: MOSAICO EDITORIAL ATELIER                                -->
     <!-- ========================================================================= -->
-    <section class="relative pt-4 sm:pt-10 pb-5 sm:pb-8 lg:pt-16 lg:pb-24 px-4 sm:px-6 lg:px-12 z-10">
+    <section class="relative pt-2 sm:pt-10 pb-5 sm:pb-8 lg:pt-16 lg:pb-24 px-4 sm:px-6 lg:px-12 z-10">
       <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
         
         <!-- Columna Izquierda: Mensaje Editorial & Acciones -->
