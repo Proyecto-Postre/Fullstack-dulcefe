@@ -468,7 +468,7 @@ onBeforeUnmount(() => {
             @mouseleave="resumeAutoplay"
             @touchstart.passive="pauseAutoplay"
             @touchend.passive="resumeAutoplay"
-            class="flex gap-4 sm:gap-6 lg:gap-8 overflow-x-auto lg:overflow-x-visible scroll-smooth snap-x snap-mandatory py-2 px-1 no-scrollbar hide-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden sm:justify-start lg:justify-center touch-pan-x"
+            class="flex gap-4 sm:gap-6 lg:gap-8 overflow-x-auto lg:overflow-x-visible scroll-smooth snap-x snap-mandatory py-2 px-1 no-scrollbar hide-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden sm:justify-start lg:justify-center touch-auto"
           >
             <article
               v-for="(product, idx) in displayFeatured"
