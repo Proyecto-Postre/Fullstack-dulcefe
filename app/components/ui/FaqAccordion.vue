@@ -34,9 +34,13 @@ function toggleItem(id: string) {
       <button
         type="button"
         @click="toggleItem(item.id)"
-        class="w-full text-left px-5 sm:px-6 py-4 sm:py-5 flex items-center justify-between gap-4 cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-primary/30 select-none"
+        :class="[
+          'w-full text-left px-5 sm:px-6 flex items-center justify-between gap-4 cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-primary/30 select-none transition-all duration-300',
+          openItemId === item.id ? 'pt-4 sm:pt-5 pb-2.5 sm:pb-3' : 'py-4 sm:py-5'
+        ]"
         :aria-expanded="openItemId === item.id"
         :aria-controls="`faq-answer-${item.id}`"
+        :id="`faq-trigger-${item.id}`"
       >
         <span class="text-sm sm:text-base font-sans font-bold text-brand-secondary leading-snug">
           {{ item.question }}
@@ -49,13 +53,15 @@ function toggleItem(id: string) {
         </div>
       </button>
 
-      <!-- Contenedor con transicion fluida de altura y opacidad sin corte brusco ni linea divisoria -->
+      <!-- Contenedor con transicion fluida en altura y opacidad sin lineas divisorias -->
       <div
         :id="`faq-answer-${item.id}`"
-        class="grid transition-all duration-300 ease-in-out"
-        :class="openItemId === item.id ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0 pointer-events-none'"
+        role="region"
+        :aria-labelledby="`faq-trigger-${item.id}`"
+        class="faq-collapse"
+        :class="{ 'is-open': openItemId === item.id }"
       >
-        <div class="overflow-hidden">
+        <div class="faq-collapse-inner">
           <div class="px-5 sm:px-6 pb-5 pt-0 text-xs sm:text-sm text-brand-secondary/80 leading-relaxed font-sans">
             <p class="whitespace-pre-line leading-relaxed">
               {{ item.answer }}
@@ -66,3 +72,24 @@ function toggleItem(id: string) {
     </div>
   </div>
 </template>
+
+<style scoped>
+.faq-collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 300ms cubic-bezier(0.4, 0, 0.2, 1), opacity 250ms ease-in-out;
+  pointer-events: none;
+}
+
+.faq-collapse.is-open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.faq-collapse-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+</style>
