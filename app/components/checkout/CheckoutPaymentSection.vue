@@ -19,7 +19,8 @@ const uploadError = ref<string | null>(null)
 const copiedNumber = ref(false)
 
 const PHONE_NUMBER = '998 265 700'
-const RECIPIENT_NAME = 'Dulce Fé Repostería Fina'
+const RECIPIENT_NAME_YAPE = 'Jafeth Worren Ynga Amado'
+const RECIPIENT_NAME_PLIN = 'Jafeth Worren Ynga'
 
 function fallbackCopy(text: string) {
   try {
@@ -60,13 +61,14 @@ async function handleFileUpload(event: Event) {
   uploadError.value = null
 
   if (file.size > 2 * 1024 * 1024) {
-    uploadError.value = 'El archivo supera el límite de 2 MB.'
+    uploadError.value = 'El archivo supera el límite de 2 MB. Por favor sube una captura más ligera.'
     target.value = ''
     return
   }
 
   isUploading.value = true
   emit('update:isUploading', true)
+
   try {
     const formData = new FormData()
     formData.append('file', file)
@@ -76,7 +78,7 @@ async function handleFileUpload(event: Event) {
       body: formData
     })
 
-    if (res.success && res.url) {
+    if (res?.url) {
       emit('update:paymentReceiptUrl', res.url)
     }
   } catch (err: unknown) {
@@ -153,7 +155,6 @@ function removeReceipt() {
           />
           <div>
             <p class="text-xs font-black text-purple-900 leading-tight">Yape</p>
-            <p class="text-[10px] text-purple-700/70 leading-tight mt-0.5">Billetera móvil</p>
           </div>
         </div>
         <span
@@ -181,7 +182,6 @@ function removeReceipt() {
           />
           <div>
             <p class="text-xs font-black text-sky-900 leading-tight">Plin</p>
-            <p class="text-[10px] text-sky-700/70 leading-tight mt-0.5">Interbancario</p>
           </div>
         </div>
         <span
@@ -194,25 +194,67 @@ function removeReceipt() {
     <!-- Instrucciones y Carga de Voucher para Yape o Plin -->
     <div
       v-if="props.paymentMethod === 'yape' || props.paymentMethod === 'plin'"
-      class="p-4 rounded-xl border border-stone-200 bg-stone-50/80 space-y-4"
+      class="p-4 sm:p-5 rounded-2xl border border-stone-200 bg-stone-50/80 space-y-4"
     >
-      <!-- Datos de Cuenta -->
-      <div class="flex flex-wrap items-center justify-between gap-2 bg-white p-3 rounded-xl border border-stone-200">
-        <div>
-          <p class="text-[10px] font-black uppercase text-stone-500 tracking-wider">
-            {{ props.paymentMethod === 'yape' ? 'Yapear a' : 'Plinear a' }}
-          </p>
-          <p class="text-sm font-black text-stone-900">{{ PHONE_NUMBER }}</p>
-          <p class="text-xs text-stone-500">{{ RECIPIENT_NAME }}</p>
+      <!-- Tarjeta Principal de Pago: Datos y Código QR Oficial -->
+      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-stone-200 space-y-4 shadow-soft-xs">
+        
+        <!-- Datos de Cuenta y Botón Copiar -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3.5 border-b border-stone-100">
+          <div>
+            <div class="flex items-center gap-1.5 mb-0.5">
+              <span
+                class="inline-block w-2 h-2 rounded-full"
+                :class="props.paymentMethod === 'yape' ? 'bg-purple-600' : 'bg-sky-600'"
+              ></span>
+              <p class="text-[10px] font-black uppercase text-stone-500 tracking-wider">
+                {{ props.paymentMethod === 'yape' ? 'Pago vía Yape' : 'Pago vía Plin' }}
+              </p>
+            </div>
+            <p class="text-base sm:text-lg font-black text-stone-900 tracking-tight">{{ PHONE_NUMBER }}</p>
+            <p class="text-xs text-stone-600 font-medium">
+              Titular: <span class="font-bold text-stone-800">{{ props.paymentMethod === 'yape' ? RECIPIENT_NAME_YAPE : RECIPIENT_NAME_PLIN }}</span>
+            </p>
+          </div>
+          <button
+            type="button"
+            @click="copyPhoneNumber"
+            class="w-full sm:w-auto flex items-center justify-center gap-1.5 px-3.5 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer"
+          >
+            <Icon :name="copiedNumber ? 'lucide:check' : 'lucide:copy'" class="w-3.5 h-3.5 text-[#4A5D23]" />
+            <span>{{ copiedNumber ? '¡Número Copiado!' : 'Copiar número' }}</span>
+          </button>
         </div>
-        <button
-          type="button"
-          @click="copyPhoneNumber"
-          class="flex items-center gap-1.5 px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg text-xs font-bold transition cursor-pointer"
-        >
-          <Icon :name="copiedNumber ? 'lucide:check' : 'lucide:copy'" class="w-3.5 h-3.5 text-[#4A5D23]" />
-          <span>{{ copiedNumber ? '¡Copiado!' : 'Copiar número' }}</span>
-        </button>
+
+        <!-- Módulo Visual de Código QR -->
+        <div class="flex flex-col items-center justify-center text-center pt-1 pb-1">
+          <p class="text-xs font-bold text-stone-700 mb-2.5">
+            Escanea el código QR oficial de {{ props.paymentMethod === 'yape' ? 'Yape' : 'Plin' }}:
+          </p>
+
+          <div
+            class="p-2 sm:p-2.5 bg-white rounded-2xl border-2 border-dashed shadow-soft-sm max-w-[210px] sm:max-w-[230px]"
+            :class="props.paymentMethod === 'yape' ? 'border-purple-200' : 'border-sky-200'"
+          >
+            <img
+              v-if="props.paymentMethod === 'yape'"
+              src="/images/payments/qr_yape.png"
+              alt="Código QR Oficial Yape — Jafeth Worren Ynga Amado"
+              class="w-full h-auto rounded-xl object-contain"
+            />
+            <img
+              v-else
+              src="/images/payments/qr_plin.png"
+              alt="Código QR Oficial Plin — Jafeth Worren Ynga"
+              class="w-full h-auto rounded-xl object-contain"
+            />
+          </div>
+
+          <p class="text-[11px] text-stone-500 mt-2.5 max-w-xs font-medium">
+            En celular: toma una captura de pantalla y ábrela desde el escáner de tu app.
+          </p>
+        </div>
+
       </div>
 
       <!-- Input Número de Operación -->
