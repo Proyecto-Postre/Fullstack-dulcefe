@@ -64,7 +64,7 @@ export function getCanonicalSiteUrl(): string {
   }
 
   if (isProduction()) {
-    return 'https://dulcefe.pe'
+    return 'https://dulcefe.vercel.app'
   }
 
   return 'http://localhost:3000'

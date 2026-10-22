@@ -37,7 +37,7 @@ export default defineNuxtConfig({
         process.env.NUXT_PUBLIC_SITE_URL ||
         (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : null) ||
         (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ||
-        'http://localhost:3000'
+        (process.env.NODE_ENV === 'production' ? 'https://dulcefe.vercel.app' : 'http://localhost:3000')
     }
   },
   

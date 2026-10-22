@@ -87,6 +87,14 @@ describe('Environment Utility Suite — Dulce Fe', () => {
       expect(getCanonicalSiteUrl()).toBe('https://fullstack-dulcefe-git-feature-preview.vercel.app')
     })
 
+    it('hace fallback a https://dulcefe.vercel.app en entorno de produccion', () => {
+      delete process.env.NUXT_PUBLIC_SITE_URL
+      delete process.env.VERCEL_PROJECT_PRODUCTION_URL
+      delete process.env.VERCEL_URL
+      process.env.APP_ENV = 'production'
+      expect(getCanonicalSiteUrl()).toBe('https://dulcefe.vercel.app')
+    })
+
     it('hace fallback a http://localhost:3000 en entorno de desarrollo por defecto', () => {
       delete process.env.NUXT_PUBLIC_SITE_URL
       delete process.env.VERCEL_PROJECT_PRODUCTION_URL
