@@ -97,7 +97,7 @@ export default defineEventHandler(async (event): Promise<PublicOrderTrackingDTO>
     {
       status: 'processing',
       label: 'En Taller / Horneado',
-      description: 'Nuestros pasteleros están preparando las masas y horneando los bizcochos.',
+      description: 'Nuestro equipo está elaborando y preparando tus postres con dedicación artesanal.',
       completed: ['processing', 'ready', 'delivered'].includes(currentStatus),
       current: currentStatus === 'processing',
       icon: 'lucide:chef-hat'
@@ -105,7 +105,7 @@ export default defineEventHandler(async (event): Promise<PublicOrderTrackingDTO>
     {
       status: 'ready',
       label: 'Listo para Entrega',
-      description: 'El pedido está decorado, empacado y listo para despacho o entrega acordada.',
+      description: 'Tus postres están listos, empacados con cuidado y preparados para despacho o entrega acordada.',
       completed: ['ready', 'delivered'].includes(currentStatus),
       current: currentStatus === 'ready',
       icon: 'lucide:package-check'

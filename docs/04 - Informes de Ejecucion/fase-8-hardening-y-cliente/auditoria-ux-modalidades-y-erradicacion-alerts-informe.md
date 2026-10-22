@@ -25,7 +25,9 @@ Se homologaron todas las menciones a las unicas dos opciones operativas del nego
 - **`app/pages/index.vue`:** Actualizado el paso 2 de la seccion "Como Funciona" para indicar expresamente: *"Elige entre envio a domicilio o punto de encuentro acordado y dejanos tu mensaje especial."*
 - **`app/pages/pedido/[token].vue`:** En la vista publica de tracking, se reemplazo el fallback `'Recojo / Entrega pactada'` por `'Punto de encuentro acordado'`.
 - **`app/components/admin/OrderDetailsModal.vue`:** En el modal de detalle del pedido administrativo, se cambio `'Recojo en tienda / No especificada'` por `'Punto de encuentro acordado / No especificada'`.
-- **`server/api/orders/track/[token].get.ts`:** En el pipeline de estados de tracking publico, el estado `ready` ahora describe: *"El pedido esta decorado, empacado y listo para despacho o entrega acordada."*
+- **`server/api/orders/track/[token].get.ts`:** En el pipeline de estados de tracking publico, se universalizaron las descripciones de preparacion y entrega para cubrir toda la gama de postres artesanales:
+  - Estado `processing`: *"Nuestro equipo esta elaborando y preparando tus postres con dedicacion artesanal."*
+  - Estado `ready`: *"Tus postres estan listos, empacados con cuidado y preparados para despacho o entrega acordada."*
 
 ### 2.2 Simplificacion y Desacoplamiento de Checkout para WhatsApp
 - **`app/pages/checkout.vue`:**
