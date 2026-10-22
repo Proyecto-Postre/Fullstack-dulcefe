@@ -252,7 +252,12 @@ async function processCheckout(): Promise<void> {
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         <!-- Columna Izquierda: Modalidad + Formulario + Pago + Ítems -->
         <div class="lg:col-span-2 space-y-6">
-          <CheckoutModeSelector v-model="checkoutMode" />
+          <CheckoutModeSelector
+            :mode="checkoutMode"
+            :delivery-mode="formData.deliveryMode"
+            @update:mode="checkoutMode = $event"
+            @update:delivery-mode="formData.deliveryMode = $event"
+          />
           <CheckoutCustomerForm :mode="checkoutMode" :form-data="formData" />
           <CheckoutPaymentSection
             :payment-method="formData.paymentMethod || 'cash'"

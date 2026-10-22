@@ -16,7 +16,7 @@ const homeFaqList: FaqItem[] = [
   {
     id: 'envios',
     question: '¿Cómo funciona el envío o la entrega?',
-    answer: 'Ofrecemos dos modalidades: (1) Delivery a domicilio, con costo de envío a coordinar por WhatsApp según distrito y tamaño; o (2) Punto de encuentro acordado (ej. parroquia o lugar pactado) sin costo adicional para postres transportables.'
+    answer: 'Ofrecemos dos modalidades: (1) Delivery a domicilio, con costo de envío a coordinar por WhatsApp según distrito y tamaño; o (2) Punto de encuentro acordado sin costo adicional con previa coordinación para pedidos de fácil transporte. Pedidos grandes requieren un costo de envío y se coordinan por WhatsApp.'
   },
   {
     id: 'conservacion',
