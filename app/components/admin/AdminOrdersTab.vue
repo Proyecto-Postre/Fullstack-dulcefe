@@ -36,58 +36,58 @@ onMounted(() => {
 
 <template>
   <div class="space-y-6">
-    <div class="flex justify-between items-center">
-      <h2 class="text-2xl font-playfair font-black text-[#2A321B]">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-2">
+      <h2 class="text-xl sm:text-2xl font-playfair font-black text-[#2A321B]">
         Gestión de Pedidos
       </h2>
-      <div class="flex items-center gap-4">
+      <div class="flex items-center flex-wrap gap-2.5 sm:gap-4 w-full sm:w-auto">
         <button
           @click="showNewOrderModal = true"
           type="button"
-          class="flex items-center gap-2 px-4 py-2 bg-[#4A5D23] text-white rounded-xl font-bold text-sm shadow-sm hover:bg-[#3C4A1C] active:translate-y-0.5 active:shadow-none transition-all cursor-pointer"
+          class="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 bg-[#4A5D23] text-white rounded-xl font-bold text-xs sm:text-sm shadow-sm hover:bg-[#3C4A1C] active:translate-y-0.5 active:shadow-none transition-all cursor-pointer"
         >
-          <Icon name="lucide:plus" class="w-4 h-4" />
-          Nuevo Pedido
+          <Icon name="lucide:plus" class="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          <span>Nuevo Pedido</span>
         </button>
         <button
           @click="fetchOrders"
           type="button"
-          class="flex items-center gap-2 px-4 py-2 bg-white border border-[#4A5D23]/20 rounded-xl font-bold text-sm shadow-sm hover:bg-[#F4F1E1] active:translate-y-0.5 active:shadow-none transition-all cursor-pointer"
+          class="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 bg-white border border-[#4A5D23]/20 rounded-xl font-bold text-xs sm:text-sm shadow-sm hover:bg-[#F4F1E1] active:translate-y-0.5 active:shadow-none transition-all cursor-pointer"
         >
           <Icon
             name="lucide:refresh-cw"
-            :class="['w-4 h-4', isLoading ? 'animate-spin' : '']"
+            :class="['w-3.5 h-3.5 sm:w-4 sm:h-4', isLoading ? 'animate-spin' : '']"
           />
-          Actualizar
+          <span class="hidden xs:inline">Actualizar</span>
         </button>
         <div
-          class="bg-white p-1 rounded-xl border border-[#4A5D23]/20 shadow-sm flex items-center"
+          class="bg-white p-1 rounded-xl border border-[#4A5D23]/20 shadow-sm flex items-center shrink-0 ml-auto sm:ml-0"
         >
           <button
             @click="viewMode = 'list'"
             type="button"
             :class="[
-              'px-4 py-1.5 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 cursor-pointer',
+              'px-3 sm:px-4 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-colors flex items-center gap-1.5 cursor-pointer',
               viewMode === 'list'
                 ? 'bg-[#4A5D23] text-white'
                 : 'text-[#4A5D23]/60 hover:text-[#4A5D23]',
             ]"
           >
-            <Icon name="lucide:list" class="w-4 h-4" />
-            Lista
+            <Icon name="lucide:list" class="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span>Lista</span>
           </button>
           <button
             @click="viewMode = 'kanban'"
             type="button"
             :class="[
-              'px-4 py-1.5 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 cursor-pointer',
+              'px-3 sm:px-4 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-colors flex items-center gap-1.5 cursor-pointer',
               viewMode === 'kanban'
                 ? 'bg-[#4A5D23] text-white'
                 : 'text-[#4A5D23]/60 hover:text-[#4A5D23]',
             ]"
           >
-            <Icon name="lucide:square-kanban" class="w-4 h-4" />
-            Kanban
+            <Icon name="lucide:square-kanban" class="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span>Kanban</span>
           </button>
         </div>
       </div>

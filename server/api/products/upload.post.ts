@@ -4,7 +4,7 @@ import type { Database } from '~/types/database.types'
 import { validateImageBuffer } from '../../utils/image-validator'
 
 export default defineEventHandler(async (event) => {
-  // 1. 🔒 Validación de privilegios de administrador (Fase 1 - PR-1b)
+  // 1. Validacion de privilegios de administrador (Fase 1 - PR-1b)
   await requireAdmin(event)
 
   try {
@@ -38,7 +38,7 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // 2. 🛡️ Validación estricta por Magic Bytes y tamaño máximo de 2 MB (Fase 1 - PR-1d)
+    // 2. Validacion estricta por Magic Bytes y tamano maximo de 2 MB (Fase 1 - PR-1d)
     const validation = validateImageBuffer(file.data, file.data.length)
     if (!validation.valid || !validation.extension || !validation.mimeType) {
       throw createError({

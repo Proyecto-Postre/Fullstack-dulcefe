@@ -161,7 +161,9 @@ const handleDeleteAddress = async (id: string) => {
   isDeletingAddressId.value = null
   
   if (!result?.success) {
-    alert('Error al eliminar la dirección: ' + result?.error)
+    toast.error('Error al eliminar la dirección: ' + (result?.error || 'Error desconocido'))
+  } else {
+    toast.success('Dirección eliminada correctamente')
   }
 }
 

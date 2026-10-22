@@ -642,7 +642,7 @@ const progressPercentage = computed(() => {
                     <span>{{ order.address?.startsWith('Punto de encuentro') ? 'Punto de Encuentro:' : 'Entrega:' }}</span>
                   </span>
                   <span class="font-medium text-[#2A321B] text-right truncate max-w-[190px] sm:max-w-[250px]">
-                    {{ order.address || (order.channel === 'whatsapp_chat' ? 'Por coordinar por WhatsApp' : 'Recojo / Entrega pactada') }}
+                    {{ order.address || (order.channel === 'whatsapp_chat' ? 'Por coordinar por WhatsApp' : 'Punto de encuentro acordado') }}
                   </span>
                 </div>
 

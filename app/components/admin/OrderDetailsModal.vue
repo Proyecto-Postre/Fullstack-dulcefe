@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
+import { toast } from "vue-sonner";
 import type { AdminOrder } from "~/types/admin-orders";
 
 const props = defineProps<{
@@ -73,11 +74,12 @@ async function saveChanges(): Promise<void> {
     props.order.notes = editData.value.notes;
 
     isEditing.value = false;
+    toast.success("Cambios del pedido guardados correctamente");
     emit("updated");
   } catch (error: unknown) {
     const fetchErr = error as { data?: { error?: { message?: string } }; message?: string };
     const msg = fetchErr.data?.error?.message || fetchErr.message || "Hubo un error al guardar los cambios.";
-    alert(msg);
+    toast.error(msg);
   } finally {
     isSaving.value = false;
   }
@@ -106,11 +108,12 @@ async function handlePaymentAction(action: 'verify' | 'reject'): Promise<void> {
       props.order.payment_status = res.data.payment_status;
       props.order.payment_verified_at = res.data.payment_verified_at;
       props.order.payment_verified_by = res.data.payment_verified_by;
+      toast.success(action === 'verify' ? 'Pago verificado con éxito' : 'Pago marcado como observado');
       emit('updated');
     }
   } catch (error: unknown) {
     const fetchErr = error as { data?: { error?: { message?: string } }; message?: string };
-    alert(fetchErr.data?.error?.message || fetchErr.message || 'Error al actualizar estado del pago.');
+    toast.error(fetchErr.data?.error?.message || fetchErr.message || 'Error al actualizar estado del pago.');
   } finally {
     isVerifyingPayment.value = false;
   }
@@ -341,7 +344,7 @@ const openWhatsApp = (): void => {
                   {{ order.address }}
                 </p>
                 <p v-else class="text-xs text-gray-400 italic">
-                  Recojo en tienda / No especificada
+                  Punto de encuentro acordado / No especificada
                 </p>
               </div>
             </div>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { toast } from 'vue-sonner'
 import {
   type KdsOrder,
   calculateDeliveryUrgency,
@@ -89,12 +90,14 @@ async function advanceOrderStatus(order: KdsOrder, nextStatus: 'processing' | 'r
     // Actualizar localmente inmediatamente
     if (nextStatus === 'completed') {
       orders.value = orders.value.filter((o) => o.id !== order.id)
+      toast.success('Comanda finalizada y entregada')
     } else {
       order.status = nextStatus
+      toast.success(`Comanda actualizada a: ${nextStatus === 'processing' ? 'En Horno' : 'Lista para Despacho'}`)
     }
   } catch (err: unknown) {
     const patchErr = err as { data?: { error?: { message?: string } }; message?: string }
-    alert(`Error: ${patchErr.data?.error?.message || patchErr.message || 'No se pudo actualizar la comanda'}`)
+    toast.error(`Error: ${patchErr.data?.error?.message || patchErr.message || 'No se pudo actualizar la comanda'}`)
   } finally {
     isUpdating.value = null
   }

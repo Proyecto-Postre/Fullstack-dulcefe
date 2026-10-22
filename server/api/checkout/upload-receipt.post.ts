@@ -2,9 +2,11 @@ import { defineEventHandler, readMultipartFormData, createError } from 'h3'
 import { randomUUID } from 'node:crypto'
 import { validateImageBuffer } from '../../utils/image-validator'
 import { getOrCreateRequestId } from '../../utils/request-id'
+import { validateRequestOrigin } from '../../utils/http-origin'
 
 export default defineEventHandler(async (event) => {
   const requestId = getOrCreateRequestId(event)
+  validateRequestOrigin(event, requestId)
 
   try {
     const supabase = await getAdminSupabaseClient(event)
