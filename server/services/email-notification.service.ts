@@ -1,3 +1,10 @@
+import {
+  getCanonicalSiteUrl,
+  getEnvironmentAlertBannerText,
+  getEnvironmentSubjectPrefix,
+  isNonProduction
+} from '../utils/environment'
+
 export interface OrderEmailNotificationData {
   orderId: string
   trackingToken: string
@@ -34,6 +41,7 @@ export function generateOrderEmailHtml(data: OrderEmailNotificationData, siteUrl
   const isMeetingPoint = data.deliveryMode === 'meeting_point'
   const trackingFullUrl = `${siteUrl.replace(/\/+$/, '')}/pedido/${data.trackingToken}`
   const adminFullUrl = `${siteUrl.replace(/\/+$/, '')}/admin/pedidos`
+  const alertText = getEnvironmentAlertBannerText() || 'AVISO: PEDIDO DE PRUEBA (ENTORNO LOCAL / DEV) — NO DESPACHAR EN TALLER'
 
   const itemsHtml = data.items
     .map(it => {
@@ -78,7 +86,7 @@ export function generateOrderEmailHtml(data: OrderEmailNotificationData, siteUrl
           <!-- Alerta de Entorno de Prueba / Dev -->
           <tr>
             <td style="background-color: #FEF08A; border-bottom: 2px solid #EAB308; padding: 10px 16px; text-align: center; color: #854D0E; font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">
-              ⚠️ PEDIDO DE PRUEBA (ENTORNO LOCAL / DEV) — NO DESPACHAR EN TALLER
+              ${alertText}
             </td>
           </tr>
           `
@@ -109,7 +117,7 @@ export function generateOrderEmailHtml(data: OrderEmailNotificationData, siteUrl
                   <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
                     <tr>
                       <td style="font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: #047857; padding-bottom: 4px;">
-                        📍 Modalidad: Punto de Encuentro (Sin costo)
+                        Modalidad: Punto de Encuentro (Sin costo)
                       </td>
                     </tr>
                     <tr>
@@ -125,7 +133,7 @@ export function generateOrderEmailHtml(data: OrderEmailNotificationData, siteUrl
                   <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
                     <tr>
                       <td style="font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: #4A5D23; padding-bottom: 4px;">
-                        🚚 Modalidad: Delivery a Domicilio
+                        Modalidad: Delivery a Domicilio
                       </td>
                     </tr>
                     <tr>
@@ -179,7 +187,7 @@ export function generateOrderEmailHtml(data: OrderEmailNotificationData, siteUrl
                 <tr>
                   <td colspan="2" style="padding-top: 12px;">
                     <a href="${waUrl}" target="_blank" style="display: inline-block; background-color: #25D366; color: #FFFFFF; font-weight: 700; font-size: 12px; padding: 8px 16px; border-radius: 10px; text-decoration: none;">
-                      💬 Abrir WhatsApp con el Cliente
+                      Abrir WhatsApp con el Cliente
                     </a>
                   </td>
                 </tr>
@@ -293,18 +301,11 @@ export class EmailNotificationService {
   }
 
   private static getSiteUrl(): string {
-    return process.env.NUXT_PUBLIC_SITE_URL || 'https://dulcefe.pe'
+    return getCanonicalSiteUrl()
   }
 
   static isDevelopmentEnvironment(): boolean {
-    const appEnv = process.env.APP_ENV || process.env.VERCEL_ENV
-    if (appEnv === 'production') return false
-    if (appEnv === 'preview' || appEnv === 'development' || appEnv === 'local') return true
-
-    const siteUrl = process.env.NUXT_PUBLIC_SITE_URL || ''
-    if (siteUrl.includes('localhost') || siteUrl.includes('127.0.0.1')) return true
-
-    return process.env.NODE_ENV !== 'production'
+    return isNonProduction()
   }
 
   /**
@@ -323,8 +324,8 @@ export class EmailNotificationService {
       ? 'Punto de Encuentro Acordado'
       : 'Delivery a Domicilio'
 
-    const prefix = isDev ? '[PRUEBA / DEV] ' : ''
-    const subject = `${prefix}🎂 Nuevo Pedido #${shortId} — ${modeLabel} (S/ ${Number(data.totalAmount).toFixed(2)})`
+    const prefix = getEnvironmentSubjectPrefix()
+    const subject = `${prefix}Nuevo Pedido #${shortId} — ${modeLabel} (S/ ${Number(data.totalAmount).toFixed(2)})`
     const html = generateOrderEmailHtml(data, siteUrl, isDev)
 
     if (!apiKey) {

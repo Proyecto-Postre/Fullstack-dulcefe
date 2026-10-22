@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { generateWebhookSignature } from '../utils/crypto'
+import { getAppEnvironment } from '../utils/environment'
 
 export type WebhookEventName =
   | 'order.created'
@@ -13,10 +14,15 @@ export interface WebhookEnvelope {
   delivery_id: string
   timestamp: string
   request_id: string
+  environment?: string
   data: Record<string, unknown>
 }
 
 export class WebhookService {
+  static getEnvironment(): string {
+    return getAppEnvironment()
+  }
+
   private static getWebhookUrl(): string | undefined {
     return process.env.N8N_WEBHOOK_URL || process.env.WEBHOOK_DISPATCH_URL
   }
@@ -43,12 +49,14 @@ export class WebhookService {
     const secret = this.getWebhookSecret()
     const deliveryId = randomUUID()
     const timestamp = new Date().toISOString()
+    const environment = this.getEnvironment()
 
     const envelope: WebhookEnvelope = {
       event: eventName,
       delivery_id: deliveryId,
       timestamp,
       request_id: requestId,
+      environment,
       data
     }
 
@@ -68,6 +76,7 @@ export class WebhookService {
           'X-DulceFe-Event': eventName,
           'X-DulceFe-Delivery': deliveryId,
           'X-DulceFe-Timestamp': timestamp,
+          'X-DulceFe-Environment': environment,
           'X-DulceFe-Signature': `sha256=${signature}`
         },
         body: serializedPayload,

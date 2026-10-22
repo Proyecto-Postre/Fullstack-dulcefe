@@ -13,6 +13,7 @@ import { InventoryService } from './inventory.service'
 import { WebhookService } from './webhook.service'
 import { EmailNotificationService } from './email-notification.service'
 import { notifyOrderUpdated } from '../utils/order-events'
+import { getCanonicalSiteUrl } from '../utils/environment'
 import type { OrderCostSnapshot, CostSnapshotItem, CostSnapshotIngredient } from '~/types/cost-snapshot'
 
 export interface OrderResponseItem {
@@ -461,6 +462,7 @@ export class OrderService {
         })
 
       // 10. Despachar webhook asíncrono a n8n (ADR-006 / D6)
+      const fullTrackingUrl = `${getCanonicalSiteUrl()}/pedido/${trackingToken}`
       WebhookService.dispatch(
         'order.created',
         {
@@ -468,7 +470,7 @@ export class OrderService {
           customer_name: responseOrder.customer_name,
           customer_phone: responseOrder.customer_phone,
           total_amount: responseOrder.total_amount,
-          tracking_url: responseOrder.tracking_url,
+          tracking_url: fullTrackingUrl,
           payment_method: dto.payment_method || 'cash',
           payment_status: 'pending'
         },

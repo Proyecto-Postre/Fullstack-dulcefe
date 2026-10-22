@@ -20,7 +20,7 @@ const faqList: FaqItem[] = [
   {
     id: 'envios',
     question: '¿Cómo funciona el envío o la entrega?',
-    answer: 'Ofrecemos dos modalidades de entrega:\n\n1. Delivery a Domicilio: Llevamos tu pedido directamente a tu dirección. El costo de envío se coordina vía WhatsApp según la distancia de tu distrito y el volumen del postre.\n\n2. Punto de Encuentro Acordado: Sin costo adicional con previa coordinación para pedidos de fácil transporte. Pedidos grandes requieren un costo de envío y se coordinan por WhatsApp.'
+    answer: 'Ofrecemos dos modalidades de entrega:\n\n1. Delivery a Domicilio: Llevamos tu pedido directamente a tu dirección. El costo de envío se coordina vía WhatsApp según la distancia de tu distrito y el volumen del postre.\n\n2. Punto de Encuentro Acordado: Sin costo adicional con previa coordinación para pedidos de fácil transporte. Si tu pedido es de gran volumen o requiere transporte dedicado (como taxi o movilidad especial), se coordinará el costo de envío correspondiente por WhatsApp.'
   },
   {
     id: 'conservacion',
