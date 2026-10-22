@@ -36,7 +36,7 @@ const whatsappCleanUrl = computed(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-brand-cream font-inter text-brand-secondary selection:bg-brand-primary selection:text-brand-cream relative overflow-hidden flex flex-col">
+  <div class="min-h-screen bg-brand-cream font-inter text-brand-secondary selection:bg-brand-primary selection:text-brand-cream relative overflow-x-clip flex flex-col">
     
     <!-- Drawer Global del Carrito (Instancia Única) -->
     <CartDrawer />
@@ -127,6 +127,16 @@ const whatsappCleanUrl = computed(() => {
               >
                 <Icon name="lucide:shopping-bag" class="w-5 h-5 text-brand-primary" />
                 <span>Mis Pedidos</span>
+              </NuxtLink>
+
+              <NuxtLink 
+                to="/faq" 
+                @click="isMobileMenuOpen = false"
+                active-class="bg-surface text-brand-primary font-black border-brand-primary/20 shadow-soft-sm"
+                class="flex items-center gap-3.5 px-4 py-3 rounded-2xl font-bold text-sm text-brand-secondary hover:bg-surface/80 border border-transparent transition-all"
+              >
+                <Icon name="lucide:help-circle" class="w-5 h-5 text-brand-primary" />
+                <span>Preguntas Frecuentes</span>
               </NuxtLink>
 
               <a 

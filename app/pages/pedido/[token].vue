@@ -499,13 +499,15 @@ const progressPercentage = computed(() => {
                     <div class="flex items-center gap-2">
                       <div class="w-7 h-7 rounded-lg bg-[#F4F1E1] text-[#4A5D23] flex items-center justify-center font-bold shrink-0">
                         <Icon 
-                          :name="order.payment_method === 'efectivo' ? 'lucide:banknote' : 'lucide:smartphone'" 
+                          :name="(order.payment_method === 'efectivo' || order.payment_method === 'cash') ? 'lucide:banknote' : 'lucide:smartphone'" 
                           class="w-4 h-4" 
                         />
                       </div>
                       <span class="text-xs sm:text-sm font-bold text-[#2A321B]">
                         Método de Pago: 
-                        <span class="text-[#4A5D23] font-black uppercase">{{ order.payment_method }}</span>
+                        <span class="text-[#4A5D23] font-black uppercase">
+                          {{ (order.payment_method === 'cash' || order.payment_method === 'efectivo') ? 'Efectivo' : order.payment_method }}
+                        </span>
                       </span>
                     </div>
 
@@ -543,7 +545,7 @@ const progressPercentage = computed(() => {
                     </div>
                   </div>
 
-                  <p v-if="order.payment_method === 'efectivo'" class="text-xs text-stone-600">
+                  <p v-if="order.payment_method === 'efectivo' || order.payment_method === 'cash'" class="text-xs text-stone-600">
                     Pago a contraentrega en efectivo al momento de recibir tus postres.
                   </p>
                   <p v-else-if="order.payment_status === 'pending_verification'" class="text-[11px] sm:text-xs text-stone-500 italic">
