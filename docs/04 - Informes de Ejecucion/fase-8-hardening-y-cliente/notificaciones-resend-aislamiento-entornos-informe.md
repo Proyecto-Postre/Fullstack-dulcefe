@@ -87,3 +87,22 @@ Se diseñó la suite unitaria dedicada [tests/unit/environment.test.ts](file:///
 2. **Validación de Tipos (`npm run typecheck`):** Nuxt Typecheck 100% limpio.
 3. **Linter Estático (`npm run lint`):** ESLint 10 Flat Config pasando sin observaciones.
 4. **Compilación de Producción (`npm run build`):** Salida compilada en `.output/server` (9.66 MB total, 2.57 MB gzip).
+
+---
+
+## 5. Auditoría y Refinamiento de Experiencia de Usuario (UX)
+
+Como resultado del escaneo integral de la aplicación, se ejecutaron las siguientes mejoras de coherencia y ergonomía:
+
+1. **Alineación Terminológica de Modalidades de Entrega:**
+   - Se erradicó la mención residual a "recojo en taller" en [app/pages/index.vue](file:///c:/Users/PRUEBA/Documents/Visual%20Proyects/Fullstack-dulcefe/app/pages/index.vue) (Paso a paso), [app/pages/pedido/[token].vue](file:///c:/Users/PRUEBA/Documents/Visual%20Proyects/Fullstack-dulcefe/app/pages/pedido/%5Btoken%5D.vue) y [app/components/admin/OrderDetailsModal.vue](file:///c:/Users/PRUEBA/Documents/Visual%20Proyects/Fullstack-dulcefe/app/components/admin/OrderDetailsModal.vue), unificando los textos hacia las dos modalidades vigentes: **Envío a Domicilio** y **Punto de Encuentro Acordado**.
+
+2. **Desacoplamiento de Pago en Modalidad WhatsApp:**
+   - En [app/pages/checkout.vue](file:///c:/Users/PRUEBA/Documents/Visual%20Proyects/Fullstack-dulcefe/app/pages/checkout.vue), cuando el cliente selecciona el modo de coordinación por WhatsApp, se oculta la sección compleja de pago con QR y cargador de voucher, presentándose una tarjeta informativa limpia que explica que el abono se coordinará directamente por chat.
+
+3. **Erradicación Universal de `alert()` Nativo:**
+   - Se sustituyeron todas las llamadas a `alert()` de navegador por notificaciones fluidas `toast.error()` y `toast.success()` de `vue-sonner` en [OrderDetailsModal.vue](file:///c:/Users/PRUEBA/Documents/Visual%20Proyects/Fullstack-dulcefe/app/components/admin/OrderDetailsModal.vue), [AdminProductsTab.vue](file:///c:/Users/PRUEBA/Documents/Visual%20Proyects/Fullstack-dulcefe/app/components/admin/AdminProductsTab.vue), [AdminMaterialsTab.vue](file:///c:/Users/PRUEBA/Documents/Visual%20Proyects/Fullstack-dulcefe/app/components/admin/AdminMaterialsTab.vue), [kds.vue](file:///c:/Users/PRUEBA/Documents/Visual%20Proyects/Fullstack-dulcefe/app/pages/admin/kds.vue) y [perfil.vue](file:///c:/Users/PRUEBA/Documents/Visual%20Proyects/Fullstack-dulcefe/app/pages/perfil.vue).
+
+4. **Diseño Responsivo en Barra de Pedidos Admin:**
+   - Se adaptó la barra superior de [AdminOrdersTab.vue](file:///c:/Users/PRUEBA/Documents/Visual%20Proyects/Fullstack-dulcefe/app/components/admin/AdminOrdersTab.vue) para envolver los botones sin desbordes horizontales en dispositivos móviles.
+

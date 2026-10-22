@@ -259,7 +259,9 @@ async function processCheckout(): Promise<void> {
             @update:delivery-mode="formData.deliveryMode = $event"
           />
           <CheckoutCustomerForm :mode="checkoutMode" :form-data="formData" />
+          <!-- Sección de Pago: Solo requerida en flujo directo. En WhatsApp se coordina por chat -->
           <CheckoutPaymentSection
+            v-if="checkoutMode === 'direct'"
             :payment-method="formData.paymentMethod || 'cash'"
             :payment-reference="formData.paymentReference || ''"
             :payment-receipt-url="formData.paymentReceiptUrl || ''"
@@ -268,6 +270,22 @@ async function processCheckout(): Promise<void> {
             @update:payment-receipt-url="formData.paymentReceiptUrl = $event"
             @update:is-uploading="isUploadingReceipt = $event"
           />
+          <div
+            v-else
+            class="bg-white rounded-2xl border border-[#4A5D23]/15 p-4 sm:p-5 shadow-xs space-y-2 bg-gradient-to-r from-[#F4F1E1]/40 to-white"
+          >
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-xl bg-[#F4F1E1] text-[#4A5D23] flex items-center justify-center shrink-0">
+                <Icon name="lucide:message-circle" class="w-4 h-4" />
+              </div>
+              <div>
+                <h3 class="text-xs font-black text-[#2A321B]">Coordinación de Pago Directa</h3>
+                <p class="text-[11px] text-[#4A5D23]/80 leading-snug">
+                  El método de pago (Yape, Plin o Transferencia) y los detalles de entrega se coordinarán directamente por WhatsApp al enviar tu solicitud.
+                </p>
+              </div>
+            </div>
+          </div>
           <CheckoutItemsList />
         </div>
 

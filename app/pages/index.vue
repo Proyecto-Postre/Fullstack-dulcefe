@@ -733,7 +733,7 @@ onBeforeUnmount(() => {
             </div>
             <h3 class="text-lg font-playfair font-bold text-brand-secondary">Indica Fecha & Dedicatoria</h3>
             <p class="text-xs text-brand-secondary/75 leading-relaxed font-medium">
-              Elige entre envío a domicilio o recojo en taller y déjanos tu mensaje especial.
+              Elige entre envío a domicilio o punto de encuentro acordado y déjanos tu mensaje especial.
             </p>
           </div>
 

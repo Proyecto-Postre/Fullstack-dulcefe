@@ -150,6 +150,7 @@ flowchart TD
   * [[elevacion-certificacion-10-10-informe-ejecucion]] — Elevación Integral a Calificación 10/10 Enterprise y Cierre Arquitectónico.
   * [[aislamiento-entornos-dev-prod-y-seguridad-credenciales-informe]] — Aislamiento de Entornos Dev/Prod y Seguridad de Credenciales.
   * [[notificaciones-resend-aislamiento-entornos-informe]] — Notificaciones Resend, Detección Unificada de Entornos y Política Cero Emojis (294 Tests Passing).
+  * [[auditoria-ux-modalidades-y-erradicacion-alerts-informe]] — Auditoría Integral UX, Modalidades de Entrega, Desacoplamiento Checkout WhatsApp y Erradicación de Alerts.
 
 ### 📁 05 - Operaciones & Resiliencia
 * [[playbook-operaciones]] — Variables por entorno, rotación de claves, runbook de restore V44, Vercel Git-Ops y telemetría de alertas.

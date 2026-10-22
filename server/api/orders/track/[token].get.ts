@@ -105,7 +105,7 @@ export default defineEventHandler(async (event): Promise<PublicOrderTrackingDTO>
     {
       status: 'ready',
       label: 'Listo para Entrega',
-      description: 'El pedido está decorado, empacado y listo para despacho o recojo.',
+      description: 'El pedido está decorado, empacado y listo para despacho o entrega acordada.',
       completed: ['ready', 'delivered'].includes(currentStatus),
       current: currentStatus === 'ready',
       icon: 'lucide:package-check'
