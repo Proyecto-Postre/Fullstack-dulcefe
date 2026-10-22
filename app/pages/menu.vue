@@ -240,7 +240,7 @@ watch([rawProducts, () => route.query.producto], ([products, prodId]) => {
           </div>
 
           <!-- Disposición Móvil: Carrusel Horizontal Calibrado (2 tarjetas completas simétricas + peek sutil de la 3ra en cualquier modelo) -->
-          <div class="block sm:hidden -mx-4 px-4 overflow-x-auto overflow-y-hidden flex gap-2.5 snap-x snap-mandatory scroll-px-4 hide-scrollbar pb-3 pt-1">
+          <div class="block sm:hidden -mx-4 px-4 overflow-x-auto flex gap-2.5 snap-x snap-mandatory scroll-px-4 hide-scrollbar pb-3 pt-1 touch-auto">
             <div
               v-for="product in section.products"
               :key="product.id"

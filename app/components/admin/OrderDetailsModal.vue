@@ -404,8 +404,8 @@ const openWhatsApp = (): void => {
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div>
                   <span class="text-[10px] font-bold text-stone-500 uppercase">Método:</span>
-                  <p class="font-bold text-stone-800 capitalize">
-                    {{ order.payment_method || 'Efectivo contra entrega' }}
+                  <p class="font-bold text-stone-800">
+                    {{ order.payment_method === 'cash' ? 'Efectivo contra entrega' : order.payment_method === 'yape' ? 'Yape' : order.payment_method === 'plin' ? 'Plin' : (order.payment_method || 'Efectivo contra entrega') }}
                   </p>
                 </div>
 
