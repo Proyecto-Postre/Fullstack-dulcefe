@@ -11,7 +11,9 @@ import { requireAdmin } from '../utils/require-admin'
 import { generateOrderTrackingToken } from '../utils/crypto'
 import { InventoryService } from './inventory.service'
 import { WebhookService } from './webhook.service'
+import { EmailNotificationService } from './email-notification.service'
 import { notifyOrderUpdated } from '../utils/order-events'
+import { getCanonicalSiteUrl } from '../utils/environment'
 import type { OrderCostSnapshot, CostSnapshotItem, CostSnapshotIngredient } from '~/types/cost-snapshot'
 
 export interface OrderResponseItem {
@@ -460,6 +462,7 @@ export class OrderService {
         })
 
       // 10. Despachar webhook asíncrono a n8n (ADR-006 / D6)
+      const fullTrackingUrl = `${getCanonicalSiteUrl()}/pedido/${trackingToken}`
       WebhookService.dispatch(
         'order.created',
         {
@@ -467,12 +470,34 @@ export class OrderService {
           customer_name: responseOrder.customer_name,
           customer_phone: responseOrder.customer_phone,
           total_amount: responseOrder.total_amount,
-          tracking_url: responseOrder.tracking_url,
+          tracking_url: fullTrackingUrl,
           payment_method: dto.payment_method || 'cash',
           payment_status: 'pending'
         },
         requestId
       ).catch(() => {})
+
+      // 11. Despachar notificación de correo al administrador (tolerante a fallos)
+      EmailNotificationService.sendNewOrderNotification({
+        orderId: responseOrder.id,
+        trackingToken: trackingToken,
+        customerName: responseOrder.customer_name,
+        customerPhone: responseOrder.customer_phone,
+        deliveryMode: dto.delivery_mode || 'delivery',
+        meetingPointDetails: dto.meeting_point_details,
+        address: effectiveAddress,
+        deliveryDate: responseOrder.delivery_date,
+        deliveryTime: responseOrder.delivery_time,
+        paymentMethod: responseOrder.payment_method || 'cash',
+        paymentReference: responseOrder.payment_reference,
+        totalAmount: responseOrder.total_amount,
+        notes: responseOrder.notes,
+        items: responseOrder.items.map(it => ({
+          name: it.name,
+          quantity: it.quantity,
+          price_at_time: it.price_at_time
+        }))
+      }).catch(() => {})
 
       return {
         request_id: requestId,

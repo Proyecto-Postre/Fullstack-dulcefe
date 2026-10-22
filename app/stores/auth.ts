@@ -37,7 +37,7 @@ export const useAuthStore = defineStore('auth', () => {
     return Boolean(user.value)
   })
 
-  // 🔒 CIERRE DE VULNERABILIDAD S5:
+  // CIERRE DE VULNERABILIDAD S5:
   // Solo se otorga rol de administrador si la base de datos PostgreSQL indica is_admin === true.
   // Se prohíbe terminantemente evaluar user_metadata o app_metadata del JWT.
   const isAdmin = computed<boolean>(() => {

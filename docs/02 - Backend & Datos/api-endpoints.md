@@ -125,3 +125,11 @@ Rutas con namespace dedicado que delegan a `CatalogService`, `InventoryService` 
 ## 📈 13. Módulo: Monitoreo & Dashboard Vitrina (`/api/admin/dashboard`) [Fase 7]
 * [[GET-api-admin-dashboard-at-risk-products|GET /api/admin/dashboard/at-risk-products]] — 🔒 Análisis predictivo de cuellos de botella de insumos y stock virtual máximo horneable para prevención de quiebres en vitrina.
 
+---
+
+## 📬 14. Servicios Transaccionales del Servidor (`server/services` & `server/utils`)
+* **`EmailNotificationService.sendNewOrderNotification(data)`:** Despacho de notificaciones de correo vía Resend API al recibir un pedido. Tolerante a fallos (no bloquea checkout). Incluye diseño responsive con paleta Dulce Fe, badges de modalidad y enlace directo a WhatsApp.
+* **`server/utils/environment.ts`:** Motor unificado de detección de entornos (`production`, `preview`, `development`, `test`) y resolución de URLs canónicas (`https://dulcefe.vercel.app` para producción en Vercel, `http://localhost:3000` en local).
+* **`WebhookService.dispatch(eventName, data, requestId)`:** Despacho seguro de webhooks firmados con HMAC-SHA256 con enriquecimiento de entorno (`environment` y cabecera `X-DulceFe-Environment`) y URL canónica absoluta de seguimiento.
+
+

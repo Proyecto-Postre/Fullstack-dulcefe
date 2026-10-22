@@ -11,18 +11,41 @@
 
 Toda variable debe gestionarse a través del panel de configuración de Vercel y el archivo local `.env`. En el panel de Vercel, es **estrictamente obligatorio** habilitar cada variable para los 3 ámbitos: **Production**, **Preview** y **Development** (evita caídas en Pull Requests o ramas de desarrollo).
 
-| Variable | Descripción | Ámbito / Nivel | Local | Staging | Producción |
+| Variable | Descripción | Ámbito / Nivel | Local | Preview / Staging | Producción |
 |---|---|---|---|---|---|
 | `SUPABASE_URL` | URL de la instancia Supabase | Público / Runtime | `http://127.0.0.1:54321` | `https://[staging].supabase.co` | `https://rklxfrwzuwjvnfcdhmei.supabase.co` |
 | `SUPABASE_KEY` | Llave anónima (`anon_key`) con RLS | Público / Frontend | Token local generado | Token staging anon | Token producción anon |
 | `SUPABASE_SERVICE_ROLE_KEY` | Llave de administración con bypass RLS | **Estrictamente Privado** | Token local service | Token staging service | Token producción service |
 | `NUXT_PUBLIC_WHATSAPP_NUMBER` | Teléfono oficial de confirmación | Público / Cliente | `51998265700` | `51998265700` | `51998265700` |
-| `NUXT_PUBLIC_SITE_URL` | Dominio base para Origin y CORS | Público / Runtime | `http://localhost:3000` | `https://staging.dulcefe.com` | `https://dulcefe.com` |
+| `NUXT_PUBLIC_SITE_URL` | Dominio base para Origin, CORS y correos | Público / Runtime | `http://localhost:3000` | Autodetectado por `VERCEL_URL` | `https://dulcefe.vercel.app` |
+| `APP_ENV` | Entorno explícito de la aplicación | Privado / Server | `development` | `preview` | `production` |
+| `RESEND_API_KEY` | Clave API para despacho de correos transaccionales vía Resend | **Estrictamente Privado** | Token de pruebas `re_...` | Token `re_...` | Token producción `re_...` |
+| `ADMIN_NOTIFICATION_EMAIL` | Correo del administrador para recibir pedidos | Privado / Server | `jafethworren@gmail.com` | `jafethworren@gmail.com` | `jafethworren@gmail.com` |
+| `EMAIL_FROM` | Remitente verificado en Resend | Privado / Server | `Dulce Fe Pedidos <onboarding@resend.dev>` | `Dulce Fe Pedidos <onboarding@resend.dev>` | `Dulce Fe Pedidos <onboarding@resend.dev>` |
 | `CLOUDINARY_CLOUD_NAME` | Cloud Name de Cloudinary para imágenes | Público / Assets | `dwiogiyei` | `dwiogiyei` | `dwiogiyei` |
 | `CLOUDINARY_API_KEY` | Llave de API para upload de fotos | Privado / Server | Token local | Token staging | Token producción |
 | `CLOUDINARY_API_SECRET` | Secreto de API Cloudinary | **Estrictamente Privado** | Token local | Token staging | Token producción |
 
-### 1.1 Secretos de CI/CD para Migraciones Automáticas (GitHub Actions)
+### 1.1 Configuración de Entornos en Vercel (Producción vs Preview)
+
+El sistema cuenta con un motor unificado de detección de entornos en `server/utils/environment.ts` que previene confusiones entre pedidos reales de clientes y órdenes de prueba:
+
+1. **En Vercel (Environment: Production):**
+   - Configurar `APP_ENV = production`.
+   - Vercel además inyecta automáticamente `VERCEL_ENV=production` y `VERCEL_PROJECT_PRODUCTION_URL=dulcefe.vercel.app`.
+   - Los correos de notificación al administrador se envían con asunto formal y limpio (ej. `Nuevo Pedido #B4840E11 — Delivery a Domicilio`), **sin advertencias de prueba**.
+   - Los enlaces canónicos de tracking apuntan a `https://dulcefe.vercel.app/pedido/<token>`.
+
+2. **En Vercel (Environment: Preview):**
+   - Vercel inyecta automáticamente `VERCEL_ENV=preview` y `VERCEL_URL=<hash>.vercel.app`.
+   - Los correos de notificación llevarán el prefijo `[PREVIEW]` en el asunto y el banner superior destacado: `AVISO: PEDIDO DE PRUEBA (ENTORNO VERCEL PREVIEW) — NO DESPACHAR EN TALLER`.
+
+3. **En Desarrollo Local (.env):**
+   - Configurar `APP_ENV=development`.
+   - Los correos llevarán el prefijo `[PRUEBA / DEV]` y el banner: `AVISO: PEDIDO DE PRUEBA (ENTORNO LOCAL / DEV) — NO DESPACHAR EN TALLER`.
+   - Si no se cuenta con `RESEND_API_KEY` en local, el servicio simula el envío en los logs de consola sin interrumpir el flujo de checkout.
+
+### 1.2 Secretos de CI/CD para Migraciones Automáticas (GitHub Actions)
 
 Para que el pipeline de GitHub Actions (`.github/workflows/database-migrations.yml`) aplique automáticamente las migraciones SQL al hacer merge en `dev` o `main`, se deben configurar los siguientes **Repository Secrets** en GitHub (**Settings -> Secrets and variables -> Actions**):
 

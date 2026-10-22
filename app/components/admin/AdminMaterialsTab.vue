@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
+import { toast } from 'vue-sonner'
 import type { RawMaterialRow } from '~/types/inventory'
 import { useAdminMaterials } from '~/composables/admin/useAdminMaterials'
 import MaterialModal from './MaterialModal.vue'
@@ -111,12 +112,13 @@ async function handleDeleteMaterial(id: number | string, name: string): Promise<
 
   try {
     await $fetch(`/api/raw-materials/${id}`, { method: 'DELETE' })
+    toast.success('Insumo eliminado del almacén')
   } catch (err: unknown) {
     if (deletedItem && index !== -1) {
       localMaterials.value.splice(index, 0, deletedItem)
     }
     const fetchErr = err as { data?: { statusMessage?: string }; message?: string }
-    alert('Error al eliminar: ' + (fetchErr.data?.statusMessage || fetchErr.message || 'Error desconocido'))
+    toast.error('Error al eliminar: ' + (fetchErr.data?.statusMessage || fetchErr.message || 'Error desconocido'))
   }
 }
 
@@ -139,10 +141,11 @@ async function updateStockInline(item: RawMaterialRow, event: Event): Promise<vo
         stock: newStock
       }
     })
+    toast.success(`Stock de ${item.name} actualizado`)
     emit('refresh')
   } catch (err: unknown) {
     const fetchErr = err as { data?: { statusMessage?: string }; message?: string }
-    alert('Error al actualizar stock: ' + (fetchErr.data?.statusMessage || fetchErr.message || 'Error desconocido'))
+    toast.error('Error al actualizar stock: ' + (fetchErr.data?.statusMessage || fetchErr.message || 'Error desconocido'))
     target.value = String(item.stock ?? 0)
   } finally {
     updatingStockId.value = null

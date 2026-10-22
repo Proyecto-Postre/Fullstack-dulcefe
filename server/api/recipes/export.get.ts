@@ -15,7 +15,7 @@ interface RecipeItemExportRow {
 }
 
 export default defineEventHandler(async (event) => {
-  // 🔒 Validación de privilegios de administrador (Fase 1 - PR-1b)
+  // Validacion de privilegios de administrador (Fase 1 - PR-1b)
   await requireAdmin(event)
 
   const query = getQuery(event)

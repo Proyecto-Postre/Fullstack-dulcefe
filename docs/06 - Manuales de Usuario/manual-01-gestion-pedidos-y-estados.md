@@ -26,7 +26,7 @@ El sistema cuenta con 4 estados secuenciales principales y 1 estado de cancelaci
 | :--- | :--- | :--- | :--- |
 | `pending` | **Pendiente / Registrado** | El cliente hizo el pedido desde la web. Aún no se ha empezado a cocinar. | El pedido está guardado. **No se ha tocado el stock de insumos.** |
 | `processing` | **En Taller / Horneado** | El pastelero tomó la orden y comenzó a batir o decorar. | ⚡ **Se descuentan automáticamente los gramos/ml de insumos** de almacén según las recetas del postre. |
-| `ready` | **Listo para Despacho** | La torta o postre está en caja, sellada con cinta y lista para entrega o recojo. | El cliente ve en su pantalla que su postre ya está terminado. |
+| `ready` | **Listo para Despacho** | La torta o postre está en caja, sellada con cinta y lista para delivery o entrega en punto acordado. | El cliente ve en su pantalla que su postre ya está terminado. |
 | `delivered` | **Entregado** | El cliente ya tiene el postre en sus manos. Pedido completado. | El pedido se cierra con éxito y se suma a las métricas finales. |
 | `cancelled` | **Cancelado** | El cliente canceló o no se concretó el pago. | Si ya estaba en `processing`, **los insumos se devuelven al almacén** automáticamente. |
 

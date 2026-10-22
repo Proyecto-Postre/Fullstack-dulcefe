@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from "vue";
+import { toast } from "vue-sonner";
 import type { ProductRow } from "~/types/catalog";
 import ProductModal from "./ProductModal.vue";
 
@@ -168,13 +169,14 @@ async function handleDeleteProduct(id: number | string, name: string): Promise<v
 
   try {
     await $fetch(`/api/products/${id}`, { method: "DELETE" });
+    toast.success("Producto eliminado del catálogo");
   } catch (err: unknown) {
     // Si falla, revertimos el cambio local
     if (deletedItem && index !== -1) {
       localCatalog.value.splice(index, 0, deletedItem);
     }
     const fetchErr = err as { data?: { statusMessage?: string }; message?: string };
-    alert("Error al eliminar: " + (fetchErr.data?.statusMessage || fetchErr.message || "Error desconocido"));
+    toast.error("Error al eliminar: " + (fetchErr.data?.statusMessage || fetchErr.message || "Error desconocido"));
   }
 }
 
