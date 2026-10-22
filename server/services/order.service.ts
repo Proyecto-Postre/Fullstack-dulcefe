@@ -11,6 +11,7 @@ import { requireAdmin } from '../utils/require-admin'
 import { generateOrderTrackingToken } from '../utils/crypto'
 import { InventoryService } from './inventory.service'
 import { WebhookService } from './webhook.service'
+import { EmailNotificationService } from './email-notification.service'
 import { notifyOrderUpdated } from '../utils/order-events'
 import type { OrderCostSnapshot, CostSnapshotItem, CostSnapshotIngredient } from '~/types/cost-snapshot'
 
@@ -473,6 +474,28 @@ export class OrderService {
         },
         requestId
       ).catch(() => {})
+
+      // 11. Despachar notificación de correo al administrador (tolerante a fallos)
+      EmailNotificationService.sendNewOrderNotification({
+        orderId: responseOrder.id,
+        trackingToken: trackingToken,
+        customerName: responseOrder.customer_name,
+        customerPhone: responseOrder.customer_phone,
+        deliveryMode: dto.delivery_mode || 'delivery',
+        meetingPointDetails: dto.meeting_point_details,
+        address: effectiveAddress,
+        deliveryDate: responseOrder.delivery_date,
+        deliveryTime: responseOrder.delivery_time,
+        paymentMethod: responseOrder.payment_method || 'cash',
+        paymentReference: responseOrder.payment_reference,
+        totalAmount: responseOrder.total_amount,
+        notes: responseOrder.notes,
+        items: responseOrder.items.map(it => ({
+          name: it.name,
+          quantity: it.quantity,
+          price_at_time: it.price_at_time
+        }))
+      }).catch(() => {})
 
       return {
         request_id: requestId,
