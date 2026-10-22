@@ -151,6 +151,7 @@ flowchart TD
   * [[aislamiento-entornos-dev-prod-y-seguridad-credenciales-informe]] — Aislamiento de Entornos Dev/Prod y Seguridad de Credenciales.
   * [[notificaciones-resend-aislamiento-entornos-informe]] — Notificaciones Resend, Detección Unificada de Entornos y Política Cero Emojis (294 Tests Passing).
   * [[auditoria-ux-modalidades-y-erradicacion-alerts-informe]] — Auditoría Integral UX, Modalidades de Entrega, Desacoplamiento Checkout WhatsApp y Erradicación de Alerts.
+  * [[saneamiento-vulnerabilidades-dependabot-informe]] — Saneamiento de Vulnerabilidades Dependabot, Actualización Segura de Dependencias y Cero Regresiones.
 
 ### 📁 05 - Operaciones & Resiliencia
 * [[playbook-operaciones]] — Variables por entorno, rotación de claves, runbook de restore V44, Vercel Git-Ops y telemetría de alertas.
