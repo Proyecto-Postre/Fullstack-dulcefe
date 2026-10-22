@@ -126,5 +126,43 @@ describe('Email Notification Service Suite — Dulce Fe', () => {
       const result = await EmailNotificationService.sendNewOrderNotification(sampleData)
       expect(result).toBe(false)
     })
+
+    it('añade prefijo [PRUEBA / DEV] y banner de prueba si está en entorno de desarrollo', async () => {
+      process.env.RESEND_API_KEY = 're_test_key_123'
+      process.env.APP_ENV = 'development'
+
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ id: 'email_123' })
+      })
+      vi.stubGlobal('fetch', fetchMock)
+
+      await EmailNotificationService.sendNewOrderNotification(sampleData)
+
+      const body = JSON.parse(fetchMock.mock.calls[0][1].body)
+      expect(body.subject).toContain('[PRUEBA / DEV]')
+      expect(body.html).toContain('PEDIDO DE PRUEBA (ENTORNO LOCAL / DEV)')
+    })
+
+    it('no añade prefijo ni banner si está en entorno de producción', async () => {
+      process.env.RESEND_API_KEY = 're_test_key_123'
+      process.env.APP_ENV = 'production'
+      process.env.NODE_ENV = 'production'
+      process.env.NUXT_PUBLIC_SITE_URL = 'https://dulcefe.pe'
+
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ id: 'email_123' })
+      })
+      vi.stubGlobal('fetch', fetchMock)
+
+      await EmailNotificationService.sendNewOrderNotification(sampleData)
+
+      const body = JSON.parse(fetchMock.mock.calls[0][1].body)
+      expect(body.subject).not.toContain('[PRUEBA / DEV]')
+      expect(body.html).not.toContain('PEDIDO DE PRUEBA')
+    })
   })
 })

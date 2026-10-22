@@ -23,7 +23,7 @@ export interface OrderEmailNotificationData {
  * Genera una plantilla HTML responsive, elegante y amigable para la notificación de pedidos.
  * Diseñada para máxima compatibilidad con Gmail, Outlook y dispositivos móviles.
  */
-export function generateOrderEmailHtml(data: OrderEmailNotificationData, siteUrl: string): string {
+export function generateOrderEmailHtml(data: OrderEmailNotificationData, siteUrl: string, isDev: boolean = false): string {
   const shortId = data.orderId.slice(0, 8).toUpperCase()
   const cleanPhone = data.customerPhone ? data.customerPhone.replace(/\D/g, '') : ''
   const phoneForWa = (cleanPhone.startsWith('51') && cleanPhone.length === 11) ? cleanPhone : `51${cleanPhone}`
@@ -72,7 +72,18 @@ export function generateOrderEmailHtml(data: OrderEmailNotificationData, siteUrl
       <td align="center">
         <!-- Contenedor Principal -->
         <table role="presentation" width="100%" style="max-width: 600px; background-color: #FFFFFF; border-radius: 20px; overflow: hidden; border: 1px solid #E5DFCF; box-shadow: 0 4px 12px rgba(42, 50, 27, 0.05);" cellspacing="0" cellpadding="0">
-          
+          ${
+            isDev
+              ? `
+          <!-- Alerta de Entorno de Prueba / Dev -->
+          <tr>
+            <td style="background-color: #FEF08A; border-bottom: 2px solid #EAB308; padding: 10px 16px; text-align: center; color: #854D0E; font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">
+              ⚠️ PEDIDO DE PRUEBA (ENTORNO LOCAL / DEV) — NO DESPACHAR EN TALLER
+            </td>
+          </tr>
+          `
+              : ''
+          }
           <!-- Encabezado Editorial Dulce Fe -->
           <tr>
             <td style="background-color: #4A5D23; padding: 28px 24px; text-align: center; color: #FFFFFF;">
@@ -285,6 +296,17 @@ export class EmailNotificationService {
     return process.env.NUXT_PUBLIC_SITE_URL || 'https://dulcefe.pe'
   }
 
+  static isDevelopmentEnvironment(): boolean {
+    const appEnv = process.env.APP_ENV || process.env.VERCEL_ENV
+    if (appEnv === 'production') return false
+    if (appEnv === 'preview' || appEnv === 'development' || appEnv === 'local') return true
+
+    const siteUrl = process.env.NUXT_PUBLIC_SITE_URL || ''
+    if (siteUrl.includes('localhost') || siteUrl.includes('127.0.0.1')) return true
+
+    return process.env.NODE_ENV !== 'production'
+  }
+
   /**
    * Envía una notificación de correo al administrador cuando entra un nuevo pedido.
    * Diseñado con tolerancia a fallos: no interrumpe el checkout si el servicio de correo no está disponible.
@@ -294,14 +316,16 @@ export class EmailNotificationService {
     const adminEmail = this.getAdminEmail()
     const fromEmail = this.getFromEmail()
     const siteUrl = this.getSiteUrl()
+    const isDev = this.isDevelopmentEnvironment()
 
     const shortId = data.orderId.slice(0, 8).toUpperCase()
     const modeLabel = data.deliveryMode === 'meeting_point'
       ? 'Punto de Encuentro Acordado'
       : 'Delivery a Domicilio'
 
-    const subject = `🎂 Nuevo Pedido #${shortId} — ${modeLabel} (S/ ${Number(data.totalAmount).toFixed(2)})`
-    const html = generateOrderEmailHtml(data, siteUrl)
+    const prefix = isDev ? '[PRUEBA / DEV] ' : ''
+    const subject = `${prefix}🎂 Nuevo Pedido #${shortId} — ${modeLabel} (S/ ${Number(data.totalAmount).toFixed(2)})`
+    const html = generateOrderEmailHtml(data, siteUrl, isDev)
 
     if (!apiKey) {
       console.info(
