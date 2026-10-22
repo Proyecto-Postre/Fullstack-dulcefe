@@ -2,12 +2,12 @@
 tipo: dashboard
 proyecto: Dulce Fe Fullstack
 stack: Nuxt 4, Vue 3.5, TypeScript, Tailwind CSS, Supabase, ExcelJS, n8n, Vitest, Playwright
-ultima_actualizacion: 2026-10-20
+ultima_actualizacion: 2026-10-22
 ---
 
 # 🍰 Dulce Fe — Centro de Comando
 
-> **Estado:** 🟢 Fases 0–8 Completadas | 🟢 259/259 Tests Pasando (100% Green) | 🌟 **Certificación Integral 10/10 Enterprise**
+> **Estado:** 🟢 Fases 0–8 Completadas | 🟢 294/294 Tests Pasando (100% Green) | 🌟 **Certificación Integral 10/10 Enterprise**
 > **Vista Gráfica:** Presiona `Ctrl + G` en Obsidian para el mapa global.
 
 ---
@@ -149,6 +149,7 @@ flowchart TD
   * [[hardening-estabilidad-informe-ejecucion]] — Hardening & Estabilidad del Sistema (Fix Modales, RLS Service Role & Sesiones Zombi).
   * [[elevacion-certificacion-10-10-informe-ejecucion]] — Elevación Integral a Calificación 10/10 Enterprise y Cierre Arquitectónico.
   * [[aislamiento-entornos-dev-prod-y-seguridad-credenciales-informe]] — Aislamiento de Entornos Dev/Prod y Seguridad de Credenciales.
+  * [[notificaciones-resend-aislamiento-entornos-informe]] — Notificaciones Resend, Detección Unificada de Entornos y Política Cero Emojis (294 Tests Passing).
 
 ### 📁 05 - Operaciones & Resiliencia
 * [[playbook-operaciones]] — Variables por entorno, rotación de claves, runbook de restore V44, Vercel Git-Ops y telemetría de alertas.
