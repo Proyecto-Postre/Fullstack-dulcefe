@@ -706,45 +706,51 @@ onBeforeUnmount(() => {
     <!-- ========================================================================= -->
     <!-- 5. CÓMO COORDINAR TU PEDIDO: 3 PASOS TRANSPARENTES                        -->
     <!-- ========================================================================= -->
-    <section class="relative py-16 sm:py-20 bg-brand-cream/40 border-t border-brand-primary/10 z-10">
+    <section class="relative py-8 sm:py-20 bg-brand-cream/40 border-t border-brand-primary/10 z-10">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 text-center">
         
-        <div class="max-w-xl mx-auto mb-12 sm:mb-16">
-          <p class="text-xs font-bold text-brand-primary uppercase tracking-widest mb-2">Paso a Paso</p>
-          <h2 class="text-3xl sm:text-4xl font-playfair font-black text-brand-secondary tracking-tight">
+        <div class="max-w-xl mx-auto mb-6 sm:mb-16">
+          <p class="text-xs font-bold text-brand-primary uppercase tracking-widest mb-1.5 sm:mb-2">Paso a Paso</p>
+          <h2 class="text-2xl sm:text-4xl font-playfair font-black text-brand-secondary tracking-tight">
             Cómo Llega a Tu Mesa
           </h2>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div class="bg-surface rounded-2xl p-6 sm:p-8 border border-brand-primary/10 shadow-soft-sm text-center space-y-4">
-            <div class="w-12 h-12 rounded-full bg-brand-primary/10 text-brand-primary font-playfair font-black text-xl flex items-center justify-center mx-auto">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-8">
+          <div class="bg-surface rounded-2xl p-4 sm:p-8 border border-brand-primary/10 shadow-soft-sm flex items-center md:flex-col md:text-center text-left gap-3.5 sm:gap-4 transition-all duration-200 hover:border-brand-primary/30">
+            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-brand-primary/10 text-brand-primary font-playfair font-black text-base sm:text-xl flex items-center justify-center shrink-0 md:mx-auto">
               1
             </div>
-            <h3 class="text-lg font-playfair font-bold text-brand-secondary">Elige en Nuestra Carta</h3>
-            <p class="text-xs text-brand-secondary/75 leading-relaxed font-medium">
-              Explora nuestras tortas, tartaletas o boxes y agrega tus favoritos al pedido.
-            </p>
+            <div class="space-y-0.5 sm:space-y-2 min-w-0">
+              <h3 class="text-sm sm:text-lg font-playfair font-bold text-brand-secondary leading-snug">Elige en Nuestra Carta</h3>
+              <p class="text-xs text-brand-secondary/75 leading-relaxed font-medium">
+                Explora nuestras tortas, tartaletas o boxes y agrega tus favoritos al pedido.
+              </p>
+            </div>
           </div>
 
-          <div class="bg-surface rounded-2xl p-6 sm:p-8 border border-brand-primary/10 shadow-soft-sm text-center space-y-4">
-            <div class="w-12 h-12 rounded-full bg-brand-primary/10 text-brand-primary font-playfair font-black text-xl flex items-center justify-center mx-auto">
+          <div class="bg-surface rounded-2xl p-4 sm:p-8 border border-brand-primary/10 shadow-soft-sm flex items-center md:flex-col md:text-center text-left gap-3.5 sm:gap-4 transition-all duration-200 hover:border-brand-primary/30">
+            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-brand-primary/10 text-brand-primary font-playfair font-black text-base sm:text-xl flex items-center justify-center shrink-0 md:mx-auto">
               2
             </div>
-            <h3 class="text-lg font-playfair font-bold text-brand-secondary">Indica Fecha & Dedicatoria</h3>
-            <p class="text-xs text-brand-secondary/75 leading-relaxed font-medium">
-              Elige entre envío a domicilio o punto de encuentro acordado y déjanos tu mensaje especial.
-            </p>
+            <div class="space-y-0.5 sm:space-y-2 min-w-0">
+              <h3 class="text-sm sm:text-lg font-playfair font-bold text-brand-secondary leading-snug">Indica Fecha & Dedicatoria</h3>
+              <p class="text-xs text-brand-secondary/75 leading-relaxed font-medium">
+                Elige entre envío a domicilio o punto de encuentro acordado y déjanos tu mensaje especial.
+              </p>
+            </div>
           </div>
 
-          <div class="bg-surface rounded-2xl p-6 sm:p-8 border border-brand-primary/10 shadow-soft-sm text-center space-y-4">
-            <div class="w-12 h-12 rounded-full bg-brand-primary/10 text-brand-primary font-playfair font-black text-xl flex items-center justify-center mx-auto">
+          <div class="bg-surface rounded-2xl p-4 sm:p-8 border border-brand-primary/10 shadow-soft-sm flex items-center md:flex-col md:text-center text-left gap-3.5 sm:gap-4 transition-all duration-200 hover:border-brand-primary/30">
+            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-brand-primary/10 text-brand-primary font-playfair font-black text-base sm:text-xl flex items-center justify-center shrink-0 md:mx-auto">
               3
             </div>
-            <h3 class="text-lg font-playfair font-bold text-brand-secondary">Pago Fácil & Tracking Vivo</h3>
-            <p class="text-xs text-brand-secondary/75 leading-relaxed font-medium">
-              Transfiere o paga con Yape/Plin y sigue el avance de tu orden en tiempo real.
-            </p>
+            <div class="space-y-0.5 sm:space-y-2 min-w-0">
+              <h3 class="text-sm sm:text-lg font-playfair font-bold text-brand-secondary leading-snug">Pago Fácil & Tracking Vivo</h3>
+              <p class="text-xs text-brand-secondary/75 leading-relaxed font-medium">
+                Transfiere o paga con Yape/Plin y sigue el avance de tu orden en tiempo real.
+              </p>
+            </div>
           </div>
         </div>
 

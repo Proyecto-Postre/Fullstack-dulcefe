@@ -53,13 +53,18 @@ Se sustituyeron todas las llamadas bloqueantes `alert(...)` por notificaciones r
 - **`app/components/admin/AdminOrdersTab.vue`:**
   - Se actualizaron las clases de disposicion del contenedor de filtros a `flex-col sm:flex-row items-start sm:items-center flex-wrap gap-2.5`, permitiendo que los selectores de estado, canal y busqueda se adapten sin desbordamiento horizontal en pantallas estrechas.
 
+### 2.5 Optimizacion de Espacio Vertical en Seccion Paso a Paso (Landing Page)
+- **`app/pages/index.vue`:**
+  - En resoluciones moviles (`< 768px`), las tarjetas pasaron de una orientacion vertical centrada de alto impacto espacial a un diseno horizontal compacto (`flex items-center text-left gap-3.5 p-4`), reduciendo en mas del 60% la altura vertical de la seccion y evitando que la tercera tarjeta quede oculta tras la barra flotante del carrito.
+  - En resoluciones de escritorio (`md:`), se preservo el layout simetrico en 3 columnas centradas.
+
 ---
 
 ## 3. Matriz de Archivos Modificados
 
 | Componente / Ruta | Accion | Justificacion |
 | :--- | :--- | :--- |
-| `app/pages/index.vue` | Modificado | Alineacion de modalidades en landing page ("Punto de encuentro acordado"). |
+| `app/pages/index.vue` | Modificado | Modalidad de entrega y optimizacion horizontal/compacta de tarjetas Paso a Paso en movil. |
 | `app/pages/checkout.vue` | Modificado | Ocultamiento de pasarela para modo WhatsApp y tarjeta informativa contextual. |
 | `app/pages/pedido/[token].vue` | Modificado | Homologacion de etiqueta de entrega en tracking publico. |
 | `app/components/admin/OrderDetailsModal.vue` | Modificado | Estandarizacion de modalidad y reemplazo de alert() por toast. |
