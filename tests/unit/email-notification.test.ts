@@ -69,7 +69,7 @@ describe('Email Notification Service Suite — Dulce Fe', () => {
     it('incluye los enlaces al panel administrativo y al tracking del cliente', () => {
       const html = generateOrderEmailHtml(sampleData, 'https://dulcefe.pe')
 
-      expect(html).toContain('https://dulcefe.pe/admin/pedidos')
+      expect(html).toContain('https://dulcefe.pe/admin?tab=pedidos')
       expect(html).toContain('https://dulcefe.pe/pedido/tr_token_test_123')
     })
   })

@@ -50,6 +50,7 @@ export default defineNuxtConfig({
   
   routeRules: {
     '/admin': { ssr: false },
+    '/admin/pedidos': { redirect: '/admin?tab=pedidos' },
     '/admin/**': { ssr: false }
   },
 
