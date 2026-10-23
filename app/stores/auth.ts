@@ -31,6 +31,8 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>((supabaseUser?.value as unknown as User) || null)
   const profile = ref<UserProfile | null>(null)
   const addresses = ref<UserAddress[]>([])
+  const hasFetchedAddresses = ref<boolean>(false)
+  const isFetchingAddresses = ref<boolean>(false)
   const isLoading = ref<boolean>(false)
 
   const isLoggedIn = computed<boolean>(() => {
@@ -87,8 +89,12 @@ export const useAuthStore = defineStore('auth', () => {
     return profile.value
   }
 
-  async function fetchAddresses(): Promise<void> {
+  async function fetchAddresses(force = false): Promise<void> {
     if (!user.value?.id) return
+    if (isFetchingAddresses.value) return
+    if (hasFetchedAddresses.value && !force) return
+
+    isFetchingAddresses.value = true
     try {
       const supabase = useSupabaseClient<Database>()
       const { data, error } = await supabase
@@ -99,8 +105,11 @@ export const useAuthStore = defineStore('auth', () => {
         
       if (error) throw error
       addresses.value = (data as UserAddress[]) || []
+      hasFetchedAddresses.value = true
     } catch (err: unknown) {
       console.error('Error al obtener direcciones:', err)
+    } finally {
+      isFetchingAddresses.value = false
     }
   }
 
@@ -182,15 +191,23 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = null
     profile.value = null
     addresses.value = []
+    hasFetchedAddresses.value = false
+    isFetchingAddresses.value = false
   }
 
   function setUser(newUser: User | null): void {
+    const isDifferentUser = user.value?.id !== newUser?.id
     user.value = newUser
     if (newUser) {
+      if (isDifferentUser) {
+        hasFetchedAddresses.value = false
+      }
       if (!profile.value || profile.value.id !== newUser.id) {
         fetchProfile(newUser.id)
       }
-      fetchAddresses()
+      if (!hasFetchedAddresses.value) {
+        fetchAddresses()
+      }
     } else {
       clearSession()
     }
@@ -286,6 +303,7 @@ export const useAuthStore = defineStore('auth', () => {
     user,
     profile,
     addresses,
+    hasFetchedAddresses,
     isLoading,
     isLoggedIn,
     isAdmin,
