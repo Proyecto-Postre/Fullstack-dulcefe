@@ -50,6 +50,9 @@ const activeTab = ref<ProfileTab>(initialTab)
 
 // Sincronizar cambios en activeTab con la URL sin recargar pantalla (SPA pushState)
 watch(activeTab, (newTab) => {
+  // Evitar modificar la URL si estamos saliendo o ya fuera de la vista de perfil
+  if (route.path !== '/perfil') return
+
   if (newTab === 'history') {
     fetchOrders()
   }
@@ -66,6 +69,9 @@ watch(activeTab, (newTab) => {
 
 // Responder cuando el usuario hace clic en enlaces del header o usa botones Atrás/Adelante
 watch(() => route.query.tab, (newQuery) => {
+  // Si estamos saliendo de la página de perfil (por ejemplo hacia /pedido/...), ignorar
+  if (route.path !== '/perfil') return
+
   if (typeof newQuery === 'string' && TAB_MAPPING[newQuery]) {
     const matched = TAB_MAPPING[newQuery]
     if (activeTab.value !== matched) {

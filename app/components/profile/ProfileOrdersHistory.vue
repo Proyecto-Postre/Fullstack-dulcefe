@@ -201,10 +201,22 @@ const getOrderPreviewText = (order: ProfileOrder): string => {
               </div>
             </div>
 
-            <!-- Notas de entrega si existen -->
-            <div v-if="order.notes" class="pt-2 border-t border-amber-200/60 text-[11px] text-amber-900/90 flex items-center gap-1.5">
-              <Icon name="lucide:sticky-note" class="w-3.5 h-3.5 shrink-0 text-amber-700" />
-              <span class="font-medium truncate">Nota: {{ order.notes }}</span>
+            <!-- Nota de Entrega / Dedicatoria Especial -->
+            <div 
+              v-if="order.notes" 
+              class="mt-2.5 p-2.5 sm:p-3 rounded-2xl bg-amber-500/10 border border-amber-300/60 flex items-start gap-2.5 text-xs text-amber-950 shadow-2xs"
+            >
+              <div class="w-6 h-6 rounded-lg bg-amber-200/80 text-amber-800 flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                <Icon name="lucide:message-square-quote" class="w-3.5 h-3.5" />
+              </div>
+              <div class="min-w-0 flex-1">
+                <span class="text-[10px] font-black uppercase tracking-wider text-amber-800/80 block mb-0.5">
+                  Nota del pedido
+                </span>
+                <p class="font-medium text-amber-950/90 leading-relaxed text-[11px] sm:text-xs break-words italic">
+                  "{{ order.notes }}"
+                </p>
+              </div>
             </div>
 
             <!-- Barra de Acciones de Pedido en Curso: Ver cómo va mi pedido -->
@@ -316,6 +328,24 @@ const getOrderPreviewText = (order: ProfileOrder): string => {
                 <span class="text-lg sm:text-xl font-black font-inter text-brand-secondary">
                   S/ {{ Number(order.total_amount).toFixed(2) }}
                 </span>
+              </div>
+            </div>
+
+            <!-- Nota de Entrega / Dedicatoria si existe -->
+            <div 
+              v-if="order.notes" 
+              class="mt-2.5 p-2.5 sm:p-3 rounded-2xl bg-brand-cream/60 border border-brand-primary/10 flex items-start gap-2.5 text-xs text-brand-secondary shadow-2xs"
+            >
+              <div class="w-6 h-6 rounded-lg bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                <Icon name="lucide:message-square-quote" class="w-3.5 h-3.5" />
+              </div>
+              <div class="min-w-0 flex-1">
+                <span class="text-[10px] font-black uppercase tracking-wider text-brand-primary/70 block mb-0.5">
+                  Nota del pedido
+                </span>
+                <p class="font-medium text-brand-secondary/90 leading-relaxed text-[11px] sm:text-xs break-words italic">
+                  "{{ order.notes }}"
+                </p>
               </div>
             </div>
 
