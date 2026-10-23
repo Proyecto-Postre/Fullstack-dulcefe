@@ -29,7 +29,7 @@ const whatsappCleanUrl = computed(() => {
 
 <template>
   <!-- Footer de la Tienda (Boutique Dulce Fe - Ultra-Minimalista, Armónico y Responsivo) -->
-  <footer class="z-20 bg-brand-secondary text-brand-cream py-3 sm:py-3.5 px-4 sm:px-6 lg:px-12 border-t border-brand-primary/20 mt-auto shrink-0 pb-[max(0.85rem,env(safe-area-inset-bottom))]">
+  <footer class="relative z-10 bg-brand-secondary text-brand-cream py-3 sm:py-3.5 px-4 sm:px-6 lg:px-12 border-t border-brand-primary/20 mt-auto shrink-0 pb-[max(0.85rem,env(safe-area-inset-bottom))]">
     <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
       <!-- Marca e Identidad: Una sola línea sin solapamientos -->
       <div class="flex items-center gap-2.5 min-w-0">
