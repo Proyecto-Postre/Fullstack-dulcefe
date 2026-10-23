@@ -40,7 +40,7 @@ export function generateOrderEmailHtml(data: OrderEmailNotificationData, siteUrl
 
   const isMeetingPoint = data.deliveryMode === 'meeting_point'
   const trackingFullUrl = `${siteUrl.replace(/\/+$/, '')}/pedido/${data.trackingToken}`
-  const adminFullUrl = `${siteUrl.replace(/\/+$/, '')}/admin/pedidos`
+  const adminFullUrl = `${siteUrl.replace(/\/+$/, '')}/admin?tab=pedidos`
   const alertText = getEnvironmentAlertBannerText() || 'AVISO: PEDIDO DE PRUEBA (ENTORNO LOCAL / DEV) — NO DESPACHAR EN TALLER'
 
   const itemsHtml = data.items

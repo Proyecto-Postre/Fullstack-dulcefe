@@ -94,6 +94,7 @@ flowchart TD
 * [[guia-diseno-mobile-responsivo]] — Guía de ingeniería y patrones de diseño móvil responsivo (carruseles, tabs, drawers, footer y scrollbars).
 * [[design-system-tokens]] — Paleta de colores Dulce Fe, tipografía y bordes.
 * [[herramientas-ui]] — Utilidades y librerías de UI (Lucide Icons, Toast, Modal).
+* [[patron-enrutamiento-panel-admin-tabs-vs-rutas]] — Patrón de enrutamiento del panel administrativo: pestañas reactivas vs subrutas y puente tolerante a fallos.
 
 ### 📁 04 - Informes de Ejecucion (Estructurado por Fases)
 * **Fase 0 — Base & Baseline:**
