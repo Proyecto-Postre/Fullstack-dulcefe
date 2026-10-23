@@ -3,7 +3,6 @@ import { ref, computed, watch } from 'vue'
 import { useAsyncData, useRoute, useRouter } from 'nuxt/app'
 import type { CatalogApiResponse, CatalogProduct, CatalogCategory } from '~/types/catalog'
 import { useCatalog } from '~/composables/useCatalog'
-import { useCartStore } from '~/stores/cart'
 import CatalogHeader from '~/components/catalog/CatalogHeader.vue'
 import CatalogSearchFilter from '~/components/catalog/CatalogSearchFilter.vue'
 import CatalogProductCard from '~/components/catalog/CatalogProductCard.vue'
@@ -12,7 +11,6 @@ import CatalogLoadingSkeleton from '~/components/catalog/CatalogLoadingSkeleton.
 import ProductDetailModal from '~/components/catalog/ProductDetailModal.vue'
 import AnimatedGrid from '~/components/ui/AnimatedGrid.vue'
 
-const cartStore = useCartStore()
 const route = useRoute()
 const router = useRouter()
 
@@ -281,38 +279,7 @@ watch([rawProducts, () => route.query.producto], ([products, prodId]) => {
       @add-to-cart="handleAddToCart"
     />
 
-    <!-- Barra Flotante de Carrito en Móvil (Conversión E-commerce con Teleport al body) -->
-    <Teleport to="body">
-      <div 
-        v-if="cartStore.cartItemCount > 0" 
-        class="sm:hidden fixed bottom-4 left-4 right-4 z-40 animate-pop"
-      >
-        <button
-          type="button"
-          @click="cartStore.openDrawer()"
-          class="w-full bg-[#2A321B]/95 hover:bg-[#4A5D23] text-white backdrop-blur-md px-4 py-3 rounded-full shadow-2xl flex items-center justify-between border border-[#F4F1E1]/20 active:scale-98 transition-all duration-300 cursor-pointer"
-          aria-label="Abrir carrito de compras"
-        >
-          <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-full bg-[#4A5D23] flex items-center justify-center text-white shrink-0">
-              <Icon name="lucide:shopping-bag" class="w-4 h-4" />
-            </div>
-            <div class="text-left leading-tight">
-              <p class="text-[11px] font-bold text-[#F4F1E1]/90">
-                {{ cartStore.cartItemCount }} {{ cartStore.cartItemCount === 1 ? 'postre' : 'postres' }} en tu pedido
-              </p>
-              <p class="text-sm font-black font-inter text-white">
-                S/ {{ cartStore.cartTotal.toFixed(2) }}
-              </p>
-            </div>
-          </div>
-
-          <span class="inline-flex items-center gap-1.5 text-xs font-black bg-[#F4F1E1] text-[#2A321B] px-3.5 py-1.5 rounded-full shadow-sm">
-            <span>Ver Pedido</span>
-            <Icon name="lucide:arrow-right" class="w-3.5 h-3.5" />
-          </span>
-        </button>
-      </div>
-    </Teleport>
+    <!-- Barra Flotante de Carrito en Móvil (Conversión E-commerce) -->
+    <FloatingCartBar />
   </div>
 </template>
