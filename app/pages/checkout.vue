@@ -57,7 +57,7 @@ function autoFillUserData() {
 onMounted(async () => {
   if (authStore.isLoggedIn) {
     if (!authStore.profile) await authStore.fetchProfile()
-    if (!authStore.addresses || authStore.addresses.length === 0) await authStore.fetchAddresses()
+    if (!authStore.hasFetchedAddresses) await authStore.fetchAddresses()
     autoFillUserData()
   }
 })
