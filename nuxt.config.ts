@@ -9,7 +9,8 @@ export default defineNuxtConfig({
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'description', content: 'Pastelería fina y artesanal con ingredientes de la más alta calidad.' }
+        { name: 'description', content: 'Pastelería fina y artesanal con ingredientes de la más alta calidad.' },
+        { name: 'google-site-verification', content: 'O_LM8qeYZ9eGWxGmjrbpLPcmn6t4g2QJ8zMJ_19YLMw' }
       ],
       link: [
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
