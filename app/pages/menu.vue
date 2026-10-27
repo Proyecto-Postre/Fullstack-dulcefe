@@ -99,6 +99,24 @@ watch([rawProducts, () => route.query.producto], ([products, prodId]) => {
     }
   }
 }, { immediate: true })
+
+useSeoMeta({
+  title: () => selectedProductForDetail.value
+    ? `${selectedProductForDetail.value.name} — Dulce Fe`
+    : 'Carta & Menú — Dulce Fe',
+  ogTitle: () => selectedProductForDetail.value
+    ? `${selectedProductForDetail.value.name} — Dulce Fe`
+    : 'Carta & Menú — Dulce Fe',
+  description: () => selectedProductForDetail.value?.description || 'Descubre nuestra selección artesanal de tortas, postres y bocaditos finos hechos con dedicación.',
+  ogDescription: () => selectedProductForDetail.value?.description || 'Descubre nuestra selección artesanal de tortas, postres y bocaditos finos hechos con dedicación.',
+  ogImage: () => selectedProductForDetail.value?.image_url || 'https://dulcefe.vercel.app/og-banner.jpg',
+  twitterCard: 'summary_large_image',
+  twitterTitle: () => selectedProductForDetail.value
+    ? `${selectedProductForDetail.value.name} — Dulce Fe`
+    : 'Carta & Menú — Dulce Fe',
+  twitterDescription: () => selectedProductForDetail.value?.description || 'Descubre nuestra selección artesanal de tortas, postres y bocaditos finos hechos con dedicación.',
+  twitterImage: () => selectedProductForDetail.value?.image_url || 'https://dulcefe.vercel.app/og-banner.jpg'
+})
 </script>
 
 <template>
