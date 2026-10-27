@@ -1,2 +1,9 @@
 User-Agent: *
-Disallow:
+Allow: /
+Disallow: /admin
+Disallow: /login
+Disallow: /perfil
+Disallow: /checkout
+Disallow: /pedido/
+
+Sitemap: https://dulcefe.vercel.app/sitemap.xml

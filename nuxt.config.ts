@@ -5,17 +5,42 @@ export default defineNuxtConfig({
   app: {
     pageTransition: { name: 'page', mode: 'out-in' },
     head: {
+      htmlAttrs: {
+        lang: 'es'
+      },
       title: 'Dulce Fe — Pastelería Fina Artesanal',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         { name: 'description', content: 'Pastelería fina y artesanal con ingredientes de la más alta calidad.' },
-        { name: 'google-site-verification', content: 'O_LM8qeYZ9eGWxGmjrbpLPcmn6t4g2QJ8zMJ_19YLMw' }
+        { name: 'google-site-verification', content: 'O_LM8qeYZ9eGWxGmjrbpLPcmn6t4g2QJ8zMJ_19YLMw' },
+        { name: 'theme-color', content: '#4A5D23' },
+        { property: 'og:site_name', content: 'Dulce Fe' },
+        { property: 'og:title', content: 'Dulce Fe — Pastelería Fina Artesanal' },
+        { property: 'og:description', content: 'Pastelería fina y artesanal con ingredientes de la más alta calidad.' },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:url', content: 'https://dulcefe.vercel.app' },
+        { property: 'og:image', content: 'https://dulcefe.vercel.app/icon-512.png' }
       ],
       link: [
+        { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+        { rel: 'icon', type: 'image/png', sizes: '48x48', href: '/favicon-48x48.png' },
+        { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' },
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap' }
+      ],
+      script: [
+        {
+          type: 'application/ld+json',
+          innerHTML: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'WebSite',
+            name: 'Dulce Fe',
+            alternateName: ['Dulce Fe Pastelería', 'DulceFe'],
+            url: 'https://dulcefe.vercel.app/'
+          })
+        }
       ]
     }
   },
