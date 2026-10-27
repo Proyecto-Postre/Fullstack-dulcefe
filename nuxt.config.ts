@@ -68,6 +68,7 @@ export default defineNuxtConfig({
       supabaseUrl: process.env.SUPABASE_URL || process.env.NUXT_PUBLIC_SUPABASE_URL || '',
       supabaseAnonKey: process.env.SUPABASE_KEY || process.env.NUXT_PUBLIC_SUPABASE_KEY || '',
       whatsappNumber: process.env.NUXT_PUBLIC_WHATSAPP_NUMBER || '51998265700',
+      googleAnalyticsId: process.env.NUXT_PUBLIC_GTAG_ID || 'G-LFB3SEY29X',
       siteUrl:
         process.env.NUXT_PUBLIC_SITE_URL ||
         (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : null) ||
