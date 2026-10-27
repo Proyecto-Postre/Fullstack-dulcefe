@@ -41,6 +41,13 @@ export default defineNuxtConfig({
       ],
       script: [
         {
+          src: 'https://www.googletagmanager.com/gtag/js?id=G-LFB3SEY29X',
+          async: true
+        },
+        {
+          innerHTML: 'window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag("js", new Date());gtag("config", "G-LFB3SEY29X");'
+        },
+        {
           type: 'application/ld+json',
           innerHTML: JSON.stringify({
             '@context': 'https://schema.org',
