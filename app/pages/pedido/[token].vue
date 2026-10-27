@@ -91,11 +91,28 @@ const isCopied = ref(false)
 let trackingUrlTimeout: ReturnType<typeof setTimeout> | null = null
 
 async function copyTrackingUrl() {
-  if (typeof window === 'undefined' || isCopied.value) return
+  if (typeof window === 'undefined') return
+  const url = window.location.href
+  const shortId = order.value?.short_id ? `#${order.value.short_id}` : ''
+
+  if (typeof navigator !== 'undefined' && navigator.share) {
+    try {
+      await navigator.share({
+        title: `Seguimiento de Pedido ${shortId} — Dulce Fe`,
+        text: `Sigue en tiempo real el estado de mi pedido en Dulce Fe:`,
+        url
+      })
+      return
+    } catch (err: unknown) {
+      if ((err as Error)?.name === 'AbortError') return
+    }
+  }
+
+  if (isCopied.value) return
   let copied = false
   try {
     if (navigator?.clipboard?.writeText) {
-      await navigator.clipboard.writeText(window.location.href)
+      await navigator.clipboard.writeText(url)
       copied = true
     }
   } catch {
@@ -103,7 +120,7 @@ async function copyTrackingUrl() {
   }
 
   if (!copied) {
-    copied = fallbackCopyText(window.location.href)
+    copied = fallbackCopyText(url)
   }
 
   if (copied) {
