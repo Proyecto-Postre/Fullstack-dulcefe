@@ -231,10 +231,36 @@ function handleAdd() {
 
 async function copyProductShareLink() {
   if (!props.product || typeof window === 'undefined') return
+  const url = new URL(window.location.origin + '/menu')
+  url.searchParams.set('producto', String(props.product.id))
+  const shareUrl = url.toString()
+
+  if (typeof navigator !== 'undefined' && navigator.share) {
+    try {
+      await navigator.share({
+        title: `${props.product.name} — Dulce Fe`,
+        text: `¡Mira este delicioso postre en Dulce Fe! ${props.product.name}`,
+        url: shareUrl
+      })
+      return
+    } catch (err: unknown) {
+      if ((err as Error)?.name === 'AbortError') return
+    }
+  }
+
   try {
-    const url = new URL(window.location.origin + '/menu')
-    url.searchParams.set('producto', String(props.product.id))
-    await navigator.clipboard.writeText(url.toString())
+    if (navigator?.clipboard?.writeText) {
+      await navigator.clipboard.writeText(shareUrl)
+    } else {
+      const textarea = document.createElement('textarea')
+      textarea.value = shareUrl
+      textarea.style.position = 'fixed'
+      textarea.style.opacity = '0'
+      document.body.appendChild(textarea)
+      textarea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textarea)
+    }
     isCopied.value = true
     toast.success('¡Enlace copiado al portapapeles!', {
       description: `Listo para compartir ${props.product.name}`
