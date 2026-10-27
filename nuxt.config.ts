@@ -20,7 +20,16 @@ export default defineNuxtConfig({
         { property: 'og:description', content: 'Pastelería fina y artesanal con ingredientes de la más alta calidad.' },
         { property: 'og:type', content: 'website' },
         { property: 'og:url', content: 'https://dulcefe.vercel.app' },
-        { property: 'og:image', content: 'https://dulcefe.vercel.app/icon-512.png' }
+        { property: 'og:image', content: 'https://dulcefe.vercel.app/og-banner.jpg' },
+        { property: 'og:image:secure_url', content: 'https://dulcefe.vercel.app/og-banner.jpg' },
+        { property: 'og:image:type', content: 'image/jpeg' },
+        { property: 'og:image:width', content: '1200' },
+        { property: 'og:image:height', content: '630' },
+        { property: 'og:image:alt', content: 'Dulce Fe — Pastelería Fina Artesanal' },
+        { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:title', content: 'Dulce Fe — Pastelería Fina Artesanal' },
+        { name: 'twitter:description', content: 'Pastelería fina y artesanal con ingredientes de la más alta calidad.' },
+        { name: 'twitter:image', content: 'https://dulcefe.vercel.app/og-banner.jpg' }
       ],
       link: [
         { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
