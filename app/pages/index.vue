@@ -597,14 +597,14 @@ onBeforeUnmount(() => {
             Nuevas Creaciones en el Horno
           </h3>
           <p class="text-xs sm:text-sm text-brand-secondary/75 font-medium leading-relaxed mb-6">
-            Actualmente no hay postres registrados en la base de datos. Puedes registrar nuevos postres desde el panel de administración para que se exhiban automáticamente aquí y en la carta.
+            Estamos preparando nuevas recetas y delicias artesanales para ti. Mientras tanto, te invitamos a explorar nuestra carta completa.
           </p>
           <NuxtLink
-            to="/admin"
+            to="/menu"
             class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-brand-primary text-white text-xs font-bold shadow-soft-sm hover:bg-brand-secondary transition-all active:scale-95 cursor-pointer"
           >
-            <Icon name="lucide:plus" class="w-4 h-4" />
-            <span>Agregar Productos en Admin</span>
+            <span>Ver Toda la Carta</span>
+            <Icon name="lucide:arrow-right" class="w-4 h-4" />
           </NuxtLink>
         </div>
 
