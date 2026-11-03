@@ -82,11 +82,7 @@ function getProductImage(product: CatalogProduct): string {
   if (product.image_url && product.image_url.trim() !== '') {
     return product.image_url
   }
-  const name = (product.name || '').toLowerCase()
-  if (name.includes('torta') || name.includes('chocolate')) {
-    return '/images/desserts/torta-chocolate-frutos.jpg'
-  }
-  return '/images/desserts/tartaleta-fresas-pistacho.jpg'
+  return ''
 }
 
 function goToMenuWithFilter(keyword: string) {
@@ -490,10 +486,22 @@ onBeforeUnmount(() => {
                 </div>
 
                 <img 
+                  v-if="getProductImage(product)"
                   :src="getProductImage(product)" 
                   :alt="product.name" 
                   class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out" 
                 />
+                <div 
+                  v-else 
+                  class="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#FDFBF7] to-[#F5F1E1] p-4 text-center select-none"
+                >
+                  <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[#EFEAD4]/80 border border-brand-primary/15 flex items-center justify-center shadow-soft-sm group-hover:scale-110 transition-transform duration-500 ease-out">
+                    <Icon :name="getProductIcon(product.name, product.category_id)" class="w-8 h-8 sm:w-10 sm:h-10 text-brand-primary/80" />
+                  </div>
+                  <span class="text-[10px] sm:text-xs font-semibold text-brand-secondary/60 mt-3 font-serif italic tracking-wide">
+                    Receta Artesanal
+                  </span>
+                </div>
               </div>
 
               <!-- Contenido -->

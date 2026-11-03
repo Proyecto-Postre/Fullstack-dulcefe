@@ -180,34 +180,7 @@ async function handleDeleteProduct(id: number | string, name: string): Promise<v
   }
 }
 
-function getProductIcon(name: string): string {
-  if (!name) return 'lucide:croissant'
-  const n = name.toLowerCase()
-  
-  // 1. Panadería, Masas y Salados
-  if (n.includes('pan') || n.includes('panes') || n.includes('baguette') || n.includes('ciabatta') || n.includes('brioche') || n.includes('miga')) return 'lucide:sandwich'
-  if (n.includes('hojaldre') || n.includes('empanada') || n.includes('croissant') || n.includes('medialuna') || n.includes('milhojas') || n.includes('cachito')) return 'lucide:croissant'
-  if (n.includes('pizza') || n.includes('focaccia') || n.includes('quiche') || n.includes('tarta salada') || n.includes('calzone')) return 'lucide:pizza'
-  if (n.includes('sandwich') || n.includes('sándwich') || n.includes('butifarra') || n.includes('bocadito') || n.includes('canape') || n.includes('mixto') || n.includes('hamburguesa') || n.includes('burger')) return 'lucide:sandwich'
-  
-  // 2. Carnes, Pollo, Jamón y Salados
-  if (n.includes('carne') || n.includes('res') || n.includes('lomo') || n.includes('asado') || n.includes('jamon') || n.includes('jamón') || n.includes('tocino') || n.includes('chicharron') || n.includes('chorizo')) return 'lucide:beef'
-  if (n.includes('pollo') || n.includes('gallina') || n.includes('pavo') || n.includes('alita') || n.includes('pechuga')) return 'lucide:drumstick'
-  if (n.includes('pescado') || n.includes('atun') || n.includes('atún') || n.includes('salmon') || n.includes('salmón')) return 'lucide:fish'
-  if (n.includes('queso') || n.includes('cheese') || n.includes('mozzarella')) return 'lucide:milk'
-
-  // 3. Pastelería, Tortas y Tartas Dulces
-  if (n.includes('torta') || n.includes('pastel') || n.includes('cake') || n.includes('keke') || n.includes('queque') || n.includes('bizcochuelo') || n.includes('mousse')) return 'lucide:cake'
-  if (n.includes('porcion') || n.includes('porción') || n.includes('tajada') || n.includes('slice')) return 'lucide:cake-slice'
-  if (n.includes('cupcake') || n.includes('muffin') || n.includes('magdalena')) return 'lucide:cake-slice'
-  if (n.includes('tartaleta') || n.includes('tarta') || n.includes('pie') || n.includes('pay')) return 'lucide:pie-chart'
-  if (n.includes('cheesecake') || n.includes('cheese cake')) return 'lucide:heart'
-  if (n.includes('brownie') || n.includes('alfajor') || n.includes('galleta') || n.includes('cookie') || n.includes('macaron') || n.includes('trufa') || n.includes('bombón') || n.includes('bombon')) return 'lucide:cookie'
-  if (n.includes('postre') || n.includes('dulce') || n.includes('crema') || n.includes('flan') || n.includes('pudin') || n.includes('pudding') || n.includes('suspiro')) return 'lucide:sparkles'
-
-  // Default
-  return 'lucide:croissant'
-}
+import { getProductIcon } from '~/utils/productIcon'
 </script>
 
 <template>

@@ -32,11 +32,25 @@ defineEmits<{
 
       <!-- Imagen con zoom al hover -->
       <img 
+        v-if="imageUrl && imageUrl.trim() !== ''"
         :src="imageUrl" 
         :alt="product.name" 
         loading="lazy"
         class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out" 
       />
+
+      <!-- Placeholder con Icono referente si no hay imagen -->
+      <div 
+        v-else 
+        class="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#FDFBF7] to-[#F5F1E1] p-4 text-center select-none"
+      >
+        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-[#EFEAD4]/80 border border-brand-primary/15 flex items-center justify-center shadow-soft-sm group-hover:scale-110 transition-transform duration-500 ease-out">
+          <Icon :name="getProductIcon(product.name, product.category_id)" class="w-7 h-7 sm:w-8 sm:h-8 text-brand-primary/80" />
+        </div>
+        <span class="text-[9px] sm:text-[11px] font-semibold text-brand-secondary/60 mt-2.5 font-serif italic tracking-wide">
+          Receta Artesanal
+        </span>
+      </div>
     </div>
 
     <!-- Contenido y Precio -->
