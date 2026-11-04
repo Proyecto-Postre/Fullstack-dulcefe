@@ -40,18 +40,24 @@ const allProducts = computed<CatalogProduct[]>(() => {
   return catalogResponse.value?.data || []
 })
 
-// Prioriza creaciones marcadas como 'is_featured' por el administrador, ordenando por disponibilidad de stock
+// Prioriza creaciones marcadas como 'is_featured' por el administrador, ordenando por disponibilidad de stock.
+// Si hay productos marcados como destacados, muestra unicamente los destacados configurados (maximo 3).
+// Si no hay ningun producto marcado como destacado, usa hasta 3 productos generales como fallback.
 const displayFeatured = computed<CatalogProduct[]>(() => {
   const serverItems = allProducts.value
   if (serverItems.length === 0) return []
 
   const featured = serverItems.filter(p => p.is_featured === true)
+  if (featured.length > 0) {
+    return [...featured]
+      .sort((a, b) => (Number(b.stock) > 0 ? 1 : 0) - (Number(a.stock) > 0 ? 1 : 0))
+      .slice(0, 3)
+  }
+
   const others = serverItems.filter(p => p.is_featured !== true)
-
-  const sortedFeatured = [...featured].sort((a, b) => (Number(b.stock) > 0 ? 1 : 0) - (Number(a.stock) > 0 ? 1 : 0))
-  const sortedOthers = [...others].sort((a, b) => (Number(b.stock) > 0 ? 1 : 0) - (Number(a.stock) > 0 ? 1 : 0))
-
-  return [...sortedFeatured, ...sortedOthers].slice(0, 3)
+  return [...others]
+    .sort((a, b) => (Number(b.stock) > 0 ? 1 : 0) - (Number(a.stock) > 0 ? 1 : 0))
+    .slice(0, 3)
 })
 
 // Estado del Modal de Detalle Rápido
@@ -82,11 +88,7 @@ function getProductImage(product: CatalogProduct): string {
   if (product.image_url && product.image_url.trim() !== '') {
     return product.image_url
   }
-  const name = (product.name || '').toLowerCase()
-  if (name.includes('torta') || name.includes('chocolate')) {
-    return '/images/desserts/torta-chocolate-frutos.jpg'
-  }
-  return '/images/desserts/tartaleta-fresas-pistacho.jpg'
+  return ''
 }
 
 function goToMenuWithFilter(keyword: string) {
@@ -490,10 +492,22 @@ onBeforeUnmount(() => {
                 </div>
 
                 <img 
+                  v-if="getProductImage(product)"
                   :src="getProductImage(product)" 
                   :alt="product.name" 
                   class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out" 
                 />
+                <div 
+                  v-else 
+                  class="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#FDFBF7] to-[#F5F1E1] p-4 text-center select-none"
+                >
+                  <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[#EFEAD4]/80 border border-brand-primary/15 flex items-center justify-center shadow-soft-sm group-hover:scale-110 transition-transform duration-500 ease-out">
+                    <Icon :name="getProductIcon(product.name, product.category_id)" class="w-8 h-8 sm:w-10 sm:h-10 text-brand-primary/80" />
+                  </div>
+                  <span class="text-[10px] sm:text-xs font-semibold text-brand-secondary/60 mt-3 font-serif italic tracking-wide">
+                    Receta Artesanal
+                  </span>
+                </div>
               </div>
 
               <!-- Contenido -->

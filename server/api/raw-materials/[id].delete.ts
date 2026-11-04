@@ -12,14 +12,15 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Eliminar recetas que usan este insumo con service role o admin client
-  const supabase = await getAdminSupabaseClient(event)
-  await supabase
-    .from('recipe_items')
-    .delete()
-    .eq('raw_material_id', Number(id))
+  const numId = Number(id)
+  if (isNaN(numId) || numId <= 0) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'El ID del insumo debe ser un número válido.'
+    })
+  }
 
-  await InventoryService.deleteMaterial(event, Number(id), requestId)
+  await InventoryService.deleteMaterial(event, numId, requestId)
 
   return {
     success: true,

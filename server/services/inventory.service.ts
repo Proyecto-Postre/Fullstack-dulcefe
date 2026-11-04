@@ -176,6 +176,44 @@ export class InventoryService {
     const adminUser = await requireAdmin(event)
     const supabase = await getAdminSupabaseClient(event)
 
+    // 1. Integridad con recetas maestras y empaques de lotes (Fase 7 / ADR-005)
+    const { count: baseRecipeCount } = await supabase
+      .from('base_recipe_items')
+      .select('id', { count: 'exact', head: true })
+      .eq('raw_material_id', id)
+
+    const { count: packagingCount } = await supabase
+      .from('product_packaging_items')
+      .select('id', { count: 'exact', head: true })
+      .eq('raw_material_id', id)
+
+    if ((baseRecipeCount && baseRecipeCount > 0) || (packagingCount && packagingCount > 0)) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'No se puede eliminar este insumo porque está siendo utilizado en recetas maestras o empaques de productos.',
+        data: {
+          error: {
+            code: 'RAW_MATERIAL_IN_USE',
+            message: 'No se puede eliminar este insumo porque está siendo utilizado en recetas maestras o empaques de productos.',
+            request_id: requestId
+          }
+        }
+      })
+    }
+
+    // 2. Limpieza de recetas clásicas legacy
+    await supabase
+      .from('recipe_items')
+      .delete()
+      .eq('raw_material_id', id)
+
+    // 3. Limpieza de movimientos de inventario asociados para evitar violación de FK RESTRICT
+    await supabase
+      .from('inventory_movements')
+      .delete()
+      .eq('raw_material_id', id)
+
+    // 4. Eliminación de la materia prima en almacén
     const { error } = await supabase
       .from('raw_materials')
       .delete()
@@ -197,7 +235,7 @@ export class InventoryService {
 
     await supabase.from('audit_events').insert({
       actor_id: adminUser.user.id,
-      action: 'material.write',
+      action: 'material.delete',
       entity: 'raw_materials',
       entity_id: String(id),
       result: 'ok',

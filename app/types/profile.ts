@@ -1,8 +1,6 @@
 import type { Database } from './database.types'
 
-export type OrderRow = Database['public']['Tables']['orders']['Row']
 export type OrderItemRow = Database['public']['Tables']['order_items']['Row']
-export type ProductRow = Database['public']['Tables']['products']['Row']
 export type AddressRow = Database['public']['Tables']['addresses']['Row']
 export type ProfileRow = Database['public']['Tables']['profiles']['Row']
 

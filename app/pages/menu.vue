@@ -207,7 +207,7 @@ useSeoMeta({
 
         <AnimatedGrid
           :items="filteredProducts"
-          grid-class="grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 lg:gap-7"
+          grid-class="grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 md:gap-5"
         >
           <template #default="{ item: product }">
             <CatalogProductCard
@@ -273,8 +273,8 @@ useSeoMeta({
             <div class="w-2 shrink-0" aria-hidden="true"></div>
           </div>
 
-          <!-- Disposición Desktop / Tablet: Cuadrícula Completa de 2 a 4 Columnas -->
-          <div class="hidden sm:grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-7">
+          <!-- Disposición Desktop / Tablet: Cuadrícula Completa de 3 a 5 Columnas -->
+          <div class="hidden sm:grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5">
             <CatalogProductCard
               v-for="product in section.products"
               :key="product.id"
