@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
+import { exportToExcel } from '~/utils/excelExport'
 
 interface KardexItem {
   id: string
@@ -137,29 +138,42 @@ function getTypeBadge(type: string) {
   }
 }
 
-function exportCsv() {
+async function exportExcel() {
   if (!items.value.length) return
-  const headers = ['Fecha', 'Insumo', 'Unidad', 'Tipo', 'Variacion', 'Stock Anterior', 'Stock Final', 'Motivo', 'Orden']
-  const rows = items.value.map(it => [
-    formatDate(it.created_at),
-    `"${it.raw_materials?.name || it.raw_material_id}"`,
-    it.raw_materials?.unit || '',
-    it.type,
-    it.quantity_delta,
-    it.stock_before,
-    it.stock_after,
-    `"${(it.reason || '').replace(/"/g, '""')}"`,
-    it.order_id || ''
-  ])
+  const typeMap: Record<string, string> = {
+    manual_adjustment: 'Ajuste / Ingreso',
+    order_consumption: 'Consumo Taller',
+    waste_declaration: 'Merma / Baja',
+    cancellation_reversal: 'Reversión Pedido'
+  }
 
-  const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n')
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `movimientos_insumos_${new Date().toISOString().split('T')[0]}.csv`
-  a.click()
-  URL.revokeObjectURL(url)
+  await exportToExcel({
+    filename: `movimientos_insumos_${new Date().toISOString().split('T')[0]}.xlsx`,
+    sheetName: 'Movimientos',
+    title: 'Dulce Fe — Reporte Oficial de Movimientos de Insumos',
+    columns: [
+      { header: 'Fecha & Hora', key: 'date', width: 20 },
+      { header: 'Materia Prima', key: 'material', width: 30 },
+      { header: 'Unidad', key: 'unit', width: 12 },
+      { header: 'Tipo Movimiento', key: 'type', width: 22 },
+      { header: 'Variación', key: 'delta', width: 16, numFmt: '#,##0.00', alignment: { horizontal: 'right' } },
+      { header: 'Stock Previo', key: 'before', width: 16, numFmt: '#,##0.00', alignment: { horizontal: 'right' } },
+      { header: 'Stock Resultante', key: 'after', width: 16, numFmt: '#,##0.00', alignment: { horizontal: 'right' } },
+      { header: 'Motivo / Detalle', key: 'reason', width: 36 },
+      { header: 'Pedido Asociado', key: 'orderId', width: 24 }
+    ],
+    rows: items.value.map(it => ({
+      date: formatDate(it.created_at),
+      material: it.raw_materials?.name || `Insumo #${it.raw_material_id}`,
+      unit: it.raw_materials?.unit || '',
+      type: typeMap[it.type] || it.type,
+      delta: Number(it.quantity_delta),
+      before: Number(it.stock_before),
+      after: Number(it.stock_after),
+      reason: it.reason || '',
+      orderId: it.order_id || 'N/A'
+    }))
+  })
 }
 </script>
 
@@ -230,14 +244,14 @@ function exportCsv() {
         </button>
 
         <button
-          @click="exportCsv"
+          @click="exportExcel"
           :disabled="!items.length"
           type="button"
           class="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-emerald-600/30 bg-emerald-50 text-emerald-800 text-xs font-bold hover:bg-emerald-100 transition-all cursor-pointer shadow-soft-sm disabled:opacity-40 disabled:cursor-not-allowed"
-          title="Exportar a archivo CSV"
+          title="Exportar reporte en formato Excel (.xlsx)"
         >
-          <Icon name="lucide:download" class="w-3.5 h-3.5" />
-          <span>CSV</span>
+          <Icon name="lucide:file-spreadsheet" class="w-3.5 h-3.5 text-emerald-700" />
+          <span>Exportar XLSX</span>
         </button>
       </div>
     </div>
@@ -258,7 +272,7 @@ function exportCsv() {
       </div>
 
       <!-- Tabla Desktop (>= md) -->
-      <div v-else class="hidden md:block overflow-x-auto">
+      <div v-else class="hidden md:block overflow-x-auto custom-scrollbar">
         <table class="w-full text-left border-collapse text-xs">
           <thead>
             <tr class="bg-brand-cream/50 border-b border-brand-primary/10 text-[10px] font-black text-brand-primary/70 uppercase tracking-wider">

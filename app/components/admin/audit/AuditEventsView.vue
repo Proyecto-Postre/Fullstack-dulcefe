@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
+import { exportToExcel } from '~/utils/excelExport'
 
 interface AuditEventItem {
   id: string
@@ -110,27 +111,31 @@ function getEntityLabel(entity: string) {
   return map[entity] || entity
 }
 
-function exportCsv() {
+async function exportExcel() {
   if (!items.value.length) return
-  const headers = ['Fecha', 'Entidad', 'Accion', 'ID Referencia', 'Resultado', 'Correlation ID', 'Actor ID']
-  const rows = items.value.map(it => [
-    formatDate(it.created_at),
-    it.entity,
-    it.action,
-    it.entity_id || '',
-    it.result,
-    it.request_id || '',
-    it.actor_id || ''
-  ])
-
-  const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n')
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `bitacora_sistema_${new Date().toISOString().split('T')[0]}.csv`
-  a.click()
-  URL.revokeObjectURL(url)
+  await exportToExcel({
+    filename: `bitacora_sistema_${new Date().toISOString().split('T')[0]}.xlsx`,
+    sheetName: 'Bitácora',
+    title: 'Dulce Fe — Bitácora Inmutable de Operaciones del Sistema',
+    columns: [
+      { header: 'Fecha & Hora', key: 'date', width: 20 },
+      { header: 'Entidad / Módulo', key: 'entity', width: 22 },
+      { header: 'Acción Ejecutada', key: 'action', width: 24 },
+      { header: 'ID Referencia', key: 'entityId', width: 24 },
+      { header: 'Resultado', key: 'result', width: 14, alignment: { horizontal: 'center' } },
+      { header: 'Correlation ID', key: 'requestId', width: 28 },
+      { header: 'Actor ID', key: 'actorId', width: 28 }
+    ],
+    rows: items.value.map(it => ({
+      date: formatDate(it.created_at),
+      entity: getEntityLabel(it.entity),
+      action: it.action,
+      entityId: it.entity_id || 'N/A',
+      result: it.result,
+      requestId: it.request_id || 'N/A',
+      actorId: it.actor_id || 'Sistema'
+    }))
+  })
 }
 </script>
 
@@ -208,14 +213,14 @@ function exportCsv() {
         </button>
 
         <button
-          @click="exportCsv"
+          @click="exportExcel"
           :disabled="!items.length"
           type="button"
           class="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-emerald-600/30 bg-emerald-50 text-emerald-800 text-xs font-bold hover:bg-emerald-100 transition-all cursor-pointer shadow-soft-sm disabled:opacity-40 disabled:cursor-not-allowed"
-          title="Exportar a CSV"
+          title="Exportar reporte en formato Excel (.xlsx)"
         >
-          <Icon name="lucide:download" class="w-3.5 h-3.5" />
-          <span>CSV</span>
+          <Icon name="lucide:file-spreadsheet" class="w-3.5 h-3.5 text-emerald-700" />
+          <span>Exportar XLSX</span>
         </button>
       </div>
     </div>
@@ -235,7 +240,7 @@ function exportCsv() {
       </div>
 
       <!-- Tabla Desktop -->
-      <div v-else class="hidden md:block overflow-x-auto">
+      <div v-else class="hidden md:block overflow-x-auto custom-scrollbar">
         <table class="w-full text-left border-collapse text-xs">
           <thead>
             <tr class="bg-brand-cream/50 border-b border-brand-primary/10 text-[10px] font-black text-brand-primary/70 uppercase tracking-wider">

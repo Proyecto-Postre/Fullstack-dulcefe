@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, computed } from 'vue'
+import { exportToExcel } from '~/utils/excelExport'
 
 interface FinancialOrder {
   id: string
@@ -106,36 +107,44 @@ const summaryMetrics = computed(() => {
   return { revenue, cost, margin, marginPct }
 })
 
-function exportCsv() {
+async function exportExcel() {
   if (!items.value.length) return
-  const headers = ['Fecha', 'Codigo', 'Cliente', 'Telefono', 'Venta (S/)', 'Costo Insumos (S/)', 'Margen (S/)', '% Margen', 'Metodo Pago', 'Estado Pago', 'Estado Pedido']
-  const rows = items.value.map(it => {
-    const cost = it.total_cost_cents ? (it.total_cost_cents / 100).toFixed(2) : '0.00'
-    const margin = it.gross_margin_cents ? (it.gross_margin_cents / 100).toFixed(2) : '0.00'
-    const pct = it.total_amount > 0 && it.gross_margin_cents ? ((it.gross_margin_cents / (it.total_amount * 100)) * 100).toFixed(1) : '0.0'
-    return [
-      formatDate(it.created_at),
-      it.code || it.id.slice(0, 8),
-      `"${(it.customer_name || '').replace(/"/g, '""')}"`,
-      it.customer_phone || '',
-      it.total_amount,
-      cost,
-      margin,
-      `${pct}%`,
-      it.payment_method,
-      it.payment_status,
-      it.status
-    ]
+  await exportToExcel({
+    filename: `auditoria_financiera_${new Date().toISOString().split('T')[0]}.xlsx`,
+    sheetName: 'Finanzas',
+    title: 'Dulce Fe — Auditoría Financiera de Pedidos (COGS y Márgenes)',
+    columns: [
+      { header: 'Fecha & Hora', key: 'date', width: 20 },
+      { header: 'Código Pedido', key: 'code', width: 18 },
+      { header: 'Cliente', key: 'customer', width: 26 },
+      { header: 'Teléfono', key: 'phone', width: 16 },
+      { header: 'Venta Total (S/)', key: 'revenue', width: 18, numFmt: '"S/ "#,##0.00', alignment: { horizontal: 'right' } },
+      { header: 'Costo Insumos (S/)', key: 'cost', width: 18, numFmt: '"S/ "#,##0.00', alignment: { horizontal: 'right' } },
+      { header: 'Margen Bruto (S/)', key: 'margin', width: 18, numFmt: '"S/ "#,##0.00', alignment: { horizontal: 'right' } },
+      { header: 'Rentabilidad (%)', key: 'marginPct', width: 16, numFmt: '0.0"%"', alignment: { horizontal: 'right' } },
+      { header: 'Método Pago', key: 'paymentMethod', width: 16 },
+      { header: 'Estado Pago', key: 'paymentStatus', width: 16 },
+      { header: 'Estado Pedido', key: 'orderStatus', width: 16 }
+    ],
+    rows: items.value.map(it => {
+      const cost = it.total_cost_cents ? it.total_cost_cents / 100 : 0
+      const margin = it.gross_margin_cents ? it.gross_margin_cents / 100 : 0
+      const pct = it.total_amount > 0 && it.gross_margin_cents ? (it.gross_margin_cents / (it.total_amount * 100)) * 100 : 0
+      return {
+        date: formatDate(it.created_at),
+        code: it.code || it.id.slice(0, 8),
+        customer: it.customer_name || 'Anónimo',
+        phone: it.customer_phone || '',
+        revenue: Number(it.total_amount),
+        cost: Number(cost),
+        margin: Number(margin),
+        marginPct: Number(pct),
+        paymentMethod: it.payment_method,
+        paymentStatus: it.payment_status,
+        orderStatus: it.status
+      }
+    })
   })
-
-  const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n')
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `auditoria_financiera_${new Date().toISOString().split('T')[0]}.csv`
-  a.click()
-  URL.revokeObjectURL(url)
 }
 </script>
 
@@ -200,14 +209,14 @@ function exportCsv() {
         </button>
 
         <button
-          @click="exportCsv"
+          @click="exportExcel"
           :disabled="!items.length"
           type="button"
           class="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-emerald-600/30 bg-emerald-50 text-emerald-800 text-xs font-bold hover:bg-emerald-100 transition-all cursor-pointer shadow-soft-sm disabled:opacity-40 disabled:cursor-not-allowed"
-          title="Exportar a CSV"
+          title="Exportar reporte en formato Excel (.xlsx)"
         >
-          <Icon name="lucide:download" class="w-3.5 h-3.5" />
-          <span>CSV</span>
+          <Icon name="lucide:file-spreadsheet" class="w-3.5 h-3.5 text-emerald-700" />
+          <span>Exportar XLSX</span>
         </button>
       </div>
     </div>
@@ -227,7 +236,7 @@ function exportCsv() {
       </div>
 
       <!-- Tabla Desktop -->
-      <div v-else class="hidden md:block overflow-x-auto">
+      <div v-else class="hidden md:block overflow-x-auto custom-scrollbar">
         <table class="w-full text-left border-collapse text-xs">
           <thead>
             <tr class="bg-brand-cream/50 border-b border-brand-primary/10 text-[10px] font-black text-brand-primary/70 uppercase tracking-wider">

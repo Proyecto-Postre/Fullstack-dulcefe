@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
+import { exportToExcel } from '~/utils/excelExport'
 
 interface WasteItem {
   id: string
@@ -97,26 +98,29 @@ function formatDate(iso: string) {
   }
 }
 
-function exportCsv() {
+async function exportExcel() {
   if (!items.value.length) return
-  const headers = ['Fecha', 'Tanda Maestra', 'Presentacion', 'Piezas Mermadas', 'Motivo', 'Notas']
-  const rows = items.value.map(it => [
-    formatDate(it.created_at),
-    `"${it.recipe_yields?.base_recipes?.name || 'Receta'}"`,
-    `"${it.recipe_yields?.name || it.recipe_yield_id}"`,
-    it.pieces_count,
-    `"${it.reason}"`,
-    `"${(it.notes || '').replace(/"/g, '""')}"`
-  ])
-
-  const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n')
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `mermas_taller_${new Date().toISOString().split('T')[0]}.csv`
-  a.click()
-  URL.revokeObjectURL(url)
+  await exportToExcel({
+    filename: `mermas_taller_${new Date().toISOString().split('T')[0]}.xlsx`,
+    sheetName: 'Mermas',
+    title: 'Dulce Fe — Reporte de Control de Mermas y Descartes de Taller',
+    columns: [
+      { header: 'Fecha & Hora', key: 'date', width: 20 },
+      { header: 'Tanda Maestra / Receta', key: 'recipe', width: 28 },
+      { header: 'Presentación', key: 'yieldName', width: 24 },
+      { header: 'Piezas Mermadas', key: 'pieces', width: 16, numFmt: '#,##0', alignment: { horizontal: 'right' } },
+      { header: 'Motivo Declarado', key: 'reason', width: 26 },
+      { header: 'Notas / Observaciones', key: 'notes', width: 36 }
+    ],
+    rows: items.value.map(it => ({
+      date: formatDate(it.created_at),
+      recipe: it.recipe_yields?.base_recipes?.name || 'Receta Base',
+      yieldName: it.recipe_yields?.name || `Presentación #${it.recipe_yield_id}`,
+      pieces: Number(it.pieces_count),
+      reason: it.reason,
+      notes: it.notes || ''
+    }))
+  })
 }
 </script>
 
@@ -158,14 +162,14 @@ function exportCsv() {
         </button>
 
         <button
-          @click="exportCsv"
+          @click="exportExcel"
           :disabled="!items.length"
           type="button"
           class="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-emerald-600/30 bg-emerald-50 text-emerald-800 text-xs font-bold hover:bg-emerald-100 transition-all cursor-pointer shadow-soft-sm disabled:opacity-40 disabled:cursor-not-allowed"
-          title="Exportar a CSV"
+          title="Exportar reporte en formato Excel (.xlsx)"
         >
-          <Icon name="lucide:download" class="w-3.5 h-3.5" />
-          <span>CSV</span>
+          <Icon name="lucide:file-spreadsheet" class="w-3.5 h-3.5 text-emerald-700" />
+          <span>Exportar XLSX</span>
         </button>
       </div>
     </div>
@@ -185,7 +189,7 @@ function exportCsv() {
       </div>
 
       <!-- Tabla Desktop -->
-      <div v-else class="hidden md:block overflow-x-auto">
+      <div v-else class="hidden md:block overflow-x-auto custom-scrollbar">
         <table class="w-full text-left border-collapse text-xs">
           <thead>
             <tr class="bg-brand-cream/50 border-b border-brand-primary/10 text-[10px] font-black text-brand-primary/70 uppercase tracking-wider">

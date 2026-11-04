@@ -34,15 +34,53 @@ onMounted(() => {
 </template>
 
 <style>
-/* Estilos globales para los scrollbars */
-.custom-scrollbar::-webkit-scrollbar,
+/* Estilos globales de Scrollbars — Identidad Botánica Dulce Fe */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: rgba(74, 93, 35, 0.25);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(74, 93, 35, 0.45);
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(74, 93, 35, 0.25) transparent;
+}
+
+/* Scrollbar explícito con diseño botánico */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(74, 93, 35, 0.25);
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(74, 93, 35, 0.45);
+}
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(74, 93, 35, 0.25) transparent;
+}
+
+/* Ocultamiento universal de scrollbars para carruseles y componentes táctiles */
 .hide-scrollbar::-webkit-scrollbar,
 .no-scrollbar::-webkit-scrollbar {
   display: none !important;
   width: 0 !important;
   height: 0 !important;
 }
-.custom-scrollbar,
 .hide-scrollbar,
 .no-scrollbar {
   -ms-overflow-style: none !important;
