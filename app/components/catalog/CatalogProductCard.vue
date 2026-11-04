@@ -16,10 +16,10 @@ defineEmits<{
   <article
     class="group bg-surface rounded-2xl sm:rounded-3xl overflow-hidden shadow-soft-sm hover:shadow-soft-lg transition-all duration-300 ease-out flex flex-col border border-brand-primary/10 hover:-translate-y-1.5 h-full"
   >
-    <!-- Contenedor de Imagen -->
+    <!-- Contenedor de Imagen (Proporción 4:3 horizontal para fotos naturales de cámara y celular) -->
     <div 
       @click="$emit('viewDetail', product)"
-      class="aspect-square w-full relative overflow-hidden bg-brand-cream/60 shrink-0 cursor-pointer"
+      class="aspect-[4/3] w-full relative overflow-hidden bg-brand-cream/60 shrink-0 cursor-pointer"
     >
       <!-- Badge de Estado: Solo visible cuando el producto está agotado -->
       <div 
