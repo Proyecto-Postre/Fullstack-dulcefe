@@ -40,18 +40,24 @@ const allProducts = computed<CatalogProduct[]>(() => {
   return catalogResponse.value?.data || []
 })
 
-// Prioriza creaciones marcadas como 'is_featured' por el administrador, ordenando por disponibilidad de stock
+// Prioriza creaciones marcadas como 'is_featured' por el administrador, ordenando por disponibilidad de stock.
+// Si hay productos marcados como destacados, muestra unicamente los destacados configurados (maximo 3).
+// Si no hay ningun producto marcado como destacado, usa hasta 3 productos generales como fallback.
 const displayFeatured = computed<CatalogProduct[]>(() => {
   const serverItems = allProducts.value
   if (serverItems.length === 0) return []
 
   const featured = serverItems.filter(p => p.is_featured === true)
+  if (featured.length > 0) {
+    return [...featured]
+      .sort((a, b) => (Number(b.stock) > 0 ? 1 : 0) - (Number(a.stock) > 0 ? 1 : 0))
+      .slice(0, 3)
+  }
+
   const others = serverItems.filter(p => p.is_featured !== true)
-
-  const sortedFeatured = [...featured].sort((a, b) => (Number(b.stock) > 0 ? 1 : 0) - (Number(a.stock) > 0 ? 1 : 0))
-  const sortedOthers = [...others].sort((a, b) => (Number(b.stock) > 0 ? 1 : 0) - (Number(a.stock) > 0 ? 1 : 0))
-
-  return [...sortedFeatured, ...sortedOthers].slice(0, 3)
+  return [...others]
+    .sort((a, b) => (Number(b.stock) > 0 ? 1 : 0) - (Number(a.stock) > 0 ? 1 : 0))
+    .slice(0, 3)
 })
 
 // Estado del Modal de Detalle Rápido
