@@ -99,9 +99,25 @@ watch(() => props.materials?.data?.length, () => {
 })
 
 
-async function handleDeleteMaterial(id: number | string, name: string): Promise<void> {
-  if (!confirm(`¿Estás seguro de eliminar "${name}" del inventario de insumos?`)) return
-  
+// Estado y control del Modal de Confirmación de Eliminación de Insumo
+const materialToDelete = ref<{ id: number | string; name: string } | null>(null)
+const showDeleteModal = ref(false)
+const isDeleting = ref(false)
+
+function openDeleteModal(id: number | string, name: string): void {
+  materialToDelete.value = { id, name: name || 'este insumo' }
+  showDeleteModal.value = true
+}
+
+function closeDeleteModal(): void {
+  if (isDeleting.value) return
+  showDeleteModal.value = false
+  materialToDelete.value = null
+}
+
+async function confirmDeleteMaterial(): Promise<void> {
+  if (!materialToDelete.value) return
+  const { id, name } = materialToDelete.value
   const numId = Number(id)
   const index = localMaterials.value.findIndex((m: RawMaterialRow) => m.id === numId)
   let deletedItem: RawMaterialRow | null = null
@@ -110,15 +126,21 @@ async function handleDeleteMaterial(id: number | string, name: string): Promise<
     localMaterials.value.splice(index, 1)
   }
 
+  isDeleting.value = true
   try {
     await $fetch(`/api/raw-materials/${id}`, { method: 'DELETE' })
-    toast.success('Insumo eliminado del almacén')
+    toast.success(`Insumo "${name}" eliminado del almacén`)
+    closeDeleteModal()
+    emit('refresh')
   } catch (err: unknown) {
     if (deletedItem && index !== -1) {
       localMaterials.value.splice(index, 0, deletedItem)
     }
-    const fetchErr = err as { data?: { statusMessage?: string }; message?: string }
-    toast.error('Error al eliminar: ' + (fetchErr.data?.statusMessage || fetchErr.message || 'Error desconocido'))
+    const fetchErr = err as { data?: { statusMessage?: string; error?: { message?: string } }; message?: string }
+    const errorMsg = fetchErr.data?.error?.message || fetchErr.data?.statusMessage || fetchErr.message || 'Error desconocido al eliminar'
+    toast.error('Error al eliminar: ' + errorMsg)
+  } finally {
+    isDeleting.value = false
   }
 }
 
@@ -403,7 +425,7 @@ function openEditMaterial(item: RawMaterialRow): void {
 
               <!-- 2. Eliminar -->
               <button
-                @click="handleDeleteMaterial(item.id, item.name || '')"
+                @click="openDeleteModal(item.id, item.name || '')"
                 type="button"
                 class="h-10 flex items-center justify-center gap-1.5 text-xs font-bold text-status-danger hover:bg-red-50 active:bg-red-100 transition-colors cursor-pointer"
                 :aria-label="`Eliminar insumo ${item.name}`"
@@ -500,7 +522,7 @@ function openEditMaterial(item: RawMaterialRow): void {
                         <Icon name="lucide:pencil" class="w-3.5 h-3.5" />
                       </button>
                       <button
-                        @click="handleDeleteMaterial(item.id, item.name || '')"
+                        @click="openDeleteModal(item.id, item.name || '')"
                         type="button"
                         class="w-8 h-8 rounded-lg bg-red-50 text-status-danger hover:bg-status-danger hover:text-white transition-all flex items-center justify-center shadow-xs cursor-pointer"
                         aria-label="Eliminar Insumo"
@@ -579,6 +601,67 @@ function openEditMaterial(item: RawMaterialRow): void {
       @close="showModal = false"
       @saved="emit('refresh')"
     />
+
+    <!-- Modal de Confirmación de Eliminación con Identidad Dulce Fe -->
+    <ClientOnly>
+      <Teleport to="#admin-modal-portal">
+        <div
+          v-if="showDeleteModal"
+          class="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto custom-scrollbar pointer-events-auto"
+        >
+          <!-- Backdrop con desenfoque de cristal -->
+          <div
+            class="fixed inset-0 bg-[#2A321B]/50 backdrop-blur-sm transition-opacity"
+            @click="closeDeleteModal"
+          ></div>
+
+          <!-- Cuadro de Diálogo -->
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-delete-material-title"
+            class="relative w-full max-w-sm bg-white rounded-[2rem] shadow-2xl overflow-hidden animate-pop border border-[#4A5D23]/10 p-6 flex flex-col items-center text-center"
+          >
+            <!-- Icono de Advertencia -->
+            <div class="w-14 h-14 rounded-2xl bg-status-danger/10 text-status-danger flex items-center justify-center mb-4 shadow-soft-sm">
+              <Icon name="lucide:trash-2" class="w-7 h-7 text-status-danger" />
+            </div>
+
+            <!-- Título Editorial -->
+            <h3 id="modal-delete-material-title" class="text-lg sm:text-xl font-playfair font-black text-brand-secondary mb-2">
+              ¿Eliminar insumo?
+            </h3>
+
+            <!-- Mensaje Descriptivo -->
+            <p class="text-xs sm:text-sm text-brand-secondary/75 mb-6 leading-relaxed">
+              Estás a punto de eliminar <span class="font-bold text-brand-secondary">"{{ materialToDelete?.name }}"</span> del almacén. Esta acción no se puede deshacer.
+            </p>
+
+            <!-- Botones de Acción -->
+            <div class="flex items-center gap-3 w-full">
+              <button
+                type="button"
+                @click="closeDeleteModal"
+                :disabled="isDeleting"
+                class="flex-1 py-2.5 px-4 rounded-full border border-brand-primary/20 bg-white hover:bg-brand-cream/60 text-brand-secondary text-xs font-bold transition-all cursor-pointer active:scale-95 disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                @click="confirmDeleteMaterial"
+                :disabled="isDeleting"
+                class="flex-1 py-2.5 px-4 rounded-full bg-status-danger hover:bg-red-800 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-soft-sm active:scale-95 disabled:opacity-50"
+              >
+                <Icon v-if="isDeleting" name="lucide:loader-2" class="w-4 h-4 animate-spin" />
+                <Icon v-else name="lucide:trash-2" class="w-4 h-4" />
+                <span>{{ isDeleting ? 'Eliminando...' : 'Eliminar' }}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 
