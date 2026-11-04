@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import AuditKardexView from '~/components/admin/audit/AuditKardexView.vue'
+import AuditEventsView from '~/components/admin/audit/AuditEventsView.vue'
+import AuditWasteView from '~/components/admin/audit/AuditWasteView.vue'
+import AuditFinancialView from '~/components/admin/audit/AuditFinancialView.vue'
 
 type AuditView = 'kardex' | 'events' | 'waste' | 'financial'
 
