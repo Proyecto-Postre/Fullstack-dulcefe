@@ -12,7 +12,8 @@ const adminModules: { id: AdminTab; label: string; icon: string; desc: string }[
   { id: 'categories', label: 'Secciones del Menú', icon: 'lucide:tags', desc: 'Categorías y filtros de la carta' },
   { id: 'materials', label: 'Almacén de Insumos', icon: 'lucide:scale', desc: 'Control de materias primas' },
   { id: 'recipes', label: 'Escandallo', icon: 'lucide:calculator', desc: 'Fichas técnicas y costos' },
-  { id: 'orders', label: 'Gestión de Pedidos', icon: 'lucide:clipboard-list', desc: 'Kanban comercial y comprobantes' }
+  { id: 'orders', label: 'Gestión de Pedidos', icon: 'lucide:clipboard-list', desc: 'Kanban comercial y comprobantes' },
+  { id: 'audit', label: 'Auditorías', icon: 'lucide:shield-check', desc: 'Kárdex, bitácora y mermas' }
 ]
 
 function selectModule(tab: AdminTab) {

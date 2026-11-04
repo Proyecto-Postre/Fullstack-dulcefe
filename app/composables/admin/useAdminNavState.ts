@@ -1,4 +1,4 @@
-export type AdminTab = 'dashboard' | 'products' | 'categories' | 'materials' | 'recipes' | 'orders'
+export type AdminTab = 'dashboard' | 'products' | 'categories' | 'materials' | 'recipes' | 'orders' | 'audit'
 
 export const TAB_TO_SLUG: Record<AdminTab, string> = {
   dashboard: 'dashboard',
@@ -6,7 +6,8 @@ export const TAB_TO_SLUG: Record<AdminTab, string> = {
   categories: 'categorias',
   materials: 'almacen',
   recipes: 'escandallo',
-  orders: 'pedidos'
+  orders: 'pedidos',
+  audit: 'auditoria'
 }
 
 export const SLUG_TO_TAB: Record<string, AdminTab> = {
@@ -20,7 +21,9 @@ export const SLUG_TO_TAB: Record<string, AdminTab> = {
   escandallo: 'recipes',
   recipes: 'recipes',
   pedidos: 'orders',
-  orders: 'orders'
+  orders: 'orders',
+  auditoria: 'audit',
+  audit: 'audit'
 }
 
 export const useAdminTab = () => useState<AdminTab>('adminCurrentTab', () => 'dashboard')
