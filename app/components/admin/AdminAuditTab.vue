@@ -18,7 +18,7 @@ const { data: rawMaterialsRes } = useFetch<{ success: boolean; data: Array<{ id:
 const materials = computed(() => rawMaterialsRes.value?.data || [])
 
 const views: { id: AuditView; label: string; icon: string; desc: string }[] = [
-  { id: 'kardex', label: 'Kárdex de Insumos', icon: 'lucide:scale', desc: 'Entradas, salidas y variaciones de almacén' },
+  { id: 'kardex', label: 'Movimientos de Insumos', icon: 'lucide:scale', desc: 'Entradas, salidas y stock de materias primas' },
   { id: 'events', label: 'Bitácora del Sistema', icon: 'lucide:activity', desc: 'Registro inmutable de acciones operativas' },
   { id: 'waste', label: 'Mermas & Desperdicios', icon: 'lucide:trash-2', desc: 'Control de pérdidas y descartes de taller' },
   { id: 'financial', label: 'Auditoría Financiera', icon: 'lucide:trending-up', desc: 'Márgenes y costos congelados por pedido' }
@@ -40,7 +40,7 @@ const views: { id: AuditView; label: string; icon: string; desc: string }[] = [
           Auditoría & Trazabilidad
         </h2>
         <p class="text-xs text-brand-secondary/70 mt-0.5">
-          Kárdex de almacén, bitácora inmutable de operaciones, control de mermas y análisis de rentabilidad.
+          Historial de almacén, bitácora inmutable de operaciones, control de mermas y análisis de rentabilidad.
         </p>
       </div>
     </div>

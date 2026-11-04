@@ -119,14 +119,17 @@ function formatDate(iso: string) {
 
 function getTypeBadge(type: string) {
   switch (type) {
+    case 'manual_adjustment':
     case 'purchase':
-      return { label: 'Compra / Ingreso', class: 'bg-emerald-50 text-emerald-800 border-emerald-200' }
+    case 'adjustment':
+      return { label: 'Ajuste / Ingreso', class: 'bg-emerald-50 text-emerald-800 border-emerald-200' }
+    case 'order_consumption':
     case 'production_usage':
       return { label: 'Consumo Taller', class: 'bg-blue-50 text-blue-800 border-blue-200' }
-    case 'adjustment':
-      return { label: 'Ajuste Manual', class: 'bg-amber-50 text-amber-800 border-amber-200' }
+    case 'waste_declaration':
     case 'waste':
       return { label: 'Merma / Baja', class: 'bg-rose-50 text-rose-800 border-rose-200' }
+    case 'cancellation_reversal':
     case 'reversal':
       return { label: 'Reversión Pedido', class: 'bg-purple-50 text-purple-800 border-purple-200' }
     default:
@@ -154,7 +157,7 @@ function exportCsv() {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `kardex_dulcefe_${new Date().toISOString().split('T')[0]}.csv`
+  a.download = `movimientos_insumos_${new Date().toISOString().split('T')[0]}.csv`
   a.click()
   URL.revokeObjectURL(url)
 }
@@ -186,12 +189,11 @@ function exportCsv() {
             v-model="selectedType" 
             class="w-full text-xs font-semibold px-3 py-2 rounded-xl bg-brand-cream/40 border border-brand-primary/20 text-brand-secondary focus:outline-hidden focus:border-brand-primary"
           >
-            <option value="all">Todos los tipos</option>
-            <option value="purchase">Compras / Ingresos</option>
-            <option value="production_usage">Consumo en Taller</option>
-            <option value="adjustment">Ajustes Manuales</option>
-            <option value="waste">Mermas / Pérdidas</option>
-            <option value="reversal">Reversiones de Pedido</option>
+            <option value="all">Todos los movimientos</option>
+            <option value="manual_adjustment">Ajustes e Ingresos de Almacén</option>
+            <option value="order_consumption">Consumo en Taller / Pedidos</option>
+            <option value="waste_declaration">Mermas / Bajas Declaradas</option>
+            <option value="cancellation_reversal">Reversiones por Cancelación</option>
           </select>
         </div>
 
@@ -252,7 +254,7 @@ function exportCsv() {
           <Icon name="lucide:archive-x" class="w-6 h-6" />
         </div>
         <p class="text-sm font-bold text-brand-secondary">No se encontraron movimientos</p>
-        <p class="text-xs text-brand-secondary/60 max-w-sm">No existen registros de kárdex para los filtros o rango de fechas seleccionado.</p>
+        <p class="text-xs text-brand-secondary/60 max-w-sm">No existen registros de movimientos para los filtros o rango de fechas seleccionado.</p>
       </div>
 
       <!-- Tabla Desktop (>= md) -->
