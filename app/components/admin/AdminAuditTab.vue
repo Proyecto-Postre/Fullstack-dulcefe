@@ -84,11 +84,6 @@ const views: { id: AuditView; label: string; icon: string; desc: string }[] = [
           <span :class="['text-xs font-bold leading-tight flex-1', activeView === v.id ? 'text-brand-secondary font-black' : 'text-brand-secondary/85']">
             {{ v.label }}
           </span>
-          <span 
-            v-if="activeView === v.id" 
-            class="w-2 h-2 rounded-full bg-brand-primary shrink-0 shadow-xs ring-4 ring-brand-primary/10"
-            title="Vista activa"
-          ></span>
         </div>
 
         <!-- Descripción -->
