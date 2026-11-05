@@ -53,18 +53,48 @@ const views: { id: AuditView; label: string; icon: string; desc: string }[] = [
         @click="activeView = v.id"
         type="button"
         :class="[
-          'flex flex-col text-left p-3 sm:p-4 rounded-2xl border transition-all duration-200 cursor-pointer relative overflow-hidden group',
+          'flex flex-col text-left p-3.5 sm:p-4 rounded-2xl border transition-all duration-200 cursor-pointer relative overflow-hidden group',
           activeView === v.id
-            ? 'bg-brand-cream border-brand-primary/30 shadow-soft-sm text-brand-secondary'
-            : 'bg-surface border-brand-primary/10 hover:border-brand-primary/25 hover:bg-brand-cream/30 text-brand-secondary/80'
+            ? 'bg-white border-brand-primary/40 shadow-soft-md ring-2 ring-brand-primary/15 -translate-y-0.5 text-brand-secondary'
+            : 'bg-white/80 border-brand-primary/10 hover:bg-white hover:border-brand-primary/25 hover:shadow-soft-sm hover:-translate-y-0.5 text-brand-secondary/70'
         ]"
       >
-        <div :class="['absolute top-0 left-0 right-0 h-1 bg-brand-primary transition-transform duration-200', activeView === v.id ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-50']"></div>
-        <div class="flex items-center gap-2 mb-1">
-          <Icon :name="v.icon" :class="['w-4 h-4', activeView === v.id ? 'text-brand-primary' : 'text-brand-secondary/60']" />
-          <span class="text-xs font-bold">{{ v.label }}</span>
+        <!-- Línea Verde de Acento Superior -->
+        <div 
+          :class="[
+            'absolute top-0 left-0 right-0 h-1.5 transition-all duration-300', 
+            activeView === v.id 
+              ? 'bg-gradient-to-r from-brand-primary to-brand-primary/80 scale-x-100' 
+              : 'bg-brand-primary/25 scale-x-0 group-hover:scale-x-50'
+          ]"
+        ></div>
+
+        <!-- Encabezado de la Tarjeta (Ícono en cápsula + Título + Indicador Activo) -->
+        <div class="flex items-center gap-2.5 mb-1.5">
+          <div 
+            :class="[
+              'w-7 h-7 rounded-xl flex items-center justify-center shrink-0 transition-colors',
+              activeView === v.id
+                ? 'bg-brand-primary/12 text-brand-primary shadow-xs'
+                : 'bg-brand-cream text-brand-secondary/60 group-hover:bg-brand-primary/10 group-hover:text-brand-primary'
+            ]"
+          >
+            <Icon :name="v.icon" class="w-4 h-4" />
+          </div>
+          <span :class="['text-xs font-bold leading-tight flex-1', activeView === v.id ? 'text-brand-secondary font-black' : 'text-brand-secondary/85']">
+            {{ v.label }}
+          </span>
+          <span 
+            v-if="activeView === v.id" 
+            class="w-2 h-2 rounded-full bg-brand-primary shrink-0 shadow-xs ring-4 ring-brand-primary/10"
+            title="Vista activa"
+          ></span>
         </div>
-        <span class="text-[10px] text-brand-secondary/60 line-clamp-1">{{ v.desc }}</span>
+
+        <!-- Descripción -->
+        <span :class="['text-[10px] line-clamp-1 transition-colors pl-0.5', activeView === v.id ? 'text-brand-primary/80 font-medium' : 'text-brand-secondary/55']">
+          {{ v.desc }}
+        </span>
       </button>
     </div>
 

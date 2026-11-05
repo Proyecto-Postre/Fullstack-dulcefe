@@ -179,64 +179,75 @@ async function exportExcel() {
 
 <template>
   <div class="flex flex-col gap-4">
-    <!-- Barra de Filtros Responsiva -->
-    <div class="bg-surface p-4 sm:p-5 rounded-2xl border border-brand-primary/10 shadow-soft-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 flex-1">
+    <!-- Barra de Filtros Responsiva y Alineada -->
+    <div class="bg-surface p-4 sm:p-5 rounded-2xl border border-brand-primary/10 shadow-soft-sm flex flex-col lg:flex-row items-stretch lg:items-end justify-between gap-3 sm:gap-4">
+      <div class="flex flex-wrap items-end gap-2.5 sm:gap-3 flex-1">
         <!-- Insumo -->
-        <div class="flex flex-col gap-1">
+        <div class="flex flex-col gap-1 w-full sm:w-56 lg:w-60">
           <label class="text-[10px] font-bold text-brand-primary uppercase tracking-wider">Insumo</label>
-          <select 
-            v-model="selectedMaterial" 
-            class="w-full text-xs font-semibold px-3 py-2 rounded-xl bg-brand-cream/40 border border-brand-primary/20 text-brand-secondary focus:outline-hidden focus:border-brand-primary"
-          >
-            <option value="all">Todos los insumos</option>
-            <option v-for="mat in props.materials" :key="mat.id" :value="String(mat.id)">
-              {{ mat.name }} ({{ mat.unit }})
-            </option>
-          </select>
+          <div class="relative">
+            <select 
+              v-model="selectedMaterial" 
+              class="w-full text-xs font-semibold pl-3 pr-8 py-2 rounded-xl bg-brand-cream/40 border border-brand-primary/20 text-brand-secondary focus:outline-hidden focus:border-brand-primary appearance-none cursor-pointer hover:border-brand-primary/40 transition-colors"
+            >
+              <option value="all">Todos los insumos</option>
+              <option v-for="mat in props.materials" :key="mat.id" :value="String(mat.id)">
+                {{ mat.name }} ({{ mat.unit }})
+              </option>
+            </select>
+            <div class="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none text-brand-primary/60">
+              <Icon name="lucide:chevron-down" class="w-3.5 h-3.5" />
+            </div>
+          </div>
         </div>
 
         <!-- Tipo de Movimiento -->
-        <div class="flex flex-col gap-1">
+        <div class="flex flex-col gap-1 w-full sm:w-52 lg:w-56">
           <label class="text-[10px] font-bold text-brand-primary uppercase tracking-wider">Tipo</label>
-          <select 
-            v-model="selectedType" 
-            class="w-full text-xs font-semibold px-3 py-2 rounded-xl bg-brand-cream/40 border border-brand-primary/20 text-brand-secondary focus:outline-hidden focus:border-brand-primary"
-          >
-            <option value="all">Todos los movimientos</option>
-            <option value="manual_adjustment">Ajustes e Ingresos de Almacén</option>
-            <option value="order_consumption">Consumo en Taller / Pedidos</option>
-            <option value="waste_declaration">Mermas / Bajas Declaradas</option>
-            <option value="cancellation_reversal">Reversiones por Cancelación</option>
-          </select>
+          <div class="relative">
+            <select 
+              v-model="selectedType" 
+              class="w-full text-xs font-semibold pl-3 pr-8 py-2 rounded-xl bg-brand-cream/40 border border-brand-primary/20 text-brand-secondary focus:outline-hidden focus:border-brand-primary appearance-none cursor-pointer hover:border-brand-primary/40 transition-colors"
+            >
+              <option value="all">Todos los movimientos</option>
+              <option value="manual_adjustment">Ajustes e Ingresos de Almacén</option>
+              <option value="order_consumption">Consumo en Taller / Pedidos</option>
+              <option value="waste_declaration">Mermas / Bajas Declaradas</option>
+              <option value="cancellation_reversal">Reversiones por Cancelación</option>
+            </select>
+            <div class="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none text-brand-primary/60">
+              <Icon name="lucide:chevron-down" class="w-3.5 h-3.5" />
+            </div>
+          </div>
         </div>
 
         <!-- Fecha Desde -->
-        <div class="flex flex-col gap-1">
+        <div class="flex flex-col gap-1 w-full sm:w-36 lg:w-40">
           <label class="text-[10px] font-bold text-brand-primary uppercase tracking-wider">Desde</label>
           <input 
             v-model="dateFrom" 
             type="date" 
-            class="w-full text-xs font-semibold px-3 py-2 rounded-xl bg-brand-cream/40 border border-brand-primary/20 text-brand-secondary focus:outline-hidden focus:border-brand-primary"
+            class="w-full text-xs font-semibold px-3 py-2 rounded-xl bg-brand-cream/40 border border-brand-primary/20 text-brand-secondary focus:outline-hidden focus:border-brand-primary hover:border-brand-primary/40 transition-colors"
           />
         </div>
 
         <!-- Fecha Hasta -->
-        <div class="flex flex-col gap-1">
+        <div class="flex flex-col gap-1 w-full sm:w-36 lg:w-40">
           <label class="text-[10px] font-bold text-brand-primary uppercase tracking-wider">Hasta</label>
           <input 
             v-model="dateTo" 
             type="date" 
-            class="w-full text-xs font-semibold px-3 py-2 rounded-xl bg-brand-cream/40 border border-brand-primary/20 text-brand-secondary focus:outline-hidden focus:border-brand-primary"
+            class="w-full text-xs font-semibold px-3 py-2 rounded-xl bg-brand-cream/40 border border-brand-primary/20 text-brand-secondary focus:outline-hidden focus:border-brand-primary hover:border-brand-primary/40 transition-colors"
           />
         </div>
       </div>
 
-      <div class="flex items-end justify-end gap-2 pt-1 md:pt-0">
+      <!-- Botones de Acción Alineados al Fondo -->
+      <div class="flex items-center gap-2 shrink-0 self-end">
         <button
           @click="fetchKardex"
           type="button"
-          class="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-brand-primary/20 bg-brand-cream text-brand-primary text-xs font-bold hover:bg-brand-cream/80 transition-all cursor-pointer shadow-soft-sm"
+          class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-brand-primary/20 bg-brand-cream text-brand-primary text-xs font-bold hover:bg-brand-cream/80 transition-all cursor-pointer shadow-soft-sm active:scale-95"
           title="Actualizar datos"
         >
           <Icon name="lucide:refresh-cw" :class="['w-3.5 h-3.5', isLoading ? 'animate-spin' : '']" />
@@ -247,7 +258,7 @@ async function exportExcel() {
           @click="exportExcel"
           :disabled="!items.length"
           type="button"
-          class="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-emerald-600/30 bg-emerald-50 text-emerald-800 text-xs font-bold hover:bg-emerald-100 transition-all cursor-pointer shadow-soft-sm disabled:opacity-40 disabled:cursor-not-allowed"
+          class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-emerald-600/30 bg-emerald-50 text-emerald-800 text-xs font-bold hover:bg-emerald-100 transition-all cursor-pointer shadow-soft-sm disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
           title="Exportar reporte en formato Excel (.xlsx)"
         >
           <Icon name="lucide:file-spreadsheet" class="w-3.5 h-3.5 text-emerald-700" />
