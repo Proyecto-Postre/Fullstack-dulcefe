@@ -80,6 +80,17 @@ Los componentes que viven en `app/components/admin/` son "Componentes Inteligent
   4. Recalcula en tiempo real el "Margen Bruto" usando propiedades computadas (`computed`) cada vez que el precio de un insumo o un costo fijo cambia.
 - **Capacidad de Exportación**: Contiene la lógica del lado del cliente para construir URLs dinámicas y descargar reportes vía ExcelJS apuntando a `/api/recipes/export`.
 
+### `AdminBatchRecipesTab.vue` (Tandas Maestras & Rendimientos)
+- **Responsabilidad**: Gestión de recetas base en lotes (batch recipes), rendimientos en piezas físicas (yields), costos indirectos (CIF) y descargo rápido de mermas de producción.
+- **Interacción**: Integra `BatchRecipeModal.vue`, `YieldModal.vue` y `WasteDeclarationModal.vue`, coordinando quiebres en kárdex y desacoplamiento de empaque comercial.
+
+### `AdminAuditTab.vue` (Auditoría, Kárdex & Trazabilidad)
+- **Responsabilidad**: Centro de trazabilidad y vigilancia operativa. Integra 4 subvistas especializadas mediante navegación reactiva:
+  1. `AuditKardexView.vue`: Movimientos físicos y contables de insumos con exportador Excel (.xlsx).
+  2. `AuditEventsView.vue`: Bitácora inmutable de eventos administrativos con inspección de payloads.
+  3. `AuditWasteView.vue`: Control histórico de mermas y desperdicios físicos en taller.
+  4. `AuditFinancialView.vue`: Auditoría de órdenes con desglose de COGS, CIF, mano de obra y márgenes de ganancia.
+
 ---
 
 ## 4. Componentes Atómicos UI (`app/components/ui/`)

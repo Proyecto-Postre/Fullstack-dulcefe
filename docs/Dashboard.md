@@ -84,7 +84,7 @@ flowchart TD
   * **Tandas Maestras, Porcionamiento & Vitrina (Fase 7):** [[GET-api-admin-batch-recipes]], [[POST-api-admin-batch-recipes]], [[GET-api-admin-batch-recipes-id]], [[PUT-api-admin-batch-recipes-id]], [[DELETE-api-admin-batch-recipes-id]], [[POST-api-admin-batch-recipes-quick-deduction]], [[POST-api-admin-product-recipes-mapping]], [[GET-api-admin-product-recipes-productId-composition]], [[GET-api-admin-dashboard-at-risk-products]].
   * **Auditoría, Kárdex & Trazabilidad (Fase 8):** [[GET-api-admin-audit-kardex]], [[GET-api-admin-audit-events]], [[GET-api-admin-audit-waste]], [[GET-api-admin-audit-financial]].
 * [[esquema-base-datos]] — Esquema relacional oficial, tablas `products`, `categories`, `orders`, `order_items`, `profiles`, `addresses`, `inventory_movements`, `raw_materials`, `recipe_items`, `base_recipes`, `base_recipe_items`, `recipe_yields`, `product_recipe_mappings`, `product_packaging_items`, `piece_waste_logs` y RLS.
-* [[sql/README]] — Gobernanza de base de datos y catálogo de 14 migraciones oficiales en `supabase/migrations/`.
+* [[sql/README]] — Gobernanza de base de datos y catálogo de 19 migraciones oficiales en `supabase/migrations/`.
 
 ### 📁 03 - Arquitectura & UI
 * [[architecture-refactor-plan]] — Diagnóstico arquitectónico y plan de refactorización.
