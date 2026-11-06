@@ -14,6 +14,7 @@ Esta carpeta contiene guías prácticas, directas e intuitivas diseñadas para q
 | [Manual 03: Tandas Maestras & Rendimientos](./manual-03-tandas-rendimientos-y-recetas.md) | Recetas base en gramos/ml, asignación de porciones a la carta y empaques desacoplados. | Chef Pastelero & Dueño | 4 min |
 | [Manual 04: Pantalla de Cocina (KDS)](./manual-04-pantalla-cocina-kds.md) | Interfaz táctil para tablets en cocina, semáforos de urgencia y horneado en lotes. | Equipo de Cocina | 2 min |
 | [Manual 05: Almacén, Insumos & Mermas](./manual-05-almacen-insumos-y-mermas.md) | Registro de compras, costo por gramo, stock mínimo y descargo rápido si algo se quema. | Almacén & Producción | 3 min |
+| [Manual 06: Auditoría, Kárdex & Trazabilidad](./manual-06-auditoria-kardex-y-trazabilidad.md) | Balance de movimientos de almacén, bitácora de eventos, mermas y exportación Excel. | Administración & Gerencia | 3 min |
 
 ---
 
@@ -21,3 +22,4 @@ Esta carpeta contiene guías prácticas, directas e intuitivas diseñadas para q
 1. **El dinero y la cocina van separados:** Siempre verifica el voucher en *"Confirmar Pago Válido"* antes de mandar a hornear.
 2. **El stock se descuenta en el horno:** Los insumos de cocina no se tocan cuando entra el pedido; se descuentan automáticamente cuando lo pasas a **"En Taller / Horneado" (`processing`)**.
 3. **Flexibilidad total:** Tú como administrador siempre puedes adelantar estados, editar notas o cambiar horas pactadas según acuerdes con el cliente por WhatsApp.
+4. **Trazabilidad contable total:** Cualquier movimiento físico de insumos o cambio administrativo queda registrado en el Kárdex y la bitácora inmutable de eventos.

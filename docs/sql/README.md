@@ -32,6 +32,7 @@
 | **16** | [`20261020120000_add_portions_and_delivery_options.sql`](file:///c:/Users/PRUEBA/Documents/Visual%20Proyects/Fullstack-dulcefe/supabase/migrations/20261020120000_add_portions_and_delivery_options.sql) | Cliente / Entregas | Columna `portions` en `products`, y columnas `delivery_mode`, `delivery_slot` y `meeting_point_details` en `orders`. |
 | **17** | [`20261103150000_seed_catalog_and_materials.sql`](file:///c:/Users/PRUEBA/Documents/Visual%20Proyects/Fullstack-dulcefe/supabase/migrations/20261103150000_seed_catalog_and_materials.sql) | Catálogo / Insumos | Sincronización oficial del catálogo comercial de 51 productos de Notion, 5 categorías y 34 materias primas con precios reales. |
 | **18** | [`20261104151000_sync_dev_calibrated_catalog_and_materials.sql`](file:///c:/Users/PRUEBA/Documents/Visual%20Proyects/Fullstack-dulcefe/supabase/migrations/20261104151000_sync_dev_calibrated_catalog_and_materials.sql) | Calibración DEV | Sincronización de calibraciones finales realizadas en DEV (nombres de empanaditas, alfajores, vasos 12 oz y precios de insumos carne molida/pan pullman). |
+| **19** | [`20261104160000_seed_initial_inventory_movements_balance.sql`](file:///c:/Users/PRUEBA/Documents/Visual%20Proyects/Fullstack-dulcefe/supabase/migrations/20261104160000_seed_initial_inventory_movements_balance.sql) | Auditoría / Almacén | Asiento contable de apertura en `inventory_movements` para el stock inicial de materias primas calibradas. |
 
 ---
 

@@ -157,6 +157,19 @@ function goToRecipeTab(product: ProductItem) {
           Gestión de Pedidos
         </button>
 
+        <button 
+          @click="currentTab = 'audit'"
+          type="button"
+          :class="[
+            'flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold transition-all text-left w-full border relative overflow-hidden group cursor-pointer text-sm',
+            currentTab === 'audit' ? 'bg-brand-cream text-brand-primary border-brand-primary/20 shadow-soft-sm' : 'bg-transparent text-brand-secondary border-transparent hover:bg-brand-cream/50'
+          ]"
+        >
+          <div :class="['absolute left-0 top-0 bottom-0 w-1 bg-brand-primary transition-transform duration-300', currentTab === 'audit' ? 'scale-y-100' : 'scale-y-0 group-hover:scale-y-50']"></div>
+          <Icon name="lucide:shield-check" :class="['w-5 h-5 transition-transform duration-300', currentTab === 'audit' ? 'scale-110' : 'group-hover:scale-110']" />
+          Auditorías
+        </button>
+
         <NuxtLink
           to="/admin/kds"
           class="flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold text-amber-700 bg-amber-50 hover:bg-amber-100/80 border border-amber-300/40 text-left w-full relative overflow-hidden group cursor-pointer text-sm transition-all shadow-soft-sm mt-2"
@@ -208,6 +221,10 @@ function goToRecipeTab(product: ProductItem) {
 
         <AdminOrdersTab 
           v-if="currentTab === 'orders'"
+        />
+
+        <AdminAuditTab
+          v-if="currentTab === 'audit'"
         />
       </div>
     </main>

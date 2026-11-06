@@ -12,7 +12,8 @@ const adminModules: { id: AdminTab; label: string; icon: string; desc: string }[
   { id: 'categories', label: 'Secciones del Menú', icon: 'lucide:tags', desc: 'Categorías y filtros de la carta' },
   { id: 'materials', label: 'Almacén de Insumos', icon: 'lucide:scale', desc: 'Control de materias primas' },
   { id: 'recipes', label: 'Escandallo', icon: 'lucide:calculator', desc: 'Fichas técnicas y costos' },
-  { id: 'orders', label: 'Gestión de Pedidos', icon: 'lucide:clipboard-list', desc: 'Kanban comercial y comprobantes' }
+  { id: 'orders', label: 'Gestión de Pedidos', icon: 'lucide:clipboard-list', desc: 'Kanban comercial y comprobantes' },
+  { id: 'audit', label: 'Auditorías', icon: 'lucide:shield-check', desc: 'Movimientos, bitácora y mermas' }
 ]
 
 function selectModule(tab: AdminTab) {
@@ -123,7 +124,7 @@ async function handleLogout() {
 
           <!-- Drawer Panel -->
           <aside 
-            class="relative w-[85%] max-w-xs bg-brand-cream h-full shadow-2xl border-l border-brand-primary/20 flex flex-col z-10 animate-slide-in p-6"
+            class="relative w-[85%] max-w-xs bg-brand-cream h-full shadow-2xl border-l border-brand-primary/20 flex flex-col z-10 animate-slide-in p-6 overflow-hidden"
             @click.stop
           >
             <!-- Cabecera del Sidebar -->
@@ -148,7 +149,7 @@ async function handleLogout() {
             </div>
 
             <!-- Lista de Módulos con Estado Activo -->
-            <div class="flex-1 overflow-y-auto py-5 space-y-2">
+            <div class="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar py-5 space-y-2 pr-1">
               <button
                 v-for="mod in adminModules"
                 :key="mod.id"

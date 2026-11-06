@@ -2,12 +2,12 @@
 tipo: dashboard
 proyecto: Dulce Fe Fullstack
 stack: Nuxt 4, Vue 3.5, TypeScript, Tailwind CSS, Supabase, ExcelJS, n8n, Vitest, Playwright
-ultima_actualizacion: 2026-10-22
+ultima_actualizacion: 2026-11-06
 ---
 
 # 🍰 Dulce Fe — Centro de Comando
 
-> **Estado:** 🟢 Fases 0–8 Completadas | 🟢 294/294 Tests Pasando (100% Green) | 🌟 **Certificación Integral 10/10 Enterprise**
+> **Estado:** 🟢 Fases 0–8 Completadas | 🟢 303/303 Tests Pasando (100% Green) | 🌟 **Certificación Integral 10/10 Enterprise**
 > **Vista Gráfica:** Presiona `Ctrl + G` en Obsidian para el mapa global.
 
 ---
@@ -71,7 +71,7 @@ flowchart TD
 * [[plan-tandas-porcionamiento-recetas]] — Plan Maestro de Tandas (Batch Recipes), Rendimientos (Yield), Descargo Rápido de Piezas y Vitrina A Pedido.
 
 ### 📁 02 - Backend & Datos
-* [[api-endpoints]] — **Catálogo Maestro de Endpoints API** (24 fichas técnicas individuales en `endpoints/`):
+* [[api-endpoints]] — **Catálogo Maestro de Endpoints API** (28 fichas técnicas individuales en `endpoints/`):
   * **Productos:** [[GET-api-products]], [[POST-api-products]], [[GET-api-products-id]], [[PUT-api-products-id]], [[DELETE-api-products-id]], [[POST-api-products-upload]].
   * **Categorías:** [[GET-api-categories]].
   * **Autenticación & Perfil:** [[GET-api-auth-profile]].
@@ -82,9 +82,9 @@ flowchart TD
   * **Tracking Invitados:** [[GET-api-orders-track-token]].
   * **Operaciones Admin & KDS:** [[GET-api-admin-orders]], [[GET-api-admin-orders-id]], [[PATCH-api-admin-orders-id]], [[PATCH-api-admin-orders-id-status]], [[POST-api-admin-orders]], [[POST-api-admin-orders-id-verify-payment]], [[GET-api-admin-orders-id-cost-snapshot]], [[GET-api-admin-kds-orders]].
   * **Tandas Maestras, Porcionamiento & Vitrina (Fase 7):** [[GET-api-admin-batch-recipes]], [[POST-api-admin-batch-recipes]], [[GET-api-admin-batch-recipes-id]], [[PUT-api-admin-batch-recipes-id]], [[DELETE-api-admin-batch-recipes-id]], [[POST-api-admin-batch-recipes-quick-deduction]], [[POST-api-admin-product-recipes-mapping]], [[GET-api-admin-product-recipes-productId-composition]], [[GET-api-admin-dashboard-at-risk-products]].
+  * **Auditoría, Kárdex & Trazabilidad (Fase 8):** [[GET-api-admin-audit-kardex]], [[GET-api-admin-audit-events]], [[GET-api-admin-audit-waste]], [[GET-api-admin-audit-financial]].
 * [[esquema-base-datos]] — Esquema relacional oficial, tablas `products`, `categories`, `orders`, `order_items`, `profiles`, `addresses`, `inventory_movements`, `raw_materials`, `recipe_items`, `base_recipes`, `base_recipe_items`, `recipe_yields`, `product_recipe_mappings`, `product_packaging_items`, `piece_waste_logs` y RLS.
-* [[sql/README]] — Gobernanza de base de datos y catálogo de 11 migraciones oficiales en `supabase/migrations/`.
-
+* [[sql/README]] — Gobernanza de base de datos y catálogo de 19 migraciones oficiales en `supabase/migrations/`.
 
 ### 📁 03 - Arquitectura & UI
 * [[architecture-refactor-plan]] — Diagnóstico arquitectónico y plan de refactorización.
@@ -150,9 +150,11 @@ flowchart TD
   * [[hardening-estabilidad-informe-ejecucion]] — Hardening & Estabilidad del Sistema (Fix Modales, RLS Service Role & Sesiones Zombi).
   * [[elevacion-certificacion-10-10-informe-ejecucion]] — Elevación Integral a Calificación 10/10 Enterprise y Cierre Arquitectónico.
   * [[aislamiento-entornos-dev-prod-y-seguridad-credenciales-informe]] — Aislamiento de Entornos Dev/Prod y Seguridad de Credenciales.
-  * [[notificaciones-resend-aislamiento-entornos-informe]] — Notificaciones Resend, Detección Unificada de Entornos y Política Cero Emojis (294 Tests Passing).
+  * [[notificaciones-resend-aislamiento-entornos-informe]] — Notificaciones Resend, Detección Unificada de Entornos y Política Cero Emojis.
   * [[auditoria-ux-modalidades-y-erradicacion-alerts-informe]] — Auditoría Integral UX, Modalidades de Entrega, Desacoplamiento Checkout WhatsApp y Erradicación de Alerts.
   * [[saneamiento-vulnerabilidades-dependabot-informe]] — Saneamiento de Vulnerabilidades Dependabot, Actualización Segura de Dependencias y Cero Regresiones.
+  * [[poblado-catalogo-notion-y-ci-hardening-informe]] — Poblado Oficial de Catálogo desde Notion, Fotos 4:3, Eliminación Segura y Hardening CI/CD.
+  * [[modulo-auditoria-kardex-informe-ejecucion]] — Módulo Administrativo de Auditoría, Kárdex de Insumos, Bitácora de Eventos y Exportación Excel (303 Tests Passing).
 
 ### 📁 05 - Operaciones & Resiliencia
 * [[playbook-operaciones]] — Variables por entorno, rotación de claves, runbook de restore V44, Vercel Git-Ops y telemetría de alertas.
@@ -177,13 +179,16 @@ flowchart TD
 * [[ADR-005-automatizacion-event-driven-n8n]] — Automatizaciones con n8n Open-Source vs Zapier/Make.
 * [[ADR-006-carrito-cliente-pinia-cookies]] — Carrito en cliente con Pinia + Cookies vs tablas en BD.
 * [[ADR-007-tiempo-real-server-sent-events]] — Streaming de estado de pedidos con Server-Sent Events (SSE).
-### 06 - Manuales de Usuario (Guías Prácticas de Operación)
+* [[ADR-008-modelo-tandas-maestras-rendimientos-porcionamiento]] — Modelo relacional de tandas maestras, rendimientos y porcionamiento desacoplado.
+
+### 📁 06 - Manuales de Usuario (Guías Prácticas de Operación)
 * [[06 - Manuales de Usuario/README|Índice de Manuales de Usuario]] — Centro de guías prácticas del equipo.
 * [[manual-01-gestion-pedidos-y-estados]] — Manual 01: Gestión de pedidos, ciclo de vida y control de estados.
 * [[manual-02-aprobacion-pagos-yape-plin]] — Manual 02: Aprobación de pagos Yape/Plin y validación de vouchers en 1-clic.
 * [[manual-03-tandas-rendimientos-y-recetas]] — Manual 03: Tandas maestras, rendimientos y empaques desacoplados.
 * [[manual-04-pantalla-cocina-kds]] — Manual 04: Pantalla táctil de cocina (KDS) y horneado en lotes.
 * [[manual-05-almacen-insumos-y-mermas]] — Manual 05: Almacén de materias primas, alertas y descargo de mermas.
+* [[manual-06-auditoria-kardex-y-trazabilidad]] — Manual 06: Auditoría, Kárdex de Insumos, Bitácora de Eventos y Exportación Excel.
 
 ---
 
