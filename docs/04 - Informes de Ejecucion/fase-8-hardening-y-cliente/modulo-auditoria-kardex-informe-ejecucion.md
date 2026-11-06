@@ -66,3 +66,4 @@ Para culminar la trazabilidad operativa y contable del ERP Dulce Fe, se implemen
   - 0 advertencias de ESLint.
   - 0 errores de tipos en Nuxt Typecheck (`vue-tsc`).
   - Build de producción generado en 28s sin advertencias de resolución.
+

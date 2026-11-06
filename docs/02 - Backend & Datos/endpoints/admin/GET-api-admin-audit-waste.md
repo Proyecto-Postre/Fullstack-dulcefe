@@ -63,3 +63,4 @@ Consulta histórica de registros de mermas y desperdicios físicos (`piece_waste
   }
 }
 ```
+

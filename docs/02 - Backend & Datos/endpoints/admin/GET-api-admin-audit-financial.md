@@ -72,3 +72,4 @@ Permite auditar el desglose de ingresos totales, costo de bienes vendidos (COGS)
   }
 }
 ```
+

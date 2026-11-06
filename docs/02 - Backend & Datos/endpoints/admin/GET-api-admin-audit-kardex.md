@@ -65,3 +65,4 @@ Permite auditar ingresos por compras, quiebres atómicos por producción de órd
   }
 }
 ```
+

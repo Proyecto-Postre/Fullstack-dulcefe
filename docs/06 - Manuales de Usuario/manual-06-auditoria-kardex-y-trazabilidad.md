@@ -74,3 +74,4 @@ Muestra el desempeno economico de las ordenes entregadas o en curso:
   - Verde: Margen superior al 55%.
   - Ambar: Margen entre 40% y 55%.
   - Rojo: Margen critico menor al 40%.
+

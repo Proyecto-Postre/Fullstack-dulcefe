@@ -35,3 +35,4 @@ Para alinear el entorno de desarrollo y pruebas con la carta real de la pasteler
   - `app/components/catalog/CatalogProductCard.vue`
   - `app/components/admin/AdminMaterialsTab.vue`
   - `app/utils/productIcon.ts`
+
