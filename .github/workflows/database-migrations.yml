@@ -7,6 +7,7 @@ on:
       - dev
     paths:
       - 'supabase/migrations/**'
+      - '.github/workflows/database-migrations.yml'
   workflow_dispatch:
     inputs:
       target_env:
@@ -66,6 +67,9 @@ jobs:
 
       - name: Run Migrations (supabase db push)
         shell: bash
+        env:
+          SUPABASE_YES: "true"
         run: |
-          supabase db push --include-all --db-url "${{ steps.db_env.outputs.db_url }}"
+          supabase db push --yes --include-all --db-url "${{ steps.db_env.outputs.db_url }}"
+
 

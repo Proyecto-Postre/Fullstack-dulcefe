@@ -12,7 +12,7 @@ relacionado:
   - "[[ADR-004-motor-escandallos-exportacion-exceljs]]"
   - "[[ADR-005-payment-gateways]]"
   - "[[ADR-008-recipe-versioning]]"
-ultima_actualizacion: 2026-09-15
+ultima_actualizacion: 2026-11-06
 ---
 
 # ⚡ Catálogo Maestro de Endpoints API — Backend Nitro
@@ -127,9 +127,16 @@ Rutas con namespace dedicado que delegan a `CatalogService`, `InventoryService` 
 
 ---
 
-## 📬 14. Servicios Transaccionales del Servidor (`server/services` & `server/utils`)
+## 🔍 14. Módulo: Auditoría, Kardex & Trazabilidad (`/api/admin/audit`) [Fase 8]
+* [[GET-api-admin-audit-kardex|GET /api/admin/audit/kardex]] — 🔒 Movimientos de almacén de insumos y materias primas (compras, horneado, ajustes, mermas) con exportación Excel.
+* [[GET-api-admin-audit-events|GET /api/admin/audit/events]] — 🔒 Bitácora inmutable de eventos de auditoría y acciones administrativas en el sistema.
+* [[GET-api-admin-audit-waste|GET /api/admin/audit/waste]] — 🔒 Registro histórico de mermas y desperdicios físicos de piezas en taller.
+* [[GET-api-admin-audit-financial|GET /api/admin/audit/financial]] — 🔒 Auditoría financiera de órdenes con escandallo congelado (COGS, CIF, mano de obra y margen bruto).
+
+---
+
+## 📬 15. Servicios Transaccionales del Servidor (`server/services` & `server/utils`)
+* **`AuditService` (`server/services/audit.service.ts`):** Servicio centralizado de consultas para movimientos de kárdex, eventos inmutables, mermas y auditoría financiera con paginación y filtros ISO.
 * **`EmailNotificationService.sendNewOrderNotification(data)`:** Despacho de notificaciones de correo vía Resend API al recibir un pedido. Tolerante a fallos (no bloquea checkout). Incluye diseño responsive con paleta Dulce Fe, badges de modalidad y enlace directo a WhatsApp.
 * **`server/utils/environment.ts`:** Motor unificado de detección de entornos (`production`, `preview`, `development`, `test`) y resolución de URLs canónicas (`https://dulcefe.vercel.app` para producción en Vercel, `http://localhost:3000` en local).
 * **`WebhookService.dispatch(eventName, data, requestId)`:** Despacho seguro de webhooks firmados con HMAC-SHA256 con enriquecimiento de entorno (`environment` y cabecera `X-DulceFe-Environment`) y URL canónica absoluta de seguimiento.
-
-

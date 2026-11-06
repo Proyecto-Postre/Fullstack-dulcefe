@@ -241,14 +241,7 @@ export function useCatalog(
     if (product.image_url && product.image_url.trim() !== '') {
       return product.image_url
     }
-    const name = (product.name || '').toLowerCase()
-    if (name.includes('torta') || name.includes('chocolate')) {
-      return '/images/desserts/torta-chocolate-frutos.jpg'
-    }
-    if (name.includes('tarta') || name.includes('fresa') || name.includes('pistacho')) {
-      return '/images/desserts/tartaleta-fresas-pistacho.jpg'
-    }
-    return '/images/desserts/torta-chocolate-frutos.jpg'
+    return ''
   }
 
   function resetFilters(): void {

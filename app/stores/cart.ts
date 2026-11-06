@@ -2,8 +2,6 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { CartItem, AddToCartInput } from '~/types/cart'
 
-export type { CartItem, AddToCartInput }
-
 export const useCartStore = defineStore('cart', () => {
   const items = ref<CartItem[]>([])
   const isDrawerOpen = ref<boolean>(false)

@@ -334,13 +334,25 @@ async function copyProductShareLink() {
           </div>
 
           <!-- Imagen del Producto -->
-          <div class="w-full md:w-1/2 h-56 sm:h-72 md:h-auto relative bg-brand-cream/50 overflow-hidden shrink-0">
+          <div class="w-full md:w-1/2 h-56 sm:h-72 md:h-auto relative bg-brand-cream/50 overflow-hidden shrink-0 flex items-center justify-center">
             <img 
+              v-if="imageUrl && imageUrl.trim() !== ''"
               :src="imageUrl" 
               :alt="product.name" 
               class="w-full h-full object-cover"
             />
-            <div class="absolute inset-0 bg-gradient-to-t from-brand-secondary/40 via-transparent to-transparent md:hidden"></div>
+            <div 
+              v-else 
+              class="w-full h-full min-h-[14rem] flex flex-col items-center justify-center bg-gradient-to-br from-[#FDFBF7] to-[#F5F1E1] p-6 text-center select-none"
+            >
+              <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-[#EFEAD4]/80 border border-brand-primary/15 flex items-center justify-center shadow-soft-sm">
+                <Icon :name="getProductIcon(product.name, product.category_id)" class="w-10 h-10 sm:w-12 sm:h-12 text-brand-primary/80" />
+              </div>
+              <span class="text-xs font-semibold text-brand-secondary/60 mt-3.5 font-serif italic tracking-wide">
+                Dulce Fe Atelier
+              </span>
+            </div>
+            <div class="absolute inset-0 bg-gradient-to-t from-brand-secondary/40 via-transparent to-transparent md:hidden pointer-events-none"></div>
 
             <div 
               v-if="!isAvailable" 
